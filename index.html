@@ -1,108 +1,299 @@
 <!doctype html>
 <html lang="de">
 <head>
-    <meta charset="utf-8">
-    <title>Mitgliederverwaltung</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <style>
-        body{font-family:system-ui;margin:30px;max-width:900px}
-        input,select,button{padding:8px;margin:4px}
-        table{width:100%;border-collapse:collapse;margin-top:16px}
-        th,td{border:1px solid #ccc;padding:8px}
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mitgliederverwaltung</title>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    body{font-family:system-ui;margin:24px;max-width:980px}
+    h1{margin-bottom:6px}
+    .card{border:1px solid #ddd;border-radius:12px;padding:14px;margin:12px 0}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input,select,button{padding:10px;border:1px solid #ccc;border-radius:10px}
+    input,select{min-width:200px}
+    button{cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:top}
+    th{font-weight:600}
+    .muted{color:#666;font-size:14px}
+    .right{margin-left:auto}
+    .danger{border-color:#ffb3b3}
+    .danger:hover{background:#fff2f2}
+    .ok{color:#0a7a2f}
+    .warn{color:#b05b00}
+    .hidden{display:none}
+    .pill{padding:4px 10px;border-radius:999px;border:1px solid #ddd;font-size:13px}
+  </style>
 </head>
+
 <body>
+  <h1>Mitgliederverwaltung</h1>
+  <div class="muted">Nur eingeloggte Nutzer sehen und bearbeiten Daten.</div>
 
-<h1>Mitgliederverwaltung (Supabase)</h1>
+  <!-- AUTH CARD -->
+  <div class="card">
+    <div class="row">
+      <input id="loginEmail" placeholder="Email" autocomplete="username" />
+      <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password" />
+      <button id="btnLogin" onclick="signIn()">Login</button>
+      <button id="btnLogout" class="hidden" onclick="signOut()">Logout</button>
 
-<div style="margin:12px 0;">
-  <input id="loginEmail" placeholder="Email">
-  <input id="loginPass" type="password" placeholder="Passwort">
-  <button onclick="signIn()">Login</button>
-  <button onclick="signOut()">Logout</button>
-  <span id="authStatus" style="margin-left:8px;"></span>
-</div>
-    
-<input id="first" placeholder="Vorname">
-<input id="last" placeholder="Nachname">
-<input id="mail" placeholder="Email">
-<select id="status">
-    <option>aktiv</option>
-    <option>pausiert</option>
-    <option>ausgetreten</option>
-</select>
-<button onclick="add()">Speichern</button>
+      <span class="right pill" id="authStatus">Status: nicht eingeloggt</span>
+    </div>
+    <div class="muted" style="margin-top:8px">
+      Hinweis: Nutzer werden von dir in Supabase über <b>Authentication → Users → Invite user</b> eingeladen.
+    </div>
+  </div>
 
-<table>
-    <thead>
-    <tr><th>Name</th><th>Email</th><th>Status</th></tr>
-    </thead>
-    <tbody id="list"></tbody>
-</table>
+  <!-- APP CARD -->
+  <div class="card hidden" id="appCard">
+    <h3 style="margin-top:0">Mitglied anlegen / bearbeiten</h3>
 
-<script>
+    <div class="row">
+      <input id="first" placeholder="Vorname *" />
+      <input id="last" placeholder="Nachname *" />
+      <input id="mail" placeholder="Email" />
+      <select id="status">
+        <option value="aktiv">aktiv</option>
+        <option value="pausiert">pausiert</option>
+        <option value="ausgetreten">ausgetreten</option>
+      </select>
+
+      <button id="btnSave" onclick="saveMember()">Speichern</button>
+      <button id="btnCancel" class="hidden" onclick="cancelEdit()">Abbrechen</button>
+
+      <span class="right muted" id="modeInfo">Modus: Neu</span>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <input id="search" placeholder="Suche (Name/Email/Status)" oninput="render()" />
+      <button onclick="load()">Aktualisieren</button>
+      <span class="right muted" id="countInfo"></span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:32%">Name</th>
+          <th style="width:30%">Email</th>
+          <th style="width:18%">Status</th>
+          <th style="width:20%">Aktionen</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // 1) HIER EINTRAGEN:
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+    const SUPABASE_ANON_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function setStatus(t){ document.getElementById("authStatus").textContent = t; }
+    // State
+    let members = [];
+    let editingId = null;
 
-async function signIn(){
-  const email = loginEmail.value.trim();
-  const password = loginPass.value;
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) return alert(error.message);
-  setStatus("Eingeloggt ✅");
-  load();
-}
+    // Helpers
+    function setStatus(text, kind="muted") {
+      const el = document.getElementById("authStatus");
+      el.textContent = "Status: " + text;
+      el.classList.remove("ok","warn");
+      if (kind === "ok") el.classList.add("ok");
+      if (kind === "warn") el.classList.add("warn");
+    }
 
-async function signOut(){
-  await sb.auth.signOut();
-  setStatus("Ausgeloggt");
-  list.innerHTML = "";
-}
+    async function requireAuth() {
+      const { data } = await sb.auth.getSession();
+      if (!data.session) throw new Error("Bitte einloggen.");
+      return data.session;
+    }
 
-async function requireAuth(){
-  const { data } = await sb.auth.getSession();
-  if (!data.session) throw new Error("Bitte erst einloggen.");
-}
+    function esc(s) {
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
 
-async function load(){
-  try { await requireAuth(); }
-  catch(e){ setStatus(e.message); return; }
+    function clearForm() {
+      first.value = "";
+      last.value = "";
+      mail.value = "";
+      status.value = "aktiv";
+    }
 
-  const { data, error } = await sb.from("members").select("*").order("id", { ascending:false });
-  if (error) return alert("LOAD: " + error.message);
+    function setMode(modeText) {
+      document.getElementById("modeInfo").textContent = "Modus: " + modeText;
+    }
 
-  list.innerHTML = data.map(m => `
-    <tr>
-      <td>${m.first_name} ${m.last_name}</td>
-      <td>${m.email || ""}</td>
-      <td>${m.status}</td>
-    </tr>
-  `).join("");
-}
+    function showApp(isVisible) {
+      document.getElementById("appCard").classList.toggle("hidden", !isVisible);
+      document.getElementById("btnLogout").classList.toggle("hidden", !isVisible);
+      document.getElementById("btnLogin").classList.toggle("hidden", isVisible);
+    }
 
-async function add(){
-  try { await requireAuth(); }
-  catch(e){ alert(e.message); return; }
+    // Auth
+    async function signIn() {
+      const email = loginEmail.value.trim();
+      const password = loginPass.value;
 
-  const { error } = await sb.from("members").insert({
-    first_name: first.value,
-    last_name: last.value,
-    email: mail.value,
-    status: status.value
-  });
+      if (!email || !password) return alert("Bitte Email & Passwort eingeben.");
 
-  if (error) return alert("INSERT: " + error.message);
-  first.value = last.value = mail.value = "";
-  load();
-}
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) return alert(error.message);
 
-// Beim Laden: Status anzeigen
-sb.auth.getSession().then(({data}) => setStatus(data.session ? "Eingeloggt ✅" : "Bitte einloggen"));
-</script>
+      setStatus("eingeloggt ✅", "ok");
+      showApp(true);
+      await load();
+    }
 
+    async function signOut() {
+      await sb.auth.signOut();
+      members = [];
+      editingId = null;
+      list.innerHTML = "";
+      clearForm();
+      setMode("Neu");
+      document.getElementById("btnCancel").classList.add("hidden");
+      setStatus("nicht eingeloggt", "warn");
+      showApp(false);
+    }
+
+    // Data
+    async function load() {
+      try { await requireAuth(); }
+      catch (e) { setStatus(e.message, "warn"); showApp(false); return; }
+
+      const { data, error } = await sb
+        .from("members")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) return alert("LOAD: " + error.message);
+
+      members = data ?? [];
+      render();
+    }
+
+    function render() {
+      const q = search.value.trim().toLowerCase();
+
+      const filtered = members.filter(m => {
+        const hay = `${m.first_name ?? ""} ${m.last_name ?? ""} ${m.email ?? ""} ${m.status ?? ""}`.toLowerCase();
+        return !q || hay.includes(q);
+      });
+
+      document.getElementById("countInfo").textContent =
+        `${filtered.length} von ${members.length} Mitgliedern`;
+
+      list.innerHTML = filtered.map(m => `
+        <tr>
+          <td>${esc(m.first_name)} ${esc(m.last_name)}</td>
+          <td>${esc(m.email || "")}</td>
+          <td><span class="pill">${esc(m.status || "")}</span></td>
+          <td>
+            <button onclick="startEdit(${m.id})">Bearbeiten</button>
+            <button class="danger" onclick="deleteMember(${m.id})">Löschen</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function startEdit(id) {
+      const m = members.find(x => x.id === id);
+      if (!m) return;
+
+      editingId = id;
+      first.value = m.first_name ?? "";
+      last.value = m.last_name ?? "";
+      mail.value = m.email ?? "";
+      status.value = m.status ?? "aktiv";
+
+      document.getElementById("btnCancel").classList.remove("hidden");
+      setMode("Bearbeiten (ID " + id + ")");
+      first.focus();
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      clearForm();
+      document.getElementById("btnCancel").classList.add("hidden");
+      setMode("Neu");
+    }
+
+    async function saveMember() {
+      try { await requireAuth(); }
+      catch (e) { return alert(e.message); }
+
+      const firstName = first.value.trim();
+      const lastName  = last.value.trim();
+      const email     = mail.value.trim();
+      const st        = status.value;
+
+      if (!firstName || !lastName) return alert("Vorname & Nachname sind Pflicht.");
+
+      if (editingId === null) {
+        // INSERT
+        const { error } = await sb.from("members").insert({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          status: st
+        });
+
+        if (error) return alert("INSERT: " + error.message);
+
+      } else {
+        // UPDATE
+        const { error } = await sb.from("members").update({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          status: st
+        }).eq("id", editingId);
+
+        if (error) return alert("UPDATE: " + error.message);
+      }
+
+      cancelEdit();
+      await load();
+    }
+
+    async function deleteMember(id) {
+      try { await requireAuth(); }
+      catch (e) { return alert(e.message); }
+
+      const m = members.find(x => x.id === id);
+      const label = m ? `${m.first_name} ${m.last_name}` : `ID ${id}`;
+
+      if (!confirm(`Wirklich löschen: ${label}?`)) return;
+
+      const { error } = await sb.from("members").delete().eq("id", id);
+      if (error) return alert("DELETE: " + error.message);
+
+      if (editingId === id) cancelEdit();
+      await load();
+    }
+
+    // Init: session check
+    (async () => {
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        setStatus("eingeloggt ✅", "ok");
+        showApp(true);
+        await load();
+      } else {
+        setStatus("nicht eingeloggt", "warn");
+        showApp(false);
+      }
+    })();
+  </script>
 </body>
 </html>
