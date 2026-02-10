@@ -18,7 +18,6 @@
 <div style="margin:12px 0;">
   <input id="loginEmail" placeholder="Email">
   <input id="loginPass" type="password" placeholder="Passwort">
-  <button onclick="signUp()">Registrieren</button>
   <button onclick="signIn()">Login</button>
   <button onclick="signOut()">Logout</button>
   <span id="authStatus" style="margin-left:8px;"></span>
@@ -48,14 +47,6 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 function setStatus(t){ document.getElementById("authStatus").textContent = t; }
-
-async function signUp(){
-  const email = loginEmail.value.trim();
-  const password = loginPass.value;
-  const { error } = await sb.auth.signUp({ email, password });
-  if (error) return alert(error.message);
-  setStatus("Registriert. Bitte Mail bestätigen (falls aktiv).");
-}
 
 async function signIn(){
   const email = loginEmail.value.trim();
