@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <title>Mitgliederverwaltung</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body{font-family:system-ui;margin:30px;max-width:900px}
+        input,select,button{padding:8px;margin:4px}
+        table{width:100%;border-collapse:collapse;margin-top:16px}
+        th,td{border:1px solid #ccc;padding:8px}
+    </style>
+</head>
+<body>
+
+<h1>Mitgliederverwaltung (Supabase)</h1>
+
+<input id="first" placeholder="Vorname">
+<input id="last" placeholder="Nachname">
+<input id="mail" placeholder="Email">
+<select id="status">
+    <option>aktiv</option>
+    <option>pausiert</option>
+    <option>ausgetreten</option>
+</select>
+<button onclick="add()">Speichern</button>
+
+<table>
+    <thead>
+    <tr><th>Name</th><th>Email</th><th>Status</th></tr>
+    </thead>
+    <tbody id="list"></tbody>
+</table>
+
+<script>
+    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function load(){
+        const { data, error } = await sb
+            .from("members")
+            .select("*")
+            .order("id", { ascending: false });
+
+        if (error) {
+            alert("LOAD: " + error.message);
+            return;
+        }
+
+        list.innerHTML = data.map(m => `
+    <tr>
+      <td>${m.first_name} ${m.last_name}</td>
+      <td>${m.email || ""}</td>
+      <td>${m.status}</td>
+    </tr>
+  `).join("");
+    }
+
+    async function add(){
+        const { error } = await sb
+            .from("members")
+            .insert({
+                first_name: first.value,
+                last_name: last.value,
+                email: mail.value,
+                status: status.value
+            });
+
+        if (error) {
+            alert("INSERT: " + error.message);
+            return;
+        }
+
+        first.value = last.value = mail.value = "";
+        load();
+    }
+
+    load();
+</script>
+
+</body>
+</html>
