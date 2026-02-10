@@ -9,55 +9,65 @@
 
 <style>
 :root{
-  --bg1:#0f2027;
-  --bg2:#203a43;
-  --bg3:#2c5364;
-  --glass:rgba(255,255,255,.12);
-  --glass-border:rgba(255,255,255,.25);
-  --accent:#7dd3fc;
-  --danger:#fb7185;
+  --bg1:#0b1220;
+  --bg2:#111c2b;
+  --bg3:#0b2a33;
+
+  --glass: rgba(255,255,255,.10);
+  --glass2: rgba(255,255,255,.14);
+  --border: rgba(255,255,255,.22);
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.68);
+
+  --accent1:#38bdf8;
+  --accent2:#0ea5e9;
+
+  --danger1:#fb7185;
+  --danger2:#e11d48;
+
+  --shadow: 0 20px 55px rgba(0,0,0,.40);
 }
 
-*{box-sizing:border-box}
-
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 body{
   margin:0;
-  min-height:100vh;
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
-  color:#fff;
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(251,113,133,.18), transparent 60%),
+    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding:40px 16px;
+  padding:42px 16px;
 }
 
-.app{
-  width:100%;
-  max-width:1100px;
-}
+.app{ width:100%; max-width:1100px; }
 
-h1{
-  font-size:32px;
-  margin:0 0 6px;
-  letter-spacing:.4px;
+.top{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:20px;
 }
-
-.subtitle{
-  opacity:.75;
-  margin-bottom:24px;
-}
+h1{ margin:0; font-size:32px; letter-spacing:.4px; }
+.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
 .glass{
-  background:var(--glass);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
-  border:1px solid var(--glass-border);
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:20px;
-  box-shadow:0 20px 40px rgba(0,0,0,.35);
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
+
+.card{ padding:18px; margin-bottom:16px; }
 
 .row{
   display:flex;
@@ -65,95 +75,205 @@ h1{
   flex-wrap:wrap;
   align-items:center;
 }
+.spacer{ flex:1; }
 
 input,select{
-  background:rgba(255,255,255,.15);
-  border:1px solid var(--glass-border);
-  color:white;
-  padding:12px 14px;
-  border-radius:14px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 14px;
   outline:none;
-  min-width:180px;
+  min-width: 210px;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
-
-input::placeholder{color:rgba(255,255,255,.6)}
+input::placeholder{ color: rgba(255,255,255,.55); }
+input:focus, select:focus{
+  border-color: rgba(56,189,248,.55);
+  background: rgba(255,255,255,.16);
+  transform: translateY(-1px);
+}
 
 button{
-  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
   border:none;
-  color:#002b3d;
-  font-weight:600;
-  padding:12px 18px;
-  border-radius:14px;
   cursor:pointer;
-  transition:.2s ease;
+  border-radius:14px;
+  padding: 12px 16px;
+  font-weight:650;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
 }
-
-button:hover{transform:translateY(-1px);opacity:.95}
-
-button.secondary{
-  background:rgba(255,255,255,.15);
-  color:white;
+button:active{ transform: translateY(0px) scale(.99); }
+.btn-primary{
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  color: #03202b;
+  box-shadow: 0 10px 26px rgba(14,165,233,.25);
 }
-
-button.danger{
-  background:linear-gradient(135deg,#fb7185,#e11d48);
-  color:white;
+.btn-primary:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  box-shadow: 0 18px 36px rgba(14,165,233,.33);
 }
-
-.spacer{flex:1}
+.btn-secondary{
+  background: rgba(255,255,255,.14);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover{
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.18);
+}
+.btn-danger{
+  background: linear-gradient(135deg, var(--danger1), var(--danger2));
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(225,29,72,.22);
+}
+.btn-danger:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.02);
+  box-shadow: 0 18px 36px rgba(225,29,72,.28);
+}
 
 .badge{
-  padding:6px 12px;
-  border-radius:999px;
-  font-size:13px;
-  background:rgba(255,255,255,.2);
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.18);
+  font-size: 13px;
+  color: var(--muted);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
 }
+.dot{
+  width:8px;height:8px;border-radius:999px;
+  background: rgba(255,255,255,.35);
+}
+.dot.ok{ background: rgba(34,197,94,.95); }
+.dot.warn{ background: rgba(234,179,8,.95); }
 
+.tableWrap{ overflow:auto; border-radius: 18px; }
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top:10px;
+  margin-top: 8px;
+  min-width: 720px;
 }
-
 th,td{
-  padding:14px 10px;
-  border-bottom:1px solid rgba(255,255,255,.15);
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  text-align:left;
+  vertical-align:middle;
+}
+th{ color: var(--muted); font-weight:650; }
+tr{
+  transition: background .14s ease, transform .14s ease;
+}
+tbody tr:hover{
+  background: rgba(255,255,255,.06);
 }
 
-th{opacity:.7;text-align:left}
-
-.hidden{display:none}
-
+/* Status badges + hover */
 .status{
   padding:6px 14px;
   border-radius:999px;
   font-size:13px;
-  font-weight:600;
+  font-weight:700;
   display:inline-block;
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
-  border:1px solid rgba(255,255,255,.35);
+  border:1px solid rgba(255,255,255,.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
 }
-
+.status:hover{
+  transform: translateY(-1px) scale(1.02);
+  filter: brightness(1.07);
+  box-shadow: 0 10px 20px rgba(0,0,0,.20);
+}
 .status-aktiv{
-  background:rgba(34,197,94,.25);
-  color:#bbf7d0;
+  background: rgba(34,197,94,.22);
+  color: #bbf7d0;
 }
-
 .status-pausiert{
-  background:rgba(234,179,8,.25);
-  color:#fde68a;
+  background: rgba(234,179,8,.22);
+  color: #fde68a;
 }
-
 .status-ausgetreten{
-  background:rgba(239,68,68,.25);
-  color:#fecaca;
+  background: rgba(239,68,68,.22);
+  color: #fecaca;
 }
 
+/* Icon action buttons */
+.iconBtn{
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 14px;
+}
+.iconBtn:hover{ transform: translateY(-2px); }
+.actions{ display:flex; gap:10px; }
 
-@media(max-width:700px){
-  h1{font-size:26px}
+/* Modal */
+.modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+  z-index: 50;
+}
+.modalOverlay.show{ display:flex; }
+.modal{
+  width: min(720px, 100%);
+  border-radius: 24px;
+  padding: 18px;
+  position: relative;
+}
+.modalHeader{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom: 10px;
+}
+.modalTitle{
+  margin:0;
+  font-size: 20px;
+  letter-spacing: .2px;
+}
+.modalSub{
+  margin-top:6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.closeX{
+  width: 42px; height: 42px;
+  border-radius: 14px;
+}
+.formGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.formGrid .full{ grid-column: 1 / -1; }
+@media (max-width: 640px){
+  h1{ font-size: 26px; }
+  .formGrid{ grid-template-columns: 1fr; }
+  input,select{ min-width: 0; width: 100%; }
+  table{ min-width: 640px; }
+}
+
+.hidden{ display:none; }
+.small{ font-size: 13px; color: var(--muted); }
+hr.sep{
+  border: none;
+  border-top: 1px solid rgba(255,255,255,.12);
+  margin: 14px 0;
 }
 </style>
 </head>
@@ -161,161 +281,332 @@ th{opacity:.7;text-align:left}
 <body>
 <div class="app">
 
-  <h1>Mitgliederportal</h1>
-  <div class="subtitle">Sicher · Modern · Intern</div>
+  <div class="top">
+    <div>
+      <h1>Mitgliederportal</h1>
+      <div class="subtitle">Liquid Glass · Invite-only · RLS geschützt</div>
+    </div>
 
-  <!-- LOGIN -->
-  <div class="glass">
-    <div class="row">
-      <input id="loginEmail" placeholder="Email">
-      <input id="loginPass" type="password" placeholder="Passwort">
-      <button onclick="login()">Login</button>
-      <button class="secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
-      <div class="spacer"></div>
-      <span class="badge" id="authStatus">nicht eingeloggt</span>
+    <div class="badge" id="authBadge">
+      <span class="dot warn" id="authDot"></span>
+      <span id="authText">nicht eingeloggt</span>
     </div>
   </div>
 
-  <!-- APP -->
-  <div class="glass hidden" id="app">
-
+  <!-- AUTH -->
+  <div class="glass card" id="authCard">
     <div class="row">
-      <input id="first" placeholder="Vorname">
-      <input id="last" placeholder="Nachname">
-      <input id="mail" placeholder="Email">
-      <select id="status">
-        <option>aktiv</option>
-        <option>pausiert</option>
-        <option>ausgetreten</option>
-      </select>
-      <button onclick="save()">Speichern</button>
-      <button class="secondary hidden" id="cancelBtn" onclick="cancel()">Abbrechen</button>
+      <input id="loginEmail" placeholder="Email" autocomplete="username">
+      <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password">
+      <button class="btn-primary" onclick="login()">Login</button>
+      <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
+      <div class="spacer"></div>
+      <div class="small">User werden von dir in Supabase per Invite freigeschaltet.</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="glass card hidden" id="mainCard">
+    <div class="row">
+      <input id="search" placeholder="Suche (Name/Email/Status)" oninput="render()">
+      <button class="btn-secondary" onclick="load()">Aktualisieren</button>
+      <div class="spacer"></div>
+      <div class="small" id="countInfo"></div>
+      <button class="btn-primary" onclick="openCreate()">+ Mitglied</button>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Aktion</th>
-        </tr>
-      </thead>
-      <tbody id="list"></tbody>
-    </table>
-
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:30%">Name</th>
+            <th style="width:30%">Email</th>
+            <th style="width:20%">Status</th>
+            <th style="width:20%">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
   </div>
 
 </div>
 
+<!-- MODAL -->
+<div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="glass modal" onclick="event.stopPropagation()">
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
+        <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
+      </div>
+      <button class="btn-secondary closeX" onclick="closeModal()" title="Schließen">✕</button>
+    </div>
+
+    <hr class="sep">
+
+    <div class="formGrid">
+      <div>
+        <div class="small">Vorname *</div>
+        <input id="mFirst" placeholder="z.B. Domi">
+      </div>
+
+      <div>
+        <div class="small">Nachname *</div>
+        <input id="mLast" placeholder="z.B. Mustermann">
+      </div>
+
+      <div class="full">
+        <div class="small">Email</div>
+        <input id="mEmail" placeholder="name@domain.de">
+      </div>
+
+      <div>
+        <div class="small">Status</div>
+        <select id="mStatus">
+          <option value="aktiv">aktiv</option>
+          <option value="pausiert">pausiert</option>
+          <option value="ausgetreten">ausgetreten</option>
+        </select>
+      </div>
+
+      <div class="full row" style="justify-content:flex-end; margin-top:6px;">
+        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+        <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()">Speichern</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
+/* ========= Supabase config ========= */
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let members=[], editId=null;
-const firstEl = document.getElementById("first");
-const lastEl  = document.getElementById("last");
-const mailEl  = document.getElementById("mail");
-const statusEl = document.getElementById("status");
+/* ========= State ========= */
+let members = [];
+let editId = null;
 
+/* ========= Elements ========= */
+const authDot = document.getElementById("authDot");
+const authText = document.getElementById("authText");
+const logoutBtn = document.getElementById("logoutBtn");
+const mainCard = document.getElementById("mainCard");
+const searchEl = document.getElementById("search");
+const countInfo = document.getElementById("countInfo");
+const listEl = document.getElementById("list");
+
+const modalOverlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalSub = document.getElementById("modalSub");
+const modalSaveBtn = document.getElementById("modalSaveBtn");
+
+const mFirst = document.getElementById("mFirst");
+const mLast  = document.getElementById("mLast");
+const mEmail = document.getElementById("mEmail");
+const mStatus = document.getElementById("mStatus");
+
+/* ========= Helpers ========= */
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function setAuthUI(isAuthed){
+  if (isAuthed){
+    authDot.classList.remove("warn");
+    authDot.classList.add("ok");
+    authText.textContent = "eingeloggt";
+    logoutBtn.classList.remove("hidden");
+    mainCard.classList.remove("hidden");
+  } else {
+    authDot.classList.remove("ok");
+    authDot.classList.add("warn");
+    authText.textContent = "nicht eingeloggt";
+    logoutBtn.classList.add("hidden");
+    mainCard.classList.add("hidden");
+  }
+}
+
+async function requireAuth(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session) throw new Error("Bitte einloggen.");
+  return data.session;
+}
+
+/* ========= Auth ========= */
 async function login(){
-  const {error}=await sb.auth.signInWithPassword({
-    email:loginEmail.value,
-    password:loginPass.value
-  });
-  if(error)return alert(error.message);
-  authStatus.textContent="eingeloggt";
-  logoutBtn.classList.remove("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  load();
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPass").value;
+
+  if (!email || !password) return alert("Bitte Email & Passwort eingeben.");
+
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+
+  setAuthUI(true);
+  await load();
 }
 
 async function logout(){
   await sb.auth.signOut();
-  location.reload();
+  members = [];
+  listEl.innerHTML = "";
+  setAuthUI(false);
 }
 
+/* ========= Data ========= */
 async function load(){
-  const {data}=await sb.from("members").select("*").order("id",{ascending:false});
-  members=data||[];
+  try { await requireAuth(); }
+  catch(e){ setAuthUI(false); return; }
+
+  const { data, error } = await sb
+    .from("members")
+    .select("*")
+    .order("id", { ascending:false });
+
+  if (error) return alert("LOAD: " + error.message);
+
+  members = data || [];
   render();
 }
 
 function render(){
-  list.innerHTML=members.map(m=>`
-    <tr>
-      <td>${m.first_name} ${m.last_name}</td>
-      <td>${m.email||""}</td>
-      <td>
-  <span class="status status-${(m.status || "aktiv").toLowerCase()}">
-    ${m.status || "aktiv"}
-  </span>
-</td>
-      <td>
-        <button class="secondary" onclick="edit(${m.id})">✏️</button>
-        <button class="danger" onclick="del(${m.id})">🗑️</button>
-      </td>
-    </tr>
-  `).join("");
+  const q = searchEl.value.trim().toLowerCase();
+  const filtered = members.filter(m => {
+    const hay = `${m.first_name ?? ""} ${m.last_name ?? ""} ${m.email ?? ""} ${m.status ?? ""}`.toLowerCase();
+    return !q || hay.includes(q);
+  });
+
+  countInfo.textContent = `${filtered.length} von ${members.length} Mitgliedern`;
+
+  listEl.innerHTML = filtered.map(m => {
+    const st = (m.status || "aktiv").toLowerCase();
+    return `
+      <tr>
+        <td>${esc(m.first_name)} ${esc(m.last_name)}</td>
+        <td>${esc(m.email || "")}</td>
+        <td><span class="status status-${esc(st)}">${esc(m.status || "aktiv")}</span></td>
+        <td>
+          <div class="actions">
+            <button class="btn-secondary iconBtn" title="Bearbeiten" onclick="openEdit(${m.id})">✏️</button>
+            <button class="btn-danger iconBtn" title="Löschen" onclick="del(${m.id})">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
 }
 
-function edit(id){
-  const m=members.find(x=>x.id===id);
-  editId=id;
-  ffirstEl.value = m.first_name || "";
-  lastEl.value  = m.last_name || "";
-  mailEl.value  = m.email || "";
-  statusEl.value = m.status || "aktiv";
-  cancelBtn.classList.remove("hidden");
+/* ========= Modal logic ========= */
+function overlayClick(e){
+  // click outside modal closes
+  if (e.target === modalOverlay) closeModal();
+}
+function openModal(){
+  modalOverlay.classList.add("show");
+  // UX: focus first field
+  setTimeout(() => mFirst.focus(), 0);
+}
+function closeModal(){
+  modalOverlay.classList.remove("show");
+  editId = null;
+}
+function clearModal(){
+  mFirst.value = "";
+  mLast.value = "";
+  mEmail.value = "";
+  mStatus.value = "aktiv";
+}
+function openCreate(){
+  editId = null;
+  clearModal();
+  modalTitle.textContent = "Mitglied hinzufügen";
+  modalSub.textContent = "Fülle die Daten aus und speichere.";
+  modalSaveBtn.textContent = "Anlegen";
+  openModal();
+}
+function openEdit(id){
+  const m = members.find(x => x.id === id);
+  if (!m) return;
+
+  editId = id;
+  mFirst.value = m.first_name || "";
+  mLast.value  = m.last_name || "";
+  mEmail.value = m.email || "";
+  mStatus.value = (m.status || "aktiv").toLowerCase();
+
+  modalTitle.textContent = "Mitglied bearbeiten";
+  modalSub.textContent = `ID ${id} bearbeiten.`;
+  modalSaveBtn.textContent = "Speichern";
+  openModal();
 }
 
-function cancel(){
-  editId=null;
-  first.value=last.value=mail.value="";
-  cancelBtn.classList.add("hidden");
-}
+// ESC closes modal
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
+});
 
-async function save(){
+/* ========= CRUD from modal ========= */
+async function saveModal(){
+  try { await requireAuth(); }
+  catch(e){ return alert("Bitte einloggen."); }
+
   const payload = {
-    first_name: firstEl.value.trim(),
-    last_name:  lastEl.value.trim(),
-    email:      mailEl.value.trim(),
-    status:     statusEl.value || "aktiv"
+    first_name: mFirst.value.trim(),
+    last_name:  mLast.value.trim(),
+    email:      mEmail.value.trim(),
+    status:     mStatus.value || "aktiv"
   };
 
-  console.log("Sende an Supabase:", payload);
-
-  let res;
-  if(editId){
-    res = await sb.from("members")
-      .update(payload)
-      .eq("id", editId)
-      .select(); // gibt dir das Update zurück
-  } else {
-    res = await sb.from("members")
-      .insert(payload)
-      .select(); // gibt dir den neuen Datensatz zurück
+  if (!payload.first_name || !payload.last_name){
+    return alert("Vorname und Nachname sind Pflicht.");
   }
 
-  if (res.error) {
-    alert("SUPABASE ERROR: " + res.error.message);
-    console.error(res.error);
+  let res;
+  if (editId === null){
+    res = await sb.from("members").insert(payload).select();
+  } else {
+    res = await sb.from("members").update(payload).eq("id", editId).select();
+  }
+
+  if (res.error){
+    alert("SUPABASE: " + res.error.message);
     return;
   }
 
-  console.log("Supabase Antwort:", res.data);
-
-  cancel();
-  load();
+  closeModal();
+  await load();
 }
 
 async function del(id){
-  if(confirm("Wirklich löschen?")){
-    await sb.from("members").delete().eq("id",id);
-    load();
-  }
+  try { await requireAuth(); }
+  catch(e){ return alert("Bitte einloggen."); }
+
+  const m = members.find(x => x.id === id);
+  const name = m ? `${m.first_name} ${m.last_name}` : `ID ${id}`;
+
+  if (!confirm(`Wirklich löschen: ${name}?`)) return;
+
+  const { error } = await sb.from("members").delete().eq("id", id);
+  if (error) return alert("DELETE: " + error.message);
+
+  await load();
 }
+
+/* ========= Init ========= */
+(async () => {
+  const { data } = await sb.auth.getSession();
+  setAuthUI(!!data.session);
+  if (data.session) await load();
+})();
 </script>
+
 </body>
 </html>
