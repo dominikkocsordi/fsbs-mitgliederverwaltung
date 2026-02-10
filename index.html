@@ -15,6 +15,15 @@
 
 <h1>Mitgliederverwaltung (Supabase)</h1>
 
+<div style="margin:12px 0;">
+  <input id="loginEmail" placeholder="Email">
+  <input id="loginPass" type="password" placeholder="Passwort">
+  <button onclick="signUp()">Registrieren</button>
+  <button onclick="signIn()">Login</button>
+  <button onclick="signOut()">Logout</button>
+  <span id="authStatus" style="margin-left:8px;"></span>
+</div>
+    
 <input id="first" placeholder="Vorname">
 <input id="last" placeholder="Nachname">
 <input id="mail" placeholder="Email">
@@ -38,46 +47,70 @@
 
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function load(){
-        const { data, error } = await sb
-            .from("members")
-            .select("*")
-            .order("id", { ascending: false });
+function setStatus(t){ document.getElementById("authStatus").textContent = t; }
 
-        if (error) {
-            alert("LOAD: " + error.message);
-            return;
-        }
+async function signUp(){
+  const email = loginEmail.value.trim();
+  const password = loginPass.value;
+  const { error } = await sb.auth.signUp({ email, password });
+  if (error) return alert(error.message);
+  setStatus("Registriert. Bitte Mail bestätigen (falls aktiv).");
+}
 
-        list.innerHTML = data.map(m => `
+async function signIn(){
+  const email = loginEmail.value.trim();
+  const password = loginPass.value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+  setStatus("Eingeloggt ✅");
+  load();
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  setStatus("Ausgeloggt");
+  list.innerHTML = "";
+}
+
+async function requireAuth(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session) throw new Error("Bitte erst einloggen.");
+}
+
+async function load(){
+  try { await requireAuth(); }
+  catch(e){ setStatus(e.message); return; }
+
+  const { data, error } = await sb.from("members").select("*").order("id", { ascending:false });
+  if (error) return alert("LOAD: " + error.message);
+
+  list.innerHTML = data.map(m => `
     <tr>
       <td>${m.first_name} ${m.last_name}</td>
       <td>${m.email || ""}</td>
       <td>${m.status}</td>
     </tr>
   `).join("");
-    }
+}
 
-    async function add(){
-        const { error } = await sb
-            .from("members")
-            .insert({
-                first_name: first.value,
-                last_name: last.value,
-                email: mail.value,
-                status: status.value
-            });
+async function add(){
+  try { await requireAuth(); }
+  catch(e){ alert(e.message); return; }
 
-        if (error) {
-            alert("INSERT: " + error.message);
-            return;
-        }
+  const { error } = await sb.from("members").insert({
+    first_name: first.value,
+    last_name: last.value,
+    email: mail.value,
+    status: status.value
+  });
 
-        first.value = last.value = mail.value = "";
-        load();
-    }
+  if (error) return alert("INSERT: " + error.message);
+  first.value = last.value = mail.value = "";
+  load();
+}
 
-    load();
+// Beim Laden: Status anzeigen
+sb.auth.getSession().then(({data}) => setStatus(data.session ? "Eingeloggt ✅" : "Bitte einloggen"));
 </script>
 
 </body>
