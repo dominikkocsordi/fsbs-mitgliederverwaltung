@@ -194,6 +194,10 @@ const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let members=[], editId=null;
+const firstEl = document.getElementById("first");
+const lastEl  = document.getElementById("last");
+const mailEl  = document.getElementById("mail");
+const statusEl = document.getElementById("status");
 
 async function login(){
   const {error}=await sb.auth.signInWithPassword({
@@ -235,10 +239,10 @@ function render(){
 function edit(id){
   const m=members.find(x=>x.id===id);
   editId=id;
-  first.value=m.first_name;
-  last.value=m.last_name;
-  mail.value=m.email||"";
-  status.value=m.status;
+  ffirstEl.value = m.first_name || "";
+  lastEl.value  = m.last_name || "";
+  mailEl.value  = m.email || "";
+  statusEl.value = m.status || "aktiv";
   cancelBtn.classList.remove("hidden");
 }
 
@@ -249,21 +253,35 @@ function cancel(){
 }
 
 async function save(){
+  const payload = {
+    first_name: firstEl.value.trim(),
+    last_name:  lastEl.value.trim(),
+    email:      mailEl.value.trim(),
+    status:     statusEl.value || "aktiv"
+  };
+
+  console.log("Sende an Supabase:", payload);
+
+  let res;
   if(editId){
-    await sb.from("members").update({
-      first_name:first.value,
-      last_name:last.value,
-      email:mail.value,
-      status:status.value
-    }).eq("id",editId);
-  }else{
-    await sb.from("members").insert({
-      first_name:first.value,
-      last_name:last.value,
-      email:mail.value,
-      status:status.value
-    });
+    res = await sb.from("members")
+      .update(payload)
+      .eq("id", editId)
+      .select(); // gibt dir das Update zurück
+  } else {
+    res = await sb.from("members")
+      .insert(payload)
+      .select(); // gibt dir den neuen Datensatz zurück
   }
+
+  if (res.error) {
+    alert("SUPABASE ERROR: " + res.error.message);
+    console.error(res.error);
+    return;
+  }
+
+  console.log("Supabase Antwort:", res.data);
+
   cancel();
   load();
 }
