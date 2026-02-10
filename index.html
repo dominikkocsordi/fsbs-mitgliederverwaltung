@@ -1,299 +1,279 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mitgliederverwaltung</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mitgliederportal</title>
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-  <style>
-    body{font-family:system-ui;margin:24px;max-width:980px}
-    h1{margin-bottom:6px}
-    .card{border:1px solid #ddd;border-radius:12px;padding:14px;margin:12px 0}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    input,select,button{padding:10px;border:1px solid #ccc;border-radius:10px}
-    input,select{min-width:200px}
-    button{cursor:pointer}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;vertical-align:top}
-    th{font-weight:600}
-    .muted{color:#666;font-size:14px}
-    .right{margin-left:auto}
-    .danger{border-color:#ffb3b3}
-    .danger:hover{background:#fff2f2}
-    .ok{color:#0a7a2f}
-    .warn{color:#b05b00}
-    .hidden{display:none}
-    .pill{padding:4px 10px;border-radius:999px;border:1px solid #ddd;font-size:13px}
-  </style>
+<style>
+:root{
+  --bg1:#0f2027;
+  --bg2:#203a43;
+  --bg3:#2c5364;
+  --glass:rgba(255,255,255,.12);
+  --glass-border:rgba(255,255,255,.25);
+  --accent:#7dd3fc;
+  --danger:#fb7185;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:40px 16px;
+}
+
+.app{
+  width:100%;
+  max-width:1100px;
+}
+
+h1{
+  font-size:32px;
+  margin:0 0 6px;
+  letter-spacing:.4px;
+}
+
+.subtitle{
+  opacity:.75;
+  margin-bottom:24px;
+}
+
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-border);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 20px 40px rgba(0,0,0,.35);
+}
+
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+input,select{
+  background:rgba(255,255,255,.15);
+  border:1px solid var(--glass-border);
+  color:white;
+  padding:12px 14px;
+  border-radius:14px;
+  outline:none;
+  min-width:180px;
+}
+
+input::placeholder{color:rgba(255,255,255,.6)}
+
+button{
+  background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+  border:none;
+  color:#002b3d;
+  font-weight:600;
+  padding:12px 18px;
+  border-radius:14px;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+button:hover{transform:translateY(-1px);opacity:.95}
+
+button.secondary{
+  background:rgba(255,255,255,.15);
+  color:white;
+}
+
+button.danger{
+  background:linear-gradient(135deg,#fb7185,#e11d48);
+  color:white;
+}
+
+.spacer{flex:1}
+
+.badge{
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  background:rgba(255,255,255,.2);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+th,td{
+  padding:14px 10px;
+  border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+th{opacity:.7;text-align:left}
+
+.hidden{display:none}
+
+.status{
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  background:rgba(255,255,255,.25);
+}
+
+@media(max-width:700px){
+  h1{font-size:26px}
+}
+</style>
 </head>
 
 <body>
-  <h1>Mitgliederverwaltung</h1>
-  <div class="muted">Nur eingeloggte Nutzer sehen und bearbeiten Daten.</div>
+<div class="app">
 
-  <!-- AUTH CARD -->
-  <div class="card">
+  <h1>Mitgliederportal</h1>
+  <div class="subtitle">Sicher · Modern · Intern</div>
+
+  <!-- LOGIN -->
+  <div class="glass">
     <div class="row">
-      <input id="loginEmail" placeholder="Email" autocomplete="username" />
-      <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password" />
-      <button id="btnLogin" onclick="signIn()">Login</button>
-      <button id="btnLogout" class="hidden" onclick="signOut()">Logout</button>
-
-      <span class="right pill" id="authStatus">Status: nicht eingeloggt</span>
-    </div>
-    <div class="muted" style="margin-top:8px">
-      Hinweis: Nutzer werden von dir in Supabase über <b>Authentication → Users → Invite user</b> eingeladen.
+      <input id="loginEmail" placeholder="Email">
+      <input id="loginPass" type="password" placeholder="Passwort">
+      <button onclick="login()">Login</button>
+      <button class="secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
+      <div class="spacer"></div>
+      <span class="badge" id="authStatus">nicht eingeloggt</span>
     </div>
   </div>
 
-  <!-- APP CARD -->
-  <div class="card hidden" id="appCard">
-    <h3 style="margin-top:0">Mitglied anlegen / bearbeiten</h3>
+  <!-- APP -->
+  <div class="glass hidden" id="app">
 
     <div class="row">
-      <input id="first" placeholder="Vorname *" />
-      <input id="last" placeholder="Nachname *" />
-      <input id="mail" placeholder="Email" />
+      <input id="first" placeholder="Vorname">
+      <input id="last" placeholder="Nachname">
+      <input id="mail" placeholder="Email">
       <select id="status">
-        <option value="aktiv">aktiv</option>
-        <option value="pausiert">pausiert</option>
-        <option value="ausgetreten">ausgetreten</option>
+        <option>aktiv</option>
+        <option>pausiert</option>
+        <option>ausgetreten</option>
       </select>
-
-      <button id="btnSave" onclick="saveMember()">Speichern</button>
-      <button id="btnCancel" class="hidden" onclick="cancelEdit()">Abbrechen</button>
-
-      <span class="right muted" id="modeInfo">Modus: Neu</span>
-    </div>
-
-    <div class="row" style="margin-top:10px">
-      <input id="search" placeholder="Suche (Name/Email/Status)" oninput="render()" />
-      <button onclick="load()">Aktualisieren</button>
-      <span class="right muted" id="countInfo"></span>
+      <button onclick="save()">Speichern</button>
+      <button class="secondary hidden" id="cancelBtn" onclick="cancel()">Abbrechen</button>
     </div>
 
     <table>
       <thead>
         <tr>
-          <th style="width:32%">Name</th>
-          <th style="width:30%">Email</th>
-          <th style="width:18%">Status</th>
-          <th style="width:20%">Aktionen</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Aktion</th>
         </tr>
       </thead>
       <tbody id="list"></tbody>
     </table>
+
   </div>
 
-  <script>
-    // 1) HIER EINTRAGEN:
-    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+</div>
 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // State
-    let members = [];
-    let editingId = null;
+let members=[], editId=null;
 
-    // Helpers
-    function setStatus(text, kind="muted") {
-      const el = document.getElementById("authStatus");
-      el.textContent = "Status: " + text;
-      el.classList.remove("ok","warn");
-      if (kind === "ok") el.classList.add("ok");
-      if (kind === "warn") el.classList.add("warn");
-    }
+async function login(){
+  const {error}=await sb.auth.signInWithPassword({
+    email:loginEmail.value,
+    password:loginPass.value
+  });
+  if(error)return alert(error.message);
+  authStatus.textContent="eingeloggt";
+  logoutBtn.classList.remove("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  load();
+}
 
-    async function requireAuth() {
-      const { data } = await sb.auth.getSession();
-      if (!data.session) throw new Error("Bitte einloggen.");
-      return data.session;
-    }
+async function logout(){
+  await sb.auth.signOut();
+  location.reload();
+}
 
-    function esc(s) {
-      return String(s ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
+async function load(){
+  const {data}=await sb.from("members").select("*").order("id",{ascending:false});
+  members=data||[];
+  render();
+}
 
-    function clearForm() {
-      first.value = "";
-      last.value = "";
-      mail.value = "";
-      status.value = "aktiv";
-    }
+function render(){
+  list.innerHTML=members.map(m=>`
+    <tr>
+      <td>${m.first_name} ${m.last_name}</td>
+      <td>${m.email||""}</td>
+      <td><span class="status">${m.status}</span></td>
+      <td>
+        <button class="secondary" onclick="edit(${m.id})">✏️</button>
+        <button class="danger" onclick="del(${m.id})">🗑️</button>
+      </td>
+    </tr>
+  `).join("");
+}
 
-    function setMode(modeText) {
-      document.getElementById("modeInfo").textContent = "Modus: " + modeText;
-    }
+function edit(id){
+  const m=members.find(x=>x.id===id);
+  editId=id;
+  first.value=m.first_name;
+  last.value=m.last_name;
+  mail.value=m.email||"";
+  status.value=m.status;
+  cancelBtn.classList.remove("hidden");
+}
 
-    function showApp(isVisible) {
-      document.getElementById("appCard").classList.toggle("hidden", !isVisible);
-      document.getElementById("btnLogout").classList.toggle("hidden", !isVisible);
-      document.getElementById("btnLogin").classList.toggle("hidden", isVisible);
-    }
+function cancel(){
+  editId=null;
+  first.value=last.value=mail.value="";
+  cancelBtn.classList.add("hidden");
+}
 
-    // Auth
-    async function signIn() {
-      const email = loginEmail.value.trim();
-      const password = loginPass.value;
+async function save(){
+  if(editId){
+    await sb.from("members").update({
+      first_name:first.value,
+      last_name:last.value,
+      email:mail.value,
+      status:status.value
+    }).eq("id",editId);
+  }else{
+    await sb.from("members").insert({
+      first_name:first.value,
+      last_name:last.value,
+      email:mail.value,
+      status:status.value
+    });
+  }
+  cancel();
+  load();
+}
 
-      if (!email || !password) return alert("Bitte Email & Passwort eingeben.");
-
-      const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) return alert(error.message);
-
-      setStatus("eingeloggt ✅", "ok");
-      showApp(true);
-      await load();
-    }
-
-    async function signOut() {
-      await sb.auth.signOut();
-      members = [];
-      editingId = null;
-      list.innerHTML = "";
-      clearForm();
-      setMode("Neu");
-      document.getElementById("btnCancel").classList.add("hidden");
-      setStatus("nicht eingeloggt", "warn");
-      showApp(false);
-    }
-
-    // Data
-    async function load() {
-      try { await requireAuth(); }
-      catch (e) { setStatus(e.message, "warn"); showApp(false); return; }
-
-      const { data, error } = await sb
-        .from("members")
-        .select("*")
-        .order("id", { ascending: false });
-
-      if (error) return alert("LOAD: " + error.message);
-
-      members = data ?? [];
-      render();
-    }
-
-    function render() {
-      const q = search.value.trim().toLowerCase();
-
-      const filtered = members.filter(m => {
-        const hay = `${m.first_name ?? ""} ${m.last_name ?? ""} ${m.email ?? ""} ${m.status ?? ""}`.toLowerCase();
-        return !q || hay.includes(q);
-      });
-
-      document.getElementById("countInfo").textContent =
-        `${filtered.length} von ${members.length} Mitgliedern`;
-
-      list.innerHTML = filtered.map(m => `
-        <tr>
-          <td>${esc(m.first_name)} ${esc(m.last_name)}</td>
-          <td>${esc(m.email || "")}</td>
-          <td><span class="pill">${esc(m.status || "")}</span></td>
-          <td>
-            <button onclick="startEdit(${m.id})">Bearbeiten</button>
-            <button class="danger" onclick="deleteMember(${m.id})">Löschen</button>
-          </td>
-        </tr>
-      `).join("");
-    }
-
-    function startEdit(id) {
-      const m = members.find(x => x.id === id);
-      if (!m) return;
-
-      editingId = id;
-      first.value = m.first_name ?? "";
-      last.value = m.last_name ?? "";
-      mail.value = m.email ?? "";
-      status.value = m.status ?? "aktiv";
-
-      document.getElementById("btnCancel").classList.remove("hidden");
-      setMode("Bearbeiten (ID " + id + ")");
-      first.focus();
-    }
-
-    function cancelEdit() {
-      editingId = null;
-      clearForm();
-      document.getElementById("btnCancel").classList.add("hidden");
-      setMode("Neu");
-    }
-
-    async function saveMember() {
-      try { await requireAuth(); }
-      catch (e) { return alert(e.message); }
-
-      const firstName = first.value.trim();
-      const lastName  = last.value.trim();
-      const email     = mail.value.trim();
-      const st        = status.value;
-
-      if (!firstName || !lastName) return alert("Vorname & Nachname sind Pflicht.");
-
-      if (editingId === null) {
-        // INSERT
-        const { error } = await sb.from("members").insert({
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          status: st
-        });
-
-        if (error) return alert("INSERT: " + error.message);
-
-      } else {
-        // UPDATE
-        const { error } = await sb.from("members").update({
-          first_name: firstName,
-          last_name: lastName,
-          email,
-          status: st
-        }).eq("id", editingId);
-
-        if (error) return alert("UPDATE: " + error.message);
-      }
-
-      cancelEdit();
-      await load();
-    }
-
-    async function deleteMember(id) {
-      try { await requireAuth(); }
-      catch (e) { return alert(e.message); }
-
-      const m = members.find(x => x.id === id);
-      const label = m ? `${m.first_name} ${m.last_name}` : `ID ${id}`;
-
-      if (!confirm(`Wirklich löschen: ${label}?`)) return;
-
-      const { error } = await sb.from("members").delete().eq("id", id);
-      if (error) return alert("DELETE: " + error.message);
-
-      if (editingId === id) cancelEdit();
-      await load();
-    }
-
-    // Init: session check
-    (async () => {
-      const { data } = await sb.auth.getSession();
-      if (data.session) {
-        setStatus("eingeloggt ✅", "ok");
-        showApp(true);
-        await load();
-      } else {
-        setStatus("nicht eingeloggt", "warn");
-        showApp(false);
-      }
-    })();
-  </script>
+async function del(id){
+  if(confirm("Wirklich löschen?")){
+    await sb.from("members").delete().eq("id",id);
+    load();
+  }
+}
+</script>
 </body>
 </html>
