@@ -106,6 +106,18 @@ button{
 }
 button:active{ transform: translateY(0px) scale(.99); }
 
+button:disabled{
+  cursor: not-allowed !important;
+  opacity: .55 !important;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+button:disabled:hover{
+  transform: none !important;
+  filter: none !important;
+}
+
 .btn-primary{
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
   color: #03202b;
@@ -136,12 +148,12 @@ button:active{ transform: translateY(0px) scale(.99); }
   box-shadow: 0 18px 36px rgba(225,29,72,.28);
 }
 
-/* ===== Auth badge: NICHT fixed, nur oben im Header (scrollt weg) ===== */
+/* ===== Auth badge (kompakt + Details Toggle) ===== */
 .authFloating{
   position: static;
   z-index: 1;
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 10px 12px;
   display:flex;
   align-items:center;
   gap:10px;
@@ -151,12 +163,14 @@ button:active{ transform: translateY(0px) scale(.99); }
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   user-select:none;
+  max-width: min(560px, 100%);
 }
 
 .dot{
   width:10px;height:10px;border-radius:999px;
   background: rgba(255,255,255,.35);
   position: relative;
+  flex: 0 0 auto;
 }
 .dot.ok{ background: var(--ok); }
 .dot.warn{ background: rgba(255,255,255,.35); }
@@ -197,6 +211,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 12px 28px rgba(0,0,0,.25);
   background: rgba(255,255,255,.10);
+  flex: 0 0 auto;
 }
 .authAvatar.hidden{ display:none; }
 
@@ -204,23 +219,103 @@ button:active{ transform: translateY(0px) scale(.99); }
   display:flex;
   flex-direction:column;
   line-height:1.1;
-  min-width: 140px;
+  min-width:0;
+  flex: 1 1 auto;
 }
+
 .authState{
   font-size:13px;
   font-weight:750;
   letter-spacing:.25px;
 }
+.authState.hidden{ display:none; }
+
+.authTopLine{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+.authCompact{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.authCompact.hidden{ display:none; }
+
+.authNameInline{
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:.15px;
+  color: rgba(255,255,255,.92);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 220px;
+}
+
+.authChevron{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+  width: 30px; height: 26px;
+  border-radius: 999px;
+  padding: 0;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition: transform .15s ease, background .15s ease;
+  flex: 0 0 auto;
+}
+.authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
+
+.authDetails{
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  display:flex;
+  gap:8px;
+  align-items:center;
+  min-width:0;
+}
+.authDetails.hidden{ display:none; }
+
 .authMail{
   font-size:11px;
   color: rgba(255,255,255,.58);
-  margin-top:3px;
+  margin-top:0;
   word-break:break-all;
 }
+
+.rolePill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  font-weight:750;
+  letter-spacing:.15px;
+  white-space:nowrap;
+  flex: 0 0 auto;
+}
+.rolePill.vorstand{
+  border-color: rgba(56,189,248,.40);
+  background: rgba(56,189,248,.12);
+}
+.rolePill.ressortleiter{
+  border-color: rgba(251,146,60,.35);
+  background: rgba(251,146,60,.12);
+}
+
 .hidden{ display:none; }
 .small{ font-size: 13px; color: var(--muted); }
 
-/* ===== NAV: sticky beim Scrollen (nur Nav bleibt oben) ===== */
+/* ===== NAV: sticky beim Scrollen ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -376,42 +471,31 @@ hr.sep{
 }
 
 @media (max-width: 640px){
-  body{
-    padding: 24px 14px;
-  }
-
+  body{ padding: 24px 14px; }
   h1{ font-size: 26px; }
 
-  /* Header stacks; badge stays in header and scrolls away */
   .top{
     flex-direction:column;
     align-items:flex-start;
     gap:10px;
   }
-  .authInfo{ min-width: 0; }
+  .authNameInline{ max-width: 150px; }
 
-  /* Inputs full width */
   input,select{ min-width: 0; width: 100%; }
   .row{ align-items:stretch; }
   .row .spacer{ display:none; }
 
-  /* Nav becomes horizontal scroll */
   .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
   .navRight{ margin-left: 0; }
 
-  /* Table: allow scroll but reduce minimum */
   table{ min-width: 720px; }
-
-  /* Optional: hide Email column on very small screens (still in modal/edit) */
   th:nth-child(3), td:nth-child(3){ display:none; }
 
-  /* Actions buttons slightly smaller */
   .iconBtn{ width: 40px; height: 40px; }
   .actions{ gap:8px; }
 
-  /* Modal: one column */
   .formGrid{ grid-template-columns: 1fr; }
 }
 
@@ -435,13 +519,25 @@ hr.sep{
       <div class="subtitle">Fachschaft Business School e.V.</div>
     </div>
 
-    <!-- Auth Badge im Header (scrollt weg wie Titel) -->
+    <!-- ✅ Auth Badge kompakt + Details wie bei Anwärter -->
     <div class="authFloating" id="authBadge" title="Login-Status">
       <span class="dot warn" id="authDot"></span>
       <div class="authAvatar hidden" id="authAvatar">U</div>
+
       <div class="authInfo">
-        <div class="authState" id="authState">nicht eingeloggt</div>
-        <div class="authMail hidden" id="authMail"></div>
+        <div class="authTopLine">
+          <div class="authState" id="authState">nicht eingeloggt</div>
+
+          <div class="authCompact hidden" id="authCompact">
+            <span class="authNameInline" id="authNameInline">User</span>
+            <span class="rolePill" id="authRolePill">Rolle</span>
+            <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+          </div>
+        </div>
+
+        <div class="authDetails hidden" id="authDetails">
+          <div class="authMail" id="authMail"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -450,39 +546,38 @@ hr.sep{
   <div class="glass navWrap hidden" id="navWrap">
     <div class="nav">
       <div class="navLeft">
-  <a class="navLink active" href="/index.html" id="navMembers">
-    <span class="navIcon">👥</span>
-    <span>
-      <div class="navTitle">Mitglieder</div>
-      <div class="navHint">Verwalten</div>
-    </span>
-  </a>
+        <a class="navLink active" href="/index.html" id="navMembers">
+          <span class="navIcon">👥</span>
+          <span>
+            <div class="navTitle">Mitglieder</div>
+            <div class="navHint">Verwalten</div>
+          </span>
+        </a>
 
-  <a class="navLink" href="/anwaerter.html" id="navCandidates">
-    <span class="navIcon">👶🏼</span>
-    <span>
-      <div class="navTitle">Anwärter</div>
-      <div class="navHint">Liste</div>
-    </span>
-  </a>
+        <a class="navLink" href="/anwaerter.html" id="navCandidates">
+          <span class="navIcon">👶🏼</span>
+          <span>
+            <div class="navTitle">Anwärter</div>
+            <div class="navHint">Liste</div>
+          </span>
+        </a>
 
-  <a class="navLink" href="/bewerbungen.html" id="navApps">
-    <span class="navIcon">📝</span>
-    <span>
-      <div class="navTitle">Bewerbungen</div>
-      <div class="navHint">Google Sheet</div>
-    </span>
-  </a>
+        <a class="navLink" href="/bewerbungen.html" id="navApps">
+          <span class="navIcon">📝</span>
+          <span>
+            <div class="navTitle">Bewerbungen</div>
+            <div class="navHint">Google Sheet</div>
+          </span>
+        </a>
 
-  <a class="navLink" href="/settings.html" id="navSettings">
-    <span class="navIcon">⚙️</span>
-    <span>
-      <div class="navTitle">Einstellungen</div>
-      <div class="navHint">Platzhalter</div>
-    </span>
-  </a>
-</div>
-
+        <a class="navLink" href="/settings.html" id="navSettings">
+          <span class="navIcon">⚙️</span>
+          <span>
+            <div class="navTitle">Einstellungen</div>
+            <div class="navHint">Platzhalter</div>
+          </span>
+        </a>
+      </div>
 
       <div class="navRight">
         <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
@@ -508,7 +603,7 @@ hr.sep{
       <button class="btn-secondary" onclick="load()">Aktualisieren</button>
       <div class="spacer"></div>
       <div class="small" id="countInfo"></div>
-      <button class="btn-primary" onclick="openCreate()">+ Mitglied</button>
+      <button class="btn-primary" id="createBtn" onclick="openCreate()">+ Mitglied</button>
     </div>
 
     <div class="tableWrap">
@@ -595,6 +690,19 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* ========= Rollen/Permissions (aus public.profiles) ========= */
+const PROFILES_TABLE = "profiles";
+let MY_ROLE = "";     // "vorstand" | "ressortleiter" | ""
+let CAN_EDIT = false; // nur Vorstand true
+
+function normRole(v){ return (v || "").trim().toLowerCase(); }
+function roleLabel(role){
+  const r = normRole(role);
+  if (r === "vorstand") return "Vorstand";
+  if (r === "ressortleiter") return "Ressortleiter";
+  return "Unbekannt";
+}
+
 /* ========= Spalten (neue Struktur) ========= */
 const DB = {
   table: "members",
@@ -613,10 +721,18 @@ let members = [];
 let editPk = null;
 
 /* ========= Elements ========= */
+const authBadge = document.getElementById("authBadge");
 const authDot = document.getElementById("authDot");
 const authState = document.getElementById("authState");
 const authMail  = document.getElementById("authMail");
 const authAvatar = document.getElementById("authAvatar");
+
+// ✅ compact badge
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill = document.getElementById("authRolePill");
+const authToggle = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
 
 const logoutBtn = document.getElementById("logoutBtn");
 const mainCard = document.getElementById("mainCard");
@@ -631,6 +747,8 @@ const modalOverlay = document.getElementById("modalOverlay");
 const modalTitle = document.getElementById("modalTitle");
 const modalSub = document.getElementById("modalSub");
 const modalSaveBtn = document.getElementById("modalSaveBtn");
+
+const createBtn = document.getElementById("createBtn");
 
 const mNo = document.getElementById("mNo");
 const mFirst = document.getElementById("mFirst");
@@ -725,6 +843,14 @@ function initialsFromEmail(email){
   const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
   return (a + b).trim() || a;
 }
+function initialsFromText(txt){
+  const t = (txt || "").trim();
+  if (!t) return "U";
+  const parts = t.split(/\s+/).filter(Boolean);
+  const a = (parts[0]?.[0] || "U").toUpperCase();
+  const b = (parts[1]?.[0] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
 function setAvatar(email){
   const e = (email || "").trim().toLowerCase();
   if (!e){
@@ -745,15 +871,35 @@ function pulseLogin(){
   setTimeout(() => authDot.classList.remove("pulsing"), 2600);
 }
 
+/* Badge helpers (kompakt + Details) */
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+function setRolePill(role){
+  const r = normRole(role);
+  authRolePill.textContent = roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if (r === "vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function setCompactIdentity(displayName, email){
+  const name = (displayName || "").trim();
+  const fallback = ((email || "").split("@")[0] || "User").trim();
+  authNameInline.textContent = name || fallback;
+}
+
+/* ✅ Auth UI: wie bei Anwärter (kein "eingeloggt" Text, Details toggle) */
 function setAuthUI(isAuthed, email = "", doPulse = false){
   if (isAuthed){
     authDot.classList.remove("warn");
     authDot.classList.add("ok");
 
-    authState.textContent = "eingeloggt";
-    authMail.textContent = (email || "").trim();
-    authMail.classList.remove("hidden");
+    // kein "eingeloggt"
+    authState.classList.add("hidden");
+    authState.textContent = "";
 
+    authCompact.classList.remove("hidden");
+    closeAuthDetails();
+
+    authMail.textContent = (email || "").trim();
     setAvatar(email);
 
     logoutBtn.classList.remove("hidden");
@@ -761,15 +907,21 @@ function setAuthUI(isAuthed, email = "", doPulse = false){
     navWrap.classList.remove("hidden");
     authCard.classList.add("hidden");
 
+    // Buttons nach Permission
+    applyPermissions();
+
     if (doPulse) pulseLogin();
   } else {
     authDot.classList.remove("ok");
     authDot.classList.add("warn");
 
+    authState.classList.remove("hidden");
     authState.textContent = "nicht eingeloggt";
-    authMail.textContent = "";
-    authMail.classList.add("hidden");
 
+    authCompact.classList.add("hidden");
+    closeAuthDetails();
+
+    authMail.textContent = "";
     setAvatar("");
 
     logoutBtn.classList.add("hidden");
@@ -779,10 +931,70 @@ function setAuthUI(isAuthed, email = "", doPulse = false){
   }
 }
 
+/* Toggle Details */
+authToggle?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  authDetails.classList.toggle("hidden");
+});
+document.addEventListener("click", (e)=>{
+  if (!authBadge.contains(e.target)) closeAuthDetails();
+});
+
 async function requireAuth(){
   const { data } = await sb.auth.getSession();
   if (!data.session) throw new Error("Bitte einloggen.");
   return data.session;
+}
+
+/* ✅ Profil laden: role + display_name */
+async function loadMyProfile(session){
+  MY_ROLE = "";
+  CAN_EDIT = false;
+
+  const uid = session?.user?.id;
+  const email = session?.user?.email || "";
+
+  if (!uid){
+    setCompactIdentity("", email);
+    setRolePill("ressortleiter");
+    return;
+  }
+
+  const { data, error } = await sb
+    .from(PROFILES_TABLE)
+    .select("role, display_name")
+    .eq("id", uid)
+    .single();
+
+  if (error){
+    console.warn("Profil konnte nicht geladen werden:", error.message);
+    setCompactIdentity("", email);
+    setRolePill("ressortleiter");
+    return;
+  }
+
+  MY_ROLE = normRole(data?.role);
+  CAN_EDIT = (MY_ROLE === "vorstand");
+
+  setCompactIdentity(data?.display_name, email);
+  setRolePill(MY_ROLE || "ressortleiter");
+
+  const dn = (data?.display_name || "").trim();
+  if (dn){
+    authAvatar.textContent = initialsFromText(dn);
+  }
+
+  authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+}
+
+/* Permissions in dieser Seite */
+function applyPermissions(){
+  // Vorstand: alles
+  // Ressortleiter: nur lesen/filtern -> kein Create/Edit/Delete
+  const canEdit = !!CAN_EDIT;
+
+  if (createBtn) createBtn.disabled = !canEdit;
+  // Edit/Delete Buttons werden in render() disabled gesetzt
 }
 
 /* ========= Auth ========= */
@@ -795,8 +1007,17 @@ async function login(){
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) return alert(error.message);
 
+  const session = data?.session;
   const loggedMail = data?.user?.email || email;
+
   setAuthUI(true, loggedMail, true);
+
+  // ✅ Rolle + Name laden
+  await loadMyProfile(session || (await requireAuth()));
+
+  // Buttons aktualisieren
+  applyPermissions();
+
   await load();
 }
 
@@ -851,6 +1072,12 @@ function render(){
     const role = getRole(m) || "";
     const status = getStatus(m) || "";
 
+    const editDisabled = !CAN_EDIT;
+    const delDisabled  = !CAN_EDIT;
+
+    const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
+    const delTitle  = !CAN_EDIT ? "Nur Vorstand darf löschen" : "Löschen";
+
     return `
       <tr>
         <td>${esc(no || "")}</td>
@@ -861,8 +1088,15 @@ function render(){
         <td><span class="pill ${statusClass(status)}">${esc(status || "—")}</span></td>
         <td>
           <div class="actions">
-            <button class="btn-secondary iconBtn" title="Bearbeiten" onclick="openEdit(${Number(pk)})">✏️</button>
-            <button class="btn-danger iconBtn" title="Löschen" onclick="del(${Number(pk)})">🗑️</button>
+            <button class="btn-secondary iconBtn"
+              title="${esc(editTitle)}"
+              ${editDisabled ? "disabled" : ""}
+              onclick="openEdit(${Number(pk)})">✏️</button>
+
+            <button class="btn-danger iconBtn"
+              title="${esc(delTitle)}"
+              ${delDisabled ? "disabled" : ""}
+              onclick="del(${Number(pk)})">🗑️</button>
           </div>
         </td>
       </tr>
@@ -892,6 +1126,7 @@ function clearModal(){
   mStatus.value = "";
 }
 function openCreate(){
+  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Mitglieder anlegen.");
   editPk = null;
   clearModal();
   modalTitle.textContent = "Mitglied hinzufügen";
@@ -901,6 +1136,7 @@ function openCreate(){
   openModal();
 }
 function openEdit(pk){
+  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
   const m = members.find(x => Number(getPk(x)) === Number(pk));
   if (!m) return;
 
@@ -926,6 +1162,7 @@ document.addEventListener("keydown", (e) => {
 
 /* ========= CRUD from modal ========= */
 async function saveModal(){
+  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
   try { await requireAuth(); }
   catch(e){ return alert("Bitte einloggen."); }
 
@@ -959,6 +1196,7 @@ async function saveModal(){
 }
 
 async function del(pk){
+  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf löschen.");
   try { await requireAuth(); }
   catch(e){ return alert("Bitte einloggen."); }
 
@@ -978,8 +1216,14 @@ async function del(pk){
   const { data } = await sb.auth.getSession();
   const session = data?.session;
   const mail = session?.user?.email || "";
+
   setAuthUI(!!session, mail, false);
-  if (session) await load();
+
+  if (session){
+    await loadMyProfile(session);
+    applyPermissions();
+    await load();
+  }
 })();
 </script>
 
