@@ -143,21 +143,23 @@
       margin-top:0;
       word-break:break-all;
     }
+.rolePill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding: 2px 6px;          /* kleiner */
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  font-weight:700;          /* leicht weniger fett */
+  font-size: 11px;          /* kleiner */
+  letter-spacing: .10px;    /* weniger spacing */
+  line-height: 1;           /* kompakter */
+  white-space:nowrap;
+  flex: 0 0 auto;
+}
 
-    .rolePill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.82);
-      font-weight:750;
-      letter-spacing:.15px;
-      white-space:nowrap;
-      flex: 0 0 auto;
-    }
     .rolePill.vorstand{
       border-color: rgba(56,189,248,.40);
       background: rgba(56,189,248,.12);
