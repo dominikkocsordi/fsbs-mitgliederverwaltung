@@ -175,6 +175,20 @@
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
+
+    /* ✅ Disabled Buttons (neu) */
+    button:disabled{
+      cursor: not-allowed !important;
+      opacity: .55 !important;
+      transform: none !important;
+      filter: none !important;
+      box-shadow: none !important;
+    }
+    button:disabled:hover{
+      transform: none !important;
+      filter: none !important;
+    }
+
     .btn-secondary{
       background: rgba(255,255,255,.14);
       color: var(--text);
@@ -570,6 +584,15 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
+    function normalizeStatus(v){
+      return safe(v).trim().toLowerCase();
+    }
+
+    function isAnwaerterAbgelehnt(statusRaw){
+      const st = normalizeStatus(statusRaw);
+      return st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
+    }
+
     // ====== Ablehnen (Status setzen, nicht löschen) ======
     async function rejectCandidate(id){
       const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt (bleibt in der Liste).");
@@ -679,10 +702,6 @@
       return (a + b).toUpperCase() || "•";
     }
 
-    function normalizeStatus(v){
-      return safe(v).trim().toLowerCase();
-    }
-
     function render(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
@@ -702,14 +721,17 @@
         const thumb = safe(r.photo_thumb).trim();
         const photo = safe(r.photo_url).trim();
 
-        const st = normalizeStatus(r[BEWERBUNG_STATUS_COL]);
+        const stRaw = r[BEWERBUNG_STATUS_COL];
+        const st = normalizeStatus(stRaw);
+
+        const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
 
         const badge =
           (st === "anwärter" || st === "anwaerter")
             ? `<span class="pillSmall pillOk">👶🏼 Anwärter</span>`
-            : (st === "anwärter abgelehnt" || st === "anwaerter abgelehnt")
+            : (rejectedAlready)
               ? `<span class="pillSmall pillWarn">❌ Anwärter abgelehnt</span>`
-              : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(r[BEWERBUNG_STATUS_COL]))}</span>` : ``);
+              : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(stRaw))}</span>` : ``);
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -745,7 +767,13 @@
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button class="btn-secondary" data-action="edit" data-id="${r.id}">Bearbeiten</button>
-              <button class="btn-danger" data-action="reject" data-id="${r.id}">Ablehnen</button>
+              <button
+                class="btn-danger"
+                data-action="reject"
+                data-id="${r.id}"
+                ${rejectedAlready ? "disabled" : ""}
+                title="${rejectedAlready ? "Bereits abgelehnt" : "Anwärter ablehnen"}"
+              >Ablehnen</button>
             </div>
           </td>
         `;
@@ -864,7 +892,7 @@
 
     tbody.addEventListener("click", (e)=>{
       const btn = e.target.closest("button[data-action]");
-      if (!btn) return;
+      if (!btn || btn.disabled) return; // ✅ disabled Buttons ignorieren
 
       const id = Number(btn.dataset.id);
       const action = btn.dataset.action;
