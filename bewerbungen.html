@@ -238,11 +238,11 @@
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
     .btn-danger{
-      background: linear-gradient(135deg, rgba(251,113,133,.95), rgba(225,29,72,.95));
-      color:#fff;
-      box-shadow: 0 10px 26px rgba(225,29,72,.22);
+      background: rgba(239,68,68,.16);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(239,68,68,.28);
     }
-    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
 
     .card{ padding:16px; margin-bottom:14px; }
 
@@ -298,6 +298,7 @@
       cursor:pointer;
       transition: transform .18s ease, filter .18s ease, border-color .18s ease;
       overflow:hidden;
+      position: relative;
     }
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
     .inner{ display:flex; gap:12px; padding:14px; }
@@ -323,23 +324,37 @@
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.06);
       color: rgba(255,255,255,.78);
-      white-space:nowrap;
     }
     .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
     .tag a:hover{ text-decoration:underline; }
 
-    /* ✅ Status badges */
-    .tag-ok{
+    /* Corner badge (live status) */
+    .cornerBadge{
+      position:absolute;
+      top:10px;
+      right:10px;
+      font-size:12px;
+      font-weight:850;
+      padding:7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.90);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .cornerBadge.ok{
       background: rgba(34,197,94,.20);
       border-color: rgba(34,197,94,.35);
       color:#bbf7d0;
-      box-shadow: 0 12px 28px rgba(34,197,94,.10);
     }
-    .tag-bad{
-      background: rgba(239,68,68,.18);
+    .cornerBadge.bad{
+      background: rgba(239,68,68,.20);
       border-color: rgba(239,68,68,.35);
       color:#fecaca;
-      box-shadow: 0 12px 28px rgba(239,68,68,.10);
     }
 
     .empty{
@@ -491,6 +506,12 @@
       justify-content:flex-end;
       flex-wrap:wrap;
       margin-top: 12px;
+    }
+
+    @media (max-width: 640px){
+      .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
+      .navLeft{ flex-wrap:nowrap; }
+      .navRight{ margin-left: 0; }
     }
   </style>
 </head>
@@ -644,11 +665,10 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Tabellen ======
-    const CANDIDATES_TABLE = "anwaerter";        // Anwärter-Liste
-    const STATUS_TABLE = "bewerbung_status";     // ✅ deine Status-Tabelle
-    const STATUS_ID_COL = "bewerbung_id";
-    const STATUS_COL = "status"; // "anwaerter" | "abgelehnt"
+    // ====== Anwärter Tabelle (Status ist SPALTE in anwaerter!) ======
+    const CANDIDATES_TABLE = "anwaerter";
+    const CAND_ID_COL = "bewerbung_id";
+    const CAND_STATUS_COL = "bewerbung_status"; // "anwaerter" | "abgelehnt"
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -676,10 +696,6 @@
       consent: "Einwilligung in die Datenverarbeitung gemäß Datenschutzerklärung",
       sem: "Semester"
     };
-
-    // ====== Cache (schneller erster Paint) ======
-    const CACHE_KEY = "bewerbungen_cache_v4_status";
-    const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
 
     // ====== Elements ======
     const navWrap = document.getElementById("navWrap");
@@ -724,7 +740,7 @@
     let ALL = [];
     let ACTIVE_ROW = null;
 
-    // ✅ Status Map: bewerbung_id -> status
+    // ✅ StatusMap: bewerbung_id -> status (aus anwaerter)
     let statusMap = new Map();
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -735,39 +751,6 @@
     function showDebug(obj){
       debugBox.classList.add("show");
       debugBox.textContent = JSON.stringify(obj, null, 2);
-    }
-
-    // ===== Bewerbungs-ID (muss identisch zu Insert sein) =====
-    function makeBewerbungId(row){
-      const ts = safe(row?.[F.ts]).trim();
-      const email = safe(row?.[F.email]).trim();
-      return [ts, email].filter(Boolean).join(" | ") || "";
-    }
-    function normId(v){ return String(v || "").trim(); }
-
-    async function refreshStatusMapFor(rows){
-      statusMap = new Map();
-
-      const ids = [...new Set(rows.map(makeBewerbungId).map(normId).filter(Boolean))];
-      if (!ids.length) return;
-
-      const { data, error } = await sb
-        .from(STATUS_TABLE)
-        .select(`${STATUS_ID_COL},${STATUS_COL}`)
-        .in(STATUS_ID_COL, ids);
-
-      if (error){
-        console.warn("Status-check failed:", error.message);
-        return;
-      }
-
-      (data || []).forEach(r => {
-        statusMap.set(normId(r[STATUS_ID_COL]), String(r[STATUS_COL] || "").toLowerCase());
-      });
-    }
-
-    function getStatusForRow(row){
-      return statusMap.get(normId(makeBewerbungId(row))) || "";
     }
 
     // ===== Badge helpers =====
@@ -919,22 +902,73 @@
       );
     }
 
-    function cacheWrite(rows){
-      try{
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), rows }));
-      }catch(e){}
+    // ===== Bewerbungs-ID (stabil, in beiden Welten gleich) =====
+    function normId(v){ return String(v || "").trim(); }
+    function makeBewerbungId(row){
+      const ts = safe(row?.[F.ts]).trim();
+      const email = safe(row?.[F.email]).trim();
+      return [ts, email].filter(Boolean).join(" | ") || "";
     }
-    function cacheRead(){
-      try{
-        const raw = localStorage.getItem(CACHE_KEY);
-        if (!raw) return null;
-        const obj = JSON.parse(raw);
-        if (!obj?.t || !Array.isArray(obj.rows)) return null;
-        if (Date.now() - obj.t > CACHE_TTL_MS) return null;
-        return obj.rows;
-      }catch(e){
-        return null;
+
+    // ===== StatusMap aus anwaerter laden =====
+    async function refreshStatusMapFor(rows){
+      statusMap = new Map();
+      const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
+      if (!ids.length) return;
+
+      const { data, error } = await sb
+        .from(CANDIDATES_TABLE)
+        .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
+        .in(CAND_ID_COL, ids);
+
+      if (error){
+        console.warn("StatusMap load failed:", error.message);
+        return;
       }
+
+      (data || []).forEach(r => {
+        statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
+      });
+    }
+
+    function getStatusForRow(row){
+      return statusMap.get(normId(makeBewerbungId(row))) || "";
+    }
+
+    // ===== Status via UPSERT in anwaerter setzen =====
+    async function upsertApplicantStatusFromActive(status, extra = {}){
+      if (!ACTIVE_ROW) return;
+
+      const bewerbung_id = makeBewerbungId(ACTIVE_ROW);
+      if (!bewerbung_id){
+        throw new Error("Bewerbung-ID fehlt (Zeitstempel/Mail).");
+      }
+
+      const vorname = safe(ACTIVE_ROW[F.fn]).trim();
+      const nachname = safe(ACTIVE_ROW[F.ln]).trim();
+      const email = safe(ACTIVE_ROW[F.email]).trim();
+
+      const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
+      const photo_thumb = getThumb(ACTIVE_ROW) || null;
+
+      const payload = {
+        bewerbung_id,
+        bewerbung_status: status,
+        vorname: vorname || null,
+        nachname: nachname || null,
+        email: email || null,
+        photo_url,
+        photo_thumb,
+        ...extra
+      };
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .upsert(payload, { onConflict: CAND_ID_COL });
+
+      if (error) throw error;
+
+      statusMap.set(normId(bewerbung_id), String(status).toLowerCase());
     }
 
     async function fetchRows(){
@@ -972,11 +1006,7 @@
         }
 
         ALL = Array.isArray(json.rows) ? json.rows : [];
-        cacheWrite(ALL);
-
-        // ✅ Status einmal laden (bulk)
-        await refreshStatusMapFor(ALL);
-
+        await refreshStatusMapFor(ALL); // ✅ LIVE Status laden
         statusPill.textContent = `Geladen: ${ALL.length}`;
         fillFilters();
         render();
@@ -1003,28 +1033,33 @@
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
 
-        const st = getStatusForRow(row); // "", "anwaerter", "abgelehnt"
+        const st = getStatusForRow(row); // "" | "anwaerter" | "abgelehnt"
 
         const card = document.createElement("div");
         card.className = "appCard";
 
         let avatarHtml = esc(getInitials(row));
         if (thumb){
-          avatarHtml = `<img src="${esc(thumb)}" alt="Foto" loading="lazy"
-            decoding="async"
+          avatarHtml = `<img src="${esc(thumb)}" alt="Foto" loading="lazy" decoding="async"
             referrerpolicy="no-referrer"
             onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`;
         }
 
+        const badgeHtml =
+          st === "anwaerter"
+            ? `<div class="cornerBadge ok">🟢 Anwärter</div>`
+            : st === "abgelehnt"
+              ? `<div class="cornerBadge bad">🔴 Abgelehnt</div>`
+              : ``;
+
         card.innerHTML = `
+          ${badgeHtml}
           <div class="inner">
             <div class="avatar">${avatarHtml}</div>
             <div style="min-width:0;">
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
               <div class="tags">
-                ${st === "anwaerter" ? `<span class="tag tag-ok">🟢 Anwärter</span>` : ``}
-                ${st === "abgelehnt" ? `<span class="tag tag-bad">🔴 Abgelehnt</span>` : ``}
                 ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
                 ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
                 ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
@@ -1043,50 +1078,48 @@
       ACTIVE_ROW = null;
     }
 
-    // ✅ Modal-Foto: Thumb sofort, dann großes Bild nachladen & swap
     function setModalPhoto(row){
       modalPhoto.innerHTML = "";
 
       const thumb = getThumb(row);
       const photoUrl = getPhotoUrl(row);
-      const initials = getInitials(row);
-
-      function setFallback(){
-        modalPhoto.innerHTML = "";
-        modalPhoto.textContent = initials;
-        modalPhoto.style.cursor = "default";
-        modalPhoto.onclick = null;
-      }
-
-      const clickable = !!photoUrl;
-      modalPhoto.style.cursor = clickable ? "pointer" : "default";
-      modalPhoto.onclick = () => {
-        if (photoUrl) window.open(photoUrl, "_blank", "noopener");
-      };
 
       if (thumb){
         const img = document.createElement("img");
-        img.src = thumb;
+        img.src = thumb; // ✅ thumb zuerst
         img.alt = "Foto";
         img.loading = "eager";
         img.decoding = "async";
         img.referrerPolicy = "no-referrer";
-        img.onerror = setFallback;
+
+        // ✅ nach Load: große URL nachladen (schneller perceived loading)
+        img.onload = () => {
+          if (photoUrl && photoUrl !== thumb){
+            const hi = new Image();
+            hi.referrerPolicy = "no-referrer";
+            hi.decoding = "async";
+            hi.onload = () => { img.src = photoUrl; };
+            hi.src = photoUrl;
+          }
+        };
+
+        img.onerror = () => {
+          modalPhoto.innerHTML = "";
+          modalPhoto.textContent = getInitials(row);
+          modalPhoto.style.cursor = "default";
+        };
+
+        modalPhoto.style.cursor = photoUrl ? "pointer" : "default";
+        modalPhoto.onclick = () => {
+          if (photoUrl) window.open(photoUrl, "_blank", "noopener");
+        };
 
         modalPhoto.appendChild(img);
-
-        if (photoUrl && photoUrl !== thumb){
-          const big = new Image();
-          big.referrerPolicy = "no-referrer";
-          big.decoding = "async";
-          big.onload = () => { img.src = photoUrl; };
-          big.onerror = () => { /* keep thumb */ };
-          big.src = photoUrl;
-        }
-        return;
+      } else {
+        modalPhoto.textContent = getInitials(row);
+        modalPhoto.style.cursor = "default";
+        modalPhoto.onclick = null;
       }
-
-      setFallback();
     }
 
     function openModal(row){
@@ -1102,17 +1135,6 @@
       modalSub.textContent = line.join(" · ") || "—";
 
       setModalPhoto(row);
-
-      const st = getStatusForRow(row);
-      if (st === "abgelehnt"){
-        moveToCandidateBtn.disabled = true;
-        moveToCandidateBtn.style.opacity = ".65";
-        moveToCandidateBtn.title = "Bereits abgelehnt";
-      } else {
-        moveToCandidateBtn.disabled = false;
-        moveToCandidateBtn.style.opacity = "1";
-        moveToCandidateBtn.title = "";
-      }
 
       const fields = [
         F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone,
@@ -1142,7 +1164,7 @@
       modalOverlay.classList.add("show");
     }
 
-    // ===== Anwärter-Übernahme =====
+    // ===== Anwärter-Übernahme Modal =====
     function openCandModal(){
       if (!ACTIVE_ROW){
         alert("Kein Bewerber ausgewählt.");
@@ -1152,13 +1174,12 @@
       const fn = safe(ACTIVE_ROW[F.fn]).trim();
       const ln = safe(ACTIVE_ROW[F.ln]).trim();
       const email = safe(ACTIVE_ROW[F.email]).trim();
+      const bid = makeBewerbungId(ACTIVE_ROW);
 
       candSub.textContent = `${fn} ${ln}`.trim() || "—";
 
       const photoUrl = getPhotoUrl(ACTIVE_ROW);
-      candInfoPill.textContent = email
-        ? `E-Mail: ${email}${photoUrl ? " · Foto: ja" : " · Foto: nein"}`
-        : "E-Mail fehlt";
+      candInfoPill.textContent = `Bewerbung-ID: ${bid || "—"}${email ? " · E-Mail: "+email : ""}${photoUrl ? " · Foto: ja" : " · Foto: nein"}`;
 
       candRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
 
@@ -1173,20 +1194,6 @@
 
     function closeCandModal(){
       candOverlay.classList.remove("show");
-    }
-
-    async function setStatus(bewerbung_id, status){
-      const payload = {};
-      payload[STATUS_ID_COL] = bewerbung_id;
-      payload[STATUS_COL] = status;
-
-      const { error } = await sb
-        .from(STATUS_TABLE)
-        .upsert(payload, { onConflict: STATUS_ID_COL });
-
-      if (error) throw error;
-
-      statusMap.set(normId(bewerbung_id), String(status || "").toLowerCase());
     }
 
     async function insertCandidateFromActive(){
@@ -1206,60 +1213,35 @@
         return;
       }
 
-      const bewerbung_id = makeBewerbungId(ACTIVE_ROW) || null;
-      if (!bewerbung_id){
-        alert("Bewerbung-ID fehlt (Zeitstempel/Mail).");
-        return;
-      }
-
-      const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
-      const photo_thumb = getThumb(ACTIVE_ROW) || null;
-
       candConfirm.disabled = true;
       candConfirm.style.opacity = ".75";
 
-      const { error } = await sb
-        .from(CANDIDATES_TABLE)
-        .insert({ vorname, nachname, email, ressort, bewerbung_id, photo_url, photo_thumb });
-
-      candConfirm.disabled = false;
-      candConfirm.style.opacity = "1";
-
-      if (error){
-        alert("Konnte nicht übernehmen: " + error.message);
-        return;
-      }
-
       try{
-        await setStatus(bewerbung_id, "anwaerter");
-      }catch(e){
-        alert("Übernommen, aber Status nicht gesetzt: " + (e?.message || e));
+        await upsertApplicantStatusFromActive("anwaerter", { ressort });
+        closeCandModal();
+        closeModal();
+        render();
+        alert("✅ Als Anwärter übernommen!");
+      } catch(e){
+        alert("Konnte nicht übernehmen: " + (e?.message || e));
+      } finally {
+        candConfirm.disabled = false;
+        candConfirm.style.opacity = "1";
       }
-
-      closeCandModal();
-      render();
-      alert("✅ Als Anwärter übernommen! (Status gespeichert)");
     }
 
     async function rejectActive(){
       if (!ACTIVE_ROW) return;
-
-      const bewerbung_id = makeBewerbungId(ACTIVE_ROW) || null;
-      if (!bewerbung_id){
-        alert("Bewerbung-ID fehlt (Zeitstempel/Mail).");
-        return;
-      }
-
       if (!confirm("Wirklich ablehnen?")) return;
 
       rejectBtn.disabled = true;
       rejectBtn.style.opacity = ".75";
 
       try{
-        await setStatus(bewerbung_id, "abgelehnt");
+        await upsertApplicantStatusFromActive("abgelehnt");
         closeModal();
         render();
-      }catch(e){
+      } catch(e){
         alert("Konnte nicht ablehnen: " + (e?.message || e));
       } finally {
         rejectBtn.disabled = false;
@@ -1299,7 +1281,6 @@
       }
     });
 
-    candConfirm.addEventListener("click", insertCandidateFromActive);
     rejectBtn.addEventListener("click", async ()=>{
       try{
         await requireAuth();
@@ -1310,21 +1291,11 @@
       }
     });
 
+    candConfirm.addEventListener("click", insertCandidateFromActive);
+
     // Init
     (async function init(){
       await enforceAuth();
-
-      // ✅ sofort aus Cache anzeigen (falls vorhanden)
-      const cached = cacheRead();
-      if (cached){
-        ALL = cached;
-        statusPill.textContent = `Cache: ${ALL.length}`;
-        fillFilters();
-        await refreshStatusMapFor(ALL);
-        render();
-      }
-
-      // danach immer "frisch" laden
       await fetchRows();
     })();
   </script>
