@@ -99,6 +99,7 @@
     .authAvatar.hidden{ display:none; }
     .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:160px; }
     .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
+    .authState.hidden{ display:none; }
     .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:3px; word-break:break-all; }
 
     /* ✅ Rolle in Badge */
@@ -715,30 +716,41 @@
     }
 
     function setAuthUI(isAuthed, email = ""){
-      if (isAuthed){
-        authDot.classList.remove("warn");
-        authDot.classList.add("ok");
-        authMail.textContent = (email || "").trim();
-        authMail.classList.remove("hidden");
-        setAvatar(email);
+  if (isAuthed){
+    authDot.classList.remove("warn");
+    authDot.classList.add("ok");
 
-        navWrap.style.display = "block";
-        logoutBtn.classList.remove("hidden");
-        contentCard.style.display = "block";
-      } else {
-        authDot.classList.remove("ok");
-        authDot.classList.add("warn");
-        authState.textContent = "nicht eingeloggt";
-        authMail.textContent = "";
-        authMail.classList.add("hidden");
-        setAvatar("");
-        clearRolePill();
+    // ✅ "eingeloggt" Text weg
+    authState.classList.add("hidden");
+    authState.textContent = "";
 
-        navWrap.style.display = "none";
-        logoutBtn.classList.add("hidden");
-        contentCard.style.display = "none";
-      }
-    }
+    authMail.textContent = (email || "").trim();
+    authMail.classList.remove("hidden");
+
+    setAvatar(email);
+
+    navWrap.style.display = "block";
+    logoutBtn.classList.remove("hidden");
+    contentCard.style.display = "block";
+  } else {
+    authDot.classList.remove("ok");
+    authDot.classList.add("warn");
+
+    // ✅ "nicht eingeloggt" weiterhin anzeigen
+    authState.classList.remove("hidden");
+    authState.textContent = "nicht eingeloggt";
+
+    authMail.textContent = "";
+    authMail.classList.add("hidden");
+
+    setAvatar("");
+    clearRolePill();
+
+    navWrap.style.display = "none";
+    logoutBtn.classList.add("hidden");
+    contentCard.style.display = "none";
+  }
+}
 
     async function requireAuth(){
       const res = await sb.auth.getSession();
