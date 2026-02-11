@@ -46,7 +46,6 @@ body{
   justify-content:center;
   align-items:flex-start;
   padding:42px 16px;
-  /* on mobile we add extra top/bottom padding in media queries to avoid overlaps */
 }
 
 .app{ width:100%; max-width:1200px; }
@@ -137,12 +136,10 @@ button:active{ transform: translateY(0px) scale(.99); }
   box-shadow: 0 18px 36px rgba(225,29,72,.28);
 }
 
-/* ===== Sticky floating auth badge ===== */
+/* ===== Auth badge: NICHT fixed, nur oben im Header (scrollt weg) ===== */
 .authFloating{
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 999;
+  position: static;
+  z-index: 1;
   border-radius: 999px;
   padding: 10px 14px;
   display:flex;
@@ -223,7 +220,7 @@ button:active{ transform: translateY(0px) scale(.99); }
 .hidden{ display:none; }
 .small{ font-size: 13px; color: var(--muted); }
 
-/* ===== NAV ===== */
+/* ===== NAV: sticky beim Scrollen (nur Nav bleibt oben) ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -379,29 +376,17 @@ hr.sep{
 }
 
 @media (max-width: 640px){
-  /* Avoid overlap with floating badge (now moved to bottom on small screens) */
   body{
-    padding: 24px 14px 96px; /* extra bottom space for badge */
+    padding: 24px 14px;
   }
 
   h1{ font-size: 26px; }
 
-  /* Top header stacks */
+  /* Header stacks; badge stays in header and scrolls away */
   .top{
     flex-direction:column;
     align-items:flex-start;
     gap:10px;
-  }
-
-  /* Auth badge becomes bottom floating, full width */
-  .authFloating{
-    top: auto;
-    right: 14px;
-    left: 14px;
-    bottom: 14px;
-    width: auto;
-    justify-content:space-between;
-    padding: 12px 14px;
   }
   .authInfo{ min-width: 0; }
 
@@ -410,7 +395,7 @@ hr.sep{
   .row{ align-items:stretch; }
   .row .spacer{ display:none; }
 
-  /* Nav becomes horizontal scroll, no overlap */
+  /* Nav becomes horizontal scroll */
   .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
@@ -431,8 +416,7 @@ hr.sep{
 }
 
 @media (max-width: 420px){
-  /* Even tighter */
-  body{ padding: 20px 12px 102px; }
+  body{ padding: 20px 12px; }
   .card{ padding:14px; }
   .navLink{ padding: 9px 10px; border-radius: 14px; }
   .navIcon{ width:28px; height:28px; border-radius: 11px; }
@@ -443,22 +427,22 @@ hr.sep{
 
 <body>
 
-<!-- Floating Auth Badge -->
-<div class="authFloating" id="authBadge" title="Login-Status">
-  <span class="dot warn" id="authDot"></span>
-  <div class="authAvatar hidden" id="authAvatar">U</div>
-  <div class="authInfo">
-    <div class="authState" id="authState">nicht eingeloggt</div>
-    <div class="authMail hidden" id="authMail"></div>
-  </div>
-</div>
-
 <div class="app">
 
   <div class="top">
     <div>
       <h1>Mitgliederportal</h1>
-      <div class="subtitle">Liquid Glass · Invite-only · RLS geschützt</div>
+      <div class="subtitle">Fachschaft Business School e.V.</div>
+    </div>
+
+    <!-- Auth Badge im Header (scrollt weg wie Titel) -->
+    <div class="authFloating" id="authBadge" title="Login-Status">
+      <span class="dot warn" id="authDot"></span>
+      <div class="authAvatar hidden" id="authAvatar">U</div>
+      <div class="authInfo">
+        <div class="authState" id="authState">nicht eingeloggt</div>
+        <div class="authMail hidden" id="authMail"></div>
+      </div>
     </div>
   </div>
 
