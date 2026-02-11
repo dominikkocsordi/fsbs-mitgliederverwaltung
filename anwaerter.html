@@ -795,7 +795,7 @@
     const { error: insErr } = await sb
       .from(MEMBERS_TABLE)
       .insert([{
-        voname: vorname,     // ✅ Spalte heißt bei dir "voname"
+        vorname: vorname,     // ✅ Spalte heißt bei dir "voname"
         nachname,
         email,
         ressort
