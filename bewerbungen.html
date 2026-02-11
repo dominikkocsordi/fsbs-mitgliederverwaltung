@@ -4,113 +4,219 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bewerbungen</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
-      --bg0:#05060a;
-      --card: rgba(255,255,255,.08);
-      --stroke: rgba(255,255,255,.14);
+      --bg1:#0b1220;
+      --bg2:#111c2b;
+      --bg3:#0b2a33;
+
+      --glass: rgba(255,255,255,.10);
+      --border: rgba(255,255,255,.22);
+
       --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.62);
-      --shadow: 0 18px 70px rgba(0,0,0,.55);
+      --muted: rgba(255,255,255,.68);
+
+      --accent1:#38bdf8;
+      --accent2:#0ea5e9;
+
+      --shadow: 0 20px 55px rgba(0,0,0,.40);
       --r: 22px;
     }
+
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
       background:
-        radial-gradient(1200px 700px at 20% 10%, rgba(120,120,255,.20), transparent 55%),
-        radial-gradient(900px 600px at 80% 25%, rgba(60,255,210,.12), transparent 60%),
-        radial-gradient(900px 600px at 50% 100%, rgba(255,120,180,.10), transparent 55%),
-        linear-gradient(180deg, #05060a, #070814);
+        radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.18), transparent 60%),
+        radial-gradient(800px 450px at 60% 90%, rgba(251,113,133,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
       min-height:100vh;
+      padding: 28px 16px 60px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
     }
-    .wrap{max-width:1200px; margin:0 auto; padding:24px 18px 60px;}
-    .topbar{
-      display:flex; align-items:center; justify-content:space-between;
-      gap:14px; padding:14px 16px;
-      border:1px solid var(--stroke);
-      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      border-radius: calc(var(--r) + 6px);
-      backdrop-filter: blur(14px);
-      box-shadow: var(--shadow);
-      position: sticky; top: 14px; z-index: 5;
-    }
-    .brand{display:flex; flex-direction:column; gap:2px;}
-    .brand .h{font-weight:750; letter-spacing:.2px; font-size:16px}
-    .brand .s{color:var(--muted); font-size:12px}
 
-    .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
-    .input, select{
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.14);
-      color: var(--text);
+    .app{ width:100%; max-width:1200px; }
+
+    .glass{
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+
+    /* NAV */
+    .navWrap{
+      position: sticky;
+      top: 14px;
+      z-index: 10;
+      margin-bottom: 16px;
+    }
+    .nav{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      padding: 10px;
+    }
+    .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    .navLink{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
       padding: 10px 12px;
+      border-radius: 16px;
+      text-decoration:none;
+      color: rgba(255,255,255,.86);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
+      user-select:none;
+    }
+    .navLink:hover{
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.22);
+    }
+    .navLink.active{
+      background: linear-gradient(135deg, rgba(56,189,248,.22), rgba(14,165,233,.12));
+      border-color: rgba(56,189,248,.40);
+      box-shadow: 0 14px 30px rgba(14,165,233,.18);
+    }
+    .navIcon{
+      width:30px; height:30px;
+      border-radius: 12px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .navTitle{ font-weight:750; letter-spacing:.2px; }
+    .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
+
+    button{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding: 10px 14px;
+      font-weight:700;
+      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+    }
+    .btn-secondary{
+      background: rgba(255,255,255,.14);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+    .btn-primary{
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #03202b;
+      box-shadow: 0 10px 26px rgba(14,165,233,.25);
+    }
+    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+
+    /* Header + Controls */
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:16px;
+    }
+    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    .card{ padding:16px; margin-bottom:14px; }
+
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .spacer{ flex:1; }
+
+    input,select{
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      color: var(--text);
+      padding: 12px 14px;
       border-radius: 14px;
       outline:none;
       min-width: 190px;
-      backdrop-filter: blur(12px);
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
     }
-    .input::placeholder{color: rgba(255,255,255,.45)}
-    .btn{
-      border:none; cursor:pointer;
-      padding: 10px 12px;
-      border-radius: 14px;
-      color: var(--text);
-      background: linear-gradient(135deg, rgba(120,120,255,.26), rgba(60,255,210,.16));
-      border: 1px solid rgba(255,255,255,.16);
-      box-shadow: 0 10px 26px rgba(0,0,0,.35);
-      transition: transform .15s ease, filter .15s ease;
+    input::placeholder{ color: rgba(255,255,255,.55); }
+    input:focus, select:focus{
+      border-color: rgba(56,189,248,.55);
+      background: rgba(255,255,255,.16);
+      transform: translateY(-1px);
     }
-    .btn:hover{transform: translateY(-1px); filter: brightness(1.08)}
-    .btn:active{transform: translateY(0px)}
 
-    .metaRow{display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 4px 10px;}
     .pill{
-      font-size:12px; color:var(--muted);
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-radius: 999px;
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
     }
 
-    .grid{display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:14px; margin-top: 10px;}
-    @media (max-width: 1020px){ .grid{grid-template-columns: repeat(2, minmax(0, 1fr));} }
-    @media (max-width: 640px){ .grid{grid-template-columns: 1fr;} .input, select{min-width: 100%;} }
+    /* Grid cards */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:14px;
+    }
+    @media (max-width: 1020px){ .grid{grid-template-columns: repeat(2, minmax(0,1fr));} }
+    @media (max-width: 640px){
+      .grid{grid-template-columns: 1fr;}
+      input,select{min-width:0; width:100%;}
+    }
 
-    .card{
-      border:1px solid var(--stroke);
+    .appCard{
+      border:1px solid rgba(255,255,255,.18);
       background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      border-radius: var(--r);
-      backdrop-filter: blur(14px);
-      box-shadow: 0 14px 55px rgba(0,0,0,.40);
-      overflow:hidden;
+      border-radius: 22px;
+      box-shadow: 0 14px 55px rgba(0,0,0,.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       cursor:pointer;
-      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      transition: transform .18s ease, filter .18s ease, border-color .18s ease;
+      overflow:hidden;
     }
-    .card:hover{
-      transform: translateY(-2px);
-      border-color: rgba(255,255,255,.22);
-      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-    }
-    .cardInner{display:flex; gap:12px; padding:14px;}
+    .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
+    .inner{ display:flex; gap:12px; padding:14px; }
+
     .avatar{
       width:56px; height:56px; border-radius:16px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.06);
-      overflow:hidden; flex: 0 0 auto;
+      overflow:hidden; flex:0 0 auto;
       display:grid; place-items:center;
+      font-weight:900;
+      color: rgba(255,255,255,.75);
     }
-    .avatar img{width:100%; height:100%; object-fit:cover; display:block}
-    .avatar .fallback{font-weight:800; color: rgba(255,255,255,.75)}
-    .cTitle{display:flex; flex-direction:column; gap:4px; min-width:0}
-    .name{font-weight:800; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .sub{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .title{ font-weight:850; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .sub{ color: rgba(255,255,255,.62); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
     .tag{
       font-size:12px;
       padding:6px 8px;
@@ -120,46 +226,58 @@
       color: rgba(255,255,255,.78);
     }
 
-    .modalBackdrop{
-      position:fixed; inset:0; z-index:50;
+    .empty{
+      margin-top: 12px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px dashed rgba(255,255,255,.22);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.78);
+    }
+
+    /* Debug box */
+    .debug{
+      display:none;
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.25);
+      color: rgba(255,255,255,.84);
+      font-size: 12px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .debug.show{ display:block; }
+
+    /* Modal */
+    .modalOverlay{
+      position: fixed; inset:0; z-index:50;
       background: rgba(0,0,0,.55);
-      display:none; align-items:center; justify-content:center;
+      display:none;
+      align-items:center;
+      justify-content:center;
       padding: 18px;
     }
+    .modalOverlay.show{ display:flex; }
     .modal{
       width:min(920px, 100%);
       max-height: 86vh;
       overflow:auto;
       border-radius: 26px;
-      border:1px solid rgba(255,255,255,.18);
-      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-      backdrop-filter: blur(18px);
-      box-shadow: 0 22px 90px rgba(0,0,0,.65);
+      padding: 16px;
     }
     .modalHeader{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-      padding: 16px 16px 10px;
-      border-bottom:1px solid rgba(255,255,255,.12);
-      position:sticky; top:0;
-      background: linear-gradient(135deg, rgba(20,22,40,.55), rgba(12,12,20,.30));
-      backdrop-filter: blur(18px);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom: 10px;
     }
-    .modalHeader .left{display:flex; gap:12px; align-items:center; min-width:0}
-    .modalHeader .titleBlock{min-width:0}
-    .modalHeader .title{font-weight:900; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .modalHeader .meta{color:var(--muted); font-size:12px; margin-top:3px}
-    .xbtn{
-      border:none; cursor:pointer;
-      width:40px; height:40px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.85);
-      display:grid; place-items:center;
-      transition: transform .15s ease, filter .15s ease;
-    }
-    .xbtn:hover{transform: translateY(-1px); filter: brightness(1.1)}
-    .modalBody{padding: 14px 16px 18px}
+    .modalTitle{ margin:0; font-size: 20px; letter-spacing:.2px; }
+    .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
+    .closeX{ width:42px; height:42px; border-radius:14px; }
+
     .kv{
       display:grid;
       grid-template-columns: 320px 1fr;
@@ -171,78 +289,96 @@
       margin-top: 12px;
     }
     @media (max-width: 760px){ .kv{grid-template-columns: 1fr;} }
-    .k{color: rgba(255,255,255,.70); font-size:12px}
-    .v{color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere}
-    .v a{color: rgba(180,210,255,.95)}
-    .divider{height:1px; background: rgba(255,255,255,.10); margin: 12px 0;}
-    .empty{
-      margin-top: 18px;
-      border:1px dashed rgba(255,255,255,.22);
-      background: rgba(255,255,255,.04);
-      padding: 22px;
-      border-radius: 22px;
-      color: rgba(255,255,255,.75);
-    }
+    .k{ color: rgba(255,255,255,.70); font-size:12px; }
+    .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
+    .v a{ color: rgba(180,210,255,.95); }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="h">Bewerbungen</div>
-        <div class="s">Google Sheet: Formularantworten 1 · Klick für Details</div>
-      </div>
-      <div class="controls">
-        <input id="q" class="input" placeholder="Suche (Name, Mail, Ressort…)" />
-        <select id="fR1"><option value="">Prio 1 (alle)</option></select>
-        <select id="fR2"><option value="">Prio 2 (alle)</option></select>
-        <select id="fSem"><option value="">Semester (alle)</option></select>
-        <button id="reload" class="btn">Neu laden</button>
+  <div class="app">
+
+    <!-- NAV (wie im Portal) -->
+    <div class="glass navWrap" id="navWrap" style="display:none;">
+      <div class="nav">
+        <div class="navLeft">
+          <a class="navLink" href="/index.html" id="navMembers">
+            <span class="navIcon">👥</span>
+            <span>
+              <div class="navTitle">Mitglieder</div>
+              <div class="navHint">Verwalten</div>
+            </span>
+          </a>
+
+          <a class="navLink active" href="/bewerbungen.html" id="navApps">
+            <span class="navIcon">📝</span>
+            <span>
+              <div class="navTitle">Bewerbungen</div>
+              <div class="navHint">Google Sheet</div>
+            </span>
+          </a>
+        </div>
+
+        <div class="navRight">
+          <button class="btn-secondary" id="logoutBtn">Logout</button>
+        </div>
       </div>
     </div>
 
-    <div class="metaRow">
-      <div id="count" class="pill">–</div>
-      <div id="status" class="pill">Bereit</div>
+    <div class="top">
+      <div>
+        <h1>Bewerbungen</h1>
+        <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
+      </div>
+      <div class="pill" id="statusPill">–</div>
+    </div>
+
+    <div class="glass card">
+      <div class="row">
+        <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
+        <select id="fR1"><option value="">Prio 1 (alle)</option></select>
+        <select id="fR2"><option value="">Prio 2 (alle)</option></select>
+        <select id="fSem"><option value="">Semester (alle)</option></select>
+        <button class="btn-secondary" id="reloadBtn">Neu laden</button>
+        <div class="spacer"></div>
+        <div class="pill" id="countPill">0</div>
+      </div>
+
+      <div class="debug" id="debugBox"></div>
     </div>
 
     <div id="grid" class="grid"></div>
     <div id="empty" class="empty" style="display:none;">Keine Bewerbungen gefunden.</div>
+
   </div>
 
-  <div id="backdrop" class="modalBackdrop" role="dialog" aria-modal="true">
-    <div class="modal">
+  <!-- Modal -->
+  <div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
+    <div class="glass modal" onclick="event.stopPropagation()">
       <div class="modalHeader">
-        <div class="left">
-          <div class="avatar" id="mAvatar"></div>
-          <div class="titleBlock">
-            <div class="title" id="mTitle">–</div>
-            <div class="meta" id="mMeta">–</div>
-          </div>
+        <div>
+          <h2 class="modalTitle" id="modalTitle">Bewerbung</h2>
+          <div class="modalSub" id="modalSub">–</div>
         </div>
-        <button id="close" class="xbtn" title="Schließen">✕</button>
+        <button class="btn-secondary closeX" onclick="closeModal()">✕</button>
       </div>
-      <div class="modalBody">
-        <div id="mTags" class="tags"></div>
-        <div class="divider"></div>
-        <div id="mKV"></div>
-      </div>
+
+      <div class="kv" id="kv"></div>
     </div>
   </div>
 
   <script>
-    // ====== HIER EINTRAGEN ======
+    // ====== 1) HIER EINTRAGEN (sonst bleiben Einträge leer) ======
     const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec";
-    const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
+    const SHEET_API_KEY = "AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe";
 
-    // Supabase Gate (damit nur eingeloggte Leute das sehen)
-    const USE_SUPABASE_GATE = true;
+    // ====== 2) Supabase Auth (wie im Portal) ======
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-    const LOGIN_REDIRECT = "/login.html";
+    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const LOGIN_REDIRECT = "/index.html"; // du loggst dich auf der Hauptseite ein
 
-    // ====== FELDER (exakt wie dein Header) ======
+    // ====== Feldnamen (exakt wie dein Sheet) ======
     const F = {
       ts: "Zeitstempel",
       fn: "Vorname",
@@ -260,65 +396,104 @@
       sem: "Semester"
     };
 
-    // ====== STATE ======
+    // ====== Elements ======
+    const navWrap = document.getElementById("navWrap");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const q = document.getElementById("q");
+    const fR1 = document.getElementById("fR1");
+    const fR2 = document.getElementById("fR2");
+    const fSem = document.getElementById("fSem");
+    const reloadBtn = document.getElementById("reloadBtn");
+
+    const grid = document.getElementById("grid");
+    const empty = document.getElementById("empty");
+    const statusPill = document.getElementById("statusPill");
+    const countPill = document.getElementById("countPill");
+    const debugBox = document.getElementById("debugBox");
+
+    const modalOverlay = document.getElementById("modalOverlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSub = document.getElementById("modalSub");
+    const kv = document.getElementById("kv");
+
+    // ====== State ======
     let ALL = [];
-    const el = (id) => document.getElementById(id);
-
-    const grid = el("grid");
-    const empty = el("empty");
-    const count = el("count");
-    const status = el("status");
-
-    const q = el("q");
-    const fR1 = el("fR1");
-    const fR2 = el("fR2");
-    const fSem = el("fSem");
-    const reloadBtn = el("reload");
-
-    const backdrop = el("backdrop");
-    const closeBtn = el("close");
-    const mAvatar = el("mAvatar");
-    const mTitle = el("mTitle");
-    const mMeta = el("mMeta");
-    const mKV = el("mKV");
-    const mTags = el("mTags");
-
-    const supabase = USE_SUPABASE_GATE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-    async function enforceAuth() {
-      if (!USE_SUPABASE_GATE) return true;
-      const { data } = await supabase.auth.getSession();
-      if (!data.session) { window.location.href = LOGIN_REDIRECT; return false; }
-      return true;
-    }
-
-    async function fetchRows() {
-      status.textContent = "Lade Bewerbungen…";
-      const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Sheet API Fehler: " + res.status);
-      const json = await res.json();
-      ALL = Array.isArray(json.rows) ? json.rows : [];
-      status.textContent = `Geladen: ${ALL.length}`;
-    }
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-    const escapeHtml = (s) => String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    const esc = (s) => String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    function getInitials(row){
-      const a = safe(row[F.fn]).trim()[0] || "";
-      const b = safe(row[F.ln]).trim()[0] || "";
-      return (a + b).toUpperCase() || "•";
+    function showDebug(obj){
+      debugBox.classList.add("show");
+      debugBox.textContent = JSON.stringify(obj, null, 2);
     }
 
-    function firstPhotoThumb(row){
-      if (row.__photo?.kind === "drive" && row.__photo.items?.[0]) return row.__photo.items[0].thumb || "";
-      return "";
+    async function requireAuth(){
+      const { data } = await sb.auth.getSession();
+      if (!data.session) throw new Error("not_logged_in");
+      return data.session;
     }
 
-    function firstPhotoUrl(row){
-      if (row.__photo?.kind === "drive" && row.__photo.items?.[0]) return row.__photo.items[0].url || "";
-      return safe(row[F.photo]).trim();
+    async function enforceAuth(){
+      try{
+        await requireAuth();
+        navWrap.style.display = "block";
+      } catch(e){
+        window.location.href = LOGIN_REDIRECT;
+      }
+    }
+
+    logoutBtn.addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = "/index.html";
+    });
+
+    async function fetchRows(){
+      statusPill.textContent = "Lade…";
+
+      // harte Checks, damit du sofort siehst, was fehlt
+      if (!SHEET_API_URL || SHEET_API_URL.includes("PASTE_")){
+        statusPill.textContent = "Fehlt: SHEET_API_URL";
+        showDebug({hint:"Du musst die Apps Script Web-App URL in SHEET_API_URL eintragen."});
+        return;
+      }
+      if (!SHEET_API_KEY || SHEET_API_KEY.includes("PASTE_")){
+        statusPill.textContent = "Fehlt: API_KEY";
+        showDebug({hint:"Du musst den gleichen API_KEY wie im Apps Script in SHEET_API_KEY eintragen."});
+        return;
+      }
+
+      const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
+
+      try{
+        const res = await fetch(url, { method:"GET" });
+        const text = await res.text();
+
+        // JSON parse mit gutem Fehler
+        let json;
+        try { json = JSON.parse(text); }
+        catch(parseErr){
+          statusPill.textContent = "API liefert kein JSON";
+          showDebug({url, status: res.status, response_preview: text.slice(0, 500)});
+          return;
+        }
+
+        if (!res.ok){
+          statusPill.textContent = "API Fehler";
+          showDebug({url, status: res.status, json});
+          return;
+        }
+
+        ALL = Array.isArray(json.rows) ? json.rows : [];
+        statusPill.textContent = `Geladen: ${ALL.length}`;
+        fillFilters();
+        render();
+      } catch(err){
+        statusPill.textContent = "Fetch/CORS Fehler";
+        showDebug({url, error: String(err)});
+      }
     }
 
     function uniq(arr){
@@ -331,17 +506,30 @@
       const sem = uniq(ALL.map(r => r[F.sem]));
 
       const fill = (sel, values, placeholder) => {
-        sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+        sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
       };
+
       fill(fR1, r1, "Prio 1 (alle)");
       fill(fR2, r2, "Prio 2 (alle)");
       fill(fSem, sem, "Semester (alle)");
     }
 
+    function getInitials(row){
+      const a = safe(row[F.fn]).trim()[0] || "";
+      const b = safe(row[F.ln]).trim()[0] || "";
+      return (a + b).toUpperCase() || "•";
+    }
+
+    function firstPhotoThumb(row){
+      if (row.__photo?.kind === "drive" && row.__photo.items?.[0]) return row.__photo.items[0].thumb || "";
+      return "";
+    }
+
     function matches(row, text){
       if (!text) return true;
-      const hay = [row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone]]
-        .map(safe).join(" ").toLowerCase();
+      const hay = [
+        row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone]
+      ].map(safe).join(" ").toLowerCase();
       return hay.includes(text.toLowerCase());
     }
 
@@ -361,8 +549,7 @@
 
     function render(){
       const rows = filtered();
-      count.textContent = `${rows.length} Bewerbung(en) angezeigt · ${ALL.length} gesamt`;
-
+      countPill.textContent = `${rows.length} / ${ALL.length}`;
       grid.innerHTML = "";
       empty.style.display = rows.length ? "none" : "block";
 
@@ -372,23 +559,24 @@
         const r1 = safe(row[F.r1]).trim();
         const r2 = safe(row[F.r2]).trim();
         const sem = safe(row[F.sem]).trim();
+        const mail = safe(row[F.email]).trim();
+
         const thumb = firstPhotoThumb(row);
 
         const card = document.createElement("div");
-        card.className = "card";
+        card.className = "appCard";
         card.innerHTML = `
-          <div class="cardInner">
+          <div class="inner">
             <div class="avatar">
-              ${thumb ? `<img src="${escapeHtml(thumb)}" alt="Foto" loading="lazy" />`
-                      : `<div class="fallback">${escapeHtml(getInitials(row))}</div>`}
+              ${thumb ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy">` : esc(getInitials(row))}
             </div>
-            <div class="cTitle">
-              <div class="name">${escapeHtml((fn + " " + ln).trim() || "Unbekannt")}</div>
-              <div class="sub">${escapeHtml(safe(row[F.email]).trim() || "—")}</div>
+            <div style="min-width:0;">
+              <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
+              <div class="sub">${esc(mail || "—")}</div>
               <div class="tags">
-                ${r1 ? `<span class="tag">Prio 1: ${escapeHtml(r1)}</span>` : ``}
-                ${r2 ? `<span class="tag">Prio 2: ${escapeHtml(r2)}</span>` : ``}
-                ${sem ? `<span class="tag">Sem: ${escapeHtml(sem)}</span>` : ``}
+                ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
+                ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
+                ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
               </div>
             </div>
           </div>
@@ -398,105 +586,62 @@
       });
     }
 
+    function overlayClick(e){
+      if (e.target === modalOverlay) closeModal();
+    }
+    function closeModal(){
+      modalOverlay.classList.remove("show");
+    }
+
     function openModal(row){
       const fn = safe(row[F.fn]).trim();
       const ln = safe(row[F.ln]).trim();
-      mTitle.textContent = (fn + " " + ln).trim() || "Bewerbung";
+      modalTitle.textContent = (fn + " " + ln).trim() || "Bewerbung";
 
-      const meta = [
+      modalSub.textContent = [
         safe(row[F.ts]).trim() ? `Zeit: ${safe(row[F.ts]).trim()}` : null,
         safe(row[F.email]).trim() ? `Mail: ${safe(row[F.email]).trim()}` : null
-      ].filter(Boolean).join(" · ");
-      mMeta.textContent = meta || "—";
+      ].filter(Boolean).join(" · ") || "—";
 
-      const thumb = firstPhotoThumb(row);
-      const link = firstPhotoUrl(row);
-      mAvatar.innerHTML = "";
-      if (thumb) {
-        const a = document.createElement("a");
-        a.href = link || "#";
-        a.target = "_blank";
-        a.rel = "noopener";
-        a.style.cssText = "display:block;width:100%;height:100%";
-        a.innerHTML = `<img src="${escapeHtml(thumb)}" alt="Foto" />`;
-        mAvatar.appendChild(a);
-      } else {
-        mAvatar.innerHTML = `<div class="fallback">${escapeHtml(getInitials(row))}</div>`;
-      }
+      const fields = [
+        F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone,
+        F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent
+      ];
 
-      const tags = [];
-      if (safe(row[F.r1]).trim()) tags.push(["Prio 1", safe(row[F.r1]).trim()]);
-      if (safe(row[F.r2]).trim()) tags.push(["Prio 2", safe(row[F.r2]).trim()]);
-      if (safe(row[F.sem]).trim()) tags.push(["Semester", safe(row[F.sem]).trim()]);
-      if (safe(row[F.age]).trim()) tags.push(["Alter", safe(row[F.age]).trim()]);
-      mTags.innerHTML = tags.map(([k,v]) => `<span class="tag">${escapeHtml(k)}: ${escapeHtml(v)}</span>`).join("");
-
-      const fields = [F.ts,F.fn,F.ln,F.age,F.sem,F.email,F.phone,F.r1,F.r2,F.whyR,F.why,F.exp,F.photo,F.consent];
-
-      const kv = document.createElement("div");
-      kv.className = "kv";
-
+      kv.innerHTML = "";
       fields.forEach(key => {
-        let val = row[key];
-
-        if (key === F.photo) {
-          const url = firstPhotoUrl(row);
-          if (url) val = `📎 ${url}`;
-        }
-
         const k = document.createElement("div");
         k.className = "k";
         k.textContent = key;
 
         const v = document.createElement("div");
         v.className = "v";
-        const s = safe(val).trim();
 
-        const linkCandidate = s.replace("📎 ", "");
-        if (linkCandidate.startsWith("http://") || linkCandidate.startsWith("https://") || linkCandidate.includes("drive.google.com")) {
-          v.innerHTML = `<a href="${escapeHtml(linkCandidate)}" target="_blank" rel="noopener">${escapeHtml(s || "—")}</a>`;
+        const val = safe(row[key]).trim();
+        if (val.includes("http://") || val.includes("https://") || val.includes("drive.google.com")){
+          v.innerHTML = `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
         } else {
-          v.textContent = s || "—";
+          v.textContent = val || "—";
         }
 
         kv.appendChild(k);
         kv.appendChild(v);
       });
 
-      mKV.innerHTML = "";
-      mKV.appendChild(kv);
-
-      backdrop.style.display = "flex";
-      document.body.style.overflow = "hidden";
+      modalOverlay.classList.add("show");
     }
 
-    function closeModal(){
-      backdrop.style.display = "none";
-      document.body.style.overflow = "";
-    }
-
-    async function init(){
-      const ok = await enforceAuth();
-      if (!ok) return;
-
-      try {
-        await fetchRows();
-        fillFilters();
-        render();
-      } catch (e) {
-        console.error(e);
-        status.textContent = "Fehler beim Laden (Konsole prüfen)";
-      }
-    }
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
+    });
 
     [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
-    reloadBtn.addEventListener("click", async () => { await fetchRows(); fillFilters(); render(); });
+    reloadBtn.addEventListener("click", fetchRows);
 
-    closeBtn.addEventListener("click", closeModal);
-    backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
-    window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
-
-    init();
+    (async function init(){
+      await enforceAuth();
+      await fetchRows();
+    })();
   </script>
 </body>
 </html>
