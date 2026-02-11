@@ -25,6 +25,8 @@
       --shadow: 0 20px 55px rgba(0,0,0,.40);
 
       --ok: rgba(34,197,94,.95);
+      --warn: rgba(245,158,11,.95);
+      --bad: rgba(239,68,68,.95);
     }
 
     *{box-sizing:border-box}
@@ -239,6 +241,13 @@
     }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
+    .btn-danger{
+      background: rgba(239,68,68,.16);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(239,68,68,.28);
+    }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
+
     .card{ padding:16px; margin-bottom:14px; }
 
     .row{
@@ -433,6 +442,62 @@
     .k{ color: rgba(255,255,255,.70); font-size:12px; }
     .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
     .v a{ color: rgba(180,210,255,.95); }
+
+    /* ===== Anwärter-Modal (kleiner) ===== */
+    .candOverlay{
+      position: fixed; inset:0; z-index:70;
+      background: rgba(0,0,0,.58);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+    }
+    .candOverlay.show{ display:flex; }
+
+    .candModal{
+      width:min(560px, 100%);
+      border-radius: 26px;
+      padding: 16px;
+    }
+    .candHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 10px;
+    }
+    .candTitle{ margin:0; font-size: 18px; letter-spacing:.2px; }
+    .candSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
+    .candBody{
+      margin-top: 10px;
+      padding: 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      border-radius: 18px;
+    }
+    .candRow{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top: 10px;
+    }
+    .candFoot{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
+
+    /* Buttons im Bewerber-Modal */
+    .modalActions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
   </style>
 </head>
 
@@ -478,6 +543,15 @@
             <span>
               <div class="navTitle">Bewerbungen</div>
               <div class="navHint">Google Sheet</div>
+            </span>
+          </a>
+
+          <!-- ✅ NEU: Anwärter -->
+          <a class="navLink" href="/anwaerter.html" id="navCandidates">
+            <span class="navIcon">🟢</span>
+            <span>
+              <div class="navTitle">Anwärter</div>
+              <div class="navHint">Pipeline</div>
             </span>
           </a>
 
@@ -532,6 +606,41 @@
       </div>
 
       <div class="kv" id="kv"></div>
+
+      <!-- ✅ NEU: Actions unten im Modal -->
+      <div class="modalActions">
+        <button class="btn-primary" id="moveToCandidateBtn">Als Anwärter übernehmen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ NEU: Anwärter-Übernahme Modal (Ressort Dropdown) -->
+  <div class="candOverlay" id="candOverlay" onclick="candOverlayClick(event)">
+    <div class="glass candModal" onclick="event.stopPropagation()">
+      <div class="candHead">
+        <div>
+          <h3 class="candTitle">Als Anwärter übernehmen</h3>
+          <div class="candSub" id="candSub">–</div>
+        </div>
+        <button class="btn-secondary closeX" onclick="closeCandModal()">✕</button>
+      </div>
+
+      <div class="candBody">
+        <div style="color:rgba(255,255,255,.75); font-size:12px; margin-bottom:8px;">
+          Ressort auswählen (gleich wie bei Mitgliedern)
+        </div>
+        <select id="candRessort" style="width:100%; min-width:0;"></select>
+
+        <div class="candRow" style="margin-top:12px;">
+          <div class="pill" id="candInfoPill">–</div>
+          <div class="spacer"></div>
+        </div>
+
+        <div class="candFoot">
+          <button class="btn-secondary" onclick="closeCandModal()">Abbrechen</button>
+          <button class="btn-primary" id="candConfirm">Übernehmen</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -545,6 +654,15 @@
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
+
+    // ====== Mitglieder-Tabelle (für Ressort-Liste) ======
+    // WENN deine Tabelle anders heißt -> hier ändern:
+    const MEMBERS_TABLE = "mitglieder"; // z.B. "members" oder "mitglieder"
+    // WENN deine Ressort-Spalte anders heißt -> hier ändern:
+    const MEMBERS_RESSORT_COL = "ressort";
+
+    // ====== Anwärter-Tabelle (Ziel) ======
+    const CANDIDATES_TABLE = "anwaerter"; // so wie im SQL
 
     // ====== Feldnamen (exakt wie dein Sheet) ======
     const F = {
@@ -592,8 +710,18 @@
     const modalPhoto = document.getElementById("modalPhoto");
     const kv = document.getElementById("kv");
 
+    // Anwärter UI
+    const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
+    const candOverlay = document.getElementById("candOverlay");
+    const candSub = document.getElementById("candSub");
+    const candRessort = document.getElementById("candRessort");
+    const candConfirm = document.getElementById("candConfirm");
+    const candInfoPill = document.getElementById("candInfoPill");
+
     // ====== State ======
     let ALL = [];
+    let ACTIVE_ROW = null;
+    let RESSORTS = [];
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
@@ -890,6 +1018,8 @@
     }
 
     function openModal(row){
+      ACTIVE_ROW = row;
+
       const fn = safe(row[F.fn]).trim();
       const ln = safe(row[F.ln]).trim();
       modalTitle.textContent = (fn + " " + ln).trim() || "Bewerbung";
@@ -931,13 +1061,128 @@
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
+      if (e.key === "Escape" && candOverlay.classList.contains("show")) closeCandModal();
     });
 
     [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
     reloadBtn.addEventListener("click", fetchRows);
 
+    // ============================
+    // ✅ Anwärter-Übernahme (NEU)
+    // ============================
+
+    async function loadRessortsFromMembers(){
+      // Ressorts dynamisch aus Mitglieder-Tabelle holen => "gleich wie bei Mitgliedern"
+      const { data, error } = await sb
+        .from(MEMBERS_TABLE)
+        .select(MEMBERS_RESSORT_COL)
+        .not(MEMBERS_RESSORT_COL, "is", null);
+
+      if (error){
+        // Fallback, falls Tabelle/Spalte anders heißt
+        return ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
+      }
+
+      const set = new Set((data || [])
+        .map(x => (x?.[MEMBERS_RESSORT_COL] ?? "").toString().trim())
+        .filter(Boolean)
+      );
+
+      const arr = Array.from(set);
+      return arr.length ? arr.sort((a,b)=>a.localeCompare(b,"de")) : ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
+    }
+
+    function openCandModal(){
+      if (!ACTIVE_ROW){
+        alert("Kein Bewerber ausgewählt.");
+        return;
+      }
+
+      const fn = safe(ACTIVE_ROW[F.fn]).trim();
+      const ln = safe(ACTIVE_ROW[F.ln]).trim();
+      const email = safe(ACTIVE_ROW[F.email]).trim();
+
+      candSub.textContent = `${fn} ${ln}`.trim() || "—";
+      candInfoPill.textContent = email ? `E-Mail: ${email}` : "E-Mail fehlt";
+
+      candRessort.innerHTML = RESSORTS.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+
+      candOverlay.classList.add("show");
+    }
+
+    function closeCandModal(){
+      candOverlay.classList.remove("show");
+    }
+
+    function candOverlayClick(e){
+      if (e.target === candOverlay) closeCandModal();
+    }
+
+    async function insertCandidateFromActive(){
+      if (!ACTIVE_ROW) return;
+
+      const vorname = safe(ACTIVE_ROW[F.fn]).trim();
+      const nachname = safe(ACTIVE_ROW[F.ln]).trim();
+      const email = safe(ACTIVE_ROW[F.email]).trim();
+      const ressort = safe(candRessort.value).trim();
+
+      if (!vorname || !nachname || !email){
+        alert("Vorname/Nachname/E-Mail fehlen in der Bewerbung. Bitte prüfen.");
+        return;
+      }
+      if (!ressort){
+        alert("Bitte ein Ressort auswählen.");
+        return;
+      }
+
+      // bewerbung_id optional (für Nachverfolgung)
+      // Wir nehmen Zeitstempel + Mail als Identifier (weil Sheet keine echte ID hat)
+      const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
+
+      // optional: Duplikate vermeiden (Email unique index in Supabase empfohlen)
+      candConfirm.disabled = true;
+      candConfirm.style.opacity = ".75";
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .insert({
+          vorname,
+          nachname,
+          email,
+          ressort,
+          bewerbung_id
+        });
+
+      candConfirm.disabled = false;
+      candConfirm.style.opacity = "1";
+
+      if (error){
+        alert("Konnte nicht übernehmen: " + error.message);
+        return;
+      }
+
+      closeCandModal();
+      alert("✅ Als Anwärter übernommen!");
+    }
+
+    moveToCandidateBtn.addEventListener("click", async () => {
+      try{
+        await requireAuth();
+        if (!RESSORTS.length) RESSORTS = await loadRessortsFromMembers();
+        openCandModal();
+      } catch(e){
+        alert("Bitte einloggen.");
+        window.location.href = LOGIN_REDIRECT;
+      }
+    });
+
+    candConfirm.addEventListener("click", insertCandidateFromActive);
+
+    // ===== Init =====
     (async function init(){
       await enforceAuth();
+      // Ressorts früh laden (optional)
+      RESSORTS = await loadRessortsFromMembers();
       await fetchRows();
     })();
   </script>
