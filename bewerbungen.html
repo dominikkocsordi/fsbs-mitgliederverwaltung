@@ -614,35 +614,64 @@
     </div>
   </div>
 
-  <!-- ✅ NEU: Anwärter-Übernahme Modal (Ressort Dropdown) -->
-  <div class="candOverlay" id="candOverlay" onclick="candOverlayClick(event)">
-    <div class="glass candModal" onclick="event.stopPropagation()">
-      <div class="candHead">
-        <div>
-          <h3 class="candTitle">Als Anwärter übernehmen</h3>
-          <div class="candSub" id="candSub">–</div>
-        </div>
-        <button class="btn-secondary closeX" onclick="closeCandModal()">✕</button>
-      </div>
+ // ============================
+// ✅ Anwärter-Übernahme (NEU)
+// ============================
 
-      <div class="candBody">
-        <div style="color:rgba(255,255,255,.75); font-size:12px; margin-bottom:8px;">
-          Ressort auswählen (gleich wie bei Mitgliedern)
-        </div>
-        <select id="candRessort" style="width:100%; min-width:0;"></select>
+// Fixe Ressorts (wie von dir vorgegeben)
+const RESSORTS_FIXED = [
+  "Externe Events",
+  "Interne Events",
+  "Sponsoring",
+  "Merchandise",
+  "Kommunikation"
+];
 
-        <div class="candRow" style="margin-top:12px;">
-          <div class="pill" id="candInfoPill">–</div>
-          <div class="spacer"></div>
-        </div>
+function openCandModal(){
+  if (!ACTIVE_ROW){
+    alert("Kein Bewerber ausgewählt.");
+    return;
+  }
 
-        <div class="candFoot">
-          <button class="btn-secondary" onclick="closeCandModal()">Abbrechen</button>
-          <button class="btn-primary" id="candConfirm">Übernehmen</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  const fn = safe(ACTIVE_ROW[F.fn]).trim();
+  const ln = safe(ACTIVE_ROW[F.ln]).trim();
+  const email = safe(ACTIVE_ROW[F.email]).trim();
+
+  candSub.textContent = `${fn} ${ln}`.trim() || "—";
+  candInfoPill.textContent = email ? `E-Mail: ${email}` : "E-Mail fehlt";
+
+  // Dropdown füllen
+  RESSORTS = [...RESSORTS_FIXED];
+  candRessort.innerHTML = RESSORTS.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+
+  // default: Prio 1/2 vorwählen wenn möglich
+  const prio1 = safe(ACTIVE_ROW[F.r1]).trim();
+  const prio2 = safe(ACTIVE_ROW[F.r2]).trim();
+  if (RESSORTS.includes(prio1)) candRessort.value = prio1;
+  else if (RESSORTS.includes(prio2)) candRessort.value = prio2;
+  else candRessort.value = RESSORTS[0];
+
+  candOverlay.classList.add("show");
+}
+
+function closeCandModal(){
+  candOverlay.classList.remove("show");
+}
+
+function candOverlayClick(e){
+  if (e.target === candOverlay) closeCandModal();
+}
+
+async function insertCandidateFromActive(){
+  if (!ACTIVE_ROW) return;
+
+  const vorname = safe(ACTIVE_ROW[F.fn]).trim();
+  const nachname = safe(ACTIVE_ROW[F.ln]).trim();
+  const email = safe(ACTIVE_ROW[F.email]).trim();
+  const ressort = safe(candRessort.value).trim();
+
+  if (!vorname || !nachname || !email){
+
 
   <script>
     // ====== HIER EINTRAGEN ======
