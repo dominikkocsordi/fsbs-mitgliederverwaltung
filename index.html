@@ -26,968 +26,191 @@
   --danger2:#e11d48;
 
   --shadow: 0 20px 55px rgba(0,0,0,.40);
-
   --ok: rgba(34,197,94,.95);
+
+  /* Platz für fixierten Badge */
+  --badge-safe-top: 92px;
 }
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
 
 body{
   margin:0;
-  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-family: system-ui,-apple-system,"Segoe UI",sans-serif;
   color: var(--text);
   background:
     radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.25), transparent 60%),
     radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.18), transparent 60%),
     radial-gradient(800px 450px at 60% 90%, rgba(251,113,133,.18), transparent 60%),
     linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  padding: var(--badge-safe-top) 16px 40px;
   display:flex;
   justify-content:center;
-  align-items:flex-start;
-  padding:42px 16px;
-  /* on mobile we add extra top/bottom padding in media queries to avoid overlaps */
 }
 
 .app{ width:100%; max-width:1200px; }
 
-.top{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:14px;
-}
-h1{ margin:0; font-size:32px; letter-spacing:.4px; }
-.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+/* ================= BADGE ================= */
 
-.glass{
-  background: rgba(255,255,255,.10);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-.card{ padding:18px; margin-bottom:16px; }
-
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-.spacer{ flex:1; }
-
-input,select{
-  background: rgba(255,255,255,.12);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 12px 14px;
-  border-radius: 14px;
-  outline:none;
-  min-width: 210px;
-  transition: transform .15s ease, background .15s ease, border-color .15s ease;
-}
-input::placeholder{ color: rgba(255,255,255,.55); }
-input:focus, select:focus{
-  border-color: rgba(56,189,248,.55);
-  background: rgba(255,255,255,.16);
-  transform: translateY(-1px);
-}
-
-button{
-  border:none;
-  cursor:pointer;
-  border-radius:14px;
-  padding: 12px 16px;
-  font-weight:650;
-  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
-}
-button:active{ transform: translateY(0px) scale(.99); }
-
-.btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: #03202b;
-  box-shadow: 0 10px 26px rgba(14,165,233,.25);
-}
-.btn-primary:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.03);
-  box-shadow: 0 18px 36px rgba(14,165,233,.33);
-}
-.btn-secondary{
-  background: rgba(255,255,255,.14);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover{
-  transform: translateY(-2px);
-  background: rgba(255,255,255,.18);
-}
-.btn-danger{
-  background: linear-gradient(135deg, var(--danger1), var(--danger2));
-  color: #fff;
-  box-shadow: 0 10px 26px rgba(225,29,72,.22);
-}
-.btn-danger:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.02);
-  box-shadow: 0 18px 36px rgba(225,29,72,.28);
-}
-
-/* ===== Sticky floating auth badge ===== */
 .authFloating{
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 999;
-  border-radius: 999px;
-  padding: 10px 14px;
+
   display:flex;
   align-items:center;
   gap:10px;
+
+  padding:10px 14px;
+  border-radius:999px;
+
   background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.18);
   box-shadow: 0 18px 55px rgba(0,0,0,.40);
   backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  user-select:none;
+
+  max-width: calc(100vw - 32px);
 }
 
 .dot{
   width:10px;height:10px;border-radius:999px;
   background: rgba(255,255,255,.35);
-  position: relative;
 }
-.dot.ok{ background: var(--ok); }
+.dot.ok{
+  background: var(--ok);
+  box-shadow:
+    0 0 0 2px rgba(34,197,94,.25),
+    0 0 20px rgba(34,197,94,.55);
+}
 .dot.warn{ background: rgba(255,255,255,.35); }
 
-.dot.ok{
-  box-shadow:
-    0 0 0 2px rgba(34,197,94,.20),
-    0 0 18px rgba(34,197,94,.55),
-    0 0 42px rgba(34,197,94,.30);
-}
-
-@keyframes pulseRing {
-  0%   { transform: scale(1); opacity: .0; }
-  10%  { opacity: .6; }
-  70%  { transform: scale(3.2); opacity: 0; }
-  100% { transform: scale(3.2); opacity: 0; }
-}
-.dot.pulsing::after{
-  content:"";
-  position:absolute;
-  inset: -2px;
-  border-radius: 999px;
-  background: rgba(34,197,94,.25);
-  animation: pulseRing 1.15s ease-out 0s 2;
-  pointer-events:none;
-}
-
 .authAvatar{
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
+  width:30px;height:30px;
+  border-radius:999px;
   display:grid;
   place-items:center;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: .3px;
-  color: rgba(255,255,255,.92);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 12px 28px rgba(0,0,0,.25);
-  background: rgba(255,255,255,.10);
+  font-weight:800;
+  font-size:12px;
+  border:1px solid rgba(255,255,255,.18);
 }
-.authAvatar.hidden{ display:none; }
-
-.authInfo{
-  display:flex;
-  flex-direction:column;
-  line-height:1.1;
-  min-width: 140px;
-}
-.authState{
-  font-size:13px;
-  font-weight:750;
-  letter-spacing:.25px;
-}
+.authInfo{ min-width:0; }
+.authState{ font-size:13px;font-weight:700; }
 .authMail{
   font-size:11px;
-  color: rgba(255,255,255,.58);
-  margin-top:3px;
-  word-break:break-all;
-}
-.hidden{ display:none; }
-.small{ font-size: 13px; color: var(--muted); }
-
-/* ===== NAV ===== */
-.navWrap{
-  margin-bottom: 16px;
-  position: sticky;
-  top: 14px;
-  z-index: 6;
-}
-.nav{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  padding: 10px;
-}
-.navLeft{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-.navLink{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  text-decoration:none;
-  color: rgba(255,255,255,.86);
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
-  user-select:none;
+  color:rgba(255,255,255,.6);
   white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.navLink:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.22);
-}
-.navLink.active{
-  background: linear-gradient(135deg, rgba(56,189,248,.22), rgba(14,165,233,.12));
-  border-color: rgba(56,189,248,.40);
-  box-shadow: 0 14px 30px rgba(14,165,233,.18);
-}
-.navIcon{
-  width:30px; height:30px;
-  border-radius: 12px;
-  display:grid; place-items:center;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-}
-.navTitle{ font-weight:750; letter-spacing:.2px; }
-.navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-/* ===== table ===== */
-.tableWrap{ overflow:auto; border-radius: 18px; }
+/* ================= TABLE ================= */
+
+.tableWrap{ overflow:auto; }
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top: 8px;
-  min-width: 980px;
+  min-width:900px;
 }
 th,td{
-  padding: 14px 12px;
-  border-bottom: 1px solid rgba(255,255,255,.12);
-  text-align:left;
-  vertical-align:middle;
+  padding:14px 12px;
+  border-bottom:1px solid rgba(255,255,255,.12);
 }
-th{ color: var(--muted); font-weight:650; }
-tbody tr:hover{ background: rgba(255,255,255,.06); }
+th{ color:var(--muted); }
 
-.iconBtn{
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  border-radius: 14px;
-}
-.iconBtn:hover{ transform: translateY(-2px); }
-.actions{ display:flex; gap:10px; }
-
-/* ===== Colored Pills ===== */
 .pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
   padding:6px 12px;
   border-radius:999px;
   font-size:12px;
-  font-weight:800;
+  font-weight:700;
   border:1px solid rgba(255,255,255,.18);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.90);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  white-space:nowrap;
-}
-.pill-status-volle{ background: rgba(34,197,94,.20);  border-color: rgba(34,197,94,.35);  color:#bbf7d0; }
-.pill-status-anw{  background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
-.pill-status-pau{  background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
-.pill-status-aus{  background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
-
-/* Modal */
-.modalOverlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding: 18px;
-  z-index: 50;
-}
-.modalOverlay.show{ display:flex; }
-.modal{
-  width: min(760px, 100%);
-  border-radius: 24px;
-  padding: 18px;
-  position: relative;
-}
-.modalHeader{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom: 10px;
-}
-.modalTitle{ margin:0; font-size: 20px; letter-spacing: .2px; }
-.modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
-.closeX{ width: 42px; height: 42px; border-radius: 14px; }
-.formGrid{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 12px;
-}
-.formGrid .full{ grid-column: 1 / -1; }
-hr.sep{
-  border: none;
-  border-top: 1px solid rgba(255,255,255,.12);
-  margin: 14px 0;
+  display:inline-block;
 }
 
-/* =========================
-   MOBILE OPTIMIZATIONS
-   ========================= */
-@media (max-width: 900px){
-  table{ min-width: 860px; }
-}
+.pill-status-volle{ background:rgba(34,197,94,.20); color:#bbf7d0; }
+.pill-status-anw{ background:rgba(56,189,248,.20); color:#c7f9ff; }
+.pill-status-pau{ background:rgba(234,179,8,.20); color:#fde68a; }
+.pill-status-aus{ background:rgba(239,68,68,.20); color:#fecaca; }
 
-@media (max-width: 640px){
-  /* Avoid overlap with floating badge (now moved to bottom on small screens) */
-  body{
-    padding: 24px 14px 96px; /* extra bottom space for badge */
+/* ================= MOBILE ================= */
+
+@media (max-width:640px){
+
+  :root{ --badge-safe-top: 110px; }
+
+  table{ min-width:700px; }
+
+  th:nth-child(3),
+  td:nth-child(3){
+    display:none; /* Email ausblenden auf sehr kleinen Screens */
   }
-
-  h1{ font-size: 26px; }
-
-  /* Top header stacks */
-  .top{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
-  }
-
-  /* Auth badge becomes bottom floating, full width */
-  .authFloating{
-    top: auto;
-    right: 14px;
-    left: 14px;
-    bottom: 14px;
-    width: auto;
-    justify-content:space-between;
-    padding: 12px 14px;
-  }
-  .authInfo{ min-width: 0; }
-
-  /* Inputs full width */
-  input,select{ min-width: 0; width: 100%; }
-  .row{ align-items:stretch; }
-  .row .spacer{ display:none; }
-
-  /* Nav becomes horizontal scroll, no overlap */
-  .navWrap{ top: 10px; }
-  .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
-  .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left: 0; }
-
-  /* Table: allow scroll but reduce minimum */
-  table{ min-width: 720px; }
-
-  /* Optional: hide Email column on very small screens (still in modal/edit) */
-  th:nth-child(3), td:nth-child(3){ display:none; }
-
-  /* Actions buttons slightly smaller */
-  .iconBtn{ width: 40px; height: 40px; }
-  .actions{ gap:8px; }
-
-  /* Modal: one column */
-  .formGrid{ grid-template-columns: 1fr; }
 }
 
-@media (max-width: 420px){
-  /* Even tighter */
-  body{ padding: 20px 12px 102px; }
-  .card{ padding:14px; }
-  .navLink{ padding: 9px 10px; border-radius: 14px; }
-  .navIcon{ width:28px; height:28px; border-radius: 11px; }
-  table{ min-width: 660px; }
-}
 </style>
 </head>
-
 <body>
 
-<!-- Floating Auth Badge -->
-<div class="authFloating" id="authBadge" title="Login-Status">
+<div class="authFloating">
   <span class="dot warn" id="authDot"></span>
-  <div class="authAvatar hidden" id="authAvatar">U</div>
+  <div class="authAvatar" id="authAvatar">U</div>
   <div class="authInfo">
     <div class="authState" id="authState">nicht eingeloggt</div>
-    <div class="authMail hidden" id="authMail"></div>
+    <div class="authMail" id="authMail"></div>
   </div>
 </div>
 
 <div class="app">
+  <h1>Mitgliederportal</h1>
 
-  <div class="top">
-    <div>
-      <h1>Mitgliederportal</h1>
-      <div class="subtitle">Liquid Glass · Invite-only · RLS geschützt</div>
-    </div>
-  </div>
-
-  <!-- NAV (nur eingeloggt) -->
-  <div class="glass navWrap hidden" id="navWrap">
-    <div class="nav">
-      <div class="navLeft">
-        <a class="navLink active" href="/index.html" id="navMembers">
-          <span class="navIcon">👥</span>
-          <span>
-            <div class="navTitle">Mitglieder</div>
-            <div class="navHint">Verwalten</div>
-          </span>
-        </a>
-
-        <a class="navLink" href="/bewerbungen.html" id="navApps">
-          <span class="navIcon">📝</span>
-          <span>
-            <div class="navTitle">Bewerbungen</div>
-            <div class="navHint">Google Sheet</div>
-          </span>
-        </a>
-
-        <a class="navLink" href="/settings.html" id="navSettings">
-          <span class="navIcon">⚙️</span>
-          <span>
-            <div class="navTitle">Einstellungen</div>
-            <div class="navHint">Platzhalter</div>
-          </span>
-        </a>
-      </div>
-
-      <div class="navRight">
-        <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- AUTH -->
-  <div class="glass card" id="authCard">
-    <div class="row">
-      <input id="loginEmail" placeholder="Email" autocomplete="username">
-      <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password">
-      <button class="btn-primary" onclick="login()">Login</button>
-      <div class="spacer"></div>
-      <div class="small">User werden von dir in Supabase per Invite freigeschaltet.</div>
-    </div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="glass card hidden" id="mainCard">
-    <div class="row">
-      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)" oninput="render()">
-      <button class="btn-secondary" onclick="load()">Aktualisieren</button>
-      <div class="spacer"></div>
-      <div class="small" id="countInfo"></div>
-      <button class="btn-primary" onclick="openCreate()">+ Mitglied</button>
-    </div>
-
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:10%">Nr.</th>
-            <th style="width:20%">Name</th>
-            <th style="width:22%">Email</th>
-            <th style="width:18%">Ressort</th>
-            <th style="width:12%">Rolle</th>
-            <th style="width:10%">Status</th>
-            <th style="width:8%">Aktionen</th>
-          </tr>
-        </thead>
-        <tbody id="list"></tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL -->
-<div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
-  <div class="glass modal" onclick="event.stopPropagation()">
-    <div class="modalHeader">
-      <div>
-        <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
-        <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
-      </div>
-      <button class="btn-secondary closeX" onclick="closeModal()" title="Schließen">✕</button>
-    </div>
-
-    <hr class="sep">
-
-    <div class="formGrid">
-      <div>
-        <div class="small">Mitgliedsnummer</div>
-        <input id="mNo" placeholder="z.B. 12" inputmode="numeric">
-      </div>
-
-      <div>
-        <div class="small">Status</div>
-        <select id="mStatus"></select>
-      </div>
-
-      <div>
-        <div class="small">Vorname *</div>
-        <input id="mFirst" placeholder="z.B. Domi">
-      </div>
-
-      <div>
-        <div class="small">Nachname *</div>
-        <input id="mLast" placeholder="z.B. Mustermann">
-      </div>
-
-      <div class="full">
-        <div class="small">Email</div>
-        <input id="mEmail" placeholder="name@domain.de">
-      </div>
-
-      <div>
-        <div class="small">Ressort</div>
-        <select id="mDept"></select>
-      </div>
-
-      <div>
-        <div class="small">Rolle</div>
-        <select id="mRole"></select>
-      </div>
-
-      <div class="full row" style="justify-content:flex-end; margin-top:6px;">
-        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-        <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()">Speichern</button>
-      </div>
-    </div>
-
+  <div class="tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nr</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Ressort</th>
+          <th>Rolle</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="list"></tbody>
+    </table>
   </div>
 </div>
 
 <script>
-/* ========= Supabase config ========= */
-const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+/* Supabase */
+const sb = supabase.createClient(
+  "https://hdhueuihmxbskiusenpe.supabase.co",
+  "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW"
+);
 
-/* ========= Spalten (neue Struktur) ========= */
-const DB = {
-  table: "members",
-  pk: "id",
-  no: "mitgliedernummer",
-  first: "vorname",
-  last: "nachname",
-  email: "email",
-  dept: "ressort",
-  status: "status",
-  role: "rolle",
-};
-
-/* ========= State ========= */
-let members = [];
-let editPk = null;
-
-/* ========= Elements ========= */
-const authDot = document.getElementById("authDot");
-const authState = document.getElementById("authState");
-const authMail  = document.getElementById("authMail");
-const authAvatar = document.getElementById("authAvatar");
-
-const logoutBtn = document.getElementById("logoutBtn");
-const mainCard = document.getElementById("mainCard");
-const authCard = document.getElementById("authCard");
-const navWrap = document.getElementById("navWrap");
-
-const searchEl = document.getElementById("search");
-const countInfo = document.getElementById("countInfo");
-const listEl = document.getElementById("list");
-
-const modalOverlay = document.getElementById("modalOverlay");
-const modalTitle = document.getElementById("modalTitle");
-const modalSub = document.getElementById("modalSub");
-const modalSaveBtn = document.getElementById("modalSaveBtn");
-
-const mNo = document.getElementById("mNo");
-const mFirst = document.getElementById("mFirst");
-const mLast  = document.getElementById("mLast");
-const mEmail = document.getElementById("mEmail");
-const mDept = document.getElementById("mDept");
-const mRole = document.getElementById("mRole");
-const mStatus = document.getElementById("mStatus");
-
-/* ========= Helpers ========= */
-function esc(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-function norm(s){ return String(s ?? "").trim(); }
-function uniqSorted(arr){
-  return [...new Set(arr.map(norm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
-}
-function setSelectOptions(selectEl, values, placeholder="— auswählen —"){
-  const opts = [`<option value="">${esc(placeholder)}</option>`]
-    .concat(values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`));
-  selectEl.innerHTML = opts.join("");
+function statusClass(s){
+  s=(s||"").toLowerCase();
+  if(s.startsWith("voll"))return"pill-status-volle";
+  if(s.startsWith("anw"))return"pill-status-anw";
+  if(s.startsWith("pau"))return"pill-status-pau";
+  if(s.startsWith("aus"))return"pill-status-aus";
+  return"";
 }
 
-function getPk(m){ return m?.[DB.pk] ?? null; }
-function getNo(m){ return m?.[DB.no] ?? ""; }
-function getFirst(m){ return m?.[DB.first] ?? ""; }
-function getLast(m){ return m?.[DB.last] ?? ""; }
-function getEmail(m){ return m?.[DB.email] ?? ""; }
-function getDept(m){ return m?.[DB.dept] ?? ""; }
-function getStatus(m){ return m?.[DB.status] ?? ""; }
-function getRole(m){ return m?.[DB.role] ?? ""; }
-
-function pillColorStyle(label){
-  const t = norm(label);
-  if (!t) return "";
-  let h = 2166136261;
-  for (let i=0;i<t.length;i++){
-    h ^= t.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  const hue = (h >>> 0) % 360;
-  const hue2 = (hue + 32) % 360;
-  return `background: linear-gradient(135deg, hsla(${hue},85%,55%,.18), hsla(${hue2},85%,55%,.10));
-          border-color: hsla(${hue}, 85%, 55%, .35);
-          color: hsla(${hue}, 95%, 88%, 1);`;
-}
-
-function statusClass(status){
-  const s = norm(status).toLowerCase();
-  if (s.startsWith("voll")) return "pill-status-volle";
-  if (s.startsWith("anw"))  return "pill-status-anw";
-  if (s.startsWith("pau"))  return "pill-status-pau";
-  if (s.startsWith("aus"))  return "pill-status-aus";
-  return "";
-}
-
-function refreshDropdowns(){
-  const baseStatus = ["Vollmitglied","Anwärter","Pausiert","Ausgetreten"];
-  const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !baseStatus.includes(s));
-  setSelectOptions(mStatus, baseStatus.concat(moreStatus), "Status wählen");
-
-  const baseRessort = ["Vorstand","Finanzen","Sponsoring","Marketing","IT","Events","PR","Orga"];
-  const baseRolle   = ["Mitglied","Leitung","Stellvertretung","Vorstand","Admin"];
-
-  const ressort = uniqSorted(baseRessort.concat(members.map(m => getDept(m))));
-  const rollen  = uniqSorted(baseRolle.concat(members.map(m => getRole(m))));
-
-  setSelectOptions(mDept, ressort, "Ressort wählen");
-  setSelectOptions(mRole, rollen, "Rolle wählen");
-}
-
-/* Avatar + badge */
-function hashString(str){
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++){
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0);
-}
-function initialsFromEmail(email){
-  const e = (email || "").trim().toLowerCase();
-  if (!e) return "U";
-  const local = e.split("@")[0] || "u";
-  const parts = local.split(/[.\-_]+/).filter(Boolean);
-  const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
-  const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
-  return (a + b).trim() || a;
-}
-function setAvatar(email){
-  const e = (email || "").trim().toLowerCase();
-  if (!e){
-    authAvatar.classList.add("hidden");
-    authAvatar.textContent = "U";
-    authAvatar.style.background = "rgba(255,255,255,.10)";
-    return;
-  }
-  const h = hashString(e);
-  const hue = h % 360;
-  const hue2 = (hue + 38) % 360;
-  authAvatar.textContent = initialsFromEmail(e);
-  authAvatar.classList.remove("hidden");
-  authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
-}
-function pulseLogin(){
-  authDot.classList.add("pulsing");
-  setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-}
-
-function setAuthUI(isAuthed, email = "", doPulse = false){
-  if (isAuthed){
-    authDot.classList.remove("warn");
-    authDot.classList.add("ok");
-
-    authState.textContent = "eingeloggt";
-    authMail.textContent = (email || "").trim();
-    authMail.classList.remove("hidden");
-
-    setAvatar(email);
-
-    logoutBtn.classList.remove("hidden");
-    mainCard.classList.remove("hidden");
-    navWrap.classList.remove("hidden");
-    authCard.classList.add("hidden");
-
-    if (doPulse) pulseLogin();
-  } else {
-    authDot.classList.remove("ok");
-    authDot.classList.add("warn");
-
-    authState.textContent = "nicht eingeloggt";
-    authMail.textContent = "";
-    authMail.classList.add("hidden");
-
-    setAvatar("");
-
-    logoutBtn.classList.add("hidden");
-    mainCard.classList.add("hidden");
-    navWrap.classList.add("hidden");
-    authCard.classList.remove("hidden");
-  }
-}
-
-async function requireAuth(){
-  const { data } = await sb.auth.getSession();
-  if (!data.session) throw new Error("Bitte einloggen.");
-  return data.session;
-}
-
-/* ========= Auth ========= */
-async function login(){
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPass").value;
-
-  if (!email || !password) return alert("Bitte Email & Passwort eingeben.");
-
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) return alert(error.message);
-
-  const loggedMail = data?.user?.email || email;
-  setAuthUI(true, loggedMail, true);
-  await load();
-}
-
-async function logout(){
-  await sb.auth.signOut();
-  members = [];
-  listEl.innerHTML = "";
-  setAuthUI(false);
-}
-
-/* ========= Data ========= */
 async function load(){
-  try { await requireAuth(); }
-  catch(e){ setAuthUI(false); return; }
-
-  const { data, error } = await sb
-    .from(DB.table)
-    .select("*")
-    .order(DB.no, { ascending: true, nullsFirst: true });
-
-  if (error) return alert("LOAD: " + error.message);
-
-  members = data || [];
-  refreshDropdowns();
-  render();
+  const {data}=await sb.from("members").select("*");
+  const list=document.getElementById("list");
+  list.innerHTML=data.map(m=>`
+    <tr>
+      <td>${m.mitgliedernummer||""}</td>
+      <td>${m.vorname||""} ${m.nachname||""}</td>
+      <td>${m.email||""}</td>
+      <td><span class="pill">${m.ressort||"-"}</span></td>
+      <td><span class="pill">${m.rolle||"-"}</span></td>
+      <td><span class="pill ${statusClass(m.status)}">${m.status||"-"}</span></td>
+    </tr>
+  `).join("");
 }
 
-function render(){
-  const q = searchEl.value.trim().toLowerCase();
-
-  const filtered = members.filter(m => {
-    const hay = [
-      getNo(m),
-      getFirst(m),
-      getLast(m),
-      getEmail(m),
-      getDept(m),
-      getRole(m),
-      getStatus(m)
-    ].map(x => String(x ?? "")).join(" ").toLowerCase();
-    return !q || hay.includes(q);
-  });
-
-  countInfo.textContent = `${filtered.length} von ${members.length} Mitgliedern`;
-
-  listEl.innerHTML = filtered.map(m => {
-    const pk = getPk(m);
-    const no = getNo(m);
-    const name = `${getFirst(m) || ""} ${getLast(m) || ""}`.trim();
-    const email = getEmail(m) || "";
-    const dept = getDept(m) || "";
-    const role = getRole(m) || "";
-    const status = getStatus(m) || "";
-
-    return `
-      <tr>
-        <td>${esc(no || "")}</td>
-        <td>${esc(name)}</td>
-        <td>${esc(email)}</td>
-        <td><span class="pill" style="${pillColorStyle(dept)}">${esc(dept || "—")}</span></td>
-        <td><span class="pill" style="${pillColorStyle(role)}">${esc(role || "—")}</span></td>
-        <td><span class="pill ${statusClass(status)}">${esc(status || "—")}</span></td>
-        <td>
-          <div class="actions">
-            <button class="btn-secondary iconBtn" title="Bearbeiten" onclick="openEdit(${Number(pk)})">✏️</button>
-            <button class="btn-danger iconBtn" title="Löschen" onclick="del(${Number(pk)})">🗑️</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join("");
-}
-
-/* ========= Modal logic ========= */
-function overlayClick(e){
-  if (e.target === modalOverlay) closeModal();
-}
-function openModal(){
-  modalOverlay.classList.add("show");
-  setTimeout(() => mFirst.focus(), 0);
-}
-function closeModal(){
-  modalOverlay.classList.remove("show");
-  editPk = null;
-}
-function clearModal(){
-  mNo.value = "";
-  mFirst.value = "";
-  mLast.value = "";
-  mEmail.value = "";
-  mDept.value = "";
-  mRole.value = "";
-  mStatus.value = "";
-}
-function openCreate(){
-  editPk = null;
-  clearModal();
-  modalTitle.textContent = "Mitglied hinzufügen";
-  modalSub.textContent = "Fülle die Daten aus und speichere.";
-  modalSaveBtn.textContent = "Anlegen";
-  mStatus.value = "Vollmitglied";
-  openModal();
-}
-function openEdit(pk){
-  const m = members.find(x => Number(getPk(x)) === Number(pk));
-  if (!m) return;
-
-  editPk = pk;
-
-  mNo.value = getNo(m) ?? "";
-  mFirst.value = getFirst(m) ?? "";
-  mLast.value  = getLast(m) ?? "";
-  mEmail.value = getEmail(m) ?? "";
-  mDept.value  = getDept(m) ?? "";
-  mRole.value  = getRole(m) ?? "";
-  mStatus.value = getStatus(m) || "Vollmitglied";
-
-  modalTitle.textContent = "Mitglied bearbeiten";
-  modalSub.textContent = `ID ${pk} bearbeiten.`;
-  modalSaveBtn.textContent = "Speichern";
-  openModal();
-}
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
-});
-
-/* ========= CRUD from modal ========= */
-async function saveModal(){
-  try { await requireAuth(); }
-  catch(e){ return alert("Bitte einloggen."); }
-
-  const payload = {};
-  payload[DB.no] = mNo.value.trim() ? Number(mNo.value.trim()) : null;
-  payload[DB.first] = norm(mFirst.value);
-  payload[DB.last]  = norm(mLast.value);
-  payload[DB.email] = norm(mEmail.value) || null;
-  payload[DB.dept]  = norm(mDept.value) || null;
-  payload[DB.role]  = norm(mRole.value) || null;
-  payload[DB.status]= norm(mStatus.value) || "Vollmitglied";
-
-  if (!payload[DB.first] || !payload[DB.last]){
-    return alert("Vorname und Nachname sind Pflicht.");
-  }
-
-  let res;
-  if (editPk === null){
-    res = await sb.from(DB.table).insert(payload).select();
-  } else {
-    res = await sb.from(DB.table).update(payload).eq(DB.pk, editPk).select();
-  }
-
-  if (res.error){
-    alert("SUPABASE: " + res.error.message);
-    return;
-  }
-
-  closeModal();
-  await load();
-}
-
-async function del(pk){
-  try { await requireAuth(); }
-  catch(e){ return alert("Bitte einloggen."); }
-
-  const m = members.find(x => Number(getPk(x)) === Number(pk));
-  const name = m ? `${getFirst(m) || ""} ${getLast(m) || ""}`.trim() : `ID ${pk}`;
-
-  if (!confirm(`Wirklich löschen: ${name}?`)) return;
-
-  const { error } = await sb.from(DB.table).delete().eq(DB.pk, pk);
-  if (error) return alert("DELETE: " + error.message);
-
-  await load();
-}
-
-/* ========= Init ========= */
-(async () => {
-  const { data } = await sb.auth.getSession();
-  const session = data?.session;
-  const mail = session?.user?.email || "";
-  setAuthUI(!!session, mail, false);
-  if (session) await load();
-})();
+load();
 </script>
 
 </body>
