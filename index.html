@@ -60,54 +60,51 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-/* ===== Logo rechts oben ===== */
-.brandRight{
+/* ===== Brand links: Logo + Titel ===== */
+.brandLeft{
   display:flex;
-  align-items:flex-end;     /* passt zu deinem top align */
-  justify-content:flex-end;
+  align-items:center;
   gap:12px;
+}
+
+.brandLogo{
+  width: 38px;
+  height: 38px;
+  border-radius: 14px;
+  padding: 6px;
+  display:grid;
+  place-items:center;
+
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
   flex: 0 0 auto;
+  transition: transform .16s ease, filter .16s ease, background .16s ease;
 }
 
-.logoWrap{ flex: 0 0 auto; }   /* verhindert komische Dehnung */
-
-/* Auth-Badge darf in der rechten Gruppe schrumpfen statt zu “quetschen” */
-.authFloating{ min-width: 0; }
-
-/* Mobile: Top ist column -> rechts block soll sauber nebeneinander bleiben */
-@media (max-width: 640px){
-  .brandRight{
-    width:100%;
-    align-items:center;
-    justify-content:space-between; /* links: Badge, rechts: Logo (oder umgekehrt) */
-    gap:10px;
-  }
-  .authFloating{
-    flex: 1 1 auto;
-    max-width: calc(50% - 60px); /* Platz fürs Logo */
-  }
-}
-
-.logoWrap:hover{
-  transform: translateY(-2px);
+.brandLogo:hover{
+  transform: translateY(-1px);
   filter: brightness(1.05);
-  box-shadow: 0 22px 70px rgba(0,0,0,.42);
   background: rgba(255,255,255,.12);
 }
 
-.logoImg{
+.brandLogo img{
   width: 100%;
   height: 100%;
-  border-radius: 14px;         /* damit es nice “soft” bleibt */
-  object-fit: cover;           /* quadratisch -> perfekt */
+  border-radius: 10px;
+  object-fit: cover;
   display:block;
 }
 
-/* Mobile: etwas kleiner, damit es nicht quetscht */
+/* Mobile: noch kleiner */
 @media (max-width: 640px){
-  .logoWrap{ width: 46px; height: 46px; border-radius: 16px; padding: 7px; }
-  .logoImg{ border-radius: 12px; }
+  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+  .brandLogo img{ border-radius: 9px; }
 }
+
 
 
 .glass{
@@ -567,10 +564,18 @@ hr.sep{
 <div class="app">
 
   <div class="top">
+  <div class="brandLeft">
+  <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+    <img src="logo.png" alt="Fachschaft Logo"
+         onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+  </a>
+
   <div>
     <h1>Mitgliederportal</h1>
     <div class="subtitle">Fachschaft Business School e.V.</div>
   </div>
+</div>
+
 
   <div class="brandRight">
     <!-- ✅ Auth Badge -->
