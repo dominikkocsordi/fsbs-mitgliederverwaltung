@@ -23,6 +23,8 @@
       --accent2:#0ea5e9;
 
       --shadow: 0 20px 55px rgba(0,0,0,.40);
+
+      --ok: rgba(34,197,94,.95);
     }
 
     *{box-sizing:border-box}
@@ -53,7 +55,119 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* NAV */
+    /* ===== Sticky floating auth badge (wie index) ===== */
+    .authFloating{
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 999;
+      border-radius: 999px;
+      padding: 10px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 18px 55px rgba(0,0,0,.40);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      user-select:none;
+    }
+
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(255,255,255,.35);
+      position: relative;
+    }
+    .dot.ok{ background: var(--ok); }
+    .dot.warn{ background: rgba(255,255,255,.35); }
+
+    /* ✨ Glow */
+    .dot.ok{
+      box-shadow:
+        0 0 0 2px rgba(34,197,94,.20),
+        0 0 18px rgba(34,197,94,.55),
+        0 0 42px rgba(34,197,94,.30);
+    }
+
+    /* 🔄 Pulse */
+    @keyframes pulseRing {
+      0%   { transform: scale(1); opacity: .0; }
+      10%  { opacity: .6; }
+      70%  { transform: scale(3.2); opacity: 0; }
+      100% { transform: scale(3.2); opacity: 0; }
+    }
+    .dot.pulsing::after{
+      content:"";
+      position:absolute;
+      inset: -2px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.25);
+      animation: pulseRing 1.15s ease-out 0s 2;
+      pointer-events:none;
+    }
+
+    /* 👤 Avatar */
+    .authAvatar{
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display:grid;
+      place-items:center;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 12px 28px rgba(0,0,0,.25);
+      background: rgba(255,255,255,.10);
+    }
+    .authAvatar.hidden{ display:none; }
+
+    .authInfo{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+      min-width: 140px;
+    }
+    .authState{
+      font-size:13px;
+      font-weight:750;
+      letter-spacing:.25px;
+    }
+    .authMail{
+      font-size:11px;
+      color: rgba(255,255,255,.58);
+      margin-top:3px;
+      word-break:break-all;
+    }
+    .hidden{ display:none; }
+
+    /* Header + Controls */
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 16px; /* bisschen mehr Abstand, weil Nav darunter kommt */
+    }
+    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    .pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+
+    /* NAV (unter Titel, wie gewünscht) */
     .navWrap{
       position: sticky;
       top: 14px;
@@ -112,6 +226,7 @@
       font-weight:700;
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
+    button:active{ transform: translateY(0px) scale(.99); }
     .btn-secondary{
       background: rgba(255,255,255,.14);
       color: var(--text);
@@ -125,43 +240,6 @@
       box-shadow: 0 10px 26px rgba(14,165,233,.25);
     }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-
-    /* Header + Controls */
-    .top{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom:8px;
-    }
-    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
-    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-
-    /* Auth badge (wie index) */
-    .authRow{
-      display:flex;
-      justify-content:flex-end;
-      margin-bottom:14px;
-    }
-    .badge{
-      padding: 7px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.18);
-      font-size: 13px;
-      color: rgba(255,255,255,.75);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-    .dot{
-      width:8px;
-      height:8px;
-      border-radius:999px;
-      background: rgba(255,255,255,.35);
-    }
-    .dot.ok{ background: rgba(34,197,94,.95); }
-    .dot.warn{ background: rgba(239,68,68,.9); }
 
     .card{ padding:16px; margin-bottom:14px; }
 
@@ -190,18 +268,6 @@
       transform: translateY(-1px);
     }
 
-    .pill{
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size: 12px;
-      color: rgba(255,255,255,.72);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-    }
-
     /* Grid cards */
     .grid{
       display:grid;
@@ -212,6 +278,8 @@
     @media (max-width: 640px){
       .grid{grid-template-columns: 1fr;}
       input,select{min-width:0; width:100%;}
+      .authFloating{ left: 16px; right: 16px; justify-content:space-between; }
+      .authInfo{ min-width: 0; }
     }
 
     .appCard{
@@ -360,9 +428,29 @@
 </head>
 
 <body>
+
+  <!-- ✅ Floating Badge (glow + pulse + avatar + mail) -->
+  <div class="authFloating" id="authBadge" title="Login-Status">
+    <span class="dot warn" id="authDot"></span>
+    <div class="authAvatar hidden" id="authAvatar">U</div>
+    <div class="authInfo">
+      <div class="authState" id="authState">nicht eingeloggt</div>
+      <div class="authMail hidden" id="authMail"></div>
+    </div>
+  </div>
+
   <div class="app">
 
-    <!-- NAV -->
+    <!-- ✅ Titel ÜBER Nav (wie gewünscht) -->
+    <div class="top">
+      <div>
+        <h1>Bewerbungen</h1>
+        <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
+      </div>
+      <div class="pill" id="statusPill">–</div>
+    </div>
+
+    <!-- NAV (nur eingeloggt) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
@@ -381,27 +469,19 @@
               <div class="navHint">Google Sheet</div>
             </span>
           </a>
+
+          <a class="navLink" href="/settings.html" id="navSettings">
+            <span class="navIcon">⚙️</span>
+            <span>
+              <div class="navTitle">Einstellungen</div>
+              <div class="navHint">Platzhalter</div>
+            </span>
+          </a>
         </div>
 
         <div class="navRight">
           <button class="btn-secondary" id="logoutBtn">Logout</button>
         </div>
-      </div>
-    </div>
-
-    <div class="top">
-      <div>
-        <h1>Bewerbungen</h1>
-        <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
-      </div>
-      <div class="pill" id="statusPill">–</div>
-    </div>
-
-    <!-- Auth Badge (grüner Punkt bei Login) -->
-    <div class="authRow">
-      <div class="badge" id="authBadge">
-        <span class="dot warn" id="authDot"></span>
-        <span id="authText">nicht eingeloggt</span>
       </div>
     </div>
 
@@ -446,7 +526,7 @@
 
   <script>
     // ====== HIER EINTRAGEN ======
-    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec"; // z.B. https://script.google.com/macros/s/.../exec
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec";
     const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
 
     // ====== Supabase Auth ======
@@ -477,8 +557,11 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    // Floating badge elements
     const authDot = document.getElementById("authDot");
-    const authText = document.getElementById("authText");
+    const authState = document.getElementById("authState");
+    const authMail  = document.getElementById("authMail");
+    const authAvatar = document.getElementById("authAvatar");
 
     const q = document.getElementById("q");
     const fR1 = document.getElementById("fR1");
@@ -511,6 +594,73 @@
       debugBox.textContent = JSON.stringify(obj, null, 2);
     }
 
+    // ===== Badge helpers (wie index) =====
+    function hashString(str){
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0);
+    }
+    function initialsFromEmail(email){
+      const e = (email || "").trim().toLowerCase();
+      if (!e) return "U";
+      const local = e.split("@")[0] || "u";
+      const parts = local.split(/[.\-_]+/).filter(Boolean);
+      const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
+      const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
+      return (a + b).trim() || a;
+    }
+    function setAvatar(email){
+      const e = (email || "").trim().toLowerCase();
+      if (!e){
+        authAvatar.classList.add("hidden");
+        authAvatar.textContent = "U";
+        authAvatar.style.background = "rgba(255,255,255,.10)";
+        return;
+      }
+      const h = hashString(e);
+      const hue = h % 360;
+      const hue2 = (hue + 38) % 360;
+      authAvatar.textContent = initialsFromEmail(e);
+      authAvatar.classList.remove("hidden");
+      authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
+    }
+    function pulseLogin(){
+      authDot.classList.add("pulsing");
+      setTimeout(() => authDot.classList.remove("pulsing"), 2600);
+    }
+    function setAuthUI(isAuthed, email = "", doPulse = false){
+      if (isAuthed){
+        authDot.classList.remove("warn");
+        authDot.classList.add("ok");
+
+        authState.textContent = "eingeloggt";
+        authMail.textContent = (email || "").trim();
+        authMail.classList.remove("hidden");
+
+        setAvatar(email);
+
+        navWrap.style.display = "block";
+        logoutBtn.classList.remove("hidden");
+
+        if (doPulse) pulseLogin();
+      } else {
+        authDot.classList.remove("ok");
+        authDot.classList.add("warn");
+
+        authState.textContent = "nicht eingeloggt";
+        authMail.textContent = "";
+        authMail.classList.add("hidden");
+
+        setAvatar("");
+
+        navWrap.style.display = "none";
+        logoutBtn.classList.add("hidden");
+      }
+    }
+
     async function requireAuth(){
       const res = await sb.auth.getSession();
       if (!res || !res.data || !res.data.session) throw new Error("not_logged_in");
@@ -519,18 +669,11 @@
 
     async function enforceAuth(){
       try{
-        await requireAuth();
-        navWrap.style.display = "block";
-
-        // Badge grün
-        authDot.classList.remove("warn");
-        authDot.classList.add("ok");
-        authText.textContent = "eingeloggt";
-
+        const session = await requireAuth();
+        const mail = session?.user?.email || "";
+        setAuthUI(true, mail, false); // kein Pulse beim Reload
       } catch(e){
-        authDot.classList.remove("ok");
-        authDot.classList.add("warn");
-        authText.textContent = "nicht eingeloggt";
+        setAuthUI(false);
         window.location.href = LOGIN_REDIRECT;
       }
     }
