@@ -26,6 +26,7 @@
 
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
+      --warn: rgba(251,146,60,.95); /* orange */
     }
 
     *{box-sizing:border-box}
@@ -254,6 +255,11 @@
       background: rgba(34,197,94,.20);
       border-color: rgba(34,197,94,.35);
       color:#bbf7d0;
+    }
+    .pillWarn{
+      background: rgba(251,146,60,.18);
+      border-color: rgba(251,146,60,.35);
+      color:#ffedd5;
     }
 
     .empty{
@@ -517,7 +523,7 @@
     const CANDIDATES_TABLE = "anwaerter";
     const STATUS_TABLE = "bewerbung_status";
     const STATUS_ID_COL = "bewerbung_id";
-    const STATUS_COL = "status"; // "anwaerter" | "abgelehnt"
+    const STATUS_COL = "status"; // z.B. "anwaerter" | "abgelehnt" | "anwärter abgelehnt" (wir speichern exakt "Anwärter abgelehnt")
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -561,7 +567,7 @@
     let ALL = [];
     let EDITING = null;
 
-    // ✅ Status Map: bewerbung_id -> status
+    // ✅ Status Map: bewerbung_id -> status (lowercase)
     let statusMap = new Map();
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -593,6 +599,24 @@
 
     function getStatusByBewerbungId(bewerbung_id){
       return statusMap.get(normId(bewerbung_id)) || "";
+    }
+
+    // ====== Ablehnen (Status setzen, nicht löschen) ======
+    async function rejectCandidateByBewerbungId(bewerbungId){
+      const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt (bleibt in der Liste).");
+      if (!ok) return;
+
+      const { error } = await sb
+        .from(STATUS_TABLE)
+        .update({ [STATUS_COL]: "Anwärter abgelehnt" })
+        .eq(STATUS_ID_COL, normId(bewerbungId));
+
+      if (error){
+        alert("Fehler beim Ablehnen: " + error.message);
+        return;
+      }
+
+      await fetchCandidates();
     }
 
     // Badge helpers
@@ -705,7 +729,13 @@
         const thumb = safe(r.photo_thumb).trim();
         const photo = safe(r.photo_url).trim();
         const bewerbungId = safe(r.bewerbung_id).trim();
-        const st = getStatusByBewerbungId(bewerbungId); // sollte bei uns "anwaerter" sein
+
+        const st = getStatusByBewerbungId(bewerbungId); // lowercase
+        const badge =
+          st === "anwaerter" ? `<span class="pillSmall pillOk">🟢 Bewerbungsstatus: Anwärter</span>` :
+          st === "anwärter abgelehnt" || st === "anwaerter abgelehnt"
+            ? `<span class="pillSmall pillWarn">🟠 Bewerbungsstatus: Anwärter abgelehnt</span>`
+            : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(st)}</span>` : ``);
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -734,14 +764,14 @@
           <td>
             <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
               <span class="pillSmall">${esc(safe(r.ressort) || "—")}</span>
-              ${st === "anwaerter" ? `<span class="pillSmall pillOk">🟢 Bewerbungsstatus: Anwärter</span>` : ``}
+              ${badge}
             </div>
           </td>
           <td>${esc(safe(r.email) || "—")}</td>
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button class="btn-secondary" data-action="edit" data-id="${r.id}">Bearbeiten</button>
-              <button class="btn-danger" data-action="del" data-id="${r.id}">Löschen</button>
+              <button class="btn-danger" data-action="reject" data-id="${r.id}">Ablehnen</button>
             </div>
           </td>
         `;
@@ -750,28 +780,33 @@
     }
 
     async function fetchCandidates(){
-  statusPill.textContent = "Lade…";
+      statusPill.textContent = "Lade…";
 
-  const { data, error } = await sb
-    .from(CANDIDATES_TABLE)
-    .select("*")
-    .order("created_at", { ascending: false });
+      const { data, error } = await sb
+        .from(CANDIDATES_TABLE)
+        .select("*")
+        .order("created_at", { ascending: false });
 
-  if (error){
-    statusPill.textContent = "Fehler";
-    alert("Fehler beim Laden: " + error.message);
-    return;
-  }
+      if (error){
+        statusPill.textContent = "Fehler";
+        alert("Fehler beim Laden: " + error.message);
+        return;
+      }
 
-  // ✅ Abgelehnte rausfiltern
-  ALL = (Array.isArray(data) ? data : []).filter(r =>
-    String(r.bewerbung_status || "").toLowerCase() !== "abgelehnt"
-  );
+      const raw = Array.isArray(data) ? data : [];
 
-  statusPill.textContent = `Geladen: ${ALL.length}`;
-  render();
-}
+      // ✅ StatusMap für alle bewerbung_ids nachziehen
+      await refreshStatusMapForBewerbungIds(raw.map(r => r.bewerbung_id));
 
+      // ✅ Rausfiltern: NUR normales "Abgelehnt" (nicht "Anwärter abgelehnt")
+      ALL = raw.filter(r => {
+        const st = getStatusByBewerbungId(r.bewerbung_id);
+        return st !== "abgelehnt"; // "anwärter abgelehnt" bleibt drin
+      });
+
+      statusPill.textContent = `Geladen: ${ALL.length}`;
+      render();
+    }
 
     // Edit modal
     function openEdit(row){
@@ -847,16 +882,6 @@
       await fetchCandidates();
     }
 
-    async function delRow(id){
-      if (!confirm("Anwärter wirklich löschen?")) return;
-      const { error } = await sb.from(CANDIDATES_TABLE).delete().eq("id", id);
-      if (error){
-        alert("Fehler beim Löschen: " + error.message);
-        return;
-      }
-      await fetchCandidates();
-    }
-
     // Events
     fillRessortFilter();
     q.addEventListener("input", render);
@@ -874,11 +899,21 @@
     tbody.addEventListener("click", (e)=>{
       const btn = e.target.closest("button[data-action]");
       if (!btn) return;
+
       const id = Number(btn.dataset.id);
       const action = btn.dataset.action;
       const row = ALL.find(x => Number(x.id) === id);
+
       if (action === "edit" && row) openEdit(row);
-      if (action === "del") delRow(id);
+
+      if (action === "reject" && row){
+        const bewerbungId = safe(row.bewerbung_id).trim();
+        if (!bewerbungId){
+          alert("Fehler: bewerbung_id fehlt bei diesem Anwärter.");
+          return;
+        }
+        rejectCandidateByBewerbungId(bewerbungId);
+      }
     });
 
     document.addEventListener("keydown", (e)=>{
