@@ -706,9 +706,9 @@
 
         const badge =
           (st === "anwärter" || st === "anwaerter")
-            ? `<span class="pillSmall pillOk">🟢 Bewerbungsstatus: Anwärter</span>`
+            ? `<span class="pillSmall pillOk">👶🏼 Anwärter</span>`
             : (st === "anwärter abgelehnt" || st === "anwaerter abgelehnt")
-              ? `<span class="pillSmall pillWarn">🟠 Bewerbungsstatus: Anwärter abgelehnt</span>`
+              ? `<span class="pillSmall pillWarn">❌ Anwärter abgelehnt</span>`
               : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(r[BEWERBUNG_STATUS_COL]))}</span>` : ``);
 
         const tr = document.createElement("tr");
