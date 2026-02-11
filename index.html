@@ -53,7 +53,7 @@ body{
   align-items:flex-end;
   justify-content:space-between;
   gap:16px;
-  margin-bottom:20px;
+  margin-bottom:14px;
 }
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
@@ -151,6 +151,68 @@ button:active{ transform: translateY(0px) scale(.99); }
 .dot.ok{ background: rgba(34,197,94,.95); }
 .dot.warn{ background: rgba(234,179,8,.95); }
 
+/* ====== NEW: NAV ====== */
+.navWrap{
+  margin-bottom: 16px;
+  position: sticky;
+  top: 14px;
+  z-index: 6;
+}
+.nav{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding: 10px;
+}
+.navLeft{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.navLink{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  text-decoration:none;
+  color: rgba(255,255,255,.86);
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
+  user-select:none;
+}
+.navLink:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.22);
+}
+.navLink.active{
+  background: linear-gradient(135deg, rgba(56,189,248,.22), rgba(14,165,233,.12));
+  border-color: rgba(56,189,248,.40);
+  box-shadow: 0 14px 30px rgba(14,165,233,.18);
+}
+.navIcon{
+  width:30px; height:30px;
+  border-radius: 12px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+}
+.navTitle{ font-weight:750; letter-spacing:.2px; }
+.navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
+
+.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+@media (max-width: 640px){
+  h1{ font-size: 26px; }
+  input,select{ min-width: 0; width: 100%; }
+}
+
+/* ====== existing table + modal styles ====== */
 .tableWrap{ overflow:auto; border-radius: 18px; }
 table{
   width:100%;
@@ -165,12 +227,8 @@ th,td{
   vertical-align:middle;
 }
 th{ color: var(--muted); font-weight:650; }
-tr{
-  transition: background .14s ease, transform .14s ease;
-}
-tbody tr:hover{
-  background: rgba(255,255,255,.06);
-}
+tr{ transition: background .14s ease, transform .14s ease; }
+tbody tr:hover{ background: rgba(255,255,255,.06); }
 
 /* Status badges + hover */
 .status{
@@ -189,18 +247,9 @@ tbody tr:hover{
   filter: brightness(1.07);
   box-shadow: 0 10px 20px rgba(0,0,0,.20);
 }
-.status-aktiv{
-  background: rgba(34,197,94,.22);
-  color: #bbf7d0;
-}
-.status-pausiert{
-  background: rgba(234,179,8,.22);
-  color: #fde68a;
-}
-.status-ausgetreten{
-  background: rgba(239,68,68,.22);
-  color: #fecaca;
-}
+.status-aktiv{ background: rgba(34,197,94,.22); color: #bbf7d0; }
+.status-pausiert{ background: rgba(234,179,8,.22); color: #fde68a; }
+.status-ausgetreten{ background: rgba(239,68,68,.22); color: #fecaca; }
 
 /* Icon action buttons */
 .iconBtn{
@@ -240,20 +289,9 @@ tbody tr:hover{
   gap:12px;
   margin-bottom: 10px;
 }
-.modalTitle{
-  margin:0;
-  font-size: 20px;
-  letter-spacing: .2px;
-}
-.modalSub{
-  margin-top:6px;
-  color: var(--muted);
-  font-size: 13px;
-}
-.closeX{
-  width: 42px; height: 42px;
-  border-radius: 14px;
-}
+.modalTitle{ margin:0; font-size: 20px; letter-spacing: .2px; }
+.modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
+.closeX{ width: 42px; height: 42px; border-radius: 14px; }
 .formGrid{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -262,9 +300,7 @@ tbody tr:hover{
 }
 .formGrid .full{ grid-column: 1 / -1; }
 @media (max-width: 640px){
-  h1{ font-size: 26px; }
   .formGrid{ grid-template-columns: 1fr; }
-  input,select{ min-width: 0; width: 100%; }
   table{ min-width: 640px; }
 }
 
@@ -293,13 +329,47 @@ hr.sep{
     </div>
   </div>
 
+  <!-- NEW: NAV (wird nur angezeigt wenn eingeloggt) -->
+  <div class="glass navWrap hidden" id="navWrap">
+    <div class="nav">
+      <div class="navLeft">
+        <a class="navLink active" href="/index.html" id="navMembers">
+          <span class="navIcon">👥</span>
+          <span>
+            <div class="navTitle">Mitglieder</div>
+            <div class="navHint">Verwalten</div>
+          </span>
+        </a>
+
+        <a class="navLink" href="/bewerbungen.html" id="navApps">
+          <span class="navIcon">📝</span>
+          <span>
+            <div class="navTitle">Bewerbungen</div>
+            <div class="navHint">Google Sheet</div>
+          </span>
+        </a>
+
+        <a class="navLink" href="/settings.html" id="navSettings">
+          <span class="navIcon">⚙️</span>
+          <span>
+            <div class="navTitle">Einstellungen</div>
+            <div class="navHint">Platzhalter</div>
+          </span>
+        </a>
+      </div>
+
+      <div class="navRight">
+        <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
   <!-- AUTH -->
   <div class="glass card" id="authCard">
     <div class="row">
       <input id="loginEmail" placeholder="Email" autocomplete="username">
       <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password">
       <button class="btn-primary" onclick="login()">Login</button>
-      <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
       <div class="spacer"></div>
       <div class="small">User werden von dir in Supabase per Invite freigeschaltet.</div>
     </div>
@@ -394,6 +464,9 @@ const authDot = document.getElementById("authDot");
 const authText = document.getElementById("authText");
 const logoutBtn = document.getElementById("logoutBtn");
 const mainCard = document.getElementById("mainCard");
+const authCard = document.getElementById("authCard");
+const navWrap = document.getElementById("navWrap");
+
 const searchEl = document.getElementById("search");
 const countInfo = document.getElementById("countInfo");
 const listEl = document.getElementById("list");
@@ -425,12 +498,17 @@ function setAuthUI(isAuthed){
     authText.textContent = "eingeloggt";
     logoutBtn.classList.remove("hidden");
     mainCard.classList.remove("hidden");
+    navWrap.classList.remove("hidden");
+    // optional: login-card kann bleiben oder versteckt werden:
+    // authCard.classList.add("hidden");
   } else {
     authDot.classList.remove("ok");
     authDot.classList.add("warn");
     authText.textContent = "nicht eingeloggt";
     logoutBtn.classList.add("hidden");
     mainCard.classList.add("hidden");
+    navWrap.classList.add("hidden");
+    // authCard.classList.remove("hidden");
   }
 }
 
@@ -506,12 +584,10 @@ function render(){
 
 /* ========= Modal logic ========= */
 function overlayClick(e){
-  // click outside modal closes
   if (e.target === modalOverlay) closeModal();
 }
 function openModal(){
   modalOverlay.classList.add("show");
-  // UX: focus first field
   setTimeout(() => mFirst.focus(), 0);
 }
 function closeModal(){
@@ -548,7 +624,6 @@ function openEdit(id){
   openModal();
 }
 
-// ESC closes modal
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
 });
