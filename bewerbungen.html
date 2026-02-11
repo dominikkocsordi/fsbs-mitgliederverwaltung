@@ -80,6 +80,7 @@
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
 
+    /* ✨ Glow */
     .dot.ok{
       box-shadow:
         0 0 0 2px rgba(34,197,94,.20),
@@ -87,6 +88,7 @@
         0 0 42px rgba(34,197,94,.30);
     }
 
+    /* 🔄 Pulse */
     @keyframes pulseRing {
       0%   { transform: scale(1); opacity: .0; }
       10%  { opacity: .6; }
@@ -103,6 +105,7 @@
       pointer-events:none;
     }
 
+    /* 👤 Avatar */
     .authAvatar{
       width: 30px;
       height: 30px;
@@ -431,7 +434,7 @@
       margin-top: 12px;
     }
 
-    /* Anwärter-Modal */
+    /* Anwärter Übernahme Modal */
     .candOverlay{
       position: fixed; inset:0; z-index:70;
       background: rgba(0,0,0,.58);
@@ -623,7 +626,7 @@
     // ====== Anwärter Tabelle ======
     const CANDIDATES_TABLE = "anwaerter";
 
-    // ====== RESSORTS (fix) ======
+    // ✅ Ressorts fix (wie von dir vorgegeben)
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
@@ -807,6 +810,7 @@
       return (a + b).toUpperCase() || "•";
     }
 
+    // ✅ Foto-Helfer: Thumb + großer Link
     function getThumb(row){
       try{
         if (row?.__photo?.items?.[0]?.thumb){
@@ -1018,7 +1022,7 @@
       modalOverlay.classList.add("show");
     }
 
-    // ===== Anwärter-Übernahme =====
+    // ===== Anwärter-Übernahme (inkl. Foto-Links!) =====
     function openCandModal(){
       if (!ACTIVE_ROW){
         alert("Kein Bewerber ausgewählt.");
@@ -1030,11 +1034,14 @@
       const email = safe(ACTIVE_ROW[F.email]).trim();
 
       candSub.textContent = `${fn} ${ln}`.trim() || "—";
-      candInfoPill.textContent = email ? `E-Mail: ${email}` : "E-Mail fehlt";
+
+      const photoUrl = getPhotoUrl(ACTIVE_ROW);
+      candInfoPill.textContent = email
+        ? `E-Mail: ${email}${photoUrl ? " · Foto: ja" : " · Foto: nein"}`
+        : "E-Mail fehlt";
 
       candRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
 
-      // Default: Prio1/Prio2 wenn match, sonst erstes
       const prio1 = safe(ACTIVE_ROW[F.r1]).trim();
       const prio2 = safe(ACTIVE_ROW[F.r2]).trim();
       if (RESSORTS_FIXED.includes(prio1)) candRessort.value = prio1;
@@ -1064,26 +1071,19 @@
         alert("Bitte ein Ressort auswählen.");
         return;
       }
-      
-      const photo_url = getPhotoUrl(ACTIVE_ROW);   // großer Link
-      const photo_thumb = getThumb(ACTIVE_ROW);    // thumbnail
-      
-      const { error } = await sb
-        .from(CANDIDATES_TABLE)
-        .insert({
-          vorname, nachname, email, ressort, bewerbung_id,
-          photo_url,
-          photo_thumb
-        });
 
       const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
+
+      // ✅ Foto-Links aus Google/Forms übernehmen (kein Upload nach Supabase!)
+      const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
+      const photo_thumb = getThumb(ACTIVE_ROW) || null;
 
       candConfirm.disabled = true;
       candConfirm.style.opacity = ".75";
 
       const { error } = await sb
         .from(CANDIDATES_TABLE)
-        .insert({ vorname, nachname, email, ressort, bewerbung_id });
+        .insert({ vorname, nachname, email, ressort, bewerbung_id, photo_url, photo_thumb });
 
       candConfirm.disabled = false;
       candConfirm.style.opacity = "1";
@@ -1094,10 +1094,10 @@
       }
 
       closeCandModal();
-      alert("✅ Als Anwärter übernommen!");
+      alert("✅ Als Anwärter übernommen! (Foto-Link mit gespeichert)");
     }
 
-    // ===== Events / Overlay close =====
+    // ===== Overlay close =====
     closeModalBtn.addEventListener("click", closeModal);
 
     modalOverlay.addEventListener("click", (e)=>{
