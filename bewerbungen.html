@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bewerbungen</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg0:#05060a;
+      --card: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.14);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.62);
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
+      --r: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(120,120,255,.20), transparent 55%),
+        radial-gradient(900px 600px at 80% 25%, rgba(60,255,210,.12), transparent 60%),
+        radial-gradient(900px 600px at 50% 100%, rgba(255,120,180,.10), transparent 55%),
+        linear-gradient(180deg, #05060a, #070814);
+      min-height:100vh;
+    }
+    .wrap{max-width:1200px; margin:0 auto; padding:24px 18px 60px;}
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:14px; padding:14px 16px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border-radius: calc(var(--r) + 6px);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+      position: sticky; top: 14px; z-index: 5;
+    }
+    .brand{display:flex; flex-direction:column; gap:2px;}
+    .brand .h{font-weight:750; letter-spacing:.2px; font-size:16px}
+    .brand .s{color:var(--muted); font-size:12px}
+
+    .controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;}
+    .input, select{
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      outline:none;
+      min-width: 190px;
+      backdrop-filter: blur(12px);
+    }
+    .input::placeholder{color: rgba(255,255,255,.45)}
+    .btn{
+      border:none; cursor:pointer;
+      padding: 10px 12px;
+      border-radius: 14px;
+      color: var(--text);
+      background: linear-gradient(135deg, rgba(120,120,255,.26), rgba(60,255,210,.16));
+      border: 1px solid rgba(255,255,255,.16);
+      box-shadow: 0 10px 26px rgba(0,0,0,.35);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .btn:hover{transform: translateY(-1px); filter: brightness(1.08)}
+    .btn:active{transform: translateY(0px)}
+
+    .metaRow{display:flex; align-items:center; justify-content:space-between; gap:12px; margin:18px 4px 10px;}
+    .pill{
+      font-size:12px; color:var(--muted);
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 8px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
+    }
+
+    .grid{display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:14px; margin-top: 10px;}
+    @media (max-width: 1020px){ .grid{grid-template-columns: repeat(2, minmax(0, 1fr));} }
+    @media (max-width: 640px){ .grid{grid-template-columns: 1fr;} .input, select{min-width: 100%;} }
+
+    .card{
+      border:1px solid var(--stroke);
+      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      border-radius: var(--r);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 55px rgba(0,0,0,.40);
+      overflow:hidden;
+      cursor:pointer;
+      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,255,255,.22);
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+    }
+    .cardInner{display:flex; gap:12px; padding:14px;}
+    .avatar{
+      width:56px; height:56px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      overflow:hidden; flex: 0 0 auto;
+      display:grid; place-items:center;
+    }
+    .avatar img{width:100%; height:100%; object-fit:cover; display:block}
+    .avatar .fallback{font-weight:800; color: rgba(255,255,255,.75)}
+    .cTitle{display:flex; flex-direction:column; gap:4px; min-width:0}
+    .name{font-weight:800; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .sub{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .tags{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+    .tag{
+      font-size:12px;
+      padding:6px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.78);
+    }
+
+    .modalBackdrop{
+      position:fixed; inset:0; z-index:50;
+      background: rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center;
+      padding: 18px;
+    }
+    .modal{
+      width:min(920px, 100%);
+      max-height: 86vh;
+      overflow:auto;
+      border-radius: 26px;
+      border:1px solid rgba(255,255,255,.18);
+      background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+      backdrop-filter: blur(18px);
+      box-shadow: 0 22px 90px rgba(0,0,0,.65);
+    }
+    .modalHeader{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+      padding: 16px 16px 10px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+      position:sticky; top:0;
+      background: linear-gradient(135deg, rgba(20,22,40,.55), rgba(12,12,20,.30));
+      backdrop-filter: blur(18px);
+    }
+    .modalHeader .left{display:flex; gap:12px; align-items:center; min-width:0}
+    .modalHeader .titleBlock{min-width:0}
+    .modalHeader .title{font-weight:900; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .modalHeader .meta{color:var(--muted); font-size:12px; margin-top:3px}
+    .xbtn{
+      border:none; cursor:pointer;
+      width:40px; height:40px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.85);
+      display:grid; place-items:center;
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .xbtn:hover{transform: translateY(-1px); filter: brightness(1.1)}
+    .modalBody{padding: 14px 16px 18px}
+    .kv{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap: 10px 14px;
+      padding: 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      border-radius: 18px;
+      margin-top: 12px;
+    }
+    @media (max-width: 760px){ .kv{grid-template-columns: 1fr;} }
+    .k{color: rgba(255,255,255,.70); font-size:12px}
+    .v{color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere}
+    .v a{color: rgba(180,210,255,.95)}
+    .divider{height:1px; background: rgba(255,255,255,.10); margin: 12px 0;}
+    .empty{
+      margin-top: 18px;
+      border:1px dashed rgba(255,255,255,.22);
+      background: rgba(255,255,255,.04);
+      padding: 22px;
+      border-radius: 22px;
+      color: rgba(255,255,255,.75);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="h">Bewerbungen</div>
+        <div class="s">Google Sheet: Formularantworten 1 · Klick für Details</div>
+      </div>
+      <div class="controls">
+        <input id="q" class="input" placeholder="Suche (Name, Mail, Ressort…)" />
+        <select id="fR1"><option value="">Prio 1 (alle)</option></select>
+        <select id="fR2"><option value="">Prio 2 (alle)</option></select>
+        <select id="fSem"><option value="">Semester (alle)</option></select>
+        <button id="reload" class="btn">Neu laden</button>
+      </div>
+    </div>
+
+    <div class="metaRow">
+      <div id="count" class="pill">–</div>
+      <div id="status" class="pill">Bereit</div>
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty" style="display:none;">Keine Bewerbungen gefunden.</div>
+  </div>
+
+  <div id="backdrop" class="modalBackdrop" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <div class="left">
+          <div class="avatar" id="mAvatar"></div>
+          <div class="titleBlock">
+            <div class="title" id="mTitle">–</div>
+            <div class="meta" id="mMeta">–</div>
+          </div>
+        </div>
+        <button id="close" class="xbtn" title="Schließen">✕</button>
+      </div>
+      <div class="modalBody">
+        <div id="mTags" class="tags"></div>
+        <div class="divider"></div>
+        <div id="mKV"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== HIER EINTRAGEN ======
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec";
+    const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
+
+    // Supabase Gate (damit nur eingeloggte Leute das sehen)
+    const USE_SUPABASE_GATE = true;
+    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+    const LOGIN_REDIRECT = "/login.html";
+
+    // ====== FELDER (exakt wie dein Header) ======
+    const F = {
+      ts: "Zeitstempel",
+      fn: "Vorname",
+      ln: "Nachname",
+      age: "Alter",
+      phone: "Handynummer",
+      email: "E-Mail Adresse",
+      why: "Warum bewirbst du dich um eine Mitgliedschaft in der Fachschaft?",
+      exp: "Welche bisherigen Erfahrungen und Kompetenzen bringst du mit, die in der Fachschaft von Nutzen sein können?",
+      r1: "Ressort Prio 1",
+      r2: "Ressort Prio 2",
+      whyR: "Warum hast du dich für diese beiden Ressorts als Priorität 1 und 2 entschieden?\n\nWas reizt dich an diesen Bereichen besonders und welchen Mehrwert kannst du deiner Meinung nach dort einbringen?",
+      photo: "Lade bitte ein Foto von dir hoch",
+      consent: "Einwilligung in die Datenverarbeitung gemäß Datenschutzerklärung",
+      sem: "Semester"
+    };
+
+    // ====== STATE ======
+    let ALL = [];
+    const el = (id) => document.getElementById(id);
+
+    const grid = el("grid");
+    const empty = el("empty");
+    const count = el("count");
+    const status = el("status");
+
+    const q = el("q");
+    const fR1 = el("fR1");
+    const fR2 = el("fR2");
+    const fSem = el("fSem");
+    const reloadBtn = el("reload");
+
+    const backdrop = el("backdrop");
+    const closeBtn = el("close");
+    const mAvatar = el("mAvatar");
+    const mTitle = el("mTitle");
+    const mMeta = el("mMeta");
+    const mKV = el("mKV");
+    const mTags = el("mTags");
+
+    const supabase = USE_SUPABASE_GATE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    async function enforceAuth() {
+      if (!USE_SUPABASE_GATE) return true;
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = LOGIN_REDIRECT; return false; }
+      return true;
+    }
+
+    async function fetchRows() {
+      status.textContent = "Lade Bewerbungen…";
+      const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Sheet API Fehler: " + res.status);
+      const json = await res.json();
+      ALL = Array.isArray(json.rows) ? json.rows : [];
+      status.textContent = `Geladen: ${ALL.length}`;
+    }
+
+    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
+    const escapeHtml = (s) => String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+    function getInitials(row){
+      const a = safe(row[F.fn]).trim()[0] || "";
+      const b = safe(row[F.ln]).trim()[0] || "";
+      return (a + b).toUpperCase() || "•";
+    }
+
+    function firstPhotoThumb(row){
+      if (row.__photo?.kind === "drive" && row.__photo.items?.[0]) return row.__photo.items[0].thumb || "";
+      return "";
+    }
+
+    function firstPhotoUrl(row){
+      if (row.__photo?.kind === "drive" && row.__photo.items?.[0]) return row.__photo.items[0].url || "";
+      return safe(row[F.photo]).trim();
+    }
+
+    function uniq(arr){
+      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
+    }
+
+    function fillFilters(){
+      const r1 = uniq(ALL.map(r => r[F.r1]));
+      const r2 = uniq(ALL.map(r => r[F.r2]));
+      const sem = uniq(ALL.map(r => r[F.sem]));
+
+      const fill = (sel, values, placeholder) => {
+        sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join("");
+      };
+      fill(fR1, r1, "Prio 1 (alle)");
+      fill(fR2, r2, "Prio 2 (alle)");
+      fill(fSem, sem, "Semester (alle)");
+    }
+
+    function matches(row, text){
+      if (!text) return true;
+      const hay = [row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone]]
+        .map(safe).join(" ").toLowerCase();
+      return hay.includes(text.toLowerCase());
+    }
+
+    function filtered(){
+      const text = safe(q.value).trim();
+      const r1 = safe(fR1.value).trim();
+      const r2 = safe(fR2.value).trim();
+      const sem = safe(fSem.value).trim();
+
+      return ALL.filter(row =>
+        matches(row, text) &&
+        (!r1 || safe(row[F.r1]).trim() === r1) &&
+        (!r2 || safe(row[F.r2]).trim() === r2) &&
+        (!sem || safe(row[F.sem]).trim() === sem)
+      );
+    }
+
+    function render(){
+      const rows = filtered();
+      count.textContent = `${rows.length} Bewerbung(en) angezeigt · ${ALL.length} gesamt`;
+
+      grid.innerHTML = "";
+      empty.style.display = rows.length ? "none" : "block";
+
+      rows.forEach(row => {
+        const fn = safe(row[F.fn]).trim();
+        const ln = safe(row[F.ln]).trim();
+        const r1 = safe(row[F.r1]).trim();
+        const r2 = safe(row[F.r2]).trim();
+        const sem = safe(row[F.sem]).trim();
+        const thumb = firstPhotoThumb(row);
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="cardInner">
+            <div class="avatar">
+              ${thumb ? `<img src="${escapeHtml(thumb)}" alt="Foto" loading="lazy" />`
+                      : `<div class="fallback">${escapeHtml(getInitials(row))}</div>`}
+            </div>
+            <div class="cTitle">
+              <div class="name">${escapeHtml((fn + " " + ln).trim() || "Unbekannt")}</div>
+              <div class="sub">${escapeHtml(safe(row[F.email]).trim() || "—")}</div>
+              <div class="tags">
+                ${r1 ? `<span class="tag">Prio 1: ${escapeHtml(r1)}</span>` : ``}
+                ${r2 ? `<span class="tag">Prio 2: ${escapeHtml(r2)}</span>` : ``}
+                ${sem ? `<span class="tag">Sem: ${escapeHtml(sem)}</span>` : ``}
+              </div>
+            </div>
+          </div>
+        `;
+        card.addEventListener("click", () => openModal(row));
+        grid.appendChild(card);
+      });
+    }
+
+    function openModal(row){
+      const fn = safe(row[F.fn]).trim();
+      const ln = safe(row[F.ln]).trim();
+      mTitle.textContent = (fn + " " + ln).trim() || "Bewerbung";
+
+      const meta = [
+        safe(row[F.ts]).trim() ? `Zeit: ${safe(row[F.ts]).trim()}` : null,
+        safe(row[F.email]).trim() ? `Mail: ${safe(row[F.email]).trim()}` : null
+      ].filter(Boolean).join(" · ");
+      mMeta.textContent = meta || "—";
+
+      const thumb = firstPhotoThumb(row);
+      const link = firstPhotoUrl(row);
+      mAvatar.innerHTML = "";
+      if (thumb) {
+        const a = document.createElement("a");
+        a.href = link || "#";
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.style.cssText = "display:block;width:100%;height:100%";
+        a.innerHTML = `<img src="${escapeHtml(thumb)}" alt="Foto" />`;
+        mAvatar.appendChild(a);
+      } else {
+        mAvatar.innerHTML = `<div class="fallback">${escapeHtml(getInitials(row))}</div>`;
+      }
+
+      const tags = [];
+      if (safe(row[F.r1]).trim()) tags.push(["Prio 1", safe(row[F.r1]).trim()]);
+      if (safe(row[F.r2]).trim()) tags.push(["Prio 2", safe(row[F.r2]).trim()]);
+      if (safe(row[F.sem]).trim()) tags.push(["Semester", safe(row[F.sem]).trim()]);
+      if (safe(row[F.age]).trim()) tags.push(["Alter", safe(row[F.age]).trim()]);
+      mTags.innerHTML = tags.map(([k,v]) => `<span class="tag">${escapeHtml(k)}: ${escapeHtml(v)}</span>`).join("");
+
+      const fields = [F.ts,F.fn,F.ln,F.age,F.sem,F.email,F.phone,F.r1,F.r2,F.whyR,F.why,F.exp,F.photo,F.consent];
+
+      const kv = document.createElement("div");
+      kv.className = "kv";
+
+      fields.forEach(key => {
+        let val = row[key];
+
+        if (key === F.photo) {
+          const url = firstPhotoUrl(row);
+          if (url) val = `📎 ${url}`;
+        }
+
+        const k = document.createElement("div");
+        k.className = "k";
+        k.textContent = key;
+
+        const v = document.createElement("div");
+        v.className = "v";
+        const s = safe(val).trim();
+
+        const linkCandidate = s.replace("📎 ", "");
+        if (linkCandidate.startsWith("http://") || linkCandidate.startsWith("https://") || linkCandidate.includes("drive.google.com")) {
+          v.innerHTML = `<a href="${escapeHtml(linkCandidate)}" target="_blank" rel="noopener">${escapeHtml(s || "—")}</a>`;
+        } else {
+          v.textContent = s || "—";
+        }
+
+        kv.appendChild(k);
+        kv.appendChild(v);
+      });
+
+      mKV.innerHTML = "";
+      mKV.appendChild(kv);
+
+      backdrop.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal(){
+      backdrop.style.display = "none";
+      document.body.style.overflow = "";
+    }
+
+    async function init(){
+      const ok = await enforceAuth();
+      if (!ok) return;
+
+      try {
+        await fetchRows();
+        fillFilters();
+        render();
+      } catch (e) {
+        console.error(e);
+        status.textContent = "Fehler beim Laden (Konsole prüfen)";
+      }
+    }
+
+    [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
+    reloadBtn.addEventListener("click", async () => { await fetchRows(); fillFilters(); render(); });
+
+    closeBtn.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    init();
+  </script>
+</body>
+</html>
