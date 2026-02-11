@@ -1064,6 +1064,17 @@
         alert("Bitte ein Ressort auswählen.");
         return;
       }
+      
+      const photo_url = getPhotoUrl(ACTIVE_ROW);   // großer Link
+      const photo_thumb = getThumb(ACTIVE_ROW);    // thumbnail
+      
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .insert({
+          vorname, nachname, email, ressort, bewerbung_id,
+          photo_url,
+          photo_thumb
+        });
 
       const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
 
