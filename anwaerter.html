@@ -27,6 +27,7 @@
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
       --warn: rgba(251,146,60,.95);
+      --done: rgba(16,185,129,.95);
     }
 
     *{box-sizing:border-box}
@@ -100,7 +101,6 @@
     }
     .authAvatar.hidden{ display:none; }
 
-    /* ✅ kompaktere Auth-Info: 1 Zeile + ausklappbare Details */
     .authInfo{
       display:flex;
       flex-direction:column;
@@ -126,7 +126,6 @@
       min-width:0;
     }
 
-    /* ✅ Name inline (statt extra Zeile) */
     .authNameInline{
       font-size:13px;
       font-weight:850;
@@ -145,7 +144,6 @@
       word-break:break-all;
     }
 
-    /* ✅ Rolle */
     .rolePill{
       display:inline-flex;
       align-items:center;
@@ -301,6 +299,15 @@
     }
     .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
 
+    /* ✅ Vollmitglied Button */
+    .btn-done{
+      background: rgba(16,185,129,.16);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(16,185,129,.30);
+      box-shadow: 0 10px 26px rgba(16,185,129,.12);
+    }
+    .btn-done:hover{ transform: translateY(-2px); filter: brightness(1.05); }
+
     .card{ padding:16px; margin-bottom:14px; }
 
     .row{
@@ -367,6 +374,11 @@
       background: rgba(251,146,60,.18);
       border-color: rgba(251,146,60,.35);
       color:#ffedd5;
+    }
+    .pillDone{
+      background: rgba(16,185,129,.18);
+      border-color: rgba(16,185,129,.35);
+      color:#d1fae5;
     }
 
     .empty{
@@ -504,7 +516,6 @@
             <div class="authTopLine">
               <div class="authState" id="authState">nicht eingeloggt</div>
 
-              <!-- ✅ Kompakt-Zeile: Name + Rolle + Toggle -->
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
                 <span class="rolePill" id="authRolePill">Rolle</span>
@@ -512,7 +523,6 @@
               </div>
             </div>
 
-            <!-- ✅ Details: nur aufklappbar -->
             <div class="authDetails hidden" id="authDetails">
               <div class="authMail" id="authMail"></div>
             </div>
@@ -522,7 +532,6 @@
       </div>
     </div>
 
-    <!-- NAV (nur eingeloggt) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
@@ -565,7 +574,6 @@
       </div>
     </div>
 
-    <!-- Content (nur nach Login sichtbar) -->
     <div class="glass card" id="contentCard" style="display:none;">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
@@ -584,7 +592,7 @@
               <th>Name</th>
               <th>Ressort</th>
               <th>Email</th>
-              <th style="width:260px;">Aktionen</th>
+              <th style="width:340px;">Aktionen</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -596,7 +604,6 @@
 
   </div>
 
-  <!-- Edit Modal -->
   <div class="modalOverlay" id="editOverlay">
     <div class="glass modal" onclick="event.stopPropagation()">
       <div class="modalHeader">
@@ -655,8 +662,9 @@
       return "Unbekannt";
     }
 
-    // ====== Tabelle ======
+    // ====== Tabellen ======
     const CANDIDATES_TABLE = "anwaerter";
+    const MEMBERS_TABLE = "members";                 // ✅ Ziel-Tabelle
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
     const RESSORTS_FIXED = [
@@ -676,7 +684,6 @@
     const authState = document.getElementById("authState");
     const authAvatar = document.getElementById("authAvatar");
 
-    // ✅ compact badge
     const authCompact = document.getElementById("authCompact");
     const authNameInline = document.getElementById("authNameInline");
     const authRolePill = document.getElementById("authRolePill");
@@ -720,12 +727,15 @@
       const st = normalizeStatus(statusRaw);
       return st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
     }
+    function isVollmitglied(statusRaw){
+      return normalizeStatus(statusRaw) === "vollmitglied";
+    }
 
     // ====== Ablehnen (nur Vorstand) ======
     async function rejectCandidate(id){
       if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen/bearbeiten.");
 
-      const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt (bleibt in der Liste).");
+      const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt.");
       if (!ok) return;
 
       const { error } = await sb
@@ -735,6 +745,79 @@
 
       if (error){
         alert("Fehler beim Ablehnen: " + error.message);
+        return;
+      }
+
+      await fetchCandidates();
+    }
+
+    // ====== ✅ Vollmitglied (nur Vorstand) ======
+    async function makeFullMember(row){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Vollmitglied setzen.");
+      if (!row?.id) return;
+
+      const stRaw = row[BEWERBUNG_STATUS_COL];
+      if (isVollmitglied(stRaw)) return;
+
+      const vorname = safe(row.vorname).trim();
+      const nachname = safe(row.nachname).trim();
+      const email = safe(row.email).trim();
+      const ressort = safe(row.ressort).trim();
+
+      if (!vorname || !nachname || !email || !ressort){
+        return alert("Fehlende Daten: Vorname/Nachname/Mail/Ressort müssen gesetzt sein.");
+      }
+
+      const ok = confirm(
+        `Als Vollmitglied übernehmen?\n\n` +
+        `${vorname} ${nachname}\n${email}\nRessort: ${ressort}\n\n` +
+        `→ wird in „${MEMBERS_TABLE}“ eingefügt und Status auf „Vollmitglied“ gesetzt.`
+      );
+      if (!ok) return;
+
+      // 1) Optional: Duplicate-Check (über Email)
+      const { data: exists, error: existsErr } = await sb
+        .from(MEMBERS_TABLE)
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (existsErr){
+        alert("Fehler beim Prüfen der members-Tabelle: " + existsErr.message);
+        return;
+      }
+      if (exists){
+        alert("Dieses Mitglied existiert in „members“ bereits (gleiche Mail). Abbruch.");
+        return;
+      }
+
+          // 2) Insert in members (nur die gewünschten Felder)
+    const { error: insErr } = await sb
+      .from(MEMBERS_TABLE)
+      .insert([{
+        voname: vorname,     // ✅ Spalte heißt bei dir "voname"
+        nachname,
+        email,
+        ressort
+      }]);
+
+      if (insErr){
+        alert("Konnte nicht in members übernehmen: " + insErr.message);
+        return;
+      }
+
+      // 3) Status in anwaerter updaten
+      const { error: upErr } = await sb
+        .from(CANDIDATES_TABLE)
+        .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied" })
+        .eq("id", row.id);
+
+      if (upErr){
+        alert(
+          "Mitglied wurde in members angelegt, aber Status konnte nicht gesetzt werden:\n" +
+          upErr.message +
+          "\n\nBitte Status manuell auf „Vollmitglied“ setzen."
+        );
         return;
       }
 
@@ -810,7 +893,6 @@
         authDot.classList.remove("warn");
         authDot.classList.add("ok");
 
-        // ✅ kein "eingeloggt" Text
         authState.classList.add("hidden");
         authState.textContent = "";
 
@@ -843,13 +925,11 @@
       }
     }
 
-    // Toggle Details
     authToggle?.addEventListener("click", (e)=>{
       e.stopPropagation();
       authDetails.classList.toggle("hidden");
     });
 
-    // Klick außerhalb -> Details zu
     document.addEventListener("click", (e)=>{
       if (!authBadge.contains(e.target)) closeAuthDetails();
     });
@@ -860,7 +940,6 @@
       return res.data.session;
     }
 
-    // ✅ Rolle + Display Name laden (aus public.profiles)
     async function loadMyProfile(session){
       MY_ROLE = "";
       CAN_EDIT = false;
@@ -876,7 +955,6 @@
 
       if (error){
         console.warn("Profil konnte nicht geladen werden:", error.message);
-        // fallback: name aus email, rolle optisch ressortleiter
         setCompactIdentity("", session?.user?.email || "");
         setRolePill("ressortleiter");
         return;
@@ -888,13 +966,11 @@
       setCompactIdentity(data?.display_name, session?.user?.email || "");
       setRolePill(MY_ROLE || "ressortleiter");
 
-      // optional: Avatar Initialen lieber aus Display Name (falls gesetzt)
       const dn = (data?.display_name || "").trim();
       if (dn){
         authAvatar.textContent = initialsFromText(dn);
       }
 
-      // Tooltip (macht es "wertiger" ohne Platz zu nehmen)
       const tip = `${(data?.display_name || session?.user?.email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
       authBadge.title = tip;
     }
@@ -903,9 +979,7 @@
       try{
         const session = await requireAuth();
         setAuthUI(true, session?.user?.email || "");
-
         await loadMyProfile(session);
-
       } catch(e){
         setAuthUI(false);
         window.location.href = LOGIN_REDIRECT;
@@ -952,19 +1026,24 @@
         const st = normalizeStatus(stRaw);
 
         const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
+        const fullAlready = isVollmitglied(stRaw);
 
         const badge =
-          (st === "anwärter" || st === "anwaerter")
-            ? `<span class="pillSmall pillOk">👶🏼 Anwärter</span>`
-            : (rejectedAlready)
-              ? `<span class="pillSmall pillWarn">❌ Anwärter abgelehnt</span>`
-              : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(stRaw))}</span>` : ``);
+          fullAlready
+            ? `<span class="pillSmall pillDone">✅ Vollmitglied</span>`
+            : (st === "anwärter" || st === "anwaerter")
+              ? `<span class="pillSmall pillOk">👶🏼 Anwärter</span>`
+              : (rejectedAlready)
+                ? `<span class="pillSmall pillWarn">❌ Anwärter abgelehnt</span>`
+                : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(stRaw))}</span>` : ``);
 
         const editDisabled = !CAN_EDIT;
-        const rejectDisabled = !CAN_EDIT || rejectedAlready;
+        const rejectDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
+        const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
 
         const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
-        const rejectTitle = !CAN_EDIT ? "Nur Vorstand darf ablehnen" : (rejectedAlready ? "Bereits abgelehnt" : "Anwärter ablehnen");
+        const rejectTitle = !CAN_EDIT ? "Nur Vorstand darf ablehnen" : (rejectedAlready ? "Bereits abgelehnt" : (fullAlready ? "Ist bereits Vollmitglied" : "Anwärter ablehnen"));
+        const fullTitle = !CAN_EDIT ? "Nur Vorstand darf Vollmitglied setzen" : (rejectedAlready ? "Abgelehnt" : (fullAlready ? "Bereits Vollmitglied" : "Als Vollmitglied übernehmen"));
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1002,6 +1081,9 @@
               <button class="btn-secondary" data-action="edit" data-id="${r.id}"
                 ${editDisabled ? "disabled" : ""} title="${esc(editTitle)}">Bearbeiten</button>
 
+              <button class="btn-done" data-action="full" data-id="${r.id}"
+                ${fullDisabled ? "disabled" : ""} title="${esc(fullTitle)}">Vollmitglied</button>
+
               <button class="btn-danger" data-action="reject" data-id="${r.id}"
                 ${rejectDisabled ? "disabled" : ""} title="${esc(rejectTitle)}">Ablehnen</button>
             </div>
@@ -1025,7 +1107,9 @@
         return;
       }
 
-      ALL = (Array.isArray(data) ? data : []).filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
+      // ✅ weiterhin: "abgelehnt" rausfiltern (wie bei dir)
+      ALL = (Array.isArray(data) ? data : [])
+        .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
       statusPill.textContent = `Geladen: ${ALL.length}`;
       render();
@@ -1130,6 +1214,7 @@
       const row = ALL.find(x => Number(x.id) === id);
 
       if (action === "edit" && row) openEdit(row);
+      if (action === "full" && row) makeFullMember(row);
       if (action === "reject") rejectCandidate(id);
     });
 
@@ -1139,7 +1224,7 @@
 
     // Init
     (async function init(){
-      await enforceAuth();     // ✅ lädt jetzt auch display_name + role
+      await enforceAuth();
       await fetchCandidates();
     })();
   </script>
