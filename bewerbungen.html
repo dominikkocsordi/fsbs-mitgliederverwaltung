@@ -132,10 +132,36 @@
       align-items:flex-end;
       justify-content:space-between;
       gap:16px;
-      margin-bottom:16px;
+      margin-bottom:8px;
     }
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    /* Auth badge (wie index) */
+    .authRow{
+      display:flex;
+      justify-content:flex-end;
+      margin-bottom:14px;
+    }
+    .badge{
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      border: 1px solid rgba(255,255,255,.18);
+      font-size: 13px;
+      color: rgba(255,255,255,.75);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dot{
+      width:8px;
+      height:8px;
+      border-radius:999px;
+      background: rgba(255,255,255,.35);
+    }
+    .dot.ok{ background: rgba(34,197,94,.95); }
+    .dot.warn{ background: rgba(239,68,68,.9); }
 
     .card{ padding:16px; margin-bottom:14px; }
 
@@ -279,7 +305,7 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
-    /* NEW: Modal Photo (größer) */
+    /* Modal Photo (größer) */
     .modalPhotoWrap{
       display:flex;
       justify-content:center;
@@ -371,6 +397,14 @@
       <div class="pill" id="statusPill">–</div>
     </div>
 
+    <!-- Auth Badge (grüner Punkt bei Login) -->
+    <div class="authRow">
+      <div class="badge" id="authBadge">
+        <span class="dot warn" id="authDot"></span>
+        <span id="authText">nicht eingeloggt</span>
+      </div>
+    </div>
+
     <div class="glass card">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
@@ -401,7 +435,7 @@
         <button class="btn-secondary closeX" onclick="closeModal()">✕</button>
       </div>
 
-      <!-- NEW: Großes Foto -->
+      <!-- Großes Foto -->
       <div class="modalPhotoWrap">
         <div class="modalPhoto" id="modalPhoto" title="Klick: Foto öffnen"></div>
       </div>
@@ -442,6 +476,9 @@
     // ====== Elements ======
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
+
+    const authDot = document.getElementById("authDot");
+    const authText = document.getElementById("authText");
 
     const q = document.getElementById("q");
     const fR1 = document.getElementById("fR1");
@@ -484,7 +521,16 @@
       try{
         await requireAuth();
         navWrap.style.display = "block";
+
+        // Badge grün
+        authDot.classList.remove("warn");
+        authDot.classList.add("ok");
+        authText.textContent = "eingeloggt";
+
       } catch(e){
+        authDot.classList.remove("ok");
+        authDot.classList.add("warn");
+        authText.textContent = "nicht eingeloggt";
         window.location.href = LOGIN_REDIRECT;
       }
     }
@@ -624,7 +670,6 @@
         const card = document.createElement("div");
         card.className = "appCard";
 
-        // Avatar HTML mit Fallback (kein blaues Fragezeichen mehr)
         let avatarHtml = esc(getInitials(row));
         if (thumb){
           avatarHtml = `<img src="${esc(thumb)}" alt="Foto" loading="lazy"
@@ -700,7 +745,6 @@
       if (safe(row[F.email]).trim()) line.push(`Mail: ${safe(row[F.email]).trim()}`);
       modalSub.textContent = line.join(" · ") || "—";
 
-      // NEW: großes Foto setzen
       setModalPhoto(row);
 
       const fields = [
