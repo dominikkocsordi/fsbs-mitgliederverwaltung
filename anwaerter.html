@@ -14,7 +14,6 @@
       --bg3:#0b2a33;
 
       --glass: rgba(255,255,255,.10);
-      --glass2: rgba(255,255,255,.08);
       --border: rgba(255,255,255,.22);
 
       --text: rgba(255,255,255,.92);
@@ -33,107 +32,248 @@
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 700px at 15% 10%, rgba(56,189,248,.22), transparent 55%),
-        radial-gradient(900px 600px at 85% 10%, rgba(14,165,233,.18), transparent 55%),
-        radial-gradient(900px 700px at 60% 90%, rgba(34,197,94,.12), transparent 60%),
-        linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
-      min-height:100vh;
-      overflow-x:hidden;
-    }
-
-    .topbar{
-      position:sticky; top:0; z-index:20;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      background: linear-gradient(180deg, rgba(11,18,32,.72), rgba(11,18,32,.35));
-      border-bottom: 1px solid rgba(255,255,255,.12);
-    }
-
-    .wrap{ max-width:1100px; margin:0 auto; padding:16px 16px 26px; }
-
-    .titleRow{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-      padding:12px 0 8px;
-    }
-    h1{ margin:0; font-size:22px; letter-spacing:.2px; }
-    .sub{ margin:6px 0 0; color:var(--muted); font-size:13px; }
-
-    nav{
-      display:flex; gap:10px; flex-wrap:wrap;
-      padding:10px 0 12px;
-    }
-    .chip{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 12px;
-      border-radius:999px;
-      background: rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.14);
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
-      text-decoration:none;
-      font-size:13px;
-      transition:.18s ease;
-    }
-    .chip:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
-
-    .statusBadge{
-      position:fixed;
-      top:14px; right:14px;
-      z-index:50;
-      display:flex; align-items:center; gap:8px;
-      padding:9px 10px;
-      border-radius:999px;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.18);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-      font-size:13px;
-    }
-    .dot{
-      width:10px; height:10px; border-radius:999px;
-      background: var(--bad);
-      box-shadow: 0 0 0 3px rgba(239,68,68,.16);
-    }
-    .dot.ok{
-      background: var(--ok);
-      box-shadow: 0 0 0 3px rgba(34,197,94,.16);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.18), transparent 60%),
+        radial-gradient(800px 450px at 60% 90%, rgba(251,113,133,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      min-height:100vh;
+      padding: 28px 16px 60px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
     }
 
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:18px;
+    .app{ width:100%; max-width:1200px; }
+
+    .glass{
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 22px;
       box-shadow: var(--shadow);
-      overflow:hidden;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
     }
 
-    .toolbar{
-      display:flex; gap:10px; flex-wrap:wrap;
-      padding:14px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
+    /* ===== Auth badge (wie bei Bewerbungen) ===== */
+    .authFloating{
+      position: static;
+      z-index: 1;
+      border-radius: 999px;
+      padding: 10px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 18px 55px rgba(0,0,0,.40);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      user-select:none;
     }
-    .input{
-      flex:1;
-      min-width:220px;
-      display:flex; align-items:center; gap:8px;
-      padding:10px 12px;
+
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: rgba(255,255,255,.35);
+      position: relative;
+    }
+    .dot.ok{ background: var(--ok); }
+    .dot.warn{ background: rgba(255,255,255,.35); }
+
+    .dot.ok{
+      box-shadow:
+        0 0 0 2px rgba(34,197,94,.20),
+        0 0 18px rgba(34,197,94,.55),
+        0 0 42px rgba(34,197,94,.30);
+    }
+
+    @keyframes pulseRing {
+      0%   { transform: scale(1); opacity: .0; }
+      10%  { opacity: .6; }
+      70%  { transform: scale(3.2); opacity: 0; }
+      100% { transform: scale(3.2); opacity: 0; }
+    }
+    .dot.pulsing::after{
+      content:"";
+      position:absolute;
+      inset: -2px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.25);
+      animation: pulseRing 1.15s ease-out 0s 2;
+      pointer-events:none;
+    }
+
+    .authAvatar{
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display:grid;
+      place-items:center;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 12px 28px rgba(0,0,0,.25);
+      background: rgba(255,255,255,.10);
+    }
+    .authAvatar.hidden{ display:none; }
+
+    .authInfo{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+      min-width: 140px;
+    }
+    .authState{
+      font-size:13px;
+      font-weight:750;
+      letter-spacing:.25px;
+    }
+    .authMail{
+      font-size:11px;
+      color: rgba(255,255,255,.58);
+      margin-top:3px;
+      word-break:break-all;
+    }
+    .hidden{ display:none; }
+
+    /* Header (wie bei Bewerbungen) */
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 16px;
+    }
+    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    .pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+
+    /* NAV sticky (wie bei Bewerbungen) */
+    .navWrap{
+      position: sticky;
+      top: 14px;
+      z-index: 10;
+      margin-bottom: 16px;
+    }
+    .nav{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      padding: 10px;
+    }
+    .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    .navLink{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      text-decoration:none;
+      color: rgba(255,255,255,.86);
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
+      user-select:none;
+    }
+    .navLink:hover{
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.22);
+    }
+    .navLink.active{
+      background: linear-gradient(135deg, rgba(56,189,248,.22), rgba(14,165,233,.12));
+      border-color: rgba(56,189,248,.40);
+      box-shadow: 0 14px 30px rgba(14,165,233,.18);
+    }
+    .navIcon{
+      width:30px; height:30px;
+      border-radius: 12px;
+      display:grid; place-items:center;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .navTitle{ font-weight:750; letter-spacing:.2px; }
+    .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
+
+    button{
+      border:none;
+      cursor:pointer;
       border-radius:14px;
-      background: rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.14);
+      padding: 10px 14px;
+      font-weight:700;
+      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
-    .input input{
-      width:100%;
-      background:transparent;
-      border:0; outline:0;
-      color:var(--text);
-      font-size:14px;
+    button:active{ transform: translateY(0px) scale(.99); }
+
+    .btn-secondary{
+      background: rgba(255,255,255,.14);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+    .btn-primary{
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #03202b;
+      box-shadow: 0 10px 26px rgba(14,165,233,.25);
+    }
+    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+
+    .btn-danger{
+      background: rgba(239,68,68,.16);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(239,68,68,.28);
+    }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
+
+    .card{ padding:16px; margin-bottom:14px; }
+
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .spacer{ flex:1; }
+
+    input,select{
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      outline:none;
+      min-width: 190px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    input::placeholder{ color: rgba(255,255,255,.55); }
+    input:focus, select:focus{
+      border-color: rgba(56,189,248,.55);
+      background: rgba(255,255,255,.16);
+      transform: translateY(-1px);
     }
 
-    table{ width:100%; border-collapse:separate; border-spacing:0; }
+    table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; }
     th, td{ padding:12px 14px; text-align:left; font-size:14px; }
     th{
       font-size:12px;
@@ -145,339 +285,498 @@
     }
     tr + tr td{ border-top:1px solid rgba(255,255,255,.08); }
 
-    .pill{
-      display:inline-flex; align-items:center;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:12px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
+    .tableWrap{
+      overflow:auto;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
     }
 
-    .actions{ display:flex; gap:8px; flex-wrap:wrap; }
-    .btn{
-      appearance:none; border:0; cursor:pointer;
-      padding:9px 10px;
-      border-radius:12px;
-      color:var(--text);
-      background: rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.14);
-      transition:.16s ease;
-      font-size:13px;
-    }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
-    .btn.danger{
-      background: rgba(239,68,68,.14);
-      border-color: rgba(239,68,68,.28);
-    }
-    .btn.primary{
-      background: linear-gradient(180deg, rgba(56,189,248,.22), rgba(14,165,233,.10));
-      border-color: rgba(56,189,248,.35);
-    }
-
-    /* Modal */
-    .overlay{
-      position:fixed; inset:0; z-index:80;
-      background: rgba(0,0,0,.55);
-      display:none; align-items:center; justify-content:center;
-      padding:16px;
-    }
-    .overlay.show{ display:flex; }
-    .modal{
-      width:min(520px, 100%);
-      border-radius:18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.07));
-      border:1px solid rgba(255,255,255,.18);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .modalHead{ padding:14px 14px 8px; }
-    .modalHead h3{ margin:0; font-size:16px; }
-    .modalHead p{ margin:6px 0 0; color:var(--muted); font-size:13px; }
-    .modalBody{ padding:12px 14px 14px; }
-    .field{ display:flex; flex-direction:column; gap:6px; margin:10px 0; }
-    label{ font-size:12px; color: rgba(255,255,255,.78); }
-    select{
-      width:100%;
-      padding:10px 12px;
-      border-radius:14px;
-      background: rgba(0,0,0,.20);
-      border:1px solid rgba(255,255,255,.14);
-      color: var(--text);
-      outline:none;
-      font-size:14px;
-    }
-    .modalFoot{
-      display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
-      padding:12px 14px 14px;
-      border-top:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
+    .pillSmall{
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      color: rgba(255,255,255,.82);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
     }
 
     .empty{
-      padding:18px 14px;
-      color: var(--muted);
-      font-size:14px;
+      margin-top: 12px;
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px dashed rgba(255,255,255,.22);
+      background: rgba(255,255,255,.04);
+      color: rgba(255,255,255,.78);
     }
 
-    @media (max-width:720px){
-      .titleRow{ flex-direction:column; align-items:flex-start; }
-      th:nth-child(3), td:nth-child(3){ display:none; } /* Email ausblenden (Platz) */
-      .statusBadge{ top:10px; right:10px; }
+    /* Modal */
+    .modalOverlay{
+      position: fixed; inset:0; z-index:60;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+    }
+    .modalOverlay.show{ display:flex; }
+    .modal{
+      width:min(720px, 100%);
+      max-height: 86vh;
+      overflow:auto;
+      border-radius: 26px;
+      padding: 16px;
+    }
+    .modalHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom: 10px;
+    }
+    .modalTitle{ margin:0; font-size: 20px; letter-spacing:.2px; }
+    .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
+    .closeX{ width:42px; height:42px; border-radius:14px; }
+
+    @media (max-width: 640px){
+      input,select{min-width:0; width:100%;}
+      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+      .authInfo{ min-width: 0; }
+
+      .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
+      .navLeft{ flex-wrap:nowrap; }
+      .navRight{ margin-left: 0; }
+
+      th:nth-child(3), td:nth-child(3){ display:none; } /* Email verstecken auf Handy */
     }
   </style>
 </head>
+
 <body>
-  <div class="statusBadge" id="loginBadge">
-    <span class="dot" id="loginDot"></span>
-    <span id="loginText">Nicht eingeloggt</span>
-  </div>
+  <div class="app">
 
-  <div class="topbar">
-    <div class="wrap">
-      <div class="titleRow">
-        <div>
-          <h1>Anwärter</h1>
-          <p class="sub">Liste aller aufgenommenen Anwärter (aus Bewerbungen übertragen).</p>
-        </div>
+    <!-- ✅ Header (wie Bewerbungen): Titel + Status pill LINKS, Badge RECHTS -->
+    <div class="top">
+      <div>
+        <h1>Anwärter</h1>
+        <div class="subtitle">Aufgenommene Anwärter · aus Bewerbungen übernommen</div>
       </div>
 
-      <nav>
-        <a class="chip" href="index.html">Mitglieder</a>
-        <a class="chip" href="bewerbung.html">Bewerbungen</a>
-        <a class="chip" href="anwaerter.html">Anwärter</a>
-      </nav>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+        <div class="pill" id="statusPill">–</div>
+
+        <div class="authFloating" id="authBadge" title="Login-Status">
+          <span class="dot warn" id="authDot"></span>
+          <div class="authAvatar hidden" id="authAvatar">U</div>
+          <div class="authInfo">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authMail hidden" id="authMail"></div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="wrap">
-    <div class="card">
-      <div class="toolbar">
-        <div class="input">
-          <span style="opacity:.75">🔎</span>
-          <input id="search" placeholder="Suchen nach Name oder Ressort..." />
+    <!-- ✅ NAV sticky (nur eingeloggt!) -->
+    <div class="glass navWrap" id="navWrap" style="display:none;">
+      <div class="nav">
+        <div class="navLeft">
+          <a class="navLink" href="/index.html" id="navMembers">
+            <span class="navIcon">👥</span>
+            <span>
+              <div class="navTitle">Mitglieder</div>
+              <div class="navHint">Verwalten</div>
+            </span>
+          </a>
+
+          <a class="navLink" href="/bewerbungen.html" id="navApps">
+            <span class="navIcon">📝</span>
+            <span>
+              <div class="navTitle">Bewerbungen</div>
+              <div class="navHint">Google Sheet</div>
+            </span>
+          </a>
+
+          <a class="navLink active" href="/anwaerter.html" id="navCandidates">
+            <span class="navIcon">🟢</span>
+            <span>
+              <div class="navTitle">Anwärter</div>
+              <div class="navHint">Pipeline</div>
+            </span>
+          </a>
+
+          <a class="navLink" href="/settings.html" id="navSettings">
+            <span class="navIcon">⚙️</span>
+            <span>
+              <div class="navTitle">Einstellungen</div>
+              <div class="navHint">Platzhalter</div>
+            </span>
+          </a>
         </div>
-        <button class="btn" id="refreshBtn">Neu laden</button>
+
+        <div class="navRight">
+          <button class="btn-secondary" id="logoutBtn">Logout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ Content (wird nur nach Login gezeigt) -->
+    <div class="glass card" id="contentCard" style="display:none;">
+      <div class="row">
+        <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
+        <select id="fRessort"><option value="">Ressort (alle)</option></select>
+        <button class="btn-secondary" id="reloadBtn">Neu laden</button>
+        <div class="spacer"></div>
+        <div class="pill" id="countPill">0</div>
       </div>
 
-      <div style="overflow:auto;">
+      <div style="height:10px;"></div>
+
+      <div class="tableWrap">
         <table>
           <thead>
             <tr>
               <th>Name</th>
               <th>Ressort</th>
               <th>Email</th>
-              <th style="width:190px;">Aktionen</th>
+              <th style="width:240px;">Aktionen</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
       </div>
 
-      <div class="empty" id="empty" style="display:none;">Keine Anwärter gefunden.</div>
+      <div id="empty" class="empty" style="display:none;">Keine Anwärter gefunden.</div>
     </div>
+
   </div>
 
   <!-- Modal: Ressort bearbeiten -->
-  <div class="overlay" id="editOverlay">
-    <div class="modal">
-      <div class="modalHead">
-        <h3>Anwärter bearbeiten</h3>
-        <p id="editSub">—</p>
-      </div>
-      <div class="modalBody">
-        <div class="field">
-          <label>Ressort</label>
-          <select id="editRessort"></select>
+  <div class="modalOverlay" id="editOverlay" onclick="editOverlayClick(event)">
+    <div class="glass modal" onclick="event.stopPropagation()">
+      <div class="modalHeader">
+        <div>
+          <h2 class="modalTitle">Anwärter bearbeiten</h2>
+          <div class="modalSub" id="editSub">–</div>
         </div>
+        <button class="btn-secondary closeX" onclick="closeEdit()">✕</button>
       </div>
-      <div class="modalFoot">
-        <button class="btn" id="editCancel">Abbrechen</button>
-        <button class="btn primary" id="editSave">Speichern</button>
+
+      <div class="card" style="padding:12px; margin:0;">
+        <div style="color:rgba(255,255,255,.75); font-size:12px; margin-bottom:8px;">Ressort</div>
+        <select id="editRessort" style="width:100%; min-width:0;"></select>
+
+        <div class="row" style="margin-top:14px; justify-content:flex-end;">
+          <button class="btn-secondary" onclick="closeEdit()">Abbrechen</button>
+          <button class="btn-primary" id="saveEditBtn">Speichern</button>
+        </div>
       </div>
     </div>
   </div>
 
-<script>
-  // >>>>>>> SUPABASE CONFIG
-  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <script>
+    // ====== Supabase Auth ======
+    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const LOGIN_REDIRECT = "/index.html";
 
-  // Falls deine Mitglieder-Tabelle anders heißt, hier anpassen:
-  const MEMBERS_TABLE = "mitglieder"; // z.B. "members" oder "mitglieder"
+    // ====== Tabellen ======
+    const CANDIDATES_TABLE = "anwaerter";
+    const MEMBERS_TABLE = "mitglieder";      // falls anders -> anpassen
+    const MEMBERS_RESSORT_COL = "ressort";   // falls anders -> anpassen
 
-  // UI state
-  let rows = [];
-  let ressorts = [];
-  let editing = null;
+    // ====== Elements ======
+    const navWrap = document.getElementById("navWrap");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-  // Badge
-  async function updateLoginBadge(){
-    const { data } = await supabase.auth.getSession();
-    const isAuthed = !!data?.session;
-    document.getElementById("loginDot").classList.toggle("ok", isAuthed);
-    document.getElementById("loginText").textContent = isAuthed ? "Eingeloggt" : "Nicht eingeloggt";
-  }
+    const authDot = document.getElementById("authDot");
+    const authState = document.getElementById("authState");
+    const authMail  = document.getElementById("authMail");
+    const authAvatar = document.getElementById("authAvatar");
 
-  async function requireAuth(){
-    const { data } = await supabase.auth.getSession();
-    if(!data?.session){
-      // minimal: Inhalt verstecken
-      document.getElementById("tbody").innerHTML = "";
-      document.getElementById("empty").style.display = "block";
-      document.getElementById("empty").textContent = "Bitte einloggen, um Anwärter zu sehen.";
-      throw new Error("not authed");
-    }
-  }
+    const statusPill = document.getElementById("statusPill");
 
-  async function loadRessortsFromMembers(){
-    // Holt Ressorts dynamisch aus Mitglieder-Tabelle, damit es 1:1 gleich ist.
-    // Wenn es bei dir eine andere Spalte als "ressort" ist -> hier ändern.
-    const { data, error } = await supabase
-      .from(MEMBERS_TABLE)
-      .select("ressort")
-      .not("ressort", "is", null);
-
-    if(error){
-      // Fallback: statisch
-      return ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
-    }
-    const set = new Set((data||[]).map(x => (x.ressort||"").trim()).filter(Boolean));
-    const arr = Array.from(set);
-    return arr.length ? arr.sort((a,b)=>a.localeCompare(b,"de")) : ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
-  }
-
-  function renderRessortOptions(selectEl, selected){
-    selectEl.innerHTML = ressorts.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
-    if(selected) selectEl.value = selected;
-  }
-
-  function escapeHtml(s){
-    return (s ?? "").toString()
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  async function load(){
-    await updateLoginBadge();
-    await requireAuth();
-
-    ressorts = await loadRessortsFromMembers();
-
-    const { data, error } = await supabase
-      .from("anwaerter")
-      .select("*")
-      .order("created_at", { ascending:false });
-
-    if(error){
-      console.error(error);
-      alert("Fehler beim Laden der Anwärter: " + error.message);
-      return;
-    }
-    rows = data || [];
-    render();
-  }
-
-  function matches(row, q){
-    q = q.trim().toLowerCase();
-    if(!q) return true;
-    const name = `${row.vorname||""} ${row.nachname||""}`.toLowerCase();
-    const r = (row.ressort||"").toLowerCase();
-    const e = (row.email||"").toLowerCase();
-    return name.includes(q) || r.includes(q) || e.includes(q);
-  }
-
-  function render(){
-    const q = document.getElementById("search").value || "";
-    const filtered = rows.filter(r => matches(r,q));
+    const contentCard = document.getElementById("contentCard");
+    const q = document.getElementById("q");
+    const fRessort = document.getElementById("fRessort");
+    const reloadBtn = document.getElementById("reloadBtn");
+    const countPill = document.getElementById("countPill");
     const tbody = document.getElementById("tbody");
-    tbody.innerHTML = "";
+    const empty = document.getElementById("empty");
 
-    document.getElementById("empty").style.display = filtered.length ? "none" : "block";
-    if(!filtered.length) return;
+    // Edit modal
+    const editOverlay = document.getElementById("editOverlay");
+    const editSub = document.getElementById("editSub");
+    const editRessort = document.getElementById("editRessort");
+    const saveEditBtn = document.getElementById("saveEditBtn");
 
-    for(const r of filtered){
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><strong>${escapeHtml(r.vorname)} ${escapeHtml(r.nachname)}</strong></td>
-        <td><span class="pill">${escapeHtml(r.ressort)}</span></td>
-        <td>${escapeHtml(r.email)}</td>
-        <td>
-          <div class="actions">
-            <button class="btn" data-action="edit" data-id="${r.id}">Bearbeiten</button>
-            <button class="btn danger" data-action="del" data-id="${r.id}">Löschen</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
+    // ====== State ======
+    let ALL = [];
+    let RESSORTS = [];
+    let EDITING = null;
+
+    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
+    const esc = (s) => String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+    // ===== Badge helpers (wie Bewerbungen) =====
+    function hashString(str){
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++){
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0);
     }
-  }
-
-  function openEdit(row){
-    editing = row;
-    document.getElementById("editSub").textContent = `${row.vorname} ${row.nachname}`;
-    renderRessortOptions(document.getElementById("editRessort"), row.ressort);
-    document.getElementById("editOverlay").classList.add("show");
-  }
-  function closeEdit(){
-    document.getElementById("editOverlay").classList.remove("show");
-    editing = null;
-  }
-
-  async function saveEdit(){
-    if(!editing) return;
-    const ressort = document.getElementById("editRessort").value;
-    const { error } = await supabase
-      .from("anwaerter")
-      .update({ ressort })
-      .eq("id", editing.id);
-
-    if(error){
-      alert("Fehler beim Speichern: " + error.message);
-      return;
+    function initialsFromEmail(email){
+      const e = (email || "").trim().toLowerCase();
+      if (!e) return "U";
+      const local = e.split("@")[0] || "u";
+      const parts = local.split(/[.\-_]+/).filter(Boolean);
+      const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
+      const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
+      return (a + b).trim() || a;
     }
-    closeEdit();
-    await load();
-  }
-
-  async function delRow(id){
-    if(!confirm("Anwärter wirklich löschen?")) return;
-    const { error } = await supabase.from("anwaerter").delete().eq("id", id);
-    if(error){
-      alert("Fehler beim Löschen: " + error.message);
-      return;
+    function setAvatar(email){
+      const e = (email || "").trim().toLowerCase();
+      if (!e){
+        authAvatar.classList.add("hidden");
+        authAvatar.textContent = "U";
+        authAvatar.style.background = "rgba(255,255,255,.10)";
+        return;
+      }
+      const h = hashString(e);
+      const hue = h % 360;
+      const hue2 = (hue + 38) % 360;
+      authAvatar.textContent = initialsFromEmail(e);
+      authAvatar.classList.remove("hidden");
+      authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
-    await load();
-  }
+    function pulseLogin(){
+      authDot.classList.add("pulsing");
+      setTimeout(() => authDot.classList.remove("pulsing"), 2600);
+    }
+    function setAuthUI(isAuthed, email = "", doPulse = false){
+      if (isAuthed){
+        authDot.classList.remove("warn");
+        authDot.classList.add("ok");
 
-  // Events
-  document.getElementById("search").addEventListener("input", render);
-  document.getElementById("refreshBtn").addEventListener("click", load);
+        authState.textContent = "eingeloggt";
+        authMail.textContent = (email || "").trim();
+        authMail.classList.remove("hidden");
 
-  document.getElementById("tbody").addEventListener("click", (e)=>{
-    const btn = e.target.closest("button[data-action]");
-    if(!btn) return;
-    const id = Number(btn.dataset.id);
-    const action = btn.dataset.action;
-    const row = rows.find(x => x.id === id);
-    if(action === "edit" && row) openEdit(row);
-    if(action === "del") delRow(id);
-  });
+        setAvatar(email);
 
-  document.getElementById("editCancel").addEventListener("click", closeEdit);
-  document.getElementById("editOverlay").addEventListener("click", (e)=>{
-    if(e.target.id === "editOverlay") closeEdit();
-  });
-  document.getElementById("editSave").addEventListener("click", saveEdit);
+        navWrap.style.display = "block";
+        logoutBtn.classList.remove("hidden");
 
-  // Init
-  load().catch(()=>{});
-</script>
+        if (doPulse) pulseLogin();
+      } else {
+        authDot.classList.remove("ok");
+        authDot.classList.add("warn");
+
+        authState.textContent = "nicht eingeloggt";
+        authMail.textContent = "";
+        authMail.classList.add("hidden");
+
+        setAvatar("");
+
+        navWrap.style.display = "none";
+        logoutBtn.classList.add("hidden");
+      }
+    }
+
+    async function requireAuth(){
+      const res = await sb.auth.getSession();
+      if (!res || !res.data || !res.data.session) throw new Error("not_logged_in");
+      return res.data.session;
+    }
+
+    // ✅ WICHTIG: wie bei Bewerbungen -> ohne Login sofort redirect + Inhalte nicht sichtbar
+    async function enforceAuth(){
+      try{
+        const session = await requireAuth();
+        const mail = session?.user?.email || "";
+        setAuthUI(true, mail, false);
+        contentCard.style.display = "block";
+      } catch(e){
+        setAuthUI(false);
+        contentCard.style.display = "none";
+        window.location.href = LOGIN_REDIRECT;
+      }
+    }
+
+    logoutBtn.addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = "/index.html";
+    });
+
+    function uniq(arr){
+      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
+    }
+
+    async function loadRessortsFromMembers(){
+      const { data, error } = await sb
+        .from(MEMBERS_TABLE)
+        .select(MEMBERS_RESSORT_COL)
+        .not(MEMBERS_RESSORT_COL, "is", null);
+
+      if (error){
+        return ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
+      }
+
+      const set = new Set((data || [])
+        .map(x => (x?.[MEMBERS_RESSORT_COL] ?? "").toString().trim())
+        .filter(Boolean)
+      );
+      const arr = Array.from(set);
+      return arr.length ? arr.sort((a,b)=>a.localeCompare(b,"de")) : ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
+    }
+
+    function fillRessortFilter(){
+      const vals = uniq(ALL.map(r => r.ressort));
+      fRessort.innerHTML = `<option value="">Ressort (alle)</option>` + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+    }
+
+    function matchesRow(r, text, ressort){
+      const t = safe(text).trim().toLowerCase();
+      const res = safe(ressort).trim();
+      if (res && safe(r.ressort).trim() !== res) return false;
+      if (!t) return true;
+      const hay = [r.vorname, r.nachname, r.email, r.ressort].map(safe).join(" ").toLowerCase();
+      return hay.includes(t);
+    }
+
+    function render(){
+      const text = safe(q.value);
+      const res = safe(fRessort.value);
+
+      const rows = ALL.filter(r => matchesRow(r, text, res));
+      countPill.textContent = `${rows.length} / ${ALL.length}`;
+
+      tbody.innerHTML = "";
+      empty.style.display = rows.length ? "none" : "block";
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${esc((safe(r.vorname)+" "+safe(r.nachname)).trim() || "—")}</strong></td>
+          <td><span class="pillSmall">${esc(safe(r.ressort) || "—")}</span></td>
+          <td>${esc(safe(r.email) || "—")}</td>
+          <td>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn-secondary" data-action="edit" data-id="${r.id}">Bearbeiten</button>
+              <button class="btn-danger" data-action="del" data-id="${r.id}">Löschen</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function fetchCandidates(){
+      statusPill.textContent = "Lade…";
+      const { data, error } = await sb
+        .from(CANDIDATES_TABLE)
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error){
+        statusPill.textContent = "Fehler";
+        alert("Fehler beim Laden: " + error.message);
+        return;
+      }
+
+      ALL = Array.isArray(data) ? data : [];
+      statusPill.textContent = `Geladen: ${ALL.length}`;
+      fillRessortFilter();
+      render();
+    }
+
+    // ===== Edit Modal =====
+    function openEdit(row){
+      EDITING = row;
+      editSub.textContent = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
+      editRessort.innerHTML = RESSORTS.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+      editRessort.value = safe(row.ressort).trim() || (RESSORTS[0] || "");
+      editOverlay.classList.add("show");
+    }
+    function closeEdit(){
+      editOverlay.classList.remove("show");
+      EDITING = null;
+    }
+    function editOverlayClick(e){
+      if (e.target === editOverlay) closeEdit();
+    }
+
+    async function saveEdit(){
+      if (!EDITING) return;
+      const ressort = safe(editRessort.value).trim();
+      if (!ressort){
+        alert("Bitte Ressort wählen.");
+        return;
+      }
+
+      saveEditBtn.disabled = true;
+      saveEditBtn.style.opacity = ".75";
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .update({ ressort })
+        .eq("id", EDITING.id);
+
+      saveEditBtn.disabled = false;
+      saveEditBtn.style.opacity = "1";
+
+      if (error){
+        alert("Fehler beim Speichern: " + error.message);
+        return;
+      }
+      closeEdit();
+      await fetchCandidates();
+    }
+
+    async function deleteRow(id){
+      if (!confirm("Anwärter wirklich löschen?")) return;
+      const { error } = await sb.from(CANDIDATES_TABLE).delete().eq("id", id);
+      if (error){
+        alert("Fehler beim Löschen: " + error.message);
+        return;
+      }
+      await fetchCandidates();
+    }
+
+    // Events
+    q.addEventListener("input", render);
+    fRessort.addEventListener("input", render);
+    reloadBtn.addEventListener("click", fetchCandidates);
+    saveEditBtn.addEventListener("click", saveEdit);
+
+    tbody.addEventListener("click", (e)=>{
+      const btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      const action = btn.dataset.action;
+      const row = ALL.find(x => Number(x.id) === id);
+      if (action === "edit" && row) openEdit(row);
+      if (action === "del") deleteRow(id);
+    });
+
+    document.addEventListener("keydown", (e)=>{
+      if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEdit();
+    });
+
+    // Init
+    (async function init(){
+      await enforceAuth();               // ✅ blockiert/redirect ohne Login
+      RESSORTS = await loadRessortsFromMembers();
+      await fetchCandidates();
+    })();
+  </script>
 </body>
 </html>
