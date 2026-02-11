@@ -63,26 +63,29 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 /* ===== Logo rechts oben ===== */
 .brandRight{
   display:flex;
-  align-items:center;
+  align-items:flex-end;     /* passt zu deinem top align */
+  justify-content:flex-end;
   gap:12px;
+  flex: 0 0 auto;
 }
 
-.logoWrap{
-  width: 54px;
-  height: 54px;
-  border-radius: 18px;
-  padding: 8px;
-  display:grid;
-  place-items:center;
+.logoWrap{ flex: 0 0 auto; }   /* verhindert komische Dehnung */
 
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 18px 55px rgba(0,0,0,.35);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+/* Auth-Badge darf in der rechten Gruppe schrumpfen statt zu “quetschen” */
+.authFloating{ min-width: 0; }
 
-  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease, background .16s ease;
-  user-select:none;
+/* Mobile: Top ist column -> rechts block soll sauber nebeneinander bleiben */
+@media (max-width: 640px){
+  .brandRight{
+    width:100%;
+    align-items:center;
+    justify-content:space-between; /* links: Badge, rechts: Logo (oder umgekehrt) */
+    gap:10px;
+  }
+  .authFloating{
+    flex: 1 1 auto;
+    max-width: calc(100% - 60px); /* Platz fürs Logo */
+  }
 }
 
 .logoWrap:hover{
