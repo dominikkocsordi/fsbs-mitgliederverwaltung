@@ -25,6 +25,7 @@
       --shadow: 0 20px 55px rgba(0,0,0,.40);
 
       --ok: rgba(34,197,94,.95);
+      --bad: rgba(239,68,68,.95);
     }
 
     *{box-sizing:border-box}
@@ -236,6 +237,13 @@
     }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
+    .btn-danger{
+      background: linear-gradient(135deg, rgba(251,113,133,.95), rgba(225,29,72,.95));
+      color:#fff;
+      box-shadow: 0 10px 26px rgba(225,29,72,.22);
+    }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+
     .card{ padding:16px; margin-bottom:14px; }
 
     .row{
@@ -320,12 +328,18 @@
     .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
     .tag a:hover{ text-decoration:underline; }
 
-    /* ✅ Anwärter badge */
+    /* ✅ Status badges */
     .tag-ok{
       background: rgba(34,197,94,.20);
       border-color: rgba(34,197,94,.35);
       color:#bbf7d0;
       box-shadow: 0 12px 28px rgba(34,197,94,.10);
+    }
+    .tag-bad{
+      background: rgba(239,68,68,.18);
+      border-color: rgba(239,68,68,.35);
+      color:#fecaca;
+      box-shadow: 0 12px 28px rgba(239,68,68,.10);
     }
 
     .empty{
@@ -337,6 +351,7 @@
       color: rgba(255,255,255,.78);
     }
 
+    /* Debug box */
     .debug{
       display:none;
       margin-top: 10px;
@@ -583,6 +598,7 @@
       <div class="kv" id="kv"></div>
 
       <div class="modalActions">
+        <button class="btn-danger" id="rejectBtn">Ablehnen</button>
         <button class="btn-primary" id="moveToCandidateBtn">Als Anwärter übernehmen</button>
       </div>
     </div>
@@ -628,9 +644,11 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Anwärter Tabelle ======
-    const CANDIDATES_TABLE = "anwaerter";
-    const CAND_ID_COL = "bewerbung_id"; // ✅ Match per Bewerbungs-ID
+    // ====== Tabellen ======
+    const CANDIDATES_TABLE = "anwaerter";        // Anwärter-Liste
+    const STATUS_TABLE = "bewerbung_status";     // ✅ deine Status-Tabelle
+    const STATUS_ID_COL = "bewerbung_id";
+    const STATUS_COL = "status"; // "anwaerter" | "abgelehnt"
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -660,7 +678,7 @@
     };
 
     // ====== Cache (schneller erster Paint) ======
-    const CACHE_KEY = "bewerbungen_cache_v3_id";
+    const CACHE_KEY = "bewerbungen_cache_v4_status";
     const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
 
     // ====== Elements ======
@@ -692,6 +710,8 @@
     const closeModalBtn = document.getElementById("closeModalBtn");
 
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
+    const rejectBtn = document.getElementById("rejectBtn");
+
     const candOverlay = document.getElementById("candOverlay");
     const candSub = document.getElementById("candSub");
     const candRessort = document.getElementById("candRessort");
@@ -704,8 +724,8 @@
     let ALL = [];
     let ACTIVE_ROW = null;
 
-    // ✅ Kandidaten lookup (per Bewerbungs-ID)
-    let candidatesSet = new Set();
+    // ✅ Status Map: bewerbung_id -> status
+    let statusMap = new Map();
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
@@ -725,25 +745,29 @@
     }
     function normId(v){ return String(v || "").trim(); }
 
-    async function refreshCandidatesSetFor(rows){
-      candidatesSet = new Set();
+    async function refreshStatusMapFor(rows){
+      statusMap = new Map();
+
       const ids = [...new Set(rows.map(makeBewerbungId).map(normId).filter(Boolean))];
       if (!ids.length) return;
 
       const { data, error } = await sb
-        .from(CANDIDATES_TABLE)
-        .select(CAND_ID_COL)
-        .in(CAND_ID_COL, ids);
+        .from(STATUS_TABLE)
+        .select(`${STATUS_ID_COL},${STATUS_COL}`)
+        .in(STATUS_ID_COL, ids);
 
       if (error){
-        console.warn("Anwärter-check failed:", error.message);
+        console.warn("Status-check failed:", error.message);
         return;
       }
-      (data || []).forEach(r => candidatesSet.add(normId(r[CAND_ID_COL])));
+
+      (data || []).forEach(r => {
+        statusMap.set(normId(r[STATUS_ID_COL]), String(r[STATUS_COL] || "").toLowerCase());
+      });
     }
 
-    function isCandidateRow(row){
-      return candidatesSet.has(normId(makeBewerbungId(row)));
+    function getStatusForRow(row){
+      return statusMap.get(normId(makeBewerbungId(row))) || "";
     }
 
     // ===== Badge helpers =====
@@ -950,8 +974,8 @@
         ALL = Array.isArray(json.rows) ? json.rows : [];
         cacheWrite(ALL);
 
-        // ✅ Anwärter-Status einmal laden (bulk)
-        await refreshCandidatesSetFor(ALL);
+        // ✅ Status einmal laden (bulk)
+        await refreshStatusMapFor(ALL);
 
         statusPill.textContent = `Geladen: ${ALL.length}`;
         fillFilters();
@@ -979,7 +1003,7 @@
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
 
-        const isCand = isCandidateRow(row);
+        const st = getStatusForRow(row); // "", "anwaerter", "abgelehnt"
 
         const card = document.createElement("div");
         card.className = "appCard";
@@ -999,7 +1023,8 @@
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
               <div class="tags">
-                ${isCand ? `<span class="tag tag-ok">👶🏼 Anwärter</span>` : ``}
+                ${st === "anwaerter" ? `<span class="tag tag-ok">🟢 Anwärter</span>` : ``}
+                ${st === "abgelehnt" ? `<span class="tag tag-bad">🔴 Abgelehnt</span>` : ``}
                 ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
                 ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
                 ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
@@ -1041,7 +1066,7 @@
 
       if (thumb){
         const img = document.createElement("img");
-        img.src = thumb;              // schnell
+        img.src = thumb;
         img.alt = "Foto";
         img.loading = "eager";
         img.decoding = "async";
@@ -1050,7 +1075,6 @@
 
         modalPhoto.appendChild(img);
 
-        // big preload and swap
         if (photoUrl && photoUrl !== thumb){
           const big = new Image();
           big.referrerPolicy = "no-referrer";
@@ -1078,6 +1102,17 @@
       modalSub.textContent = line.join(" · ") || "—";
 
       setModalPhoto(row);
+
+      const st = getStatusForRow(row);
+      if (st === "abgelehnt"){
+        moveToCandidateBtn.disabled = true;
+        moveToCandidateBtn.style.opacity = ".65";
+        moveToCandidateBtn.title = "Bereits abgelehnt";
+      } else {
+        moveToCandidateBtn.disabled = false;
+        moveToCandidateBtn.style.opacity = "1";
+        moveToCandidateBtn.title = "";
+      }
 
       const fields = [
         F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone,
@@ -1140,6 +1175,20 @@
       candOverlay.classList.remove("show");
     }
 
+    async function setStatus(bewerbung_id, status){
+      const payload = {};
+      payload[STATUS_ID_COL] = bewerbung_id;
+      payload[STATUS_COL] = status;
+
+      const { error } = await sb
+        .from(STATUS_TABLE)
+        .upsert(payload, { onConflict: STATUS_ID_COL });
+
+      if (error) throw error;
+
+      statusMap.set(normId(bewerbung_id), String(status || "").toLowerCase());
+    }
+
     async function insertCandidateFromActive(){
       if (!ACTIVE_ROW) return;
 
@@ -1158,6 +1207,10 @@
       }
 
       const bewerbung_id = makeBewerbungId(ACTIVE_ROW) || null;
+      if (!bewerbung_id){
+        alert("Bewerbung-ID fehlt (Zeitstempel/Mail).");
+        return;
+      }
 
       const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
       const photo_thumb = getThumb(ACTIVE_ROW) || null;
@@ -1177,12 +1230,41 @@
         return;
       }
 
-      // ✅ sofort UI updaten (Badge erscheint direkt)
-      if (bewerbung_id) candidatesSet.add(normId(bewerbung_id));
-      render();
+      try{
+        await setStatus(bewerbung_id, "anwaerter");
+      }catch(e){
+        alert("Übernommen, aber Status nicht gesetzt: " + (e?.message || e));
+      }
 
       closeCandModal();
-      alert("✅ Als Anwärter übernommen! (Foto-Link mit gespeichert)");
+      render();
+      alert("✅ Als Anwärter übernommen! (Status gespeichert)");
+    }
+
+    async function rejectActive(){
+      if (!ACTIVE_ROW) return;
+
+      const bewerbung_id = makeBewerbungId(ACTIVE_ROW) || null;
+      if (!bewerbung_id){
+        alert("Bewerbung-ID fehlt (Zeitstempel/Mail).");
+        return;
+      }
+
+      if (!confirm("Wirklich ablehnen?")) return;
+
+      rejectBtn.disabled = true;
+      rejectBtn.style.opacity = ".75";
+
+      try{
+        await setStatus(bewerbung_id, "abgelehnt");
+        closeModal();
+        render();
+      }catch(e){
+        alert("Konnte nicht ablehnen: " + (e?.message || e));
+      } finally {
+        rejectBtn.disabled = false;
+        rejectBtn.style.opacity = "1";
+      }
     }
 
     // ===== Overlay close =====
@@ -1218,6 +1300,15 @@
     });
 
     candConfirm.addEventListener("click", insertCandidateFromActive);
+    rejectBtn.addEventListener("click", async ()=>{
+      try{
+        await requireAuth();
+        await rejectActive();
+      } catch(e){
+        alert("Bitte einloggen.");
+        window.location.href = LOGIN_REDIRECT;
+      }
+    });
 
     // Init
     (async function init(){
@@ -1229,7 +1320,7 @@
         ALL = cached;
         statusPill.textContent = `Cache: ${ALL.length}`;
         fillFilters();
-        await refreshCandidatesSetFor(ALL);
+        await refreshStatusMapFor(ALL);
         render();
       }
 
