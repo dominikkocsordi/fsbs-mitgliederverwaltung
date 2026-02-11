@@ -521,9 +521,13 @@
     }
 
     function firstPhotoThumb(row){
-      if (row.__photo?.kind === "drive" && row.__photo.items?.[0]) return row.__photo.items[0].thumb || "";
+      const t = row.__photo?.items?.[0]?.thumb || "";
+      // Nur echte URLs als Bild verwenden
+      if (typeof t === "string" && (t.startsWith("http://") || t.startsWith("https://"))) return t;
       return "";
     }
+
+
 
     function matches(row, text){
       if (!text) return true;
