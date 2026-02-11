@@ -28,7 +28,6 @@
   --shadow: 0 20px 55px rgba(0,0,0,.40);
 
   --ok: rgba(34,197,94,.95);
-  --warn: rgba(234,179,8,.95);
 }
 
 *{ box-sizing:border-box; }
@@ -48,7 +47,7 @@ body{
   padding:42px 16px;
 }
 
-.app{ width:100%; max-width:1100px; }
+.app{ width:100%; max-width:1200px; }
 
 .top{
   display:flex;
@@ -61,7 +60,7 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
 .glass{
-  background: var(--glass);
+  background: rgba(255,255,255,.10);
   border: 1px solid var(--border);
   border-radius: 22px;
   box-shadow: var(--shadow);
@@ -116,7 +115,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   filter: brightness(1.03);
   box-shadow: 0 18px 36px rgba(14,165,233,.33);
 }
-
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
@@ -126,7 +124,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   transform: translateY(-2px);
   background: rgba(255,255,255,.18);
 }
-
 .btn-danger{
   background: linear-gradient(135deg, var(--danger1), var(--danger2));
   color: #fff;
@@ -138,7 +135,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   box-shadow: 0 18px 36px rgba(225,29,72,.28);
 }
 
-/* ===== Sticky floating auth badge (top-right) ===== */
+/* ===== Sticky floating auth badge ===== */
 .authFloating{
   position: fixed;
   top: 16px;
@@ -156,7 +153,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   -webkit-backdrop-filter: blur(18px);
   user-select:none;
 }
-
 .dot{
   width:10px;height:10px;border-radius:999px;
   background: rgba(255,255,255,.35);
@@ -165,7 +161,7 @@ button:active{ transform: translateY(0px) scale(.99); }
 .dot.ok{ background: var(--ok); }
 .dot.warn{ background: rgba(255,255,255,.35); }
 
-/* ✨ Glow around green dot */
+/* glow */
 .dot.ok{
   box-shadow:
     0 0 0 2px rgba(34,197,94,.20),
@@ -173,7 +169,7 @@ button:active{ transform: translateY(0px) scale(.99); }
     0 0 42px rgba(34,197,94,.30);
 }
 
-/* 🔄 Pulse effect (triggered on login) */
+/* pulse */
 @keyframes pulseRing {
   0%   { transform: scale(1); opacity: .0; }
   10%  { opacity: .6; }
@@ -190,8 +186,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   pointer-events:none;
 }
 
-/* 👤 Avatar from email */
-.avatar{
+.authAvatar{
   width: 30px;
   height: 30px;
   border-radius: 999px;
@@ -205,13 +200,13 @@ button:active{ transform: translateY(0px) scale(.99); }
   box-shadow: 0 12px 28px rgba(0,0,0,.25);
   background: rgba(255,255,255,.10);
 }
-.avatar.hidden{ display:none; }
+.authAvatar.hidden{ display:none; }
 
 .authInfo{
   display:flex;
   flex-direction:column;
   line-height:1.1;
-  min-width: 120px;
+  min-width: 140px;
 }
 .authState{
   font-size:13px;
@@ -225,10 +220,9 @@ button:active{ transform: translateY(0px) scale(.99); }
   word-break:break-all;
 }
 .hidden{ display:none; }
-
 .small{ font-size: 13px; color: var(--muted); }
 
-/* ====== NAV ====== */
+/* ===== NAV ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -281,7 +275,6 @@ button:active{ transform: translateY(0px) scale(.99); }
 }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
-
 .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
 @media (max-width: 640px){
@@ -291,13 +284,13 @@ button:active{ transform: translateY(0px) scale(.99); }
   .authInfo{ min-width: 0; }
 }
 
-/* ====== table + modal ====== */
+/* ===== table ===== */
 .tableWrap{ overflow:auto; border-radius: 18px; }
 table{
   width:100%;
   border-collapse:collapse;
   margin-top: 8px;
-  min-width: 720px;
+  min-width: 980px;
 }
 th,td{
   padding: 14px 12px;
@@ -306,28 +299,20 @@ th,td{
   vertical-align:middle;
 }
 th{ color: var(--muted); font-weight:650; }
-tr{ transition: background .14s ease, transform .14s ease; }
 tbody tr:hover{ background: rgba(255,255,255,.06); }
 
-.status{
-  padding:6px 14px;
+.tagPill{
+  padding:6px 12px;
   border-radius:999px;
-  font-size:13px;
-  font-weight:700;
+  font-size:12px;
+  font-weight:750;
   display:inline-block;
-  border:1px solid rgba(255,255,255,.25);
+  border:1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.88);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
 }
-.status:hover{
-  transform: translateY(-1px) scale(1.02);
-  filter: brightness(1.07);
-  box-shadow: 0 10px 20px rgba(0,0,0,.20);
-}
-.status-aktiv{ background: rgba(34,197,94,.22); color: #bbf7d0; }
-.status-pausiert{ background: rgba(234,179,8,.22); color: #fde68a; }
-.status-ausgetreten{ background: rgba(239,68,68,.22); color: #fecaca; }
 
 .iconBtn{
   width: 42px;
@@ -341,6 +326,7 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 .iconBtn:hover{ transform: translateY(-2px); }
 .actions{ display:flex; gap:10px; }
 
+/* Modal */
 .modalOverlay{
   position: fixed;
   inset: 0;
@@ -353,7 +339,7 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 }
 .modalOverlay.show{ display:flex; }
 .modal{
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   border-radius: 24px;
   padding: 18px;
   position: relative;
@@ -368,7 +354,6 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 .modalTitle{ margin:0; font-size: 20px; letter-spacing: .2px; }
 .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
 .closeX{ width: 42px; height: 42px; border-radius: 14px; }
-
 .formGrid{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -378,9 +363,8 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 .formGrid .full{ grid-column: 1 / -1; }
 @media (max-width: 640px){
   .formGrid{ grid-template-columns: 1fr; }
-  table{ min-width: 640px; }
+  table{ min-width: 900px; }
 }
-
 hr.sep{
   border: none;
   border-top: 1px solid rgba(255,255,255,.12);
@@ -391,10 +375,10 @@ hr.sep{
 
 <body>
 
-<!-- ✅ Sticky floating badge (top-right) -->
+<!-- Floating Auth Badge -->
 <div class="authFloating" id="authBadge" title="Login-Status">
   <span class="dot warn" id="authDot"></span>
-  <div class="avatar hidden" id="authAvatar">U</div>
+  <div class="authAvatar hidden" id="authAvatar">U</div>
   <div class="authInfo">
     <div class="authState" id="authState">nicht eingeloggt</div>
     <div class="authMail hidden" id="authMail"></div>
@@ -459,7 +443,7 @@ hr.sep{
   <!-- MAIN -->
   <div class="glass card hidden" id="mainCard">
     <div class="row">
-      <input id="search" placeholder="Suche (Name/Email/Status)" oninput="render()">
+      <input id="search" placeholder="Suche (Name/Email/Ressort/Status/Rolle)" oninput="render()">
       <button class="btn-secondary" onclick="load()">Aktualisieren</button>
       <div class="spacer"></div>
       <div class="small" id="countInfo"></div>
@@ -470,10 +454,13 @@ hr.sep{
       <table>
         <thead>
           <tr>
-            <th style="width:30%">Name</th>
-            <th style="width:30%">Email</th>
-            <th style="width:20%">Status</th>
-            <th style="width:20%">Aktionen</th>
+            <th style="width:10%">Nr.</th>
+            <th style="width:20%">Name</th>
+            <th style="width:22%">Email</th>
+            <th style="width:18%">Ressort</th>
+            <th style="width:12%">Rolle</th>
+            <th style="width:10%">Status</th>
+            <th style="width:8%">Aktionen</th>
           </tr>
         </thead>
         <tbody id="list"></tbody>
@@ -498,6 +485,21 @@ hr.sep{
 
     <div class="formGrid">
       <div>
+        <div class="small">Mitgliedsnummer</div>
+        <input id="mNo" placeholder="z.B. 12" inputmode="numeric">
+      </div>
+
+      <div>
+        <div class="small">Status</div>
+        <select id="mStatus">
+          <option value="Vollmitglied">Vollmitglied</option>
+          <option value="Anwärter">Anwärter</option>
+          <option value="Pausiert">Pausiert</option>
+          <option value="Ausgetreten">Ausgetreten</option>
+        </select>
+      </div>
+
+      <div>
         <div class="small">Vorname *</div>
         <input id="mFirst" placeholder="z.B. Domi">
       </div>
@@ -513,12 +515,13 @@ hr.sep{
       </div>
 
       <div>
-        <div class="small">Status</div>
-        <select id="mStatus">
-          <option value="aktiv">aktiv</option>
-          <option value="pausiert">pausiert</option>
-          <option value="ausgetreten">ausgetreten</option>
-        </select>
+        <div class="small">Ressort</div>
+        <input id="mDept" placeholder="z.B. Sponsoring">
+      </div>
+
+      <div>
+        <div class="small">Rolle</div>
+        <input id="mRole" placeholder="z.B. Vorstand">
       </div>
 
       <div class="full row" style="justify-content:flex-end; margin-top:6px;">
@@ -536,9 +539,37 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* ========= WICHTIG: Spalten-Mapping (an deine Supabase-Tabellenspalten anpassen) =========
+   CSV/Neue Struktur: Mitgliedernummer, Nachname, Vorname, Ressort, Status, Rolle, Email
+   -> Standard hier: snake_case deutsch
+*/
+const DB = {
+  table: "members",
+  pk: "id",                 // wenn du KEIN "id" hast, setz pk z.B. auf "mitgliedernummer"
+  no: "mitgliedernummer",
+  first: "vorname",
+  last: "nachname",
+  email: "email",
+  dept: "ressort",
+  status: "status",
+  role: "rolle",
+};
+
+// fallback: falls deine DB noch alte Spalten hat, wird daraus auch gelesen:
+const ALT = {
+  no: ["Mitgliedernummer","mitgliedernummer","mitgliedsnummer","mitglied_nr","nr","member_no"],
+  first: ["Vorname","vorname","first_name"],
+  last: ["Nachname","nachname","last_name"],
+  email: ["Email","email","E-Mail","E-Mail Adresse"],
+  dept: ["Ressort","ressort","department"],
+  status: ["Status","status"],
+  role: ["Rolle","rolle","role"],
+  pk: ["id","ID","mitgliedernummer","Mitgliedernummer"]
+};
+
 /* ========= State ========= */
 let members = [];
-let editId = null;
+let editPk = null;
 
 /* ========= Elements ========= */
 const authDot = document.getElementById("authDot");
@@ -560,9 +591,12 @@ const modalTitle = document.getElementById("modalTitle");
 const modalSub = document.getElementById("modalSub");
 const modalSaveBtn = document.getElementById("modalSaveBtn");
 
+const mNo = document.getElementById("mNo");
 const mFirst = document.getElementById("mFirst");
 const mLast  = document.getElementById("mLast");
 const mEmail = document.getElementById("mEmail");
+const mDept = document.getElementById("mDept");
+const mRole = document.getElementById("mRole");
 const mStatus = document.getElementById("mStatus");
 
 /* ========= Helpers ========= */
@@ -575,8 +609,28 @@ function esc(s){
     .replaceAll("'","&#039;");
 }
 
+function pick(obj, keys){
+  for (const k of keys){
+    if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+  }
+  return "";
+}
+
+function getPk(m){
+  const pk = DB.pk;
+  return (m?.[pk] ?? pick(m, ALT.pk)) ?? null;
+}
+
+function getNo(m){ return m?.[DB.no] ?? pick(m, ALT.no); }
+function getFirst(m){ return m?.[DB.first] ?? pick(m, ALT.first); }
+function getLast(m){ return m?.[DB.last] ?? pick(m, ALT.last); }
+function getEmail(m){ return m?.[DB.email] ?? pick(m, ALT.email); }
+function getDept(m){ return m?.[DB.dept] ?? pick(m, ALT.dept); }
+function getStatus(m){ return m?.[DB.status] ?? pick(m, ALT.status); }
+function getRole(m){ return m?.[DB.role] ?? pick(m, ALT.role); }
+
+/* Avatar + badge */
 function hashString(str){
-  // simple, stable hash for color
   let h = 2166136261;
   for (let i = 0; i < str.length; i++){
     h ^= str.charCodeAt(i);
@@ -584,7 +638,6 @@ function hashString(str){
   }
   return (h >>> 0);
 }
-
 function initialsFromEmail(email){
   const e = (email || "").trim().toLowerCase();
   if (!e) return "U";
@@ -594,7 +647,6 @@ function initialsFromEmail(email){
   const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
   return (a + b).trim() || a;
 }
-
 function setAvatar(email){
   const e = (email || "").trim().toLowerCase();
   if (!e){
@@ -603,20 +655,15 @@ function setAvatar(email){
     authAvatar.style.background = "rgba(255,255,255,.10)";
     return;
   }
-
   const h = hashString(e);
   const hue = h % 360;
   const hue2 = (hue + 38) % 360;
-
   authAvatar.textContent = initialsFromEmail(e);
   authAvatar.classList.remove("hidden");
   authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
 }
-
-/* ========= Auth UI (glow + pulse + avatar + floating) ========= */
 function pulseLogin(){
   authDot.classList.add("pulsing");
-  // remove after animation finishes
   setTimeout(() => authDot.classList.remove("pulsing"), 2600);
 }
 
@@ -671,7 +718,7 @@ async function login(){
   if (error) return alert(error.message);
 
   const loggedMail = data?.user?.email || email;
-  setAuthUI(true, loggedMail, true); // ✅ pulse on login
+  setAuthUI(true, loggedMail, true);
   await load();
 }
 
@@ -687,11 +734,12 @@ async function load(){
   try { await requireAuth(); }
   catch(e){ setAuthUI(false); return; }
 
-  const { data, error } = await sb
-    .from("members")
-    .select("*")
-    .order("id", { ascending:false });
+  // wir holen einfach alles, Reihenfolge: Mitgliedernummer oder pk
+  const orderCol = DB.no || DB.pk;
+  let q = sb.from(DB.table).select("*");
+  if (orderCol) q = q.order(orderCol, { ascending: true });
 
+  const { data, error } = await q;
   if (error) return alert("LOAD: " + error.message);
 
   members = data || [];
@@ -699,26 +747,44 @@ async function load(){
 }
 
 function render(){
-  const q = (searchEl?.value || "").trim().toLowerCase();
+  const q = searchEl.value.trim().toLowerCase();
+
   const filtered = members.filter(m => {
-    const hay = `${m.first_name ?? ""} ${m.last_name ?? ""} ${m.email ?? ""} ${m.status ?? ""}`.toLowerCase();
+    const hay = [
+      getNo(m),
+      getFirst(m),
+      getLast(m),
+      getEmail(m),
+      getDept(m),
+      getRole(m),
+      getStatus(m)
+    ].map(x => String(x ?? "")).join(" ").toLowerCase();
     return !q || hay.includes(q);
   });
 
   countInfo.textContent = `${filtered.length} von ${members.length} Mitgliedern`;
 
   listEl.innerHTML = filtered.map(m => {
-    const st = (m.status || "aktiv").toLowerCase();
-    const safeSt = ["aktiv","pausiert","ausgetreten"].includes(st) ? st : "aktiv";
+    const pk = getPk(m);
+    const no = getNo(m);
+    const name = `${getFirst(m) || ""} ${getLast(m) || ""}`.trim();
+    const email = getEmail(m) || "";
+    const dept = getDept(m) || "";
+    const role = getRole(m) || "";
+    const status = getStatus(m) || "";
+
     return `
       <tr>
-        <td>${esc(m.first_name)} ${esc(m.last_name)}</td>
-        <td>${esc(m.email || "")}</td>
-        <td><span class="status status-${esc(safeSt)}">${esc(m.status || "aktiv")}</span></td>
+        <td>${esc(no || "")}</td>
+        <td>${esc(name)}</td>
+        <td>${esc(email)}</td>
+        <td><span class="tagPill">${esc(dept)}</span></td>
+        <td><span class="tagPill">${esc(role || "—")}</span></td>
+        <td><span class="tagPill">${esc(status || "—")}</span></td>
         <td>
           <div class="actions">
-            <button class="btn-secondary iconBtn" title="Bearbeiten" onclick="openEdit(${m.id})">✏️</button>
-            <button class="btn-danger iconBtn" title="Löschen" onclick="del(${m.id})">🗑️</button>
+            <button class="btn-secondary iconBtn" title="Bearbeiten" onclick="openEdit('${String(pk).replaceAll("'","\\'")}')">✏️</button>
+            <button class="btn-danger iconBtn" title="Löschen" onclick="del('${String(pk).replaceAll("'","\\'")}')">🗑️</button>
           </div>
         </td>
       </tr>
@@ -736,34 +802,41 @@ function openModal(){
 }
 function closeModal(){
   modalOverlay.classList.remove("show");
-  editId = null;
+  editPk = null;
 }
 function clearModal(){
+  mNo.value = "";
   mFirst.value = "";
   mLast.value = "";
   mEmail.value = "";
-  mStatus.value = "aktiv";
+  mDept.value = "";
+  mRole.value = "";
+  mStatus.value = "Vollmitglied";
 }
 function openCreate(){
-  editId = null;
+  editPk = null;
   clearModal();
   modalTitle.textContent = "Mitglied hinzufügen";
   modalSub.textContent = "Fülle die Daten aus und speichere.";
   modalSaveBtn.textContent = "Anlegen";
   openModal();
 }
-function openEdit(id){
-  const m = members.find(x => x.id === id);
+function openEdit(pk){
+  const m = members.find(x => String(getPk(x)) === String(pk));
   if (!m) return;
 
-  editId = id;
-  mFirst.value = m.first_name || "";
-  mLast.value  = m.last_name || "";
-  mEmail.value = m.email || "";
-  mStatus.value = (m.status || "aktiv").toLowerCase();
+  editPk = pk;
+
+  mNo.value = getNo(m) || "";
+  mFirst.value = getFirst(m) || "";
+  mLast.value  = getLast(m) || "";
+  mEmail.value = getEmail(m) || "";
+  mDept.value  = getDept(m) || "";
+  mRole.value  = getRole(m) || "";
+  mStatus.value = (getStatus(m) || "Vollmitglied");
 
   modalTitle.textContent = "Mitglied bearbeiten";
-  modalSub.textContent = `ID ${id} bearbeiten.`;
+  modalSub.textContent = `Eintrag ${pk} bearbeiten.`;
   modalSaveBtn.textContent = "Speichern";
   openModal();
 }
@@ -777,22 +850,24 @@ async function saveModal(){
   try { await requireAuth(); }
   catch(e){ return alert("Bitte einloggen."); }
 
-  const payload = {
-    first_name: mFirst.value.trim(),
-    last_name:  mLast.value.trim(),
-    email:      mEmail.value.trim(),
-    status:     mStatus.value || "aktiv"
-  };
+  const payload = {};
+  payload[DB.no] = mNo.value.trim() ? Number(mNo.value.trim()) : null;
+  payload[DB.first] = mFirst.value.trim();
+  payload[DB.last]  = mLast.value.trim();
+  payload[DB.email] = mEmail.value.trim();
+  payload[DB.dept]  = mDept.value.trim();
+  payload[DB.role]  = mRole.value.trim() || null;
+  payload[DB.status]= mStatus.value || "Vollmitglied";
 
-  if (!payload.first_name || !payload.last_name){
+  if (!payload[DB.first] || !payload[DB.last]){
     return alert("Vorname und Nachname sind Pflicht.");
   }
 
   let res;
-  if (editId === null){
-    res = await sb.from("members").insert(payload).select();
+  if (editPk === null){
+    res = await sb.from(DB.table).insert(payload).select();
   } else {
-    res = await sb.from("members").update(payload).eq("id", editId).select();
+    res = await sb.from(DB.table).update(payload).eq(DB.pk, editPk).select();
   }
 
   if (res.error){
@@ -804,16 +879,16 @@ async function saveModal(){
   await load();
 }
 
-async function del(id){
+async function del(pk){
   try { await requireAuth(); }
   catch(e){ return alert("Bitte einloggen."); }
 
-  const m = members.find(x => x.id === id);
-  const name = m ? `${m.first_name} ${m.last_name}` : `ID ${id}`;
+  const m = members.find(x => String(getPk(x)) === String(pk));
+  const name = m ? `${getFirst(m) || ""} ${getLast(m) || ""}`.trim() : `Eintrag ${pk}`;
 
   if (!confirm(`Wirklich löschen: ${name}?`)) return;
 
-  const { error } = await sb.from("members").delete().eq("id", id);
+  const { error } = await sb.from(DB.table).delete().eq(DB.pk, pk);
   if (error) return alert("DELETE: " + error.message);
 
   await load();
@@ -824,7 +899,7 @@ async function del(id){
   const { data } = await sb.auth.getSession();
   const session = data?.session;
   const mail = session?.user?.email || "";
-  setAuthUI(!!session, mail, false); // ✅ no pulse on reload
+  setAuthUI(!!session, mail, false);
   if (session) await load();
 })();
 </script>
