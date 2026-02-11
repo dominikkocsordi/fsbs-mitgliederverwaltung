@@ -60,6 +60,53 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
+/* ===== Logo rechts oben ===== */
+.brandRight{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.logoWrap{
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  padding: 8px;
+  display:grid;
+  place-items:center;
+
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 55px rgba(0,0,0,.35);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  transition: transform .16s ease, filter .16s ease, box-shadow .16s ease, background .16s ease;
+  user-select:none;
+}
+
+.logoWrap:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 22px 70px rgba(0,0,0,.42);
+  background: rgba(255,255,255,.12);
+}
+
+.logoImg{
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;         /* damit es nice “soft” bleibt */
+  object-fit: cover;           /* quadratisch -> perfekt */
+  display:block;
+}
+
+/* Mobile: etwas kleiner, damit es nicht quetscht */
+@media (max-width: 640px){
+  .logoWrap{ width: 46px; height: 46px; border-radius: 16px; padding: 7px; }
+  .logoImg{ border-radius: 12px; }
+}
+
+
 .glass{
   background: rgba(255,255,255,.10);
   border: 1px solid var(--border);
@@ -522,28 +569,42 @@ hr.sep{
       <div class="subtitle">Fachschaft Business School e.V.</div>
     </div>
 
-    <!-- ✅ Auth Badge kompakt + Details wie bei Anwärter -->
-    <div class="authFloating" id="authBadge" title="Login-Status">
-      <span class="dot warn" id="authDot"></span>
-      <div class="authAvatar hidden" id="authAvatar">U</div>
+   <!-- ... links ... -->
 
-      <div class="authInfo">
-        <div class="authTopLine">
-          <div class="authState" id="authState">nicht eingeloggt</div>
+<div class="brandRight">
+  <!-- ✅ Logo (rechts oben) -->
+  <a class="logoWrap" href="/index.html" title="Fachschaft Business School e.V.">
+    <img
+      class="logoImg"
+      src="/assets/logo.png"
+      alt="Fachschaft Logo"
+      onerror="this.style.display='none'; this.parentElement.textContent='FS';"
+    />
+  </a>
 
-          <div class="authCompact hidden" id="authCompact">
-            <span class="authNameInline" id="authNameInline">User</span>
-            <span class="rolePill" id="authRolePill">Rolle</span>
-            <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
-          </div>
+  <!-- ✅ Auth Badge -->
+  <div class="authFloating" id="authBadge" title="Login-Status">
+    <span class="dot warn" id="authDot"></span>
+    <div class="authAvatar hidden" id="authAvatar">U</div>
+
+    <div class="authInfo">
+      <div class="authTopLine">
+        <div class="authState" id="authState">nicht eingeloggt</div>
+
+        <div class="authCompact hidden" id="authCompact">
+          <span class="authNameInline" id="authNameInline">User</span>
+          <span class="rolePill" id="authRolePill">Rolle</span>
+          <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
         </div>
+      </div>
 
-        <div class="authDetails hidden" id="authDetails">
-          <div class="authMail" id="authMail"></div>
-        </div>
+      <div class="authDetails hidden" id="authDetails">
+        <div class="authMail" id="authMail"></div>
       </div>
     </div>
   </div>
+</div>
+
 
   <!-- NAV (nur eingeloggt) -->
   <div class="glass navWrap hidden" id="navWrap">
