@@ -98,8 +98,23 @@
     }
     .authAvatar.hidden{ display:none; }
     .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:160px; }
+
     .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
     .authState.hidden{ display:none; }
+
+    /* ✅ NEU: Display Name */
+    .authName{
+      font-size:13px;
+      font-weight:850;
+      letter-spacing:.15px;
+      color: rgba(255,255,255,.92);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 220px;
+      display:none;
+    }
+
     .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:3px; word-break:break-all; }
 
     /* ✅ Rolle in Badge */
@@ -414,6 +429,7 @@
       input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authInfo{ min-width: 0; }
+      .authName{ max-width: 150px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
@@ -439,10 +455,15 @@
           <div class="authAvatar hidden" id="authAvatar">U</div>
           <div class="authInfo">
             <div class="authState" id="authState">nicht eingeloggt</div>
-            <!-- ✅ NEU: Rolle -->
+
+            <!-- ✅ NEU: Display Name -->
+            <div class="authName" id="authName"></div>
+
+            <!-- ✅ Rolle -->
             <div class="authRole hidden" id="authRoleWrap">
               <span class="rolePill" id="authRolePill">Rolle</span>
             </div>
+
             <div class="authMail hidden" id="authMail"></div>
           </div>
         </div>
@@ -571,8 +592,8 @@
 
     // ====== Rollen/Permissions ======
     const PROFILES_TABLE = "profiles";
-    let MY_ROLE = "";        // "vorstand" | "ressortleiter" | ""
-    let CAN_EDIT = false;    // true nur für vorstand
+    let MY_ROLE = "";
+    let CAN_EDIT = false;
 
     function normRole(v){ return (v || "").trim().toLowerCase(); }
     function roleLabel(role){
@@ -586,7 +607,6 @@
     const CANDIDATES_TABLE = "anwaerter";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
-    // ✅ Ressorts fix
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
@@ -604,9 +624,10 @@
     const authMail  = document.getElementById("authMail");
     const authAvatar = document.getElementById("authAvatar");
 
-    // ✅ Role in badge
+    // ✅ role + display_name im badge
     const authRoleWrap = document.getElementById("authRoleWrap");
     const authRolePill = document.getElementById("authRolePill");
+    const authName = document.getElementById("authName");
 
     const statusPill = document.getElementById("statusPill");
     const contentCard = document.getElementById("contentCard");
@@ -708,49 +729,59 @@
       if (r === "vorstand") authRolePill.classList.add("vorstand");
       else authRolePill.classList.add("ressortleiter");
     }
-
     function clearRolePill(){
       authRoleWrap.classList.add("hidden");
       authRolePill.textContent = "Rolle";
       authRolePill.classList.remove("vorstand","ressortleiter");
     }
 
+    function setDisplayName(name){
+      const n = (name || "").trim();
+      if (!n){
+        authName.textContent = "";
+        authName.style.display = "none";
+        return;
+      }
+      authName.textContent = n;
+      authName.style.display = "block";
+    }
+
     function setAuthUI(isAuthed, email = ""){
-  if (isAuthed){
-    authDot.classList.remove("warn");
-    authDot.classList.add("ok");
+      if (isAuthed){
+        authDot.classList.remove("warn");
+        authDot.classList.add("ok");
 
-    // ✅ "eingeloggt" Text weg
-    authState.classList.add("hidden");
-    authState.textContent = "";
+        // ✅ "eingeloggt" Text weg
+        authState.classList.add("hidden");
+        authState.textContent = "";
 
-    authMail.textContent = (email || "").trim();
-    authMail.classList.remove("hidden");
+        authMail.textContent = (email || "").trim();
+        authMail.classList.remove("hidden");
 
-    setAvatar(email);
+        setAvatar(email);
 
-    navWrap.style.display = "block";
-    logoutBtn.classList.remove("hidden");
-    contentCard.style.display = "block";
-  } else {
-    authDot.classList.remove("ok");
-    authDot.classList.add("warn");
+        navWrap.style.display = "block";
+        logoutBtn.classList.remove("hidden");
+        contentCard.style.display = "block";
+      } else {
+        authDot.classList.remove("ok");
+        authDot.classList.add("warn");
 
-    // ✅ "nicht eingeloggt" weiterhin anzeigen
-    authState.classList.remove("hidden");
-    authState.textContent = "nicht eingeloggt";
+        authState.classList.remove("hidden");
+        authState.textContent = "nicht eingeloggt";
 
-    authMail.textContent = "";
-    authMail.classList.add("hidden");
+        authMail.textContent = "";
+        authMail.classList.add("hidden");
 
-    setAvatar("");
-    clearRolePill();
+        setAvatar("");
+        clearRolePill();
+        setDisplayName("");
 
-    navWrap.style.display = "none";
-    logoutBtn.classList.add("hidden");
-    contentCard.style.display = "none";
-  }
-}
+        navWrap.style.display = "none";
+        logoutBtn.classList.add("hidden");
+        contentCard.style.display = "none";
+      }
+    }
 
     async function requireAuth(){
       const res = await sb.auth.getSession();
@@ -758,26 +789,29 @@
       return res.data.session;
     }
 
-    // ✅ NEU: Rolle laden (aus public.profiles)
-    async function loadMyRole(session){
+    // ✅ NEU: Rolle + Display Name laden (aus public.profiles)
+    async function loadMyProfile(session){
       MY_ROLE = "";
       CAN_EDIT = false;
+      setDisplayName("");
 
       const uid = session?.user?.id;
       if (!uid) return;
 
       const { data, error } = await sb
         .from(PROFILES_TABLE)
-        .select("role")
+        .select("role, display_name")
         .eq("id", uid)
         .single();
 
       if (error){
-        // wenn profiles noch keinen Eintrag hat → Rolle unbekannt
-        console.warn("Rolle konnte nicht geladen werden:", error.message);
+        console.warn("Profil konnte nicht geladen werden:", error.message);
         setRolePill("ressortleiter"); // fallback optisch
         return;
       }
+
+      const displayName = (data?.display_name || "").trim();
+      setDisplayName(displayName);
 
       MY_ROLE = normRole(data?.role);
       CAN_EDIT = (MY_ROLE === "vorstand");
@@ -789,8 +823,8 @@
         const session = await requireAuth();
         setAuthUI(true, session?.user?.email || "");
 
-        // ✅ Rolle nach Login laden + Badge aktualisieren
-        await loadMyRole(session);
+        // ✅ Profil nach Login laden (role + display_name)
+        await loadMyProfile(session);
 
       } catch(e){
         setAuthUI(false);
@@ -846,7 +880,6 @@
               ? `<span class="pillSmall pillWarn">❌ Anwärter abgelehnt</span>`
               : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(stRaw))}</span>` : ``);
 
-        // ✅ Actions: nur Vorstand aktiv
         const editDisabled = !CAN_EDIT;
         const rejectDisabled = !CAN_EDIT || rejectedAlready;
 
@@ -886,21 +919,11 @@
           <td>${esc(safe(r.email) || "—")}</td>
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button
-                class="btn-secondary"
-                data-action="edit"
-                data-id="${r.id}"
-                ${editDisabled ? "disabled" : ""}
-                title="${esc(editTitle)}"
-              >Bearbeiten</button>
+              <button class="btn-secondary" data-action="edit" data-id="${r.id}"
+                ${editDisabled ? "disabled" : ""} title="${esc(editTitle)}">Bearbeiten</button>
 
-              <button
-                class="btn-danger"
-                data-action="reject"
-                data-id="${r.id}"
-                ${rejectDisabled ? "disabled" : ""}
-                title="${esc(rejectTitle)}"
-              >Ablehnen</button>
+              <button class="btn-danger" data-action="reject" data-id="${r.id}"
+                ${rejectDisabled ? "disabled" : ""} title="${esc(rejectTitle)}">Ablehnen</button>
             </div>
           </td>
         `;
@@ -1036,7 +1059,7 @@
 
     // Init
     (async function init(){
-      await enforceAuth();     // ✅ lädt jetzt auch Rolle
+      await enforceAuth();     // ✅ lädt jetzt auch display_name + role
       await fetchCandidates();
     })();
   </script>
