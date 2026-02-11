@@ -750,37 +750,28 @@
     }
 
     async function fetchCandidates(){
-      statusPill.textContent = "Lade…";
+  statusPill.textContent = "Lade…";
 
-      const { data, error } = await sb
-        .from(CANDIDATES_TABLE)
-        .select("*")
-        .order("created_at", { ascending: false });
+  const { data, error } = await sb
+    .from(CANDIDATES_TABLE)
+    .select("*")
+    .order("created_at", { ascending: false });
 
-      if (error){
-        statusPill.textContent = "Fehler";
-        alert("Fehler beim Laden: " + error.message);
-        return;
-      }
+  if (error){
+    statusPill.textContent = "Fehler";
+    alert("Fehler beim Laden: " + error.message);
+    return;
+  }
 
-      let rows = Array.isArray(data) ? data : [];
+  // ✅ Abgelehnte rausfiltern
+  ALL = (Array.isArray(data) ? data : []).filter(r =>
+    String(r.bewerbung_status || "").toLowerCase() !== "abgelehnt"
+  );
 
-      // ✅ Status für alle bewerbung_id bulk laden
-      const ids = rows.map(r => safe(r.bewerbung_id).trim()).filter(Boolean);
-      await refreshStatusMapForBewerbungIds(ids);
+  statusPill.textContent = `Geladen: ${ALL.length}`;
+  render();
+}
 
-      // ✅ WICHTIG: Abgelehnte NICHT anzeigen
-      rows = rows.filter(r => {
-        const bid = safe(r.bewerbung_id).trim();
-        if (!bid) return true; // falls alte Einträge ohne bewerbung_id
-        return getStatusByBewerbungId(bid) !== "abgelehnt";
-      });
-
-      ALL = rows;
-
-      statusPill.textContent = `Geladen: ${ALL.length}`;
-      render();
-    }
 
     // Edit modal
     function openEdit(row){
