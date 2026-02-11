@@ -25,8 +25,6 @@
       --shadow: 0 20px 55px rgba(0,0,0,.40);
 
       --ok: rgba(34,197,94,.95);
-      --warn: rgba(245,158,11,.95);
-      --bad: rgba(239,68,68,.95);
     }
 
     *{box-sizing:border-box}
@@ -57,7 +55,7 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ===== Auth badge: NICHT fixed, nur oben im Header (scrollt weg) ===== */
+    /* ===== Auth badge (Header) ===== */
     .authFloating{
       position: static;
       z-index: 1;
@@ -82,7 +80,6 @@
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
 
-    /* ✨ Glow */
     .dot.ok{
       box-shadow:
         0 0 0 2px rgba(34,197,94,.20),
@@ -90,7 +87,6 @@
         0 0 42px rgba(34,197,94,.30);
     }
 
-    /* 🔄 Pulse */
     @keyframes pulseRing {
       0%   { transform: scale(1); opacity: .0; }
       10%  { opacity: .6; }
@@ -107,7 +103,6 @@
       pointer-events:none;
     }
 
-    /* 👤 Avatar */
     .authAvatar{
       width: 30px;
       height: 30px;
@@ -149,7 +144,7 @@
       align-items:flex-end;
       justify-content:space-between;
       gap:16px;
-      margin-bottom: 16px; /* mehr Abstand, weil Nav darunter kommt */
+      margin-bottom: 16px;
     }
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
@@ -167,7 +162,7 @@
       white-space:nowrap;
     }
 
-    /* NAV (sticky beim Scrollen) */
+    /* NAV */
     .navWrap{
       position: sticky;
       top: 14px;
@@ -241,13 +236,6 @@
     }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
-    .btn-danger{
-      background: rgba(239,68,68,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(239,68,68,.28);
-    }
-    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
-
     .card{ padding:16px; margin-bottom:14px; }
 
     .row{
@@ -285,16 +273,8 @@
     @media (max-width: 640px){
       .grid{grid-template-columns: 1fr;}
       input,select{min-width:0; width:100%;}
-
-      /* Header stapeln (Badge bleibt im Header, scrollt weg) */
-      .top{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:10px;
-      }
+      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authInfo{ min-width: 0; }
-
-      /* Nav horizontal scroll */
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
@@ -391,7 +371,7 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
-    /* Modal Photo (größer) */
+    /* Modal Photo */
     .modalPhotoWrap{
       display:flex;
       justify-content:center;
@@ -443,7 +423,15 @@
     .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
     .v a{ color: rgba(180,210,255,.95); }
 
-    /* ===== Anwärter-Modal (kleiner) ===== */
+    .modalActions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
+
+    /* Anwärter-Modal */
     .candOverlay{
       position: fixed; inset:0; z-index:70;
       background: rgba(0,0,0,.58);
@@ -453,7 +441,6 @@
       padding: 18px;
     }
     .candOverlay.show{ display:flex; }
-
     .candModal{
       width:min(560px, 100%);
       border-radius: 26px;
@@ -475,26 +462,10 @@
       background: rgba(255,255,255,.05);
       border-radius: 18px;
     }
-    .candRow{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-      margin-top: 10px;
-    }
     .candFoot{
       display:flex;
       gap:10px;
       justify-content:flex-end;
-      flex-wrap:wrap;
-      margin-top: 12px;
-    }
-
-    /* Buttons im Bewerber-Modal */
-    .modalActions{
-      display:flex;
-      justify-content:flex-end;
-      gap:10px;
       flex-wrap:wrap;
       margin-top: 12px;
     }
@@ -504,7 +475,6 @@
 <body>
   <div class="app">
 
-    <!-- ✅ Header: Titel + Status pill LINKS, Badge RECHTS (scrollt weg) -->
     <div class="top">
       <div>
         <h1>Bewerbungen</h1>
@@ -514,7 +484,6 @@
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="pill" id="statusPill">–</div>
 
-        <!-- ✅ Auth Badge im Header (nicht fixed, scrollt weg wie Titel) -->
         <div class="authFloating" id="authBadge" title="Login-Status">
           <span class="dot warn" id="authDot"></span>
           <div class="authAvatar hidden" id="authAvatar">U</div>
@@ -530,7 +499,7 @@
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
-          <a class="navLink" href="/index.html" id="navMembers">
+          <a class="navLink" href="/index.html">
             <span class="navIcon">👥</span>
             <span>
               <div class="navTitle">Mitglieder</div>
@@ -538,7 +507,7 @@
             </span>
           </a>
 
-          <a class="navLink active" href="/bewerbungen.html" id="navApps">
+          <a class="navLink active" href="/bewerbungen.html">
             <span class="navIcon">📝</span>
             <span>
               <div class="navTitle">Bewerbungen</div>
@@ -546,8 +515,7 @@
             </span>
           </a>
 
-          <!-- ✅ NEU: Anwärter -->
-          <a class="navLink" href="/anwaerter.html" id="navCandidates">
+          <a class="navLink" href="/anwaerter.html">
             <span class="navIcon">🟢</span>
             <span>
               <div class="navTitle">Anwärter</div>
@@ -555,7 +523,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="/settings.html" id="navSettings">
+          <a class="navLink" href="/settings.html">
             <span class="navIcon">⚙️</span>
             <span>
               <div class="navTitle">Einstellungen</div>
@@ -589,55 +557,52 @@
 
   </div>
 
-  <!-- Modal -->
-  <div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
+  <!-- Bewerber Modal -->
+  <div class="modalOverlay" id="modalOverlay">
     <div class="glass modal" onclick="event.stopPropagation()">
       <div class="modalHeader">
         <div>
           <h2 class="modalTitle" id="modalTitle">Bewerbung</h2>
           <div class="modalSub" id="modalSub">–</div>
         </div>
-        <button class="btn-secondary closeX" onclick="closeModal()">✕</button>
+        <button class="btn-secondary closeX" id="closeModalBtn">✕</button>
       </div>
 
-      <!-- Großes Foto -->
       <div class="modalPhotoWrap">
         <div class="modalPhoto" id="modalPhoto" title="Klick: Foto öffnen"></div>
       </div>
 
       <div class="kv" id="kv"></div>
 
-      <!-- ✅ NEU: Actions unten im Modal -->
       <div class="modalActions">
         <button class="btn-primary" id="moveToCandidateBtn">Als Anwärter übernehmen</button>
       </div>
     </div>
   </div>
 
-  <!-- ✅ NEU: Anwärter-Übernahme Modal (Ressort Dropdown) -->
-  <div class="candOverlay" id="candOverlay" onclick="candOverlayClick(event)">
+  <!-- Anwärter Übernahme Modal -->
+  <div class="candOverlay" id="candOverlay">
     <div class="glass candModal" onclick="event.stopPropagation()">
       <div class="candHead">
         <div>
           <h3 class="candTitle">Als Anwärter übernehmen</h3>
           <div class="candSub" id="candSub">–</div>
         </div>
-        <button class="btn-secondary closeX" onclick="closeCandModal()">✕</button>
+        <button class="btn-secondary closeX" id="closeCandBtn">✕</button>
       </div>
 
       <div class="candBody">
         <div style="color:rgba(255,255,255,.75); font-size:12px; margin-bottom:8px;">
-          Ressort auswählen (gleich wie bei Mitgliedern)
+          Ressort auswählen
         </div>
         <select id="candRessort" style="width:100%; min-width:0;"></select>
 
-        <div class="candRow" style="margin-top:12px;">
+        <div style="margin-top:12px;">
           <div class="pill" id="candInfoPill">–</div>
-          <div class="spacer"></div>
         </div>
 
         <div class="candFoot">
-          <button class="btn-secondary" onclick="closeCandModal()">Abbrechen</button>
+          <button class="btn-secondary" id="candCancelBtn">Abbrechen</button>
           <button class="btn-primary" id="candConfirm">Übernehmen</button>
         </div>
       </div>
@@ -655,14 +620,17 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Mitglieder-Tabelle (für Ressort-Liste) ======
-    // WENN deine Tabelle anders heißt -> hier ändern:
-    const MEMBERS_TABLE = "mitglieder"; // z.B. "members" oder "mitglieder"
-    // WENN deine Ressort-Spalte anders heißt -> hier ändern:
-    const MEMBERS_RESSORT_COL = "ressort";
+    // ====== Anwärter Tabelle ======
+    const CANDIDATES_TABLE = "anwaerter";
 
-    // ====== Anwärter-Tabelle (Ziel) ======
-    const CANDIDATES_TABLE = "anwaerter"; // so wie im SQL
+    // ====== RESSORTS (fix) ======
+    const RESSORTS_FIXED = [
+      "Externe Events",
+      "Interne Events",
+      "Sponsoring",
+      "Merchandise",
+      "Kommunikation"
+    ];
 
     // ====== Feldnamen (exakt wie dein Sheet) ======
     const F = {
@@ -686,7 +654,6 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    // Badge elements
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
     const authMail  = document.getElementById("authMail");
@@ -709,19 +676,20 @@
     const modalSub = document.getElementById("modalSub");
     const modalPhoto = document.getElementById("modalPhoto");
     const kv = document.getElementById("kv");
+    const closeModalBtn = document.getElementById("closeModalBtn");
 
-    // Anwärter UI
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
     const candOverlay = document.getElementById("candOverlay");
     const candSub = document.getElementById("candSub");
     const candRessort = document.getElementById("candRessort");
     const candConfirm = document.getElementById("candConfirm");
     const candInfoPill = document.getElementById("candInfoPill");
+    const closeCandBtn = document.getElementById("closeCandBtn");
+    const candCancelBtn = document.getElementById("candCancelBtn");
 
     // ====== State ======
     let ALL = [];
     let ACTIVE_ROW = null;
-    let RESSORTS = [];
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
@@ -774,27 +742,20 @@
       if (isAuthed){
         authDot.classList.remove("warn");
         authDot.classList.add("ok");
-
         authState.textContent = "eingeloggt";
         authMail.textContent = (email || "").trim();
         authMail.classList.remove("hidden");
-
         setAvatar(email);
-
         navWrap.style.display = "block";
         logoutBtn.classList.remove("hidden");
-
         if (doPulse) pulseLogin();
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
-
         authState.textContent = "nicht eingeloggt";
         authMail.textContent = "";
         authMail.classList.add("hidden");
-
         setAvatar("");
-
         navWrap.style.display = "none";
         logoutBtn.classList.add("hidden");
       }
@@ -802,7 +763,7 @@
 
     async function requireAuth(){
       const res = await sb.auth.getSession();
-      if (!res || !res.data || !res.data.session) throw new Error("not_logged_in");
+      if (!res?.data?.session) throw new Error("not_logged_in");
       return res.data.session;
     }
 
@@ -810,7 +771,7 @@
       try{
         const session = await requireAuth();
         const mail = session?.user?.email || "";
-        setAuthUI(true, mail, false); // kein Pulse beim Reload
+        setAuthUI(true, mail, false);
       } catch(e){
         setAuthUI(false);
         window.location.href = LOGIN_REDIRECT;
@@ -848,7 +809,7 @@
 
     function getThumb(row){
       try{
-        if (row && row.__photo && row.__photo.items && row.__photo.items[0] && row.__photo.items[0].thumb){
+        if (row?.__photo?.items?.[0]?.thumb){
           const t = String(row.__photo.items[0].thumb);
           if (t.startsWith("http://") || t.startsWith("https://")) return t;
         }
@@ -858,7 +819,7 @@
 
     function getPhotoUrl(row){
       try{
-        if (row && row.__photo && row.__photo.items && row.__photo.items[0] && row.__photo.items[0].url){
+        if (row?.__photo?.items?.[0]?.url){
           const u = String(row.__photo.items[0].url);
           if (u.startsWith("http://") || u.startsWith("https://")) return u;
         }
@@ -979,11 +940,9 @@
       });
     }
 
-    function overlayClick(e){
-      if (e.target === modalOverlay) closeModal();
-    }
     function closeModal(){
       modalOverlay.classList.remove("show");
+      ACTIVE_ROW = null;
     }
 
     function setModalPhoto(row){
@@ -1059,6 +1018,88 @@
       modalOverlay.classList.add("show");
     }
 
+    // ===== Anwärter-Übernahme =====
+    function openCandModal(){
+      if (!ACTIVE_ROW){
+        alert("Kein Bewerber ausgewählt.");
+        return;
+      }
+
+      const fn = safe(ACTIVE_ROW[F.fn]).trim();
+      const ln = safe(ACTIVE_ROW[F.ln]).trim();
+      const email = safe(ACTIVE_ROW[F.email]).trim();
+
+      candSub.textContent = `${fn} ${ln}`.trim() || "—";
+      candInfoPill.textContent = email ? `E-Mail: ${email}` : "E-Mail fehlt";
+
+      candRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+
+      // Default: Prio1/Prio2 wenn match, sonst erstes
+      const prio1 = safe(ACTIVE_ROW[F.r1]).trim();
+      const prio2 = safe(ACTIVE_ROW[F.r2]).trim();
+      if (RESSORTS_FIXED.includes(prio1)) candRessort.value = prio1;
+      else if (RESSORTS_FIXED.includes(prio2)) candRessort.value = prio2;
+      else candRessort.value = RESSORTS_FIXED[0];
+
+      candOverlay.classList.add("show");
+    }
+
+    function closeCandModal(){
+      candOverlay.classList.remove("show");
+    }
+
+    async function insertCandidateFromActive(){
+      if (!ACTIVE_ROW) return;
+
+      const vorname = safe(ACTIVE_ROW[F.fn]).trim();
+      const nachname = safe(ACTIVE_ROW[F.ln]).trim();
+      const email = safe(ACTIVE_ROW[F.email]).trim();
+      const ressort = safe(candRessort.value).trim();
+
+      if (!vorname || !nachname || !email){
+        alert("Vorname/Nachname/E-Mail fehlen in der Bewerbung. Bitte prüfen.");
+        return;
+      }
+      if (!ressort){
+        alert("Bitte ein Ressort auswählen.");
+        return;
+      }
+
+      const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
+
+      candConfirm.disabled = true;
+      candConfirm.style.opacity = ".75";
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .insert({ vorname, nachname, email, ressort, bewerbung_id });
+
+      candConfirm.disabled = false;
+      candConfirm.style.opacity = "1";
+
+      if (error){
+        alert("Konnte nicht übernehmen: " + error.message);
+        return;
+      }
+
+      closeCandModal();
+      alert("✅ Als Anwärter übernommen!");
+    }
+
+    // ===== Events / Overlay close =====
+    closeModalBtn.addEventListener("click", closeModal);
+
+    modalOverlay.addEventListener("click", (e)=>{
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    candOverlay.addEventListener("click", (e)=>{
+      if (e.target === candOverlay) closeCandModal();
+    });
+
+    closeCandBtn.addEventListener("click", closeCandModal);
+    candCancelBtn.addEventListener("click", closeCandModal);
+
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
       if (e.key === "Escape" && candOverlay.classList.contains("show")) closeCandModal();
@@ -1067,123 +1108,21 @@
     [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
     reloadBtn.addEventListener("click", fetchRows);
 
-    // ============================
-// ✅ Anwärter-Übernahme (NEU) – Robust
-// ============================
+    moveToCandidateBtn.addEventListener("click", async ()=>{
+      try{
+        await requireAuth();
+        openCandModal();
+      } catch(e){
+        alert("Bitte einloggen.");
+        window.location.href = LOGIN_REDIRECT;
+      }
+    });
 
-// Ziel-Tabelle in Supabase:
-const CANDIDATES_TABLE = "anwaerter";
+    candConfirm.addEventListener("click", insertCandidateFromActive);
 
-// Fixe Ressorts (wie von dir vorgegeben)
-const RESSORTS_FIXED = [
-  "Externe Events",
-  "Interne Events",
-  "Sponsoring",
-  "Merchandise",
-  "Kommunikation"
-];
-
-// (Optional) falls du irgendwo vorher RESSORTS benutzt: hier sauber initialisieren
-let RESSORTS = [...RESSORTS_FIXED];
-
-function openCandModal(){
-  if (!ACTIVE_ROW){
-    alert("Kein Bewerber ausgewählt.");
-    return;
-  }
-
-  const fn = safe(ACTIVE_ROW[F.fn]).trim();
-  const ln = safe(ACTIVE_ROW[F.ln]).trim();
-  const email = safe(ACTIVE_ROW[F.email]).trim();
-
-  candSub.textContent = `${fn} ${ln}`.trim() || "—";
-  candInfoPill.textContent = email ? `E-Mail: ${email}` : "E-Mail fehlt";
-
-  // Dropdown füllen
-  RESSORTS = [...RESSORTS_FIXED];
-  candRessort.innerHTML = RESSORTS
-    .map(r => `<option value="${esc(r)}">${esc(r)}</option>`)
-    .join("");
-
-  // default: Prio 1/2 vorwählen wenn möglich
-  const prio1 = safe(ACTIVE_ROW[F.r1]).trim();
-  const prio2 = safe(ACTIVE_ROW[F.r2]).trim();
-  if (RESSORTS.includes(prio1)) candRessort.value = prio1;
-  else if (RESSORTS.includes(prio2)) candRessort.value = prio2;
-  else candRessort.value = RESSORTS[0];
-
-  candOverlay.classList.add("show");
-}
-
-function closeCandModal(){
-  candOverlay.classList.remove("show");
-}
-
-// Muss global verfügbar sein, weil du onclick="candOverlayClick(event)" im HTML hast:
-function candOverlayClick(e){
-  if (e.target === candOverlay) closeCandModal();
-}
-
-async function insertCandidateFromActive(){
-  if (!ACTIVE_ROW) return;
-
-  const vorname = safe(ACTIVE_ROW[F.fn]).trim();
-  const nachname = safe(ACTIVE_ROW[F.ln]).trim();
-  const email = safe(ACTIVE_ROW[F.email]).trim();
-  const ressort = safe(candRessort.value).trim();
-
-  if (!vorname || !nachname || !email){
-    alert("Vorname/Nachname/E-Mail fehlen in der Bewerbung. Bitte prüfen.");
-    return;
-  }
-  if (!ressort){
-    alert("Bitte ein Ressort auswählen.");
-    return;
-  }
-
-  // Identifier (Sheet hat keine ID)
-  const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
-
-  candConfirm.disabled = true;
-  candConfirm.style.opacity = ".75";
-
-  const { error } = await sb
-    .from(CANDIDATES_TABLE)
-    .insert({ vorname, nachname, email, ressort, bewerbung_id });
-
-  candConfirm.disabled = false;
-  candConfirm.style.opacity = "1";
-
-  if (error){
-    alert("Konnte nicht übernehmen: " + error.message);
-    return;
-  }
-
-  closeCandModal();
-  alert("✅ Als Anwärter übernommen!");
-}
-
-// ⚠️ Wichtig: erst Listener setzen, wenn Button wirklich existiert
-if (moveToCandidateBtn){
-  moveToCandidateBtn.addEventListener("click", async () => {
-    try{
-      await requireAuth();
-      openCandModal();
-    } catch(e){
-      alert("Bitte einloggen.");
-      window.location.href = LOGIN_REDIRECT;
-    }
-  });
-}
-
-if (candConfirm){
-  candConfirm.addEventListener("click", insertCandidateFromActive);
-}
-    // ===== Init =====
+    // Init
     (async function init(){
       await enforceAuth();
-      // Ressorts früh laden (optional)
-      RESSORTS = await loadRessortsFromMembers();
       await fetchRows();
     })();
   </script>
