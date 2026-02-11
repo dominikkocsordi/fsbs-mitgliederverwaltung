@@ -1238,7 +1238,7 @@
       rejectBtn.style.opacity = ".75";
 
       try{
-        await upsertApplicantStatusFromActive("abgelehnt");
+        await upsertApplicantStatusFromActive("abgelehnt", { ressort: "—" });
         closeModal();
         render();
       } catch(e){
