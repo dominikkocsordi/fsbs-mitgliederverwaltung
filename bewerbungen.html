@@ -138,6 +138,7 @@
     }
     .hidden{ display:none; }
 
+    /* Header + Controls */
     .top{
       display:flex;
       align-items:flex-end;
@@ -378,6 +379,7 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
+    /* Modal Photo */
     .modalPhotoWrap{
       display:flex;
       justify-content:center;
@@ -628,7 +630,7 @@
 
     // ====== Anwärter Tabelle ======
     const CANDIDATES_TABLE = "anwaerter";
-    const CAND_EMAIL_COL = "email"; // ✅ wichtig: Spaltenname in anwaerter
+    const CAND_ID_COL = "bewerbung_id"; // ✅ Match per Bewerbungs-ID
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -658,7 +660,7 @@
     };
 
     // ====== Cache (schneller erster Paint) ======
-    const CACHE_KEY = "bewerbungen_cache_v2";
+    const CACHE_KEY = "bewerbungen_cache_v3_id";
     const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
 
     // ====== Elements ======
@@ -702,7 +704,7 @@
     let ALL = [];
     let ACTIVE_ROW = null;
 
-    // ✅ Anwärter lookup (per Email)
+    // ✅ Kandidaten lookup (per Bewerbungs-ID)
     let candidatesSet = new Set();
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -715,29 +717,33 @@
       debugBox.textContent = JSON.stringify(obj, null, 2);
     }
 
-    function normEmail(v){
-      return String(v || "").trim().toLowerCase();
+    // ===== Bewerbungs-ID (muss identisch zu Insert sein) =====
+    function makeBewerbungId(row){
+      const ts = safe(row?.[F.ts]).trim();
+      const email = safe(row?.[F.email]).trim();
+      return [ts, email].filter(Boolean).join(" | ") || "";
     }
+    function normId(v){ return String(v || "").trim(); }
 
     async function refreshCandidatesSetFor(rows){
       candidatesSet = new Set();
-      const emails = [...new Set(rows.map(r => normEmail(r[F.email])).filter(Boolean))];
-      if (!emails.length) return;
+      const ids = [...new Set(rows.map(makeBewerbungId).map(normId).filter(Boolean))];
+      if (!ids.length) return;
 
       const { data, error } = await sb
         .from(CANDIDATES_TABLE)
-        .select(CAND_EMAIL_COL)
-        .in(CAND_EMAIL_COL, emails);
+        .select(CAND_ID_COL)
+        .in(CAND_ID_COL, ids);
 
       if (error){
         console.warn("Anwärter-check failed:", error.message);
         return;
       }
-      (data || []).forEach(r => candidatesSet.add(normEmail(r[CAND_EMAIL_COL])));
+      (data || []).forEach(r => candidatesSet.add(normId(r[CAND_ID_COL])));
     }
 
-    function isCandidateEmail(email){
-      return candidatesSet.has(normEmail(email));
+    function isCandidateRow(row){
+      return candidatesSet.has(normId(makeBewerbungId(row)));
     }
 
     // ===== Badge helpers =====
@@ -973,7 +979,7 @@
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
 
-        const isCand = isCandidateEmail(mail);
+        const isCand = isCandidateRow(row);
 
         const card = document.createElement("div");
         card.className = "appCard";
@@ -993,7 +999,7 @@
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
               <div class="tags">
-                ${isCand ? `<span class="tag tag-ok">🟢 Anwärter</span>` : ``}
+                ${isCand ? `<span class="tag tag-ok">👶🏼 Anwärter</span>` : ``}
                 ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
                 ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
                 ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
@@ -1018,7 +1024,6 @@
 
       const thumb = getThumb(row);
       const photoUrl = getPhotoUrl(row);
-
       const initials = getInitials(row);
 
       function setFallback(){
@@ -1034,34 +1039,29 @@
         if (photoUrl) window.open(photoUrl, "_blank", "noopener");
       };
 
-      // 1) show thumb (fast)
       if (thumb){
         const img = document.createElement("img");
-        img.src = thumb;
+        img.src = thumb;              // schnell
         img.alt = "Foto";
-        img.loading = "eager";       // im Modal direkt anzeigen
+        img.loading = "eager";
         img.decoding = "async";
         img.referrerPolicy = "no-referrer";
         img.onerror = setFallback;
 
         modalPhoto.appendChild(img);
 
-        // 2) preload big and swap when ready
+        // big preload and swap
         if (photoUrl && photoUrl !== thumb){
           const big = new Image();
           big.referrerPolicy = "no-referrer";
           big.decoding = "async";
-          big.onload = () => {
-            // swap src
-            img.src = photoUrl;
-          };
+          big.onload = () => { img.src = photoUrl; };
           big.onerror = () => { /* keep thumb */ };
           big.src = photoUrl;
         }
         return;
       }
 
-      // no thumb => initials
       setFallback();
     }
 
@@ -1157,7 +1157,8 @@
         return;
       }
 
-      const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
+      const bewerbung_id = makeBewerbungId(ACTIVE_ROW) || null;
+
       const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
       const photo_thumb = getThumb(ACTIVE_ROW) || null;
 
@@ -1177,7 +1178,7 @@
       }
 
       // ✅ sofort UI updaten (Badge erscheint direkt)
-      candidatesSet.add(normEmail(email));
+      if (bewerbung_id) candidatesSet.add(normId(bewerbung_id));
       render();
 
       closeCandModal();
@@ -1228,8 +1229,6 @@
         ALL = cached;
         statusPill.textContent = `Cache: ${ALL.length}`;
         fillFilters();
-
-        // Anwärter-Status für Cache laden (bulk) – danach rendern
         await refreshCandidatesSetFor(ALL);
         render();
       }
