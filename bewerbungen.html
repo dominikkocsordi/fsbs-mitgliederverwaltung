@@ -26,6 +26,7 @@
 
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
+      --warn: rgba(251,146,60,.95);
     }
 
     *{box-sizing:border-box}
@@ -56,12 +57,12 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ===== Auth badge (Header) ===== */
+    /* ===== Auth badge (kompakt + Details Toggle) ===== */
     .authFloating{
       position: static;
       z-index: 1;
       border-radius: 999px;
-      padding: 10px 14px;
+      padding: 10px 12px;
       display:flex;
       align-items:center;
       gap:10px;
@@ -71,12 +72,14 @@
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       user-select:none;
+      max-width: min(560px, 100%);
     }
 
     .dot{
       width:10px;height:10px;border-radius:999px;
       background: rgba(255,255,255,.35);
       position: relative;
+      flex: 0 0 auto;
     }
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
@@ -117,6 +120,7 @@
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 12px 28px rgba(0,0,0,.25);
       background: rgba(255,255,255,.10);
+      flex:0 0 auto;
     }
     .authAvatar.hidden{ display:none; }
 
@@ -124,19 +128,98 @@
       display:flex;
       flex-direction:column;
       line-height:1.1;
-      min-width: 140px;
+      min-width:0;
+      flex: 1 1 auto;
     }
     .authState{
       font-size:13px;
       font-weight:750;
       letter-spacing:.25px;
     }
+    .authState.hidden{ display:none; }
+
+    .authTopLine{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      min-width:0;
+    }
+    .authCompact{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .authCompact.hidden{ display:none; }
+
+    .authNameInline{
+      font-size:13px;
+      font-weight:850;
+      letter-spacing:.15px;
+      color: rgba(255,255,255,.92);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 220px;
+    }
+
+    .authChevron{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.85);
+      width: 30px; height: 26px;
+      border-radius: 999px;
+      padding: 0;
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease;
+      flex: 0 0 auto;
+    }
+    .authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
+
+    .authDetails{
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      min-width:0;
+    }
+    .authDetails.hidden{ display:none; }
+
     .authMail{
       font-size:11px;
       color: rgba(255,255,255,.58);
-      margin-top:3px;
+      margin-top:0;
       word-break:break-all;
     }
+
+    .rolePill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.82);
+      font-weight:750;
+      letter-spacing:.15px;
+      white-space:nowrap;
+      flex: 0 0 auto;
+    }
+    .rolePill.vorstand{
+      border-color: rgba(56,189,248,.40);
+      background: rgba(56,189,248,.12);
+    }
+    .rolePill.ressortleiter{
+      border-color: rgba(251,146,60,.35);
+      background: rgba(251,146,60,.12);
+    }
+
     .hidden{ display:none; }
 
     /* Header + Controls */
@@ -223,6 +306,15 @@
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
+    button:disabled{
+      cursor: not-allowed !important;
+      opacity: .55 !important;
+      transform: none !important;
+      filter: none !important;
+      box-shadow: none !important;
+    }
+    button:disabled:hover{ transform:none !important; filter:none !important; }
+
     .btn-secondary{
       background: rgba(255,255,255,.14);
       color: var(--text);
@@ -282,7 +374,7 @@
       .grid{grid-template-columns: 1fr;}
       input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-      .authInfo{ min-width: 0; }
+      .authNameInline{ max-width: 150px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
@@ -528,12 +620,25 @@
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="pill" id="statusPill">–</div>
 
+        <!-- ✅ Badge wie bei Index/Anwärter: kompakt + Rolle + Name + Mail im Toggle -->
         <div class="authFloating" id="authBadge" title="Login-Status">
           <span class="dot warn" id="authDot"></span>
           <div class="authAvatar hidden" id="authAvatar">U</div>
+
           <div class="authInfo">
-            <div class="authState" id="authState">nicht eingeloggt</div>
-            <div class="authMail hidden" id="authMail"></div>
+            <div class="authTopLine">
+              <div class="authState" id="authState">nicht eingeloggt</div>
+
+              <div class="authCompact hidden" id="authCompact">
+                <span class="authNameInline" id="authNameInline">User</span>
+                <span class="rolePill" id="authRolePill">Rolle</span>
+                <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+              </div>
+            </div>
+
+            <div class="authDetails hidden" id="authDetails">
+              <div class="authMail" id="authMail"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -665,6 +770,19 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
+    // ====== Rollen/Permissions (aus public.profiles) ======
+    const PROFILES_TABLE = "profiles";
+    let MY_ROLE = "";
+    let CAN_EDIT = false; // nur Vorstand darf ablehnen/übernehmen
+
+    function normRole(v){ return (v || "").trim().toLowerCase(); }
+    function roleLabel(role){
+      const r = normRole(role);
+      if (r === "vorstand") return "Vorstand";
+      if (r === "ressortleiter") return "Ressortleiter";
+      return "Unbekannt";
+    }
+
     // ====== Anwärter Tabelle (Status ist SPALTE in anwaerter!) ======
     const CANDIDATES_TABLE = "anwaerter";
     const CAND_ID_COL = "bewerbung_id";
@@ -701,10 +819,18 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
 
+    const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
     const authMail  = document.getElementById("authMail");
     const authAvatar = document.getElementById("authAvatar");
+
+    // ✅ compact badge elements
+    const authCompact = document.getElementById("authCompact");
+    const authNameInline = document.getElementById("authNameInline");
+    const authRolePill = document.getElementById("authRolePill");
+    const authToggle = document.getElementById("authToggle");
+    const authDetails = document.getElementById("authDetails");
 
     const q = document.getElementById("q");
     const fR1 = document.getElementById("fR1");
@@ -771,6 +897,14 @@
       const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
       return (a + b).trim() || a;
     }
+    function initialsFromText(txt){
+      const t = (txt || "").trim();
+      if (!t) return "U";
+      const parts = t.split(/\s+/).filter(Boolean);
+      const a = (parts[0]?.[0] || "U").toUpperCase();
+      const b = (parts[1]?.[0] || "").toUpperCase();
+      return (a + b).trim() || a;
+    }
     function setAvatar(email){
       const e = (email || "").trim().toLowerCase();
       if (!e){
@@ -790,24 +924,65 @@
       authDot.classList.add("pulsing");
       setTimeout(() => authDot.classList.remove("pulsing"), 2600);
     }
+
+    // ✅ Badge: Details Toggle
+    function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+    authToggle?.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      authDetails.classList.toggle("hidden");
+    });
+    document.addEventListener("click", (e)=>{
+      if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
+    });
+
+    function setRolePill(role){
+      const r = normRole(role);
+      authRolePill.textContent = roleLabel(r);
+      authRolePill.classList.remove("vorstand","ressortleiter");
+      if (r === "vorstand") authRolePill.classList.add("vorstand");
+      else authRolePill.classList.add("ressortleiter");
+    }
+    function setCompactIdentity(displayName, email){
+      const name = (displayName || "").trim();
+      const fallback = ((email || "").split("@")[0] || "User").trim();
+      authNameInline.textContent = name || fallback;
+    }
+
+    // ✅ Auth UI: kein "eingeloggt" Text, Name+Rolle kompakt
     function setAuthUI(isAuthed, email = "", doPulse = false){
       if (isAuthed){
         authDot.classList.remove("warn");
         authDot.classList.add("ok");
-        authState.textContent = "eingeloggt";
+
+        authState.classList.add("hidden");
+        authState.textContent = "";
+
+        authCompact.classList.remove("hidden");
+        closeAuthDetails();
+
         authMail.textContent = (email || "").trim();
-        authMail.classList.remove("hidden");
         setAvatar(email);
+
         navWrap.style.display = "block";
         logoutBtn.classList.remove("hidden");
+
+        // Aktionen nach Permission
+        applyPermissions();
+
         if (doPulse) pulseLogin();
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
+
+        authState.classList.remove("hidden");
         authState.textContent = "nicht eingeloggt";
+
+        authCompact.classList.add("hidden");
+        closeAuthDetails();
+
         authMail.textContent = "";
-        authMail.classList.add("hidden");
         setAvatar("");
+
         navWrap.style.display = "none";
         logoutBtn.classList.add("hidden");
       }
@@ -819,11 +994,64 @@
       return res.data.session;
     }
 
+    // ✅ Rolle + Display Name laden
+    async function loadMyProfile(session){
+      MY_ROLE = "";
+      CAN_EDIT = false;
+
+      const uid = session?.user?.id;
+      const email = session?.user?.email || "";
+
+      if (!uid){
+        setCompactIdentity("", email);
+        setRolePill("ressortleiter");
+        return;
+      }
+
+      const { data, error } = await sb
+        .from(PROFILES_TABLE)
+        .select("role, display_name")
+        .eq("id", uid)
+        .single();
+
+      if (error){
+        console.warn("Profil konnte nicht geladen werden:", error.message);
+        setCompactIdentity("", email);
+        setRolePill("ressortleiter");
+        return;
+      }
+
+      MY_ROLE = normRole(data?.role);
+      CAN_EDIT = (MY_ROLE === "vorstand");
+
+      setCompactIdentity(data?.display_name, email);
+      setRolePill(MY_ROLE || "ressortleiter");
+
+      const dn = (data?.display_name || "").trim();
+      if (dn){
+        authAvatar.textContent = initialsFromText(dn);
+      }
+
+      authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+      applyPermissions();
+    }
+
+    function applyPermissions(){
+      // Nur Vorstand darf in Bewerbungen: Ablehnen + Übernehmen
+      const can = !!CAN_EDIT;
+      rejectBtn.disabled = !can;
+      moveToCandidateBtn.disabled = !can;
+
+      rejectBtn.title = can ? "Bewerbung ablehnen" : "Nur Vorstand darf ablehnen";
+      moveToCandidateBtn.title = can ? "Als Anwärter übernehmen" : "Nur Vorstand darf übernehmen";
+    }
+
     async function enforceAuth(){
       try{
         const session = await requireAuth();
         const mail = session?.user?.email || "";
         setAuthUI(true, mail, false);
+        await loadMyProfile(session);
       } catch(e){
         setAuthUI(false);
         window.location.href = LOGIN_REDIRECT;
@@ -869,7 +1097,6 @@
       } catch(e){}
       return "";
     }
-
     function getPhotoUrl(row){
       try{
         if (row?.__photo?.items?.[0]?.url){
@@ -1161,6 +1388,9 @@
         kv.appendChild(v);
       });
 
+      // Buttons nach Permission (auch falls Role erst später geladen)
+      applyPermissions();
+
       modalOverlay.classList.add("show");
     }
 
@@ -1197,6 +1427,7 @@
     }
 
     async function insertCandidateFromActive(){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf übernehmen.");
       if (!ACTIVE_ROW) return;
 
       const vorname = safe(ACTIVE_ROW[F.fn]).trim();
@@ -1231,6 +1462,7 @@
     }
 
     async function rejectActive(){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen.");
       if (!ACTIVE_ROW) return;
       if (!confirm("Wirklich ablehnen?")) return;
 
@@ -1273,7 +1505,9 @@
 
     moveToCandidateBtn.addEventListener("click", async ()=>{
       try{
-        await requireAuth();
+        const session = await requireAuth();
+        await loadMyProfile(session);
+        if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf übernehmen.");
         openCandModal();
       } catch(e){
         alert("Bitte einloggen.");
@@ -1283,7 +1517,8 @@
 
     rejectBtn.addEventListener("click", async ()=>{
       try{
-        await requireAuth();
+        const session = await requireAuth();
+        await loadMyProfile(session);
         await rejectActive();
       } catch(e){
         alert("Bitte einloggen.");
