@@ -97,9 +97,41 @@
       background: rgba(255,255,255,.10);
     }
     .authAvatar.hidden{ display:none; }
-    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:140px; }
+    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:160px; }
     .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
     .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:3px; word-break:break-all; }
+
+    /* ✅ Rolle in Badge */
+    .authRole{
+      font-size:11px;
+      color: rgba(255,255,255,.70);
+      margin-top:3px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .rolePill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.82);
+      font-weight:750;
+      letter-spacing:.15px;
+      white-space:nowrap;
+    }
+    .rolePill.vorstand{
+      border-color: rgba(56,189,248,.40);
+      background: rgba(56,189,248,.12);
+    }
+    .rolePill.ressortleiter{
+      border-color: rgba(251,146,60,.35);
+      background: rgba(251,146,60,.12);
+    }
+
     .hidden{ display:none; }
 
     /* Header */
@@ -176,7 +208,6 @@
     }
     button:active{ transform: translateY(0px) scale(.99); }
 
-    /* ✅ Disabled Buttons (neu) */
     button:disabled{
       cursor: not-allowed !important;
       opacity: .55 !important;
@@ -407,6 +438,10 @@
           <div class="authAvatar hidden" id="authAvatar">U</div>
           <div class="authInfo">
             <div class="authState" id="authState">nicht eingeloggt</div>
+            <!-- ✅ NEU: Rolle -->
+            <div class="authRole hidden" id="authRoleWrap">
+              <span class="rolePill" id="authRolePill">Rolle</span>
+            </div>
             <div class="authMail hidden" id="authMail"></div>
           </div>
         </div>
@@ -533,9 +568,22 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
+    // ====== Rollen/Permissions ======
+    const PROFILES_TABLE = "profiles";
+    let MY_ROLE = "";        // "vorstand" | "ressortleiter" | ""
+    let CAN_EDIT = false;    // true nur für vorstand
+
+    function normRole(v){ return (v || "").trim().toLowerCase(); }
+    function roleLabel(role){
+      const r = normRole(role);
+      if (r === "vorstand") return "Vorstand";
+      if (r === "ressortleiter") return "Ressortleiter";
+      return "Unbekannt";
+    }
+
     // ====== Tabelle ======
     const CANDIDATES_TABLE = "anwaerter";
-    const BEWERBUNG_STATUS_COL = "bewerbung_status"; // ✅ deine Spalte
+    const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -554,6 +602,10 @@
     const authState = document.getElementById("authState");
     const authMail  = document.getElementById("authMail");
     const authAvatar = document.getElementById("authAvatar");
+
+    // ✅ Role in badge
+    const authRoleWrap = document.getElementById("authRoleWrap");
+    const authRolePill = document.getElementById("authRolePill");
 
     const statusPill = document.getElementById("statusPill");
     const contentCard = document.getElementById("contentCard");
@@ -587,14 +639,15 @@
     function normalizeStatus(v){
       return safe(v).trim().toLowerCase();
     }
-
     function isAnwaerterAbgelehnt(statusRaw){
       const st = normalizeStatus(statusRaw);
       return st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
     }
 
-    // ====== Ablehnen (Status setzen, nicht löschen) ======
+    // ====== Ablehnen (nur Vorstand) ======
     async function rejectCandidate(id){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen/bearbeiten.");
+
       const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt (bleibt in der Liste).");
       if (!ok) return;
 
@@ -645,6 +698,22 @@
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
 
+    function setRolePill(role){
+      const r = normRole(role);
+      authRoleWrap.classList.remove("hidden");
+      authRolePill.textContent = roleLabel(r);
+
+      authRolePill.classList.remove("vorstand","ressortleiter");
+      if (r === "vorstand") authRolePill.classList.add("vorstand");
+      else authRolePill.classList.add("ressortleiter");
+    }
+
+    function clearRolePill(){
+      authRoleWrap.classList.add("hidden");
+      authRolePill.textContent = "Rolle";
+      authRolePill.classList.remove("vorstand","ressortleiter");
+    }
+
     function setAuthUI(isAuthed, email = ""){
       if (isAuthed){
         authDot.classList.remove("warn");
@@ -653,6 +722,7 @@
         authMail.textContent = (email || "").trim();
         authMail.classList.remove("hidden");
         setAvatar(email);
+
         navWrap.style.display = "block";
         logoutBtn.classList.remove("hidden");
         contentCard.style.display = "block";
@@ -663,6 +733,8 @@
         authMail.textContent = "";
         authMail.classList.add("hidden");
         setAvatar("");
+        clearRolePill();
+
         navWrap.style.display = "none";
         logoutBtn.classList.add("hidden");
         contentCard.style.display = "none";
@@ -675,10 +747,40 @@
       return res.data.session;
     }
 
+    // ✅ NEU: Rolle laden (aus public.profiles)
+    async function loadMyRole(session){
+      MY_ROLE = "";
+      CAN_EDIT = false;
+
+      const uid = session?.user?.id;
+      if (!uid) return;
+
+      const { data, error } = await sb
+        .from(PROFILES_TABLE)
+        .select("role")
+        .eq("id", uid)
+        .single();
+
+      if (error){
+        // wenn profiles noch keinen Eintrag hat → Rolle unbekannt
+        console.warn("Rolle konnte nicht geladen werden:", error.message);
+        setRolePill("ressortleiter"); // fallback optisch
+        return;
+      }
+
+      MY_ROLE = normRole(data?.role);
+      CAN_EDIT = (MY_ROLE === "vorstand");
+      setRolePill(MY_ROLE || "ressortleiter");
+    }
+
     async function enforceAuth(){
       try{
         const session = await requireAuth();
         setAuthUI(true, session?.user?.email || "");
+
+        // ✅ Rolle nach Login laden + Badge aktualisieren
+        await loadMyRole(session);
+
       } catch(e){
         setAuthUI(false);
         window.location.href = LOGIN_REDIRECT;
@@ -733,6 +835,13 @@
               ? `<span class="pillSmall pillWarn">❌ Anwärter abgelehnt</span>`
               : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(stRaw))}</span>` : ``);
 
+        // ✅ Actions: nur Vorstand aktiv
+        const editDisabled = !CAN_EDIT;
+        const rejectDisabled = !CAN_EDIT || rejectedAlready;
+
+        const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
+        const rejectTitle = !CAN_EDIT ? "Nur Vorstand darf ablehnen" : (rejectedAlready ? "Bereits abgelehnt" : "Anwärter ablehnen");
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>
@@ -766,13 +875,20 @@
           <td>${esc(safe(r.email) || "—")}</td>
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn-secondary" data-action="edit" data-id="${r.id}">Bearbeiten</button>
+              <button
+                class="btn-secondary"
+                data-action="edit"
+                data-id="${r.id}"
+                ${editDisabled ? "disabled" : ""}
+                title="${esc(editTitle)}"
+              >Bearbeiten</button>
+
               <button
                 class="btn-danger"
                 data-action="reject"
                 data-id="${r.id}"
-                ${rejectedAlready ? "disabled" : ""}
-                title="${rejectedAlready ? "Bereits abgelehnt" : "Anwärter ablehnen"}"
+                ${rejectDisabled ? "disabled" : ""}
+                title="${esc(rejectTitle)}"
               >Ablehnen</button>
             </div>
           </td>
@@ -795,7 +911,6 @@
         return;
       }
 
-      // ✅ NUR "Abgelehnt" (normal) rausfiltern – "Anwärter abgelehnt" bleibt drin
       ALL = (Array.isArray(data) ? data : []).filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
       statusPill.textContent = `Geladen: ${ALL.length}`;
@@ -804,14 +919,14 @@
 
     // Edit modal
     function openEdit(row){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
+
       EDITING = row;
       editSub.textContent = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
 
-      // Ressort dropdown
       editRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
       editRessort.value = RESSORTS_FIXED.includes(safe(row.ressort).trim()) ? safe(row.ressort).trim() : RESSORTS_FIXED[0];
 
-      // Foto Preview
       const thumb = safe(row.photo_thumb).trim();
       const photo = safe(row.photo_url).trim();
       editPhoto.innerHTML = "";
@@ -852,7 +967,9 @@
     }
 
     async function saveEdit(){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
       if (!EDITING) return;
+
       const ressort = safe(editRessort.value).trim();
       if (!ressort) return alert("Bitte Ressort wählen.");
 
@@ -892,7 +1009,7 @@
 
     tbody.addEventListener("click", (e)=>{
       const btn = e.target.closest("button[data-action]");
-      if (!btn || btn.disabled) return; // ✅ disabled Buttons ignorieren
+      if (!btn || btn.disabled) return;
 
       const id = Number(btn.dataset.id);
       const action = btn.dataset.action;
@@ -908,7 +1025,7 @@
 
     // Init
     (async function init(){
-      await enforceAuth();
+      await enforceAuth();     // ✅ lädt jetzt auch Rolle
       await fetchCandidates();
     })();
   </script>
