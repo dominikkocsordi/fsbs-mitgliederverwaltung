@@ -55,12 +55,10 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ===== Sticky floating auth badge (wie index) ===== */
+    /* ===== Auth badge: NICHT fixed, nur oben im Header (scrollt weg) ===== */
     .authFloating{
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      z-index: 999;
+      position: static;
+      z-index: 1;
       border-radius: 999px;
       padding: 10px 14px;
       display:flex;
@@ -149,7 +147,7 @@
       align-items:flex-end;
       justify-content:space-between;
       gap:16px;
-      margin-bottom: 16px; /* bisschen mehr Abstand, weil Nav darunter kommt */
+      margin-bottom: 16px; /* mehr Abstand, weil Nav darunter kommt */
     }
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
@@ -167,7 +165,7 @@
       white-space:nowrap;
     }
 
-    /* NAV (unter Titel, wie gewünscht) */
+    /* NAV (sticky beim Scrollen) */
     .navWrap{
       position: sticky;
       top: 14px;
@@ -278,8 +276,19 @@
     @media (max-width: 640px){
       .grid{grid-template-columns: 1fr;}
       input,select{min-width:0; width:100%;}
-      .authFloating{ left: 16px; right: 16px; justify-content:space-between; }
+
+      /* Header stapeln (Badge bleibt im Header, scrollt weg) */
+      .top{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+      }
       .authInfo{ min-width: 0; }
+
+      /* Nav horizontal scroll */
+      .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
+      .navLeft{ flex-wrap:nowrap; }
+      .navRight{ margin-left: 0; }
     }
 
     .appCard{
@@ -428,26 +437,28 @@
 </head>
 
 <body>
-
-  <!-- ✅ Floating Badge (glow + pulse + avatar + mail) -->
-  <div class="authFloating" id="authBadge" title="Login-Status">
-    <span class="dot warn" id="authDot"></span>
-    <div class="authAvatar hidden" id="authAvatar">U</div>
-    <div class="authInfo">
-      <div class="authState" id="authState">nicht eingeloggt</div>
-      <div class="authMail hidden" id="authMail"></div>
-    </div>
-  </div>
-
   <div class="app">
 
-    <!-- ✅ Titel ÜBER Nav (wie gewünscht) -->
+    <!-- ✅ Header: Titel + Status pill LINKS, Badge RECHTS (scrollt weg) -->
     <div class="top">
       <div>
         <h1>Bewerbungen</h1>
         <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
       </div>
-      <div class="pill" id="statusPill">–</div>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+        <div class="pill" id="statusPill">–</div>
+
+        <!-- ✅ Auth Badge im Header (nicht fixed, scrollt weg wie Titel) -->
+        <div class="authFloating" id="authBadge" title="Login-Status">
+          <span class="dot warn" id="authDot"></span>
+          <div class="authAvatar hidden" id="authAvatar">U</div>
+          <div class="authInfo">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authMail hidden" id="authMail"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- NAV (nur eingeloggt) -->
@@ -557,7 +568,7 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
 
-    // Floating badge elements
+    // Badge elements
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
     const authMail  = document.getElementById("authMail");
@@ -594,7 +605,7 @@
       debugBox.textContent = JSON.stringify(obj, null, 2);
     }
 
-    // ===== Badge helpers (wie index) =====
+    // ===== Badge helpers =====
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
