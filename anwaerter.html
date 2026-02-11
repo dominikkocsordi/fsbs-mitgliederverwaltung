@@ -26,7 +26,7 @@
 
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
-      --warn: rgba(251,146,60,.95); /* orange */
+      --warn: rgba(251,146,60,.95);
     }
 
     *{box-sizing:border-box}
@@ -519,11 +519,9 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Tabellen ======
+    // ====== Tabelle ======
     const CANDIDATES_TABLE = "anwaerter";
-    const STATUS_TABLE = "bewerbung_status";
-    const STATUS_ID_COL = "bewerbung_id";
-    const STATUS_COL = "status"; // z.B. "anwaerter" | "abgelehnt" | "anwärter abgelehnt" (wir speichern exakt "Anwärter abgelehnt")
+    const BEWERBUNG_STATUS_COL = "bewerbung_status"; // ✅ deine Spalte
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -567,49 +565,20 @@
     let ALL = [];
     let EDITING = null;
 
-    // ✅ Status Map: bewerbung_id -> status (lowercase)
-    let statusMap = new Map();
-
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    function normId(v){ return String(v || "").trim(); }
-
-    async function refreshStatusMapForBewerbungIds(ids){
-      statusMap = new Map();
-      const uniqIds = [...new Set((ids || []).map(normId).filter(Boolean))];
-      if (!uniqIds.length) return;
-
-      const { data, error } = await sb
-        .from(STATUS_TABLE)
-        .select(`${STATUS_ID_COL},${STATUS_COL}`)
-        .in(STATUS_ID_COL, uniqIds);
-
-      if (error){
-        console.warn("Status-check failed:", error.message);
-        return;
-      }
-
-      (data || []).forEach(r => {
-        statusMap.set(normId(r[STATUS_ID_COL]), String(r[STATUS_COL] || "").toLowerCase());
-      });
-    }
-
-    function getStatusByBewerbungId(bewerbung_id){
-      return statusMap.get(normId(bewerbung_id)) || "";
-    }
-
     // ====== Ablehnen (Status setzen, nicht löschen) ======
-    async function rejectCandidateByBewerbungId(bewerbungId){
+    async function rejectCandidate(id){
       const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt (bleibt in der Liste).");
       if (!ok) return;
 
       const { error } = await sb
-        .from(STATUS_TABLE)
-        .update({ [STATUS_COL]: "Anwärter abgelehnt" })
-        .eq(STATUS_ID_COL, normId(bewerbungId));
+        .from(CANDIDATES_TABLE)
+        .update({ [BEWERBUNG_STATUS_COL]: "Anwärter abgelehnt" })
+        .eq("id", id);
 
       if (error){
         alert("Fehler beim Ablehnen: " + error.message);
@@ -710,6 +679,10 @@
       return (a + b).toUpperCase() || "•";
     }
 
+    function normalizeStatus(v){
+      return safe(v).trim().toLowerCase();
+    }
+
     function render(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
@@ -717,7 +690,7 @@
       const rows = ALL.filter(r => {
         if (rf && safe(r.ressort).trim() !== rf) return false;
         if (!text) return true;
-        const hay = [r.vorname, r.nachname, r.email, r.ressort].map(safe).join(" ").toLowerCase();
+        const hay = [r.vorname, r.nachname, r.email, r.ressort, r[BEWERBUNG_STATUS_COL]].map(safe).join(" ").toLowerCase();
         return hay.includes(text);
       });
 
@@ -728,14 +701,15 @@
       rows.forEach(r => {
         const thumb = safe(r.photo_thumb).trim();
         const photo = safe(r.photo_url).trim();
-        const bewerbungId = safe(r.bewerbung_id).trim();
 
-        const st = getStatusByBewerbungId(bewerbungId); // lowercase
+        const st = normalizeStatus(r[BEWERBUNG_STATUS_COL]);
+
         const badge =
-          st === "anwaerter" ? `<span class="pillSmall pillOk">🟢 Bewerbungsstatus: Anwärter</span>` :
-          st === "anwärter abgelehnt" || st === "anwaerter abgelehnt"
-            ? `<span class="pillSmall pillWarn">🟠 Bewerbungsstatus: Anwärter abgelehnt</span>`
-            : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(st)}</span>` : ``);
+          (st === "anwärter" || st === "anwaerter")
+            ? `<span class="pillSmall pillOk">🟢 Bewerbungsstatus: Anwärter</span>`
+            : (st === "anwärter abgelehnt" || st === "anwaerter abgelehnt")
+              ? `<span class="pillSmall pillWarn">🟠 Bewerbungsstatus: Anwärter abgelehnt</span>`
+              : (st ? `<span class="pillSmall">ℹ️ Bewerbungsstatus: ${esc(safe(r[BEWERBUNG_STATUS_COL]))}</span>` : ``);
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -793,16 +767,8 @@
         return;
       }
 
-      const raw = Array.isArray(data) ? data : [];
-
-      // ✅ StatusMap für alle bewerbung_ids nachziehen
-      await refreshStatusMapForBewerbungIds(raw.map(r => r.bewerbung_id));
-
-      // ✅ Rausfiltern: NUR normales "Abgelehnt" (nicht "Anwärter abgelehnt")
-      ALL = raw.filter(r => {
-        const st = getStatusByBewerbungId(r.bewerbung_id);
-        return st !== "abgelehnt"; // "anwärter abgelehnt" bleibt drin
-      });
+      // ✅ NUR "Abgelehnt" (normal) rausfiltern – "Anwärter abgelehnt" bleibt drin
+      ALL = (Array.isArray(data) ? data : []).filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
       statusPill.textContent = `Geladen: ${ALL.length}`;
       render();
@@ -905,15 +871,7 @@
       const row = ALL.find(x => Number(x.id) === id);
 
       if (action === "edit" && row) openEdit(row);
-
-      if (action === "reject" && row){
-        const bewerbungId = safe(row.bewerbung_id).trim();
-        if (!bewerbungId){
-          alert("Fehler: bewerbung_id fehlt bei diesem Anwärter.");
-          return;
-        }
-        rejectCandidateByBewerbungId(bewerbungId);
-      }
+      if (action === "reject") rejectCandidate(id);
     });
 
     document.addEventListener("keydown", (e)=>{
