@@ -31,22 +31,28 @@
 }
 
 *{ box-sizing:border-box; }
-html,body{ height:100%; }
+html, body { min-height: 100%; }
 
-body{
-  margin:0;
-  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color: var(--text);
+html{
   background:
     radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.25), transparent 60%),
     radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.18), transparent 60%),
     radial-gradient(800px 450px at 60% 90%, rgba(251,113,133,.18), transparent 60%),
     linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  background-attachment: fixed;
+}
+
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color: var(--text);
+  background: transparent;         /* wichtig */
   display:flex;
   justify-content:center;
   align-items:flex-start;
   padding:42px 16px;
 }
+
 
 .app{ width:100%; max-width:1200px; }
 
