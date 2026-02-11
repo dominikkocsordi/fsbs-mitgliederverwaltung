@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anwärter</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg1:#0b1220;
+      --bg2:#111c2b;
+      --bg3:#0b2a33;
+
+      --glass: rgba(255,255,255,.10);
+      --glass2: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.22);
+
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+
+      --accent1:#38bdf8;
+      --accent2:#0ea5e9;
+
+      --shadow: 0 20px 55px rgba(0,0,0,.40);
+
+      --ok: rgba(34,197,94,.95);
+      --warn: rgba(245,158,11,.95);
+      --bad: rgba(239,68,68,.95);
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(56,189,248,.22), transparent 55%),
+        radial-gradient(900px 600px at 85% 10%, rgba(14,165,233,.18), transparent 55%),
+        radial-gradient(900px 700px at 60% 90%, rgba(34,197,94,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(11,18,32,.72), rgba(11,18,32,.35));
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+
+    .wrap{ max-width:1100px; margin:0 auto; padding:16px 16px 26px; }
+
+    .titleRow{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      padding:12px 0 8px;
+    }
+    h1{ margin:0; font-size:22px; letter-spacing:.2px; }
+    .sub{ margin:6px 0 0; color:var(--muted); font-size:13px; }
+
+    nav{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:10px 0 12px;
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      text-decoration:none;
+      font-size:13px;
+      transition:.18s ease;
+    }
+    .chip:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
+
+    .statusBadge{
+      position:fixed;
+      top:14px; right:14px;
+      z-index:50;
+      display:flex; align-items:center; gap:8px;
+      padding:9px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      font-size:13px;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: var(--bad);
+      box-shadow: 0 0 0 3px rgba(239,68,68,.16);
+    }
+    .dot.ok{
+      background: var(--ok);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.16);
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .toolbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      padding:14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+    .input{
+      flex:1;
+      min-width:220px;
+      display:flex; align-items:center; gap:8px;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.14);
+    }
+    .input input{
+      width:100%;
+      background:transparent;
+      border:0; outline:0;
+      color:var(--text);
+      font-size:14px;
+    }
+
+    table{ width:100%; border-collapse:separate; border-spacing:0; }
+    th, td{ padding:12px 14px; text-align:left; font-size:14px; }
+    th{
+      font-size:12px;
+      color: rgba(255,255,255,.75);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      background: rgba(255,255,255,.04);
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    tr + tr td{ border-top:1px solid rgba(255,255,255,.08); }
+
+    .pill{
+      display:inline-flex; align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.08);
+    }
+
+    .actions{ display:flex; gap:8px; flex-wrap:wrap; }
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      padding:9px 10px;
+      border-radius:12px;
+      color:var(--text);
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.14);
+      transition:.16s ease;
+      font-size:13px;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.22); }
+    .btn.danger{
+      background: rgba(239,68,68,.14);
+      border-color: rgba(239,68,68,.28);
+    }
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(56,189,248,.22), rgba(14,165,233,.10));
+      border-color: rgba(56,189,248,.35);
+    }
+
+    /* Modal */
+    .overlay{
+      position:fixed; inset:0; z-index:80;
+      background: rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+    }
+    .overlay.show{ display:flex; }
+    .modal{
+      width:min(520px, 100%);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.07));
+      border:1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modalHead{ padding:14px 14px 8px; }
+    .modalHead h3{ margin:0; font-size:16px; }
+    .modalHead p{ margin:6px 0 0; color:var(--muted); font-size:13px; }
+    .modalBody{ padding:12px 14px 14px; }
+    .field{ display:flex; flex-direction:column; gap:6px; margin:10px 0; }
+    label{ font-size:12px; color: rgba(255,255,255,.78); }
+    select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:14px;
+      background: rgba(0,0,0,.20);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      outline:none;
+      font-size:14px;
+    }
+    .modalFoot{
+      display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+      padding:12px 14px 14px;
+      border-top:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+
+    .empty{
+      padding:18px 14px;
+      color: var(--muted);
+      font-size:14px;
+    }
+
+    @media (max-width:720px){
+      .titleRow{ flex-direction:column; align-items:flex-start; }
+      th:nth-child(3), td:nth-child(3){ display:none; } /* Email ausblenden (Platz) */
+      .statusBadge{ top:10px; right:10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="statusBadge" id="loginBadge">
+    <span class="dot" id="loginDot"></span>
+    <span id="loginText">Nicht eingeloggt</span>
+  </div>
+
+  <div class="topbar">
+    <div class="wrap">
+      <div class="titleRow">
+        <div>
+          <h1>Anwärter</h1>
+          <p class="sub">Liste aller aufgenommenen Anwärter (aus Bewerbungen übertragen).</p>
+        </div>
+      </div>
+
+      <nav>
+        <a class="chip" href="index.html">Mitglieder</a>
+        <a class="chip" href="bewerbung.html">Bewerbungen</a>
+        <a class="chip" href="anwaerter.html">Anwärter</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="toolbar">
+        <div class="input">
+          <span style="opacity:.75">🔎</span>
+          <input id="search" placeholder="Suchen nach Name oder Ressort..." />
+        </div>
+        <button class="btn" id="refreshBtn">Neu laden</button>
+      </div>
+
+      <div style="overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Ressort</th>
+              <th>Email</th>
+              <th style="width:190px;">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="empty" id="empty" style="display:none;">Keine Anwärter gefunden.</div>
+    </div>
+  </div>
+
+  <!-- Modal: Ressort bearbeiten -->
+  <div class="overlay" id="editOverlay">
+    <div class="modal">
+      <div class="modalHead">
+        <h3>Anwärter bearbeiten</h3>
+        <p id="editSub">—</p>
+      </div>
+      <div class="modalBody">
+        <div class="field">
+          <label>Ressort</label>
+          <select id="editRessort"></select>
+        </div>
+      </div>
+      <div class="modalFoot">
+        <button class="btn" id="editCancel">Abbrechen</button>
+        <button class="btn primary" id="editSave">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // >>>>>>> SUPABASE CONFIG
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Falls deine Mitglieder-Tabelle anders heißt, hier anpassen:
+  const MEMBERS_TABLE = "mitglieder"; // z.B. "members" oder "mitglieder"
+
+  // UI state
+  let rows = [];
+  let ressorts = [];
+  let editing = null;
+
+  // Badge
+  async function updateLoginBadge(){
+    const { data } = await supabase.auth.getSession();
+    const isAuthed = !!data?.session;
+    document.getElementById("loginDot").classList.toggle("ok", isAuthed);
+    document.getElementById("loginText").textContent = isAuthed ? "Eingeloggt" : "Nicht eingeloggt";
+  }
+
+  async function requireAuth(){
+    const { data } = await supabase.auth.getSession();
+    if(!data?.session){
+      // minimal: Inhalt verstecken
+      document.getElementById("tbody").innerHTML = "";
+      document.getElementById("empty").style.display = "block";
+      document.getElementById("empty").textContent = "Bitte einloggen, um Anwärter zu sehen.";
+      throw new Error("not authed");
+    }
+  }
+
+  async function loadRessortsFromMembers(){
+    // Holt Ressorts dynamisch aus Mitglieder-Tabelle, damit es 1:1 gleich ist.
+    // Wenn es bei dir eine andere Spalte als "ressort" ist -> hier ändern.
+    const { data, error } = await supabase
+      .from(MEMBERS_TABLE)
+      .select("ressort")
+      .not("ressort", "is", null);
+
+    if(error){
+      // Fallback: statisch
+      return ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
+    }
+    const set = new Set((data||[]).map(x => (x.ressort||"").trim()).filter(Boolean));
+    const arr = Array.from(set);
+    return arr.length ? arr.sort((a,b)=>a.localeCompare(b,"de")) : ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
+  }
+
+  function renderRessortOptions(selectEl, selected){
+    selectEl.innerHTML = ressorts.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+    if(selected) selectEl.value = selected;
+  }
+
+  function escapeHtml(s){
+    return (s ?? "").toString()
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  async function load(){
+    await updateLoginBadge();
+    await requireAuth();
+
+    ressorts = await loadRessortsFromMembers();
+
+    const { data, error } = await supabase
+      .from("anwaerter")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if(error){
+      console.error(error);
+      alert("Fehler beim Laden der Anwärter: " + error.message);
+      return;
+    }
+    rows = data || [];
+    render();
+  }
+
+  function matches(row, q){
+    q = q.trim().toLowerCase();
+    if(!q) return true;
+    const name = `${row.vorname||""} ${row.nachname||""}`.toLowerCase();
+    const r = (row.ressort||"").toLowerCase();
+    const e = (row.email||"").toLowerCase();
+    return name.includes(q) || r.includes(q) || e.includes(q);
+  }
+
+  function render(){
+    const q = document.getElementById("search").value || "";
+    const filtered = rows.filter(r => matches(r,q));
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+
+    document.getElementById("empty").style.display = filtered.length ? "none" : "block";
+    if(!filtered.length) return;
+
+    for(const r of filtered){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${escapeHtml(r.vorname)} ${escapeHtml(r.nachname)}</strong></td>
+        <td><span class="pill">${escapeHtml(r.ressort)}</span></td>
+        <td>${escapeHtml(r.email)}</td>
+        <td>
+          <div class="actions">
+            <button class="btn" data-action="edit" data-id="${r.id}">Bearbeiten</button>
+            <button class="btn danger" data-action="del" data-id="${r.id}">Löschen</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function openEdit(row){
+    editing = row;
+    document.getElementById("editSub").textContent = `${row.vorname} ${row.nachname}`;
+    renderRessortOptions(document.getElementById("editRessort"), row.ressort);
+    document.getElementById("editOverlay").classList.add("show");
+  }
+  function closeEdit(){
+    document.getElementById("editOverlay").classList.remove("show");
+    editing = null;
+  }
+
+  async function saveEdit(){
+    if(!editing) return;
+    const ressort = document.getElementById("editRessort").value;
+    const { error } = await supabase
+      .from("anwaerter")
+      .update({ ressort })
+      .eq("id", editing.id);
+
+    if(error){
+      alert("Fehler beim Speichern: " + error.message);
+      return;
+    }
+    closeEdit();
+    await load();
+  }
+
+  async function delRow(id){
+    if(!confirm("Anwärter wirklich löschen?")) return;
+    const { error } = await supabase.from("anwaerter").delete().eq("id", id);
+    if(error){
+      alert("Fehler beim Löschen: " + error.message);
+      return;
+    }
+    await load();
+  }
+
+  // Events
+  document.getElementById("search").addEventListener("input", render);
+  document.getElementById("refreshBtn").addEventListener("click", load);
+
+  document.getElementById("tbody").addEventListener("click", (e)=>{
+    const btn = e.target.closest("button[data-action]");
+    if(!btn) return;
+    const id = Number(btn.dataset.id);
+    const action = btn.dataset.action;
+    const row = rows.find(x => x.id === id);
+    if(action === "edit" && row) openEdit(row);
+    if(action === "del") delRow(id);
+  });
+
+  document.getElementById("editCancel").addEventListener("click", closeEdit);
+  document.getElementById("editOverlay").addEventListener("click", (e)=>{
+    if(e.target.id === "editOverlay") closeEdit();
+  });
+  document.getElementById("editSave").addEventListener("click", saveEdit);
+
+  // Init
+  load().catch(()=>{});
+</script>
+</body>
+</html>
