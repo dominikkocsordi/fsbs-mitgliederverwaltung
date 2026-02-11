@@ -25,8 +25,6 @@
       --shadow: 0 20px 55px rgba(0,0,0,.40);
 
       --ok: rgba(34,197,94,.95);
-      --warn: rgba(245,158,11,.95);
-      --bad: rgba(239,68,68,.95);
     }
 
     *{box-sizing:border-box}
@@ -57,7 +55,7 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ===== Auth badge (wie bei Bewerbungen) ===== */
+    /* Auth badge */
     .authFloating{
       position: static;
       z-index: 1;
@@ -73,38 +71,15 @@
       -webkit-backdrop-filter: blur(18px);
       user-select:none;
     }
-
-    .dot{
-      width:10px;height:10px;border-radius:999px;
-      background: rgba(255,255,255,.35);
-      position: relative;
-    }
+    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position:relative; }
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
-
     .dot.ok{
       box-shadow:
         0 0 0 2px rgba(34,197,94,.20),
         0 0 18px rgba(34,197,94,.55),
         0 0 42px rgba(34,197,94,.30);
     }
-
-    @keyframes pulseRing {
-      0%   { transform: scale(1); opacity: .0; }
-      10%  { opacity: .6; }
-      70%  { transform: scale(3.2); opacity: 0; }
-      100% { transform: scale(3.2); opacity: 0; }
-    }
-    .dot.pulsing::after{
-      content:"";
-      position:absolute;
-      inset: -2px;
-      border-radius: 999px;
-      background: rgba(34,197,94,.25);
-      animation: pulseRing 1.15s ease-out 0s 2;
-      pointer-events:none;
-    }
-
     .authAvatar{
       width: 30px;
       height: 30px;
@@ -120,27 +95,12 @@
       background: rgba(255,255,255,.10);
     }
     .authAvatar.hidden{ display:none; }
-
-    .authInfo{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-      min-width: 140px;
-    }
-    .authState{
-      font-size:13px;
-      font-weight:750;
-      letter-spacing:.25px;
-    }
-    .authMail{
-      font-size:11px;
-      color: rgba(255,255,255,.58);
-      margin-top:3px;
-      word-break:break-all;
-    }
+    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:140px; }
+    .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
+    .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:3px; word-break:break-all; }
     .hidden{ display:none; }
 
-    /* Header (wie bei Bewerbungen) */
+    /* Header */
     .top{
       display:flex;
       align-items:flex-end;
@@ -164,20 +124,9 @@
       white-space:nowrap;
     }
 
-    /* NAV sticky (wie bei Bewerbungen) */
-    .navWrap{
-      position: sticky;
-      top: 14px;
-      z-index: 10;
-      margin-bottom: 16px;
-    }
-    .nav{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      padding: 10px;
-    }
+    /* NAV */
+    .navWrap{ position: sticky; top: 14px; z-index: 10; margin-bottom: 16px; }
+    .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
@@ -224,21 +173,18 @@
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
-
     .btn-secondary{
       background: rgba(255,255,255,.14);
       color: var(--text);
       border: 1px solid var(--border);
     }
     .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
-
     .btn-primary{
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
       color: #03202b;
       box-shadow: 0 10px 26px rgba(14,165,233,.25);
     }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-
     .btn-danger{
       background: rgba(239,68,68,.16);
       color: rgba(255,255,255,.92);
@@ -264,16 +210,15 @@
       border-radius: 14px;
       outline:none;
       min-width: 190px;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus, select:focus{
-      border-color: rgba(56,189,248,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
     }
 
-    table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; }
+    .tableWrap{
+      overflow:auto;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+    }
+    table{ width:100%; border-collapse:separate; border-spacing:0; }
     th, td{ padding:12px 14px; text-align:left; font-size:14px; }
     th{
       font-size:12px;
@@ -285,13 +230,6 @@
     }
     tr + tr td{ border-top:1px solid rgba(255,255,255,.08); }
 
-    .tableWrap{
-      overflow:auto;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-    }
-
     .pillSmall{
       padding: 6px 10px;
       border-radius: 999px;
@@ -301,7 +239,6 @@
       color: rgba(255,255,255,.82);
       display:inline-flex;
       align-items:center;
-      gap:8px;
       white-space:nowrap;
     }
 
@@ -314,7 +251,7 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* Modal */
+    /* Edit modal */
     .modalOverlay{
       position: fixed; inset:0; z-index:60;
       background: rgba(0,0,0,.55);
@@ -346,11 +283,9 @@
       input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authInfo{ min-width: 0; }
-
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
-
       th:nth-child(3), td:nth-child(3){ display:none; } /* Email verstecken auf Handy */
     }
   </style>
@@ -359,17 +294,16 @@
 <body>
   <div class="app">
 
-    <!-- ✅ Header (wie Bewerbungen): Titel + Status pill LINKS, Badge RECHTS -->
     <div class="top">
       <div>
         <h1>Anwärter</h1>
-        <div class="subtitle">Aufgenommene Anwärter · aus Bewerbungen übernommen</div>
+        <div class="subtitle">Liste der Anwärter · übernommen aus Bewerbungen</div>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="pill" id="statusPill">–</div>
 
-        <div class="authFloating" id="authBadge" title="Login-Status">
+        <div class="authFloating" title="Login-Status">
           <span class="dot warn" id="authDot"></span>
           <div class="authAvatar hidden" id="authAvatar">U</div>
           <div class="authInfo">
@@ -380,11 +314,11 @@
       </div>
     </div>
 
-    <!-- ✅ NAV sticky (nur eingeloggt!) -->
+    <!-- NAV (nur eingeloggt) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
-          <a class="navLink" href="/index.html" id="navMembers">
+          <a class="navLink" href="/index.html">
             <span class="navIcon">👥</span>
             <span>
               <div class="navTitle">Mitglieder</div>
@@ -392,7 +326,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="/bewerbungen.html" id="navApps">
+          <a class="navLink" href="/bewerbungen.html">
             <span class="navIcon">📝</span>
             <span>
               <div class="navTitle">Bewerbungen</div>
@@ -400,7 +334,7 @@
             </span>
           </a>
 
-          <a class="navLink active" href="/anwaerter.html" id="navCandidates">
+          <a class="navLink active" href="/anwaerter.html">
             <span class="navIcon">🟢</span>
             <span>
               <div class="navTitle">Anwärter</div>
@@ -408,7 +342,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="/settings.html" id="navSettings">
+          <a class="navLink" href="/settings.html">
             <span class="navIcon">⚙️</span>
             <span>
               <div class="navTitle">Einstellungen</div>
@@ -423,11 +357,11 @@
       </div>
     </div>
 
-    <!-- ✅ Content (wird nur nach Login gezeigt) -->
+    <!-- Content (nur nach Login sichtbar) -->
     <div class="glass card" id="contentCard" style="display:none;">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
-        <select id="fRessort"><option value="">Ressort (alle)</option></select>
+        <select id="fRessort"></select>
         <button class="btn-secondary" id="reloadBtn">Neu laden</button>
         <div class="spacer"></div>
         <div class="pill" id="countPill">0</div>
@@ -454,15 +388,15 @@
 
   </div>
 
-  <!-- Modal: Ressort bearbeiten -->
-  <div class="modalOverlay" id="editOverlay" onclick="editOverlayClick(event)">
+  <!-- Edit Modal -->
+  <div class="modalOverlay" id="editOverlay">
     <div class="glass modal" onclick="event.stopPropagation()">
       <div class="modalHeader">
         <div>
           <h2 class="modalTitle">Anwärter bearbeiten</h2>
           <div class="modalSub" id="editSub">–</div>
         </div>
-        <button class="btn-secondary closeX" onclick="closeEdit()">✕</button>
+        <button class="btn-secondary closeX" id="closeEditBtn">✕</button>
       </div>
 
       <div class="card" style="padding:12px; margin:0;">
@@ -470,7 +404,7 @@
         <select id="editRessort" style="width:100%; min-width:0;"></select>
 
         <div class="row" style="margin-top:14px; justify-content:flex-end;">
-          <button class="btn-secondary" onclick="closeEdit()">Abbrechen</button>
+          <button class="btn-secondary" id="editCancelBtn">Abbrechen</button>
           <button class="btn-primary" id="saveEditBtn">Speichern</button>
         </div>
       </div>
@@ -484,12 +418,17 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Tabellen ======
     const CANDIDATES_TABLE = "anwaerter";
-    const MEMBERS_TABLE = "mitglieder";      // falls anders -> anpassen
-    const MEMBERS_RESSORT_COL = "ressort";   // falls anders -> anpassen
 
-    // ====== Elements ======
+    const RESSORTS_FIXED = [
+      "Externe Events",
+      "Interne Events",
+      "Sponsoring",
+      "Merchandise",
+      "Kommunikation"
+    ];
+
+    // Elements
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
 
@@ -499,8 +438,8 @@
     const authAvatar = document.getElementById("authAvatar");
 
     const statusPill = document.getElementById("statusPill");
-
     const contentCard = document.getElementById("contentCard");
+
     const q = document.getElementById("q");
     const fRessort = document.getElementById("fRessort");
     const reloadBtn = document.getElementById("reloadBtn");
@@ -513,10 +452,11 @@
     const editSub = document.getElementById("editSub");
     const editRessort = document.getElementById("editRessort");
     const saveEditBtn = document.getElementById("saveEditBtn");
+    const closeEditBtn = document.getElementById("closeEditBtn");
+    const editCancelBtn = document.getElementById("editCancelBtn");
 
-    // ====== State ======
+    // State
     let ALL = [];
-    let RESSORTS = [];
     let EDITING = null;
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -524,7 +464,7 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    // ===== Badge helpers (wie Bewerbungen) =====
+    // Badge helpers
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -557,56 +497,42 @@
       authAvatar.classList.remove("hidden");
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
-    function pulseLogin(){
-      authDot.classList.add("pulsing");
-      setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-    }
-    function setAuthUI(isAuthed, email = "", doPulse = false){
+    function setAuthUI(isAuthed, email = ""){
       if (isAuthed){
         authDot.classList.remove("warn");
         authDot.classList.add("ok");
-
         authState.textContent = "eingeloggt";
         authMail.textContent = (email || "").trim();
         authMail.classList.remove("hidden");
-
         setAvatar(email);
-
         navWrap.style.display = "block";
         logoutBtn.classList.remove("hidden");
-
-        if (doPulse) pulseLogin();
+        contentCard.style.display = "block";
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
-
         authState.textContent = "nicht eingeloggt";
         authMail.textContent = "";
         authMail.classList.add("hidden");
-
         setAvatar("");
-
         navWrap.style.display = "none";
         logoutBtn.classList.add("hidden");
+        contentCard.style.display = "none";
       }
     }
 
     async function requireAuth(){
       const res = await sb.auth.getSession();
-      if (!res || !res.data || !res.data.session) throw new Error("not_logged_in");
+      if (!res?.data?.session) throw new Error("not_logged_in");
       return res.data.session;
     }
 
-    // ✅ WICHTIG: wie bei Bewerbungen -> ohne Login sofort redirect + Inhalte nicht sichtbar
     async function enforceAuth(){
       try{
         const session = await requireAuth();
-        const mail = session?.user?.email || "";
-        setAuthUI(true, mail, false);
-        contentCard.style.display = "block";
+        setAuthUI(true, session?.user?.email || "");
       } catch(e){
         setAuthUI(false);
-        contentCard.style.display = "none";
         window.location.href = LOGIN_REDIRECT;
       }
     }
@@ -616,49 +542,24 @@
       window.location.href = "/index.html";
     });
 
-    function uniq(arr){
-      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
-    }
-
-    async function loadRessortsFromMembers(){
-      const { data, error } = await sb
-        .from(MEMBERS_TABLE)
-        .select(MEMBERS_RESSORT_COL)
-        .not(MEMBERS_RESSORT_COL, "is", null);
-
-      if (error){
-        return ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
-      }
-
-      const set = new Set((data || [])
-        .map(x => (x?.[MEMBERS_RESSORT_COL] ?? "").toString().trim())
-        .filter(Boolean)
-      );
-      const arr = Array.from(set);
-      return arr.length ? arr.sort((a,b)=>a.localeCompare(b,"de")) : ["Vorstand","Finanzen","Events","Öffentlichkeitsarbeit","IT","Sponsoring"];
-    }
-
     function fillRessortFilter(){
-      const vals = uniq(ALL.map(r => r.ressort));
-      fRessort.innerHTML = `<option value="">Ressort (alle)</option>` + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
-    }
-
-    function matchesRow(r, text, ressort){
-      const t = safe(text).trim().toLowerCase();
-      const res = safe(ressort).trim();
-      if (res && safe(r.ressort).trim() !== res) return false;
-      if (!t) return true;
-      const hay = [r.vorname, r.nachname, r.email, r.ressort].map(safe).join(" ").toLowerCase();
-      return hay.includes(t);
+      fRessort.innerHTML =
+        `<option value="">Ressort (alle)</option>` +
+        RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
     }
 
     function render(){
-      const text = safe(q.value);
-      const res = safe(fRessort.value);
+      const text = safe(q.value).trim().toLowerCase();
+      const rf = safe(fRessort.value).trim();
 
-      const rows = ALL.filter(r => matchesRow(r, text, res));
+      const rows = ALL.filter(r => {
+        if (rf && safe(r.ressort).trim() !== rf) return false;
+        if (!text) return true;
+        const hay = [r.vorname, r.nachname, r.email, r.ressort].map(safe).join(" ").toLowerCase();
+        return hay.includes(text);
+      });
+
       countPill.textContent = `${rows.length} / ${ALL.length}`;
-
       tbody.innerHTML = "";
       empty.style.display = rows.length ? "none" : "block";
 
@@ -694,33 +595,26 @@
 
       ALL = Array.isArray(data) ? data : [];
       statusPill.textContent = `Geladen: ${ALL.length}`;
-      fillRessortFilter();
       render();
     }
 
-    // ===== Edit Modal =====
+    // Edit modal
     function openEdit(row){
       EDITING = row;
       editSub.textContent = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
-      editRessort.innerHTML = RESSORTS.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
-      editRessort.value = safe(row.ressort).trim() || (RESSORTS[0] || "");
+      editRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+      editRessort.value = RESSORTS_FIXED.includes(safe(row.ressort).trim()) ? safe(row.ressort).trim() : RESSORTS_FIXED[0];
       editOverlay.classList.add("show");
     }
     function closeEdit(){
       editOverlay.classList.remove("show");
       EDITING = null;
     }
-    function editOverlayClick(e){
-      if (e.target === editOverlay) closeEdit();
-    }
 
     async function saveEdit(){
       if (!EDITING) return;
       const ressort = safe(editRessort.value).trim();
-      if (!ressort){
-        alert("Bitte Ressort wählen.");
-        return;
-      }
+      if (!ressort) return alert("Bitte Ressort wählen.");
 
       saveEditBtn.disabled = true;
       saveEditBtn.style.opacity = ".75";
@@ -737,11 +631,12 @@
         alert("Fehler beim Speichern: " + error.message);
         return;
       }
+
       closeEdit();
       await fetchCandidates();
     }
 
-    async function deleteRow(id){
+    async function delRow(id){
       if (!confirm("Anwärter wirklich löschen?")) return;
       const { error } = await sb.from(CANDIDATES_TABLE).delete().eq("id", id);
       if (error){
@@ -752,10 +647,18 @@
     }
 
     // Events
+    fillRessortFilter();
     q.addEventListener("input", render);
     fRessort.addEventListener("input", render);
     reloadBtn.addEventListener("click", fetchCandidates);
+
     saveEditBtn.addEventListener("click", saveEdit);
+    closeEditBtn.addEventListener("click", closeEdit);
+    editCancelBtn.addEventListener("click", closeEdit);
+
+    editOverlay.addEventListener("click", (e)=>{
+      if (e.target === editOverlay) closeEdit();
+    });
 
     tbody.addEventListener("click", (e)=>{
       const btn = e.target.closest("button[data-action]");
@@ -764,7 +667,7 @@
       const action = btn.dataset.action;
       const row = ALL.find(x => Number(x.id) === id);
       if (action === "edit" && row) openEdit(row);
-      if (action === "del") deleteRow(id);
+      if (action === "del") delRow(id);
     });
 
     document.addEventListener("keydown", (e)=>{
@@ -773,8 +676,7 @@
 
     // Init
     (async function init(){
-      await enforceAuth();               // ✅ blockiert/redirect ohne Login
-      RESSORTS = await loadRessortsFromMembers();
+      await enforceAuth();
       await fetchCandidates();
     })();
   </script>
