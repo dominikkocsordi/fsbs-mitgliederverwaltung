@@ -80,7 +80,6 @@
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
 
-    /* ✨ Glow */
     .dot.ok{
       box-shadow:
         0 0 0 2px rgba(34,197,94,.20),
@@ -88,7 +87,6 @@
         0 0 42px rgba(34,197,94,.30);
     }
 
-    /* 🔄 Pulse */
     @keyframes pulseRing {
       0%   { transform: scale(1); opacity: .0; }
       10%  { opacity: .6; }
@@ -105,7 +103,6 @@
       pointer-events:none;
     }
 
-    /* 👤 Avatar */
     .authAvatar{
       width: 30px;
       height: 30px;
@@ -141,7 +138,6 @@
     }
     .hidden{ display:none; }
 
-    /* Header + Controls */
     .top{
       display:flex;
       align-items:flex-end;
@@ -318,9 +314,18 @@
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.06);
       color: rgba(255,255,255,.78);
+      white-space:nowrap;
     }
     .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
     .tag a:hover{ text-decoration:underline; }
+
+    /* ✅ Anwärter badge */
+    .tag-ok{
+      background: rgba(34,197,94,.20);
+      border-color: rgba(34,197,94,.35);
+      color:#bbf7d0;
+      box-shadow: 0 12px 28px rgba(34,197,94,.10);
+    }
 
     .empty{
       margin-top: 12px;
@@ -331,7 +336,6 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* Debug box */
     .debug{
       display:none;
       margin-top: 10px;
@@ -374,7 +378,6 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
-    /* Modal Photo */
     .modalPhotoWrap{
       display:flex;
       justify-content:center;
@@ -509,14 +512,15 @@
               <div class="navHint">Verwalten</div>
             </span>
           </a>
-          
+
           <a class="navLink" href="/anwaerter.html" id="navCandidates">
-              <span class="navIcon">👶🏼</span>
-              <span>
-                <div class="navTitle">Anwärter</div>
-                <div class="navHint">Liste</div>
-              </span>
-            </a>
+            <span class="navIcon">👶🏼</span>
+            <span>
+              <div class="navTitle">Anwärter</div>
+              <div class="navHint">Liste</div>
+            </span>
+          </a>
+
           <a class="navLink active" href="/bewerbungen.html">
             <span class="navIcon">📝</span>
             <span>
@@ -624,8 +628,9 @@
 
     // ====== Anwärter Tabelle ======
     const CANDIDATES_TABLE = "anwaerter";
+    const CAND_EMAIL_COL = "email"; // ✅ wichtig: Spaltenname in anwaerter
 
-    // ✅ Ressorts fix (wie von dir vorgegeben)
+    // ✅ Ressorts fix
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
@@ -651,6 +656,10 @@
       consent: "Einwilligung in die Datenverarbeitung gemäß Datenschutzerklärung",
       sem: "Semester"
     };
+
+    // ====== Cache (schneller erster Paint) ======
+    const CACHE_KEY = "bewerbungen_cache_v2";
+    const CACHE_TTL_MS = 5 * 60 * 1000; // 5 Minuten
 
     // ====== Elements ======
     const navWrap = document.getElementById("navWrap");
@@ -693,6 +702,9 @@
     let ALL = [];
     let ACTIVE_ROW = null;
 
+    // ✅ Anwärter lookup (per Email)
+    let candidatesSet = new Set();
+
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
@@ -701,6 +713,31 @@
     function showDebug(obj){
       debugBox.classList.add("show");
       debugBox.textContent = JSON.stringify(obj, null, 2);
+    }
+
+    function normEmail(v){
+      return String(v || "").trim().toLowerCase();
+    }
+
+    async function refreshCandidatesSetFor(rows){
+      candidatesSet = new Set();
+      const emails = [...new Set(rows.map(r => normEmail(r[F.email])).filter(Boolean))];
+      if (!emails.length) return;
+
+      const { data, error } = await sb
+        .from(CANDIDATES_TABLE)
+        .select(CAND_EMAIL_COL)
+        .in(CAND_EMAIL_COL, emails);
+
+      if (error){
+        console.warn("Anwärter-check failed:", error.message);
+        return;
+      }
+      (data || []).forEach(r => candidatesSet.add(normEmail(r[CAND_EMAIL_COL])));
+    }
+
+    function isCandidateEmail(email){
+      return candidatesSet.has(normEmail(email));
     }
 
     // ===== Badge helpers =====
@@ -852,6 +889,24 @@
       );
     }
 
+    function cacheWrite(rows){
+      try{
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), rows }));
+      }catch(e){}
+    }
+    function cacheRead(){
+      try{
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (!obj?.t || !Array.isArray(obj.rows)) return null;
+        if (Date.now() - obj.t > CACHE_TTL_MS) return null;
+        return obj.rows;
+      }catch(e){
+        return null;
+      }
+    }
+
     async function fetchRows(){
       statusPill.textContent = "Lade…";
 
@@ -887,6 +942,11 @@
         }
 
         ALL = Array.isArray(json.rows) ? json.rows : [];
+        cacheWrite(ALL);
+
+        // ✅ Anwärter-Status einmal laden (bulk)
+        await refreshCandidatesSetFor(ALL);
+
         statusPill.textContent = `Geladen: ${ALL.length}`;
         fillFilters();
         render();
@@ -913,12 +973,15 @@
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
 
+        const isCand = isCandidateEmail(mail);
+
         const card = document.createElement("div");
         card.className = "appCard";
 
         let avatarHtml = esc(getInitials(row));
         if (thumb){
           avatarHtml = `<img src="${esc(thumb)}" alt="Foto" loading="lazy"
+            decoding="async"
             referrerpolicy="no-referrer"
             onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`;
         }
@@ -930,6 +993,7 @@
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
               <div class="tags">
+                ${isCand ? `<span class="tag tag-ok">🟢 Anwärter</span>` : ``}
                 ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
                 ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
                 ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
@@ -948,35 +1012,57 @@
       ACTIVE_ROW = null;
     }
 
+    // ✅ Modal-Foto: Thumb sofort, dann großes Bild nachladen & swap
     function setModalPhoto(row){
       modalPhoto.innerHTML = "";
 
       const thumb = getThumb(row);
       const photoUrl = getPhotoUrl(row);
 
+      const initials = getInitials(row);
+
+      function setFallback(){
+        modalPhoto.innerHTML = "";
+        modalPhoto.textContent = initials;
+        modalPhoto.style.cursor = "default";
+        modalPhoto.onclick = null;
+      }
+
+      const clickable = !!photoUrl;
+      modalPhoto.style.cursor = clickable ? "pointer" : "default";
+      modalPhoto.onclick = () => {
+        if (photoUrl) window.open(photoUrl, "_blank", "noopener");
+      };
+
+      // 1) show thumb (fast)
       if (thumb){
         const img = document.createElement("img");
         img.src = thumb;
         img.alt = "Foto";
-        img.loading = "lazy";
+        img.loading = "eager";       // im Modal direkt anzeigen
+        img.decoding = "async";
         img.referrerPolicy = "no-referrer";
-        img.onerror = () => {
-          modalPhoto.innerHTML = "";
-          modalPhoto.textContent = getInitials(row);
-          modalPhoto.style.cursor = "default";
-        };
-
-        modalPhoto.style.cursor = photoUrl ? "pointer" : "default";
-        modalPhoto.onclick = () => {
-          if (photoUrl) window.open(photoUrl, "_blank", "noopener");
-        };
+        img.onerror = setFallback;
 
         modalPhoto.appendChild(img);
-      } else {
-        modalPhoto.textContent = getInitials(row);
-        modalPhoto.style.cursor = "default";
-        modalPhoto.onclick = null;
+
+        // 2) preload big and swap when ready
+        if (photoUrl && photoUrl !== thumb){
+          const big = new Image();
+          big.referrerPolicy = "no-referrer";
+          big.decoding = "async";
+          big.onload = () => {
+            // swap src
+            img.src = photoUrl;
+          };
+          big.onerror = () => { /* keep thumb */ };
+          big.src = photoUrl;
+        }
+        return;
       }
+
+      // no thumb => initials
+      setFallback();
     }
 
     function openModal(row){
@@ -1021,7 +1107,7 @@
       modalOverlay.classList.add("show");
     }
 
-    // ===== Anwärter-Übernahme (inkl. Foto-Links!) =====
+    // ===== Anwärter-Übernahme =====
     function openCandModal(){
       if (!ACTIVE_ROW){
         alert("Kein Bewerber ausgewählt.");
@@ -1072,8 +1158,6 @@
       }
 
       const bewerbung_id = [safe(ACTIVE_ROW[F.ts]).trim(), email].filter(Boolean).join(" | ") || null;
-
-      // ✅ Foto-Links aus Google/Forms übernehmen (kein Upload nach Supabase!)
       const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
       const photo_thumb = getThumb(ACTIVE_ROW) || null;
 
@@ -1091,6 +1175,10 @@
         alert("Konnte nicht übernehmen: " + error.message);
         return;
       }
+
+      // ✅ sofort UI updaten (Badge erscheint direkt)
+      candidatesSet.add(normEmail(email));
+      render();
 
       closeCandModal();
       alert("✅ Als Anwärter übernommen! (Foto-Link mit gespeichert)");
@@ -1133,6 +1221,20 @@
     // Init
     (async function init(){
       await enforceAuth();
+
+      // ✅ sofort aus Cache anzeigen (falls vorhanden)
+      const cached = cacheRead();
+      if (cached){
+        ALL = cached;
+        statusPill.textContent = `Cache: ${ALL.length}`;
+        fillFilters();
+
+        // Anwärter-Status für Cache laden (bulk) – danach rendern
+        await refreshCandidatesSetFor(ALL);
+        render();
+      }
+
+      // danach immer "frisch" laden
       await fetchRows();
     })();
   </script>
