@@ -25,6 +25,7 @@
       --shadow: 0 20px 55px rgba(0,0,0,.40);
 
       --ok: rgba(34,197,94,.95);
+      --bad: rgba(239,68,68,.95);
     }
 
     *{box-sizing:border-box}
@@ -249,6 +250,11 @@
       white-space:nowrap;
       gap:8px;
     }
+    .pillOk{
+      background: rgba(34,197,94,.20);
+      border-color: rgba(34,197,94,.35);
+      color:#bbf7d0;
+    }
 
     .empty{
       margin-top: 12px;
@@ -398,15 +404,15 @@
               <div class="navHint">Verwalten</div>
             </span>
           </a>
-          
+
           <a class="navLink active" href="/anwaerter.html" id="navCandidates">
-              <span class="navIcon">👶🏼</span>
-              <span>
-                <div class="navTitle">Anwärter</div>
-                <div class="navHint">Liste</div>
-              </span>
-            </a>
-          
+            <span class="navIcon">👶🏼</span>
+            <span>
+              <div class="navTitle">Anwärter</div>
+              <div class="navHint">Liste</div>
+            </span>
+          </a>
+
           <a class="navLink" href="/bewerbungen.html">
             <span class="navIcon">📝</span>
             <span>
@@ -492,6 +498,10 @@
             </div>
           </div>
         </div>
+
+        <div style="margin-top:10px;">
+          <span class="pillSmall pillOk" title="kommt aus bewerbung_status">🟢 Bewerbungsstatus: Anwärter</span>
+        </div>
       </div>
     </div>
   </div>
@@ -505,6 +515,9 @@
 
     // ====== Tabellen ======
     const CANDIDATES_TABLE = "anwaerter";
+    const STATUS_TABLE = "bewerbung_status";
+    const STATUS_ID_COL = "bewerbung_id";
+    const STATUS_COL = "status"; // "anwaerter" | "abgelehnt"
 
     // ✅ Ressorts fix
     const RESSORTS_FIXED = [
@@ -548,10 +561,39 @@
     let ALL = [];
     let EDITING = null;
 
+    // ✅ Status Map: bewerbung_id -> status
+    let statusMap = new Map();
+
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+    function normId(v){ return String(v || "").trim(); }
+
+    async function refreshStatusMapForBewerbungIds(ids){
+      statusMap = new Map();
+      const uniqIds = [...new Set((ids || []).map(normId).filter(Boolean))];
+      if (!uniqIds.length) return;
+
+      const { data, error } = await sb
+        .from(STATUS_TABLE)
+        .select(`${STATUS_ID_COL},${STATUS_COL}`)
+        .in(STATUS_ID_COL, uniqIds);
+
+      if (error){
+        console.warn("Status-check failed:", error.message);
+        return;
+      }
+
+      (data || []).forEach(r => {
+        statusMap.set(normId(r[STATUS_ID_COL]), String(r[STATUS_COL] || "").toLowerCase());
+      });
+    }
+
+    function getStatusByBewerbungId(bewerbung_id){
+      return statusMap.get(normId(bewerbung_id)) || "";
+    }
 
     // Badge helpers
     function hashString(str){
@@ -662,6 +704,8 @@
       rows.forEach(r => {
         const thumb = safe(r.photo_thumb).trim();
         const photo = safe(r.photo_url).trim();
+        const bewerbungId = safe(r.bewerbung_id).trim();
+        const st = getStatusByBewerbungId(bewerbungId); // sollte bei uns "anwaerter" sein
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -670,7 +714,7 @@
               <div class="avatarSmall">
                 ${
                   thumb
-                    ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy" referrerpolicy="no-referrer"
+                    ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy" decoding="async" referrerpolicy="no-referrer"
                         onerror="this.remove(); this.parentElement.textContent='${esc(initialsFromName(r.vorname, r.nachname))}';" />`
                     : `${esc(initialsFromName(r.vorname, r.nachname))}`
                 }
@@ -687,7 +731,12 @@
               </div>
             </div>
           </td>
-          <td><span class="pillSmall">${esc(safe(r.ressort) || "—")}</span></td>
+          <td>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <span class="pillSmall">${esc(safe(r.ressort) || "—")}</span>
+              ${st === "anwaerter" ? `<span class="pillSmall pillOk">🟢 Bewerbungsstatus: Anwärter</span>` : ``}
+            </div>
+          </td>
           <td>${esc(safe(r.email) || "—")}</td>
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -702,6 +751,7 @@
 
     async function fetchCandidates(){
       statusPill.textContent = "Lade…";
+
       const { data, error } = await sb
         .from(CANDIDATES_TABLE)
         .select("*")
@@ -713,7 +763,21 @@
         return;
       }
 
-      ALL = Array.isArray(data) ? data : [];
+      let rows = Array.isArray(data) ? data : [];
+
+      // ✅ Status für alle bewerbung_id bulk laden
+      const ids = rows.map(r => safe(r.bewerbung_id).trim()).filter(Boolean);
+      await refreshStatusMapForBewerbungIds(ids);
+
+      // ✅ WICHTIG: Abgelehnte NICHT anzeigen
+      rows = rows.filter(r => {
+        const bid = safe(r.bewerbung_id).trim();
+        if (!bid) return true; // falls alte Einträge ohne bewerbung_id
+        return getStatusByBewerbungId(bid) !== "abgelehnt";
+      });
+
+      ALL = rows;
+
       statusPill.textContent = `Geladen: ${ALL.length}`;
       render();
     }
@@ -727,7 +791,7 @@
       editRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
       editRessort.value = RESSORTS_FIXED.includes(safe(row.ressort).trim()) ? safe(row.ressort).trim() : RESSORTS_FIXED[0];
 
-      // Foto Preview (nur Link, kein Upload)
+      // Foto Preview
       const thumb = safe(row.photo_thumb).trim();
       const photo = safe(row.photo_url).trim();
       editPhoto.innerHTML = "";
@@ -738,6 +802,7 @@
         img.src = thumb;
         img.alt = "Foto";
         img.loading = "lazy";
+        img.decoding = "async";
         img.referrerPolicy = "no-referrer";
         img.onerror = () => {
           editPhoto.innerHTML = initialsFromName(row.vorname, row.nachname);
