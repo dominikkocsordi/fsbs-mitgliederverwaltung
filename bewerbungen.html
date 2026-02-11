@@ -23,7 +23,6 @@
       --accent2:#0ea5e9;
 
       --shadow: 0 20px 55px rgba(0,0,0,.40);
-      --r: 22px;
     }
 
     *{box-sizing:border-box}
@@ -225,6 +224,8 @@
       background: rgba(255,255,255,.06);
       color: rgba(255,255,255,.78);
     }
+    .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
+    .tag a:hover{ text-decoration:underline; }
 
     .empty{
       margin-top: 12px;
@@ -278,6 +279,40 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
+    /* NEW: Modal Photo (größer) */
+    .modalPhotoWrap{
+      display:flex;
+      justify-content:center;
+      margin: 6px 0 16px;
+    }
+    .modalPhoto{
+      width: 220px;
+      height: 220px;
+      border-radius: 26px;
+      overflow:hidden;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.22);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 54px;
+      font-weight: 900;
+      color: rgba(255,255,255,.80);
+      cursor: pointer;
+      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
+    }
+    .modalPhoto:hover{
+      transform: translateY(-2px) scale(1.02);
+      filter: brightness(1.06);
+      box-shadow: 0 18px 45px rgba(0,0,0,.35);
+    }
+    .modalPhoto img{
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      display:block;
+    }
+
     .kv{
       display:grid;
       grid-template-columns: 320px 1fr;
@@ -288,7 +323,10 @@
       border-radius: 18px;
       margin-top: 12px;
     }
-    @media (max-width: 760px){ .kv{grid-template-columns: 1fr;} }
+    @media (max-width: 760px){
+      .kv{grid-template-columns: 1fr;}
+      .modalPhoto{ width: 200px; height: 200px; }
+    }
     .k{ color: rgba(255,255,255,.70); font-size:12px; }
     .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
     .v a{ color: rgba(180,210,255,.95); }
@@ -298,7 +336,7 @@
 <body>
   <div class="app">
 
-    <!-- NAV (wie im Portal) -->
+    <!-- NAV -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
@@ -363,20 +401,25 @@
         <button class="btn-secondary closeX" onclick="closeModal()">✕</button>
       </div>
 
+      <!-- NEW: Großes Foto -->
+      <div class="modalPhotoWrap">
+        <div class="modalPhoto" id="modalPhoto" title="Klick: Foto öffnen"></div>
+      </div>
+
       <div class="kv" id="kv"></div>
     </div>
   </div>
 
   <script>
-    // ====== 1) HIER EINTRAGEN (sonst bleiben Einträge leer) ======
-    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec";
+    // ====== HIER EINTRAGEN ======
+    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec"; // z.B. https://script.google.com/macros/s/.../exec
     const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
 
-    // ====== 2) Supabase Auth (wie im Portal) ======
+    // ====== Supabase Auth ======
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const LOGIN_REDIRECT = "/index.html"; // du loggst dich auf der Hauptseite ein
+    const LOGIN_REDIRECT = "/index.html";
 
     // ====== Feldnamen (exakt wie dein Sheet) ======
     const F = {
@@ -415,6 +458,7 @@
     const modalOverlay = document.getElementById("modalOverlay");
     const modalTitle = document.getElementById("modalTitle");
     const modalSub = document.getElementById("modalSub");
+    const modalPhoto = document.getElementById("modalPhoto");
     const kv = document.getElementById("kv");
 
     // ====== State ======
@@ -431,9 +475,9 @@
     }
 
     async function requireAuth(){
-      const { data } = await sb.auth.getSession();
-      if (!data.session) throw new Error("not_logged_in");
-      return data.session;
+      const res = await sb.auth.getSession();
+      if (!res || !res.data || !res.data.session) throw new Error("not_logged_in");
+      return res.data.session;
     }
 
     async function enforceAuth(){
@@ -449,52 +493,6 @@
       await sb.auth.signOut();
       window.location.href = "/index.html";
     });
-
-    async function fetchRows(){
-      statusPill.textContent = "Lade…";
-
-      // harte Checks, damit du sofort siehst, was fehlt
-      if (!SHEET_API_URL || SHEET_API_URL.includes("PASTE_")){
-        statusPill.textContent = "Fehlt: SHEET_API_URL";
-        showDebug({hint:"Du musst die Apps Script Web-App URL in SHEET_API_URL eintragen."});
-        return;
-      }
-      if (!SHEET_API_KEY || SHEET_API_KEY.includes("PASTE_")){
-        statusPill.textContent = "Fehlt: API_KEY";
-        showDebug({hint:"Du musst den gleichen API_KEY wie im Apps Script in SHEET_API_KEY eintragen."});
-        return;
-      }
-
-      const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
-
-      try{
-        const res = await fetch(url, { method:"GET" });
-        const text = await res.text();
-
-        // JSON parse mit gutem Fehler
-        let json;
-        try { json = JSON.parse(text); }
-        catch(parseErr){
-          statusPill.textContent = "API liefert kein JSON";
-          showDebug({url, status: res.status, response_preview: text.slice(0, 500)});
-          return;
-        }
-
-        if (!res.ok){
-          statusPill.textContent = "API Fehler";
-          showDebug({url, status: res.status, json});
-          return;
-        }
-
-        ALL = Array.isArray(json.rows) ? json.rows : [];
-        statusPill.textContent = `Geladen: ${ALL.length}`;
-        fillFilters();
-        render();
-      } catch(err){
-        statusPill.textContent = "Fetch/CORS Fehler";
-        showDebug({url, error: String(err)});
-      }
-    }
 
     function uniq(arr){
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
@@ -515,19 +513,30 @@
     }
 
     function getInitials(row){
-      const a = safe(row[F.fn]).trim()[0] || "";
-      const b = safe(row[F.ln]).trim()[0] || "";
+      const a = safe(row[F.fn]).trim().slice(0,1);
+      const b = safe(row[F.ln]).trim().slice(0,1);
       return (a + b).toUpperCase() || "•";
     }
 
-    function firstPhotoThumb(row){
-      const t = row.__photo?.items?.[0]?.thumb || "";
-      // Nur echte URLs als Bild verwenden
-      if (typeof t === "string" && (t.startsWith("http://") || t.startsWith("https://"))) return t;
+    function getThumb(row){
+      try{
+        if (row && row.__photo && row.__photo.items && row.__photo.items[0] && row.__photo.items[0].thumb){
+          const t = String(row.__photo.items[0].thumb);
+          if (t.startsWith("http://") || t.startsWith("https://")) return t;
+        }
+      } catch(e){}
       return "";
     }
 
-
+    function getPhotoUrl(row){
+      try{
+        if (row && row.__photo && row.__photo.items && row.__photo.items[0] && row.__photo.items[0].url){
+          const u = String(row.__photo.items[0].url);
+          if (u.startsWith("http://") || u.startsWith("https://")) return u;
+        }
+      } catch(e){}
+      return "";
+    }
 
     function matches(row, text){
       if (!text) return true;
@@ -551,6 +560,50 @@
       );
     }
 
+    async function fetchRows(){
+      statusPill.textContent = "Lade…";
+
+      if (!SHEET_API_URL || SHEET_API_URL.includes("PASTE_")){
+        statusPill.textContent = "Fehlt: SHEET_API_URL";
+        showDebug({hint:"Trage deine Apps Script Web-App URL (…/exec) in SHEET_API_URL ein."});
+        return;
+      }
+      if (!SHEET_API_KEY || SHEET_API_KEY.includes("PASTE_")){
+        statusPill.textContent = "Fehlt: API_KEY";
+        showDebug({hint:"Trage deinen API_KEY (wie im Apps Script) in SHEET_API_KEY ein."});
+        return;
+      }
+
+      const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
+
+      try{
+        const res = await fetch(url, { method:"GET" });
+        const text = await res.text();
+
+        let json;
+        try { json = JSON.parse(text); }
+        catch(parseErr){
+          statusPill.textContent = "API liefert kein JSON";
+          showDebug({url, status: res.status, response_preview: text.slice(0, 600)});
+          return;
+        }
+
+        if (!res.ok){
+          statusPill.textContent = "API Fehler";
+          showDebug({url, status: res.status, json});
+          return;
+        }
+
+        ALL = Array.isArray(json.rows) ? json.rows : [];
+        statusPill.textContent = `Geladen: ${ALL.length}`;
+        fillFilters();
+        render();
+      } catch(err){
+        statusPill.textContent = "Fetch/CORS Fehler";
+        showDebug({url, error: String(err)});
+      }
+    }
+
     function render(){
       const rows = filtered();
       countPill.textContent = `${rows.length} / ${ALL.length}`;
@@ -565,15 +618,23 @@
         const sem = safe(row[F.sem]).trim();
         const mail = safe(row[F.email]).trim();
 
-        const thumb = firstPhotoThumb(row);
+        const thumb = getThumb(row);
+        const photoUrl = getPhotoUrl(row);
 
         const card = document.createElement("div");
         card.className = "appCard";
+
+        // Avatar HTML mit Fallback (kein blaues Fragezeichen mehr)
+        let avatarHtml = esc(getInitials(row));
+        if (thumb){
+          avatarHtml = `<img src="${esc(thumb)}" alt="Foto" loading="lazy"
+            referrerpolicy="no-referrer"
+            onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`;
+        }
+
         card.innerHTML = `
           <div class="inner">
-            <div class="avatar">
-              ${thumb ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy">` : esc(getInitials(row))}
-            </div>
+            <div class="avatar">${avatarHtml}</div>
             <div style="min-width:0;">
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
@@ -581,6 +642,7 @@
                 ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
                 ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
                 ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
+                ${photoUrl ? `<span class="tag">📷 <a href="${esc(photoUrl)}" target="_blank" rel="noopener">Foto öffnen</a></span>` : ``}
               </div>
             </div>
           </div>
@@ -597,15 +659,49 @@
       modalOverlay.classList.remove("show");
     }
 
+    function setModalPhoto(row){
+      modalPhoto.innerHTML = "";
+
+      const thumb = getThumb(row);
+      const photoUrl = getPhotoUrl(row);
+
+      if (thumb){
+        const img = document.createElement("img");
+        img.src = thumb;
+        img.alt = "Foto";
+        img.loading = "lazy";
+        img.referrerPolicy = "no-referrer";
+        img.onerror = () => {
+          modalPhoto.innerHTML = "";
+          modalPhoto.textContent = getInitials(row);
+          modalPhoto.style.cursor = "default";
+        };
+
+        modalPhoto.style.cursor = photoUrl ? "pointer" : "default";
+        modalPhoto.onclick = () => {
+          if (photoUrl) window.open(photoUrl, "_blank", "noopener");
+        };
+
+        modalPhoto.appendChild(img);
+      } else {
+        modalPhoto.textContent = getInitials(row);
+        modalPhoto.style.cursor = "default";
+        modalPhoto.onclick = null;
+      }
+    }
+
     function openModal(row){
       const fn = safe(row[F.fn]).trim();
       const ln = safe(row[F.ln]).trim();
       modalTitle.textContent = (fn + " " + ln).trim() || "Bewerbung";
 
-      modalSub.textContent = [
-        safe(row[F.ts]).trim() ? `Zeit: ${safe(row[F.ts]).trim()}` : null,
-        safe(row[F.email]).trim() ? `Mail: ${safe(row[F.email]).trim()}` : null
-      ].filter(Boolean).join(" · ") || "—";
+      const line = [];
+      if (safe(row[F.ts]).trim()) line.push(`Zeit: ${safe(row[F.ts]).trim()}`);
+      if (safe(row[F.email]).trim()) line.push(`Mail: ${safe(row[F.email]).trim()}`);
+      modalSub.textContent = line.join(" · ") || "—";
+
+      // NEW: großes Foto setzen
+      setModalPhoto(row);
 
       const fields = [
         F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone,
