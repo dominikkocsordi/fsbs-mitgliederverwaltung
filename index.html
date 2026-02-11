@@ -32,6 +32,7 @@
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
 body{
   margin:0;
   font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -45,6 +46,7 @@ body{
   justify-content:center;
   align-items:flex-start;
   padding:42px 16px;
+  /* on mobile we add extra top/bottom padding in media queries to avoid overlaps */
 }
 
 .app{ width:100%; max-width:1200px; }
@@ -153,6 +155,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   -webkit-backdrop-filter: blur(18px);
   user-select:none;
 }
+
 .dot{
   width:10px;height:10px;border-radius:999px;
   background: rgba(255,255,255,.35);
@@ -161,7 +164,6 @@ button:active{ transform: translateY(0px) scale(.99); }
 .dot.ok{ background: var(--ok); }
 .dot.warn{ background: rgba(255,255,255,.35); }
 
-/* glow */
 .dot.ok{
   box-shadow:
     0 0 0 2px rgba(34,197,94,.20),
@@ -169,7 +171,6 @@ button:active{ transform: translateY(0px) scale(.99); }
     0 0 42px rgba(34,197,94,.30);
 }
 
-/* pulse */
 @keyframes pulseRing {
   0%   { transform: scale(1); opacity: .0; }
   10%  { opacity: .6; }
@@ -242,6 +243,8 @@ button:active{ transform: translateY(0px) scale(.99); }
   align-items:center;
   flex-wrap:wrap;
 }
+.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
 .navLink{
   display:inline-flex;
   align-items:center;
@@ -254,6 +257,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   background: rgba(255,255,255,.06);
   transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
   user-select:none;
+  white-space:nowrap;
 }
 .navLink:hover{
   transform: translateY(-2px);
@@ -275,14 +279,6 @@ button:active{ transform: translateY(0px) scale(.99); }
 }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
-.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-@media (max-width: 640px){
-  h1{ font-size: 26px; }
-  input,select{ min-width: 0; width: 100%; }
-  .authFloating{ left: 16px; right: 16px; justify-content:space-between; }
-  .authInfo{ min-width: 0; }
-}
 
 /* ===== table ===== */
 .tableWrap{ overflow:auto; border-radius: 18px; }
@@ -313,7 +309,7 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 .iconBtn:hover{ transform: translateY(-2px); }
 .actions{ display:flex; gap:10px; }
 
-/* ===== Colored Pills (Ressort/Rolle/Status) ===== */
+/* ===== Colored Pills ===== */
 .pill{
   display:inline-flex;
   align-items:center;
@@ -329,8 +325,6 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   -webkit-backdrop-filter: blur(8px);
   white-space:nowrap;
 }
-
-/* Status Pills (fixe Farben) */
 .pill-status-volle{ background: rgba(34,197,94,.20);  border-color: rgba(34,197,94,.35);  color:#bbf7d0; }
 .pill-status-anw{  background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
 .pill-status-pau{  background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
@@ -371,14 +365,78 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   margin-top: 12px;
 }
 .formGrid .full{ grid-column: 1 / -1; }
-@media (max-width: 640px){
-  .formGrid{ grid-template-columns: 1fr; }
-  table{ min-width: 900px; }
-}
 hr.sep{
   border: none;
   border-top: 1px solid rgba(255,255,255,.12);
   margin: 14px 0;
+}
+
+/* =========================
+   MOBILE OPTIMIZATIONS
+   ========================= */
+@media (max-width: 900px){
+  table{ min-width: 860px; }
+}
+
+@media (max-width: 640px){
+  /* Avoid overlap with floating badge (now moved to bottom on small screens) */
+  body{
+    padding: 24px 14px 96px; /* extra bottom space for badge */
+  }
+
+  h1{ font-size: 26px; }
+
+  /* Top header stacks */
+  .top{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  /* Auth badge becomes bottom floating, full width */
+  .authFloating{
+    top: auto;
+    right: 14px;
+    left: 14px;
+    bottom: 14px;
+    width: auto;
+    justify-content:space-between;
+    padding: 12px 14px;
+  }
+  .authInfo{ min-width: 0; }
+
+  /* Inputs full width */
+  input,select{ min-width: 0; width: 100%; }
+  .row{ align-items:stretch; }
+  .row .spacer{ display:none; }
+
+  /* Nav becomes horizontal scroll, no overlap */
+  .navWrap{ top: 10px; }
+  .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
+  .navLeft{ flex-wrap:nowrap; }
+  .navRight{ margin-left: 0; }
+
+  /* Table: allow scroll but reduce minimum */
+  table{ min-width: 720px; }
+
+  /* Optional: hide Email column on very small screens (still in modal/edit) */
+  th:nth-child(3), td:nth-child(3){ display:none; }
+
+  /* Actions buttons slightly smaller */
+  .iconBtn{ width: 40px; height: 40px; }
+  .actions{ gap:8px; }
+
+  /* Modal: one column */
+  .formGrid{ grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px){
+  /* Even tighter */
+  body{ padding: 20px 12px 102px; }
+  .card{ padding:14px; }
+  .navLink{ padding: 9px 10px; border-radius: 14px; }
+  .navIcon{ width:28px; height:28px; border-radius: 11px; }
+  table{ min-width: 660px; }
 }
 </style>
 </head>
@@ -544,10 +602,7 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ========= Spalten-Mapping (deine neue Struktur) =========
-   Tabelle: members
-   Spalten: id (int8, identity), mitgliedernummer (int4), vorname, nachname, email, ressort, rolle, status, created_at
-*/
+/* ========= Spalten (neue Struktur) ========= */
 const DB = {
   table: "members",
   pk: "id",
@@ -588,9 +643,9 @@ const mNo = document.getElementById("mNo");
 const mFirst = document.getElementById("mFirst");
 const mLast  = document.getElementById("mLast");
 const mEmail = document.getElementById("mEmail");
-const mDept = document.getElementById("mDept");   // select
-const mRole = document.getElementById("mRole");   // select
-const mStatus = document.getElementById("mStatus");// select
+const mDept = document.getElementById("mDept");
+const mRole = document.getElementById("mRole");
+const mStatus = document.getElementById("mStatus");
 
 /* ========= Helpers ========= */
 function esc(s){
@@ -620,7 +675,6 @@ function getDept(m){ return m?.[DB.dept] ?? ""; }
 function getStatus(m){ return m?.[DB.status] ?? ""; }
 function getRole(m){ return m?.[DB.role] ?? ""; }
 
-/* Ressort/Rolle: deterministische Farbe */
 function pillColorStyle(label){
   const t = norm(label);
   if (!t) return "";
@@ -636,7 +690,6 @@ function pillColorStyle(label){
           color: hsla(${hue}, 95%, 88%, 1);`;
 }
 
-/* Status -> feste Klassen */
 function statusClass(status){
   const s = norm(status).toLowerCase();
   if (s.startsWith("voll")) return "pill-status-volle";
@@ -646,7 +699,6 @@ function statusClass(status){
   return "";
 }
 
-/* Dropdowns aus DB + Defaults */
 function refreshDropdowns(){
   const baseStatus = ["Vollmitglied","Anwärter","Pausiert","Ausgetreten"];
   const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !baseStatus.includes(s));
@@ -852,7 +904,6 @@ function openCreate(){
   modalTitle.textContent = "Mitglied hinzufügen";
   modalSub.textContent = "Fülle die Daten aus und speichere.";
   modalSaveBtn.textContent = "Anlegen";
-  // Defaults
   mStatus.value = "Vollmitglied";
   openModal();
 }
