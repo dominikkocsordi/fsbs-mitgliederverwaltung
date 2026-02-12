@@ -27,7 +27,6 @@
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
       --warn: rgba(251,146,60,.95);
-      --vio: rgba(167,139,250,.95);
     }
 
     *{box-sizing:border-box}
@@ -60,8 +59,6 @@
 
     /* ===== Auth badge (kompakt + Details Toggle) ===== */
     .authFloating{
-      position: static;
-      z-index: 1;
       border-radius: 999px;
       padding: 10px 12px;
       display:flex;
@@ -84,29 +81,6 @@
     }
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
-
-    .dot.ok{
-      box-shadow:
-        0 0 0 2px rgba(34,197,94,.20),
-        0 0 18px rgba(34,197,94,.55),
-        0 0 42px rgba(34,197,94,.30);
-    }
-
-    @keyframes pulseRing {
-      0%   { transform: scale(1); opacity: .0; }
-      10%  { opacity: .6; }
-      70%  { transform: scale(3.2); opacity: 0; }
-      100% { transform: scale(3.2); opacity: 0; }
-    }
-    .dot.pulsing::after{
-      content:"";
-      position:absolute;
-      inset: -2px;
-      border-radius: 999px;
-      background: rgba(34,197,94,.25);
-      animation: pulseRing 1.15s ease-out 0s 2;
-      pointer-events:none;
-    }
 
     .authAvatar{
       width: 30px;
@@ -218,7 +192,7 @@
       border-color: rgba(56,189,248,.40);
       background: rgba(56,189,248,.12);
     }
-    .rolePill.ressortleiter{
+    .rolePill.other{
       border-color: rgba(251,146,60,.35);
       background: rgba(251,146,60,.12);
     }
@@ -310,13 +284,7 @@
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
-    button:disabled{
-      cursor: not-allowed !important;
-      opacity: .55 !important;
-      transform: none !important;
-      filter: none !important;
-      box-shadow: none !important;
-    }
+    button:disabled{ cursor: not-allowed !important; opacity: .55 !important; transform:none !important; }
 
     .btn-secondary{
       background: rgba(255,255,255,.14);
@@ -355,12 +323,7 @@
 
     .card{ padding:16px; margin-bottom:14px; }
 
-    .row{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
 
     input,select{
@@ -388,7 +351,6 @@
       margin-top: 10px;
     }
     @media (max-width: 1020px){ .kpiGrid{grid-template-columns: repeat(2, minmax(0,1fr));} }
-    @media (max-width: 640px){ .kpiGrid{grid-template-columns: 1fr;} }
 
     .kpi{
       padding: 14px;
@@ -400,7 +362,7 @@
     .kpi .v{ font-size: 20px; font-weight: 900; letter-spacing:.2px; margin-top:6px; }
     .kpi .h{ color: rgba(255,255,255,.60); font-size:12px; margin-top:4px; }
 
-    /* Cards grid (clean) */
+    /* Cards grid */
     .grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -412,9 +374,17 @@
       input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authNameInline{ max-width: 150px; }
+
+      /* mobile nav scroll */
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
-      .navRight{ margin-left: 0; }
+      .navRight{ margin-left: 0; flex-wrap:nowrap; }
+      .navRight button{ white-space:nowrap; }
+
+      /* controls stacked, less cramped */
+      .card .row{ gap:10px; }
+      button{ width:100%; }
+      .row .spacer{ display:none; }
     }
 
     .appCard{
@@ -432,12 +402,7 @@
     }
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
 
-    .cardTop{
-      display:flex;
-      align-items:flex-start;
-      gap:12px;
-      min-width:0;
-    }
+    .cardTop{ display:flex; align-items:flex-start; gap:12px; min-width:0; }
     .iconBox{
       width:44px; height:44px; border-radius:16px;
       border:1px solid rgba(255,255,255,.16);
@@ -454,7 +419,6 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width: 100%;
     }
     .sub{
       margin-top:4px;
@@ -463,16 +427,9 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width: 100%;
     }
 
-    .metaRow{
-      margin-top:12px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .metaRow{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .metaPill{
       font-size:12px;
       padding:7px 10px;
@@ -562,10 +519,7 @@
       margin-top: 12px;
     }
 
-    .split{
-      display:flex; gap:12px; flex-wrap:wrap;
-      margin-top: 10px;
-    }
+    .split{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
     .split > *{ flex: 1 1 260px; }
 
     .denyBox{
@@ -597,7 +551,7 @@
 
     <div class="top">
       <div>
-        <h1></h1>
+        <h1>Finanzen</h1>
         <div class="subtitle">Rechnungen & Auslagen · Google Sheet · Status im Modal</div>
       </div>
 
@@ -614,7 +568,7 @@
 
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
-                <span class="rolePill" id="authRolePill">Rolle</span>
+                <span class="rolePill other" id="authRolePill">rolle</span>
                 <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
               </div>
             </div>
@@ -627,7 +581,7 @@
       </div>
     </div>
 
-    <!-- NAV -->
+    <!-- NAV (wird NUR für Vorstand sichtbar geschaltet) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
@@ -659,18 +613,21 @@
             <span class="navIcon">💰</span>
             <span>
               <div class="navTitle">Finanzen</div>
-              <div class="navHint">Rechnungen & Auslagen</div>
+              <div class="navHint">Rechnungen</div>
             </span>
           </a>
+        </div>
 
         <div class="navRight">
-          <a class="navLink" href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing" target="_blank" rel="noopener">
+          <!-- ✅ Belege-Link wird nur für Vorstand angezeigt -->
+          <a class="navLink" id="belegeNavLink" href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing" target="_blank" rel="noopener" style="display:none;">
             <span class="navIcon">📁</span>
             <span>
               <div class="navTitle">Belege</div>
               <div class="navHint">Drive</div>
             </span>
           </a>
+
           <button class="btn-secondary" id="logoutBtn">Logout</button>
         </div>
       </div>
@@ -682,6 +639,10 @@
         <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
         <div style="margin-top:6px; color:rgba(255,255,255,.78);">
           Diese Seite ist nur für <b>vorstand</b>.
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-secondary" id="logoutBtn2">Logout</button>
+          <a class="pill" href="/index.html" style="text-decoration:none;">Zur Startseite</a>
         </div>
       </div>
     </div>
@@ -737,13 +698,13 @@
         <button class="btn-primary" id="exportBtn">Export CSV</button>
 
         <div class="spacer"></div>
-        <div class="pill" style="opacity:.9;">Tipp: Klick auf Karte → Details & Status</div>
+        <div class="pill" style="opacity:.9;">Klick auf Karte → Details & Status</div>
       </div>
 
       <div class="debug" id="debugBox"></div>
     </div>
 
-    <div id="grid" class="grid"></div>
+    <div id="grid" class="grid" style="display:none;"></div>
     <div id="empty" class="empty" style="display:none;">Keine Einreichungen gefunden.</div>
 
   </div>
@@ -798,9 +759,8 @@
 
     const LOGIN_REDIRECT = "/index.html";
     const PROFILES_TABLE = "profiles";
-    const REQUIRED_ROLE = "vorstand"; // ✅ nur vorstand
+    const REQUIRED_ROLE = "vorstand"; // ✅ exakt so, kleinschreibung
 
-    // Sheet headers (exakt)
     const F = {
       ts: "Zeitstempel",
       fn: "Vorname",
@@ -818,7 +778,9 @@
     // Elements
     // ==========================
     const navWrap = document.getElementById("navWrap");
+    const belegeNavLink = document.getElementById("belegeNavLink");
     const logoutBtn = document.getElementById("logoutBtn");
+    const logoutBtn2 = document.getElementById("logoutBtn2");
 
     const statusPill = document.getElementById("statusPill");
     const countPill = document.getElementById("countPill");
@@ -826,15 +788,14 @@
     const denyWrap = document.getElementById("denyWrap");
     const kpiCard = document.getElementById("kpiCard");
     const controlsCard = document.getElementById("controlsCard");
+    const grid = document.getElementById("grid");
+    const empty = document.getElementById("empty");
 
     const q = document.getElementById("q");
     const fStatus = document.getElementById("fStatus");
     const fProj = document.getElementById("fProj");
     const reloadBtn = document.getElementById("reloadBtn");
     const exportBtn = document.getElementById("exportBtn");
-
-    const grid = document.getElementById("grid");
-    const empty = document.getElementById("empty");
     const debugBox = document.getElementById("debugBox");
 
     const modalOverlay = document.getElementById("modalOverlay");
@@ -886,40 +847,29 @@
     }
 
     // ==========================
-    // ✅ PRICE FIX (98.78 bleibt 98,78€)
+    // PRICE
     // ==========================
     function parseEUR(v){
       if (typeof v === "number" && Number.isFinite(v)) return v;
-
       const raw = safe(v).trim();
       if (!raw) return 0;
 
-      // keep digits + separators
       const s = raw.replace(/\s/g,"").replace(/[^\d.,-]/g,"");
-
       const hasDot = s.includes(".");
       const hasComma = s.includes(",");
 
-      // 1) "1.234,56" -> dot thousands, comma decimals
       if (hasDot && hasComma){
         const norm = s.replace(/\./g,"").replace(",",".");
         const n = Number(norm);
         return Number.isFinite(n) ? n : 0;
       }
-
-      // 2) "1234,56" -> comma decimals
       if (hasComma && !hasDot){
         const n = Number(s.replace(",","."));
         return Number.isFinite(n) ? n : 0;
       }
-
-      // 3) "98.78" -> dot decimals (NOT thousands)
-      // If pattern like 1.234 (3 digits after) and no decimals, we could treat as thousands,
-      // but for safety in your data (98.78) we treat dot as decimal.
       const n = Number(s);
       return Number.isFinite(n) ? n : 0;
     }
-
     const fmtEUR = (n)=> new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
 
     function tsKey(row){ return safe(row?.[F.ts]).trim(); }
@@ -933,13 +883,11 @@
       if (low.includes("offen")) return "Rechnung offen";
       return t;
     }
-
     function statusClass(st){
       if (st === "Bezahlt") return "paid";
       if (st === "In Prüfung") return "check";
       return "open";
     }
-
     function uniq(arr){
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
     }
@@ -997,17 +945,14 @@
     });
 
     function normRole(v){
-      return String(v || "")
-        .replace(/\s+/g," ")
-        .trim()
-        .toLowerCase();
+      return String(v || "").replace(/\s+/g," ").trim().toLowerCase();
     }
     function setRolePill(role){
       const r = normRole(role);
       authRolePill.textContent = r || "unbekannt";
-      authRolePill.classList.remove("vorstand","ressortleiter");
+      authRolePill.classList.remove("vorstand","other");
       if (r === "vorstand") authRolePill.classList.add("vorstand");
-      else authRolePill.classList.add("ressortleiter");
+      else authRolePill.classList.add("other");
     }
     function setCompactIdentity(displayName, email){
       const name = (displayName || "").trim();
@@ -1015,37 +960,43 @@
       authNameInline.textContent = name || fallback;
     }
 
-    function setAuthUI(isAuthed, email = ""){
+    // ✅ Nav/Content harte Freigabe
+    function applyAccessUI(allowed){
+      CAN_VIEW = !!allowed;
+
+      // NAV + Drive Link nur für Vorstand
+      navWrap.style.display = allowed ? "block" : "none";
+      belegeNavLink.style.display = allowed ? "inline-flex" : "none";
+
+      // Content
+      denyWrap.style.display = allowed ? "none" : "block";
+      kpiCard.style.display = allowed ? "block" : "none";
+      controlsCard.style.display = allowed ? "block" : "none";
+      grid.style.display = allowed ? "grid" : "none";
+
+      if (!allowed){
+        // ✅ Sensitive UI weg
+        empty.style.display = "none";
+        grid.innerHTML = "";
+        ALL = [];
+        TOKEN = null;
+      }
+    }
+
+    function setAuthUI(isAuthed, email=""){
       if (isAuthed){
-        authDot.classList.remove("warn");
-        authDot.classList.add("ok");
-
+        authDot.classList.remove("warn"); authDot.classList.add("ok");
         authState.classList.add("hidden");
-        authState.textContent = "";
-
         authCompact.classList.remove("hidden");
-        closeAuthDetails();
-
         authMail.textContent = (email || "").trim();
         setAvatar(email);
-
-        navWrap.style.display = "block";
-        logoutBtn.classList.remove("hidden");
       } else {
-        authDot.classList.remove("ok");
-        authDot.classList.add("warn");
-
+        authDot.classList.remove("ok"); authDot.classList.add("warn");
         authState.classList.remove("hidden");
         authState.textContent = "nicht eingeloggt";
-
         authCompact.classList.add("hidden");
-        closeAuthDetails();
-
         authMail.textContent = "";
         setAvatar("");
-
-        navWrap.style.display = "none";
-        logoutBtn.classList.add("hidden");
       }
     }
 
@@ -1060,8 +1011,6 @@
 
     async function loadMyProfile(session){
       MY_ROLE = "";
-      CAN_VIEW = false;
-
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
@@ -1074,17 +1023,17 @@
       if (error || !data){
         setCompactIdentity("", email);
         setRolePill("");
-        return;
+        return "";
       }
 
       MY_ROLE = normRole(data?.role);
-      CAN_VIEW = (MY_ROLE === REQUIRED_ROLE);
-
       setCompactIdentity(data?.display_name, email);
       setRolePill(MY_ROLE);
 
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
+
+      return MY_ROLE;
     }
 
     async function loadFinanceToken(){
@@ -1098,31 +1047,22 @@
       return data?.value || "";
     }
 
-    function setViewAllowed(allowed){
-      if (allowed){
-        denyWrap.style.display = "none";
-        kpiCard.style.display = "block";
-        controlsCard.style.display = "block";
-      } else {
-        denyWrap.style.display = "block";
-        kpiCard.style.display = "none";
-        controlsCard.style.display = "none";
-      }
-    }
-
     async function enforceAuth(){
       try{
         const session = await requireAuth();
         const mail = session?.user?.email || "";
         setAuthUI(true, mail);
-        await loadMyProfile(session);
 
-        if (!CAN_VIEW){
-          setViewAllowed(false);
+        const role = await loadMyProfile(session);
+        const allowed = (role === REQUIRED_ROLE);
+
+        if (!allowed){
           statusPill.textContent = "Kein Zugriff";
+          applyAccessUI(false);
           return;
         }
-        setViewAllowed(true);
+
+        applyAccessUI(true);
 
         TOKEN = await loadFinanceToken();
         if (!TOKEN){
@@ -1137,10 +1077,12 @@
       }
     }
 
-    logoutBtn.addEventListener("click", async () => {
+    async function doLogout(){
       await sb.auth.signOut();
       window.location.href = "/index.html";
-    });
+    }
+    logoutBtn?.addEventListener("click", doLogout);
+    logoutBtn2?.addEventListener("click", doLogout);
 
     // ==========================
     // API
@@ -1160,17 +1102,15 @@
     }
 
     async function apiSetStatus(timestamp, status){
-  const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
-  const res = await fetch(url, {
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body: JSON.stringify({ timestamp, status, token: TOKEN })
-  });
-  const t = await res.text();
-  if (!res.ok) throw new Error("POST failed: " + res.status + " " + t.slice(0,200));
-}
-
-
+      const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
+      const res = await fetch(url, {
+        method:"POST",
+        headers:{ "Content-Type":"text/plain;charset=utf-8" },
+        body: JSON.stringify({ timestamp, status, token: TOKEN })
+      });
+      const t = await res.text();
+      if (!res.ok) throw new Error("POST failed: " + res.status + " " + t.slice(0,200));
+    }
 
     // ==========================
     // Data & UI
@@ -1219,8 +1159,9 @@
     }
 
     function render(){
-      const rows = filtered();
+      if (!CAN_VIEW) return;
 
+      const rows = filtered();
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       statusPill.textContent = `Geladen: ${ALL.length}`;
 
@@ -1232,16 +1173,14 @@
         const ln = safe(r[F.ln]).trim();
         const name = (fn + " " + ln).trim() || "Unbekannt";
         const proj = safe(r[F.proj]).trim() || "—";
-        const date = safe(r[F.date]).trim() || "—";
         const sum = parseEUR(r[F.sum]);
-
         const st = statusNorm(r[F.status]);
         const stCls = statusClass(st);
 
         const card = document.createElement("div");
         card.className = "appCard";
         card.innerHTML = `
-          <div class="statusPill ${stCls}">${st}</div>
+          <div class="statusPill ${stCls}">${esc(st)}</div>
           <div class="cardTop">
             <div class="iconBox">€</div>
             <div class="cardText">
@@ -1254,13 +1193,13 @@
             ${safe(r[F.beleg]).trim().startsWith("http") ? `<span class="metaPill">📎 Beleg vorhanden</span>` : ``}
           </div>
         `;
-
         card.addEventListener("click", ()=> openModal(r));
         grid.appendChild(card);
       });
     }
 
     function openModal(row){
+      if (!CAN_VIEW) return;
       ACTIVE_ROW = row;
 
       const fn = safe(row[F.fn]).trim();
@@ -1274,7 +1213,7 @@
       const sum = parseEUR(row[F.sum]);
 
       modalTitle.textContent = name;
-      modalSub.textContent = [proj, date, ts].filter(Boolean).join(" · ") || "—";
+      modalSub.textContent = [proj, date].filter(Boolean).join(" · ") || "—";
 
       selName.textContent = name;
       selSum.textContent = fmtEUR(sum);
@@ -1289,14 +1228,14 @@
       }
 
       const items = [
-        ["Zeitstempel", safe(row[F.ts])],
         ["Projekt", safe(row[F.proj])],
         ["Beleg Summe", fmtEUR(sum)],
         ["Beleg Datum", safe(row[F.date])],
         ["Status", st],
         ["Beleg Erläuterung", safe(row[F.desc])],
         ["Beleg hochladen", safe(row[F.beleg])],
-        ["Dein IBAN", safe(row[F.iban])]
+        ["Dein IBAN", safe(row[F.iban])],
+        ["Zeitstempel", safe(row[F.ts])]
       ];
 
       kv.innerHTML = "";
@@ -1314,7 +1253,6 @@
         } else {
           dv.textContent = v || "—";
         }
-
         kv.appendChild(dk);
         kv.appendChild(dv);
       });
@@ -1328,6 +1266,8 @@
     }
 
     async function fetchRows(){
+      if (!CAN_VIEW) return;
+
       statusPill.textContent = "Lade…";
       try{
         ALL = await apiGetRows();
@@ -1348,6 +1288,7 @@
     }
 
     async function setStatusFor(ts, status){
+      if (!CAN_VIEW) return;
       try{
         await apiSetStatus(ts, status);
         const i = ALL.findIndex(r => tsKey(r) === ts);
@@ -1364,6 +1305,8 @@
     }
 
     function exportCSV(){
+      if (!CAN_VIEW) return;
+
       const headers = [F.ts,F.fn,F.ln,F.proj,F.sum,F.date,F.status,F.desc,F.beleg,F.iban];
       const lines = [headers.join(";")];
 
@@ -1385,24 +1328,25 @@
     }
 
     // Events
-    [q, fStatus, fProj].forEach(elm => elm.addEventListener("input", render));
-    reloadBtn.addEventListener("click", fetchRows);
-    exportBtn.addEventListener("click", exportCSV);
+    [q, fStatus, fProj].forEach(elm => elm?.addEventListener("input", render));
+    reloadBtn?.addEventListener("click", fetchRows);
+    exportBtn?.addEventListener("click", exportCSV);
 
-    setOpenBtn.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Rechnung offen"));
-    setCheckBtn.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "In Prüfung"));
-    setPaidBtn.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Bezahlt"));
+    setOpenBtn?.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Rechnung offen"));
+    setCheckBtn?.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "In Prüfung"));
+    setPaidBtn?.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Bezahlt"));
 
-    closeModalBtn.addEventListener("click", closeModal);
-    closeModalBtn2.addEventListener("click", closeModal);
-    modalOverlay.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
+    closeModalBtn?.addEventListener("click", closeModal);
+    closeModalBtn2?.addEventListener("click", closeModal);
+    modalOverlay?.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
 
     // Init
     (async function init(){
+      // default locked down until permission is known
+      applyAccessUI(false);
       await enforceAuth();
-      if (!CAN_VIEW){ setViewAllowed(false); return; }
-      setViewAllowed(true);
+      if (!CAN_VIEW) return;
       if (!TOKEN){ statusPill.textContent = "Token nicht geladen"; return; }
       await fetchRows();
     })();
