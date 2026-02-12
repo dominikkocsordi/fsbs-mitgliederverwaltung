@@ -218,11 +218,6 @@
       border-color: rgba(56,189,248,.40);
       background: rgba(56,189,248,.12);
     }
-    .rolePill.finanz{
-      border-color: rgba(167,139,250,.40);
-      background: rgba(167,139,250,.12);
-      color: rgba(236,232,255,.95);
-    }
     .rolePill.ressortleiter{
       border-color: rgba(251,146,60,.35);
       background: rgba(251,146,60,.12);
@@ -628,7 +623,6 @@
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="pill" id="statusPill">–</div>
 
-        <!-- ✅ Badge wie bei deinen Seiten -->
         <div class="authFloating" id="authBadge" title="Login-Status">
           <span class="dot warn" id="authDot"></span>
           <div class="authAvatar hidden" id="authAvatar">U</div>
@@ -715,7 +709,7 @@
       <div class="denyBox">
         <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
         <div style="margin-top:6px; color:rgba(255,255,255,.78);">
-          Diese Seite ist nur für <b>Vorstand</b> & <b>Finanzvorstand</b>.
+          Diese Seite ist nur für <b>vorstand</b> (kleingeschrieben).
         </div>
       </div>
     </div>
@@ -811,7 +805,7 @@
         <div class="glass" style="border-radius:18px; padding:12px;">
           <div style="font-weight:900; margin-bottom:8px;">Hinweise</div>
           <div style="color:rgba(255,255,255,.72); font-size:13px; line-height:1.35;">
-            Status wird direkt im Google Sheet gespeichert. Der Zugriff ist per Supabase Rolle + Token geschützt.
+            Status wird direkt im Google Sheet gespeichert. Zugriff nur für <b>vorstand</b>.
           </div>
         </div>
       </div>
@@ -826,7 +820,7 @@
 
   <script>
     // ==========================
-    // ✅ KONFIG (deine Werte)
+    // ✅ KONFIG
     // ==========================
     const APP_URL = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
 
@@ -836,7 +830,9 @@
 
     const LOGIN_REDIRECT = "/index.html";
     const PROFILES_TABLE = "profiles";
-    const ALLOWED_ROLES = new Set(["vorstand","finanzvorstand"]); // lowercase check
+
+    // ✅ NUR rolle "vorstand" zulassen (kleinschreibung!)
+    const REQUIRED_ROLE = "vorstand";
 
     // Sheet headers (exakt)
     const F = {
@@ -920,7 +916,7 @@
     let SELECTED = new Set();
 
     // ==========================
-    // Badge helpers (wie bei dir)
+    // Badge helpers
     // ==========================
     function hashString(str){
       let h = 2166136261;
@@ -976,19 +972,11 @@
     });
 
     function normRole(v){ return (v || "").trim().toLowerCase(); }
-    function roleLabel(role){
-      const r = normRole(role);
-      if (r === "vorstand") return "Vorstand";
-      if (r === "finanzvorstand") return "Finanzvorstand";
-      if (r === "ressortleiter") return "Ressortleiter";
-      return r ? (r[0].toUpperCase()+r.slice(1)) : "Unbekannt";
-    }
     function setRolePill(role){
       const r = normRole(role);
-      authRolePill.textContent = roleLabel(r);
-      authRolePill.classList.remove("vorstand","finanz","ressortleiter");
+      authRolePill.textContent = r || "unbekannt";
+      authRolePill.classList.remove("vorstand","ressortleiter");
       if (r === "vorstand") authRolePill.classList.add("vorstand");
-      else if (r === "finanzvorstand") authRolePill.classList.add("finanz");
       else authRolePill.classList.add("ressortleiter");
     }
     function setCompactIdentity(displayName, email){
@@ -1044,16 +1032,13 @@
     function parseEUR(v){
       const s = safe(v).trim();
       if (!s) return 0;
-      // handles 1.234,56 / 1234.56 / 1234,56
       const norm = s.replace(/\./g,'').replace(',', '.').replace(/[^\d.-]/g,'');
       const n = Number(norm);
       return Number.isFinite(n) ? n : 0;
     }
     const fmtEUR = (n)=> new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
 
-    function tsKey(row){
-      return safe(row?.[F.ts]).trim();
-    }
+    function tsKey(row){ return safe(row?.[F.ts]).trim(); }
 
     function statusNorm(s){
       const t = safe(s).trim();
@@ -1063,12 +1048,6 @@
       if (low.includes("bezahlt")) return "Bezahlt";
       if (low.includes("offen")) return "Rechnung offen";
       return t;
-    }
-
-    function badgeFor(st){
-      if (st === "Bezahlt") return { cls:"ok", text:"🟢 Bezahlt" };
-      if (st === "In Prüfung") return { cls:"warn", text:"🟠 In Prüfung" };
-      return { cls:"bad", text:"🔴 Rechnung offen" };
     }
 
     function uniq(arr){
@@ -1099,24 +1078,24 @@
 
       if (error){
         setCompactIdentity("", email);
-        setRolePill("ressortleiter");
+        setRolePill("");
         return;
       }
 
       MY_ROLE = normRole(data?.role);
-      CAN_VIEW = ALLOWED_ROLES.has(MY_ROLE);
+      CAN_VIEW = (MY_ROLE === REQUIRED_ROLE); // ✅ nur "vorstand"
 
       setCompactIdentity(data?.display_name, email);
-      setRolePill(MY_ROLE || "ressortleiter");
+      setRolePill(MY_ROLE);
 
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
-      authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+      authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
     }
 
     async function loadFinanceToken(){
-      // Token aus app_secrets (RLS schützt: nur Vorstand/Finanzvorstand)
+      // Token aus app_secrets (RLS sollte auf "vorstand" prüfen)
       const { data, error } = await sb
         .from("app_secrets")
         .select("value")
@@ -1153,11 +1132,10 @@
         }
         setViewAllowed(true);
 
-        // Token holen
         TOKEN = await loadFinanceToken();
         if (!TOKEN){
           statusPill.textContent = "Fehlt: finance_sheet_token";
-          showDebug({hint:"Lege in Supabase app_secrets die Zeile key=finance_sheet_token an."});
+          showDebug({hint:"Lege in Supabase app_secrets die Zeile key=finance_sheet_token an (RLS nur 'vorstand')."});
           return;
         }
 
@@ -1260,7 +1238,6 @@
       grid.innerHTML = "";
       empty.style.display = rows.length ? "none" : "block";
 
-      // bulk enable
       const anySel = SELECTED.size > 0;
       bulkOpenBtn.disabled = !anySel;
       bulkCheckBtn.disabled = !anySel;
@@ -1278,14 +1255,10 @@
         const ts = tsKey(r);
 
         const st = statusNorm(r[F.status]);
-        const b = badgeFor(st);
         const isSel = SELECTED.has(ts);
 
         const beleg = safe(r[F.beleg]).trim();
         const hasBeleg = beleg.startsWith("http");
-
-        const card = document.createElement("div");
-        card.className = "appCard";
 
         const corner = (st==="Bezahlt")
           ? `<div class="cornerBadge ok">🟢 Bezahlt</div>`
@@ -1293,12 +1266,13 @@
             ? `<div class="cornerBadge warn">🟠 In Prüfung</div>`
             : `<div class="cornerBadge bad">🔴 Offen</div>`;
 
+        const card = document.createElement("div");
+        card.className = "appCard";
         card.innerHTML = `
           ${corner}
           <div class="inner">
             <div class="avatar">
               <div style="font-size:18px;">€</div>
-              <div style="position:absolute; bottom:8px; left:10px; font-size:11px; color:rgba(255,255,255,.78);">${esc(String(sum).replace(".",","))}</div>
             </div>
 
             <div style="min-width:0; flex:1 1 auto;">
@@ -1323,7 +1297,7 @@
                 <button class="btn-warn setBtn" data-ts="${esc(ts)}" data-st="In Prüfung">In Prüfung</button>
                 <button class="btn-ok setBtn" data-ts="${esc(ts)}" data-st="Bezahlt">Bezahlt</button>
                 <div class="spacer"></div>
-                <span class="pill"><span>Status:</span> <strong>${esc(b.text.replace(/[🟢🟠🔴]\s?/g,""))}</strong></span>
+                <span class="pill"><span>Status:</span> <strong>${esc(st)}</strong></span>
               </div>
 
               <div class="pill" style="margin-top:10px;">
@@ -1334,7 +1308,6 @@
           </div>
         `;
 
-        // card click opens modal (but ignore if clicking buttons/checkbox)
         card.addEventListener("click", (e)=>{
           const t = e.target;
           if (t && (t.classList.contains("setBtn") || t.classList.contains("selBox") || t.tagName === "A" || t.tagName === "INPUT" || t.tagName === "BUTTON" || t.closest("button"))) return;
@@ -1368,7 +1341,6 @@
         belegLink.style.display = "none";
       }
 
-      // kv
       const items = [
         ["Zeitstempel", safe(row[F.ts])],
         ["Vorname", safe(row[F.fn])],
@@ -1410,15 +1382,10 @@
       ACTIVE_ROW = null;
     }
 
-    // ==========================
-    // Data load
-    // ==========================
     async function fetchRows(){
       statusPill.textContent = "Lade…";
       try{
         ALL = await apiGetRows();
-
-        // normalize default status
         ALL = ALL.map(r=>{
           if (!safe(r[F.status]).trim()) r[F.status] = "Rechnung offen";
           return r;
@@ -1428,20 +1395,15 @@
         fillProjectFilter();
         updateKPIs();
         render();
-
       } catch(err){
         statusPill.textContent = "API Fehler";
         showDebug({error: String(err)});
       }
     }
 
-    // ==========================
-    // Actions
-    // ==========================
     async function setStatusFor(ts, status){
       try{
         await apiSetStatus(ts, status);
-        // update local
         const i = ALL.findIndex(r => tsKey(r) === ts);
         if (i >= 0) ALL[i][F.status] = status;
         updateKPIs();
@@ -1455,7 +1417,6 @@
       const items = Array.from(SELECTED);
       if (!items.length) return;
 
-      // sequential to be safe
       bulkOpenBtn.disabled = true;
       bulkCheckBtn.disabled = true;
       bulkPaidBtn.disabled = true;
@@ -1495,9 +1456,7 @@
       URL.revokeObjectURL(a.href);
     }
 
-    // ==========================
     // Events
-    // ==========================
     document.addEventListener("click", (e)=>{
       const t = e.target;
 
@@ -1536,9 +1495,7 @@
     modalOverlay.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
 
-    // ==========================
     // Init
-    // ==========================
     (async function init(){
       await enforceAuth();
 
@@ -1546,13 +1503,14 @@
         setViewAllowed(false);
         return;
       }
+      setViewAllowed(true);
 
-      try{
-        // Token ist da -> Daten laden
-        await fetchRows();
-      } catch(e){
-        // already handled
+      if (!TOKEN){
+        statusPill.textContent = "Token nicht geladen";
+        return;
       }
+
+      await fetchRows();
     })();
   </script>
 </body>
