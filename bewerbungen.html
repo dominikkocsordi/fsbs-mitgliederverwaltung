@@ -9,25 +9,27 @@
 
   <style>
     :root{
-      --bg1:#0b1220;
-      --bg2:#111c2b;
-      --bg3:#0b2a33;
+  /* Matte Dark Base */
+  --bg1:#120e18;
+  --bg2:#1a1424;
+  --bg3:#1f162c;
 
-      --glass: rgba(255,255,255,.10);
-      --border: rgba(255,255,255,.22);
+  /* Modern Orange → Purple */
+  --accent1:#f97316;   /* warm orange */
+  --accent2:#a855f7;   /* vibrant purple */
 
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.68);
+  --glass: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.18);
 
-      --accent1:#38bdf8;
-      --accent2:#0ea5e9;
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
 
-      --shadow: 0 20px 55px rgba(0,0,0,.40);
+  --shadow: 0 20px 55px rgba(0,0,0,.50);
 
-      --ok: rgba(34,197,94,.95);
-      --bad: rgba(239,68,68,.95);
-      --warn: rgba(251,146,60,.95);
-    }
+  --ok: rgba(34,197,94,.95);
+  --bad: rgba(239,68,68,.95);
+  --warn: rgba(251,146,60,.95);
+}
 
     *{box-sizing:border-box}
     body{
@@ -35,10 +37,11 @@
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
       background:
-        radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.25), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(34,197,94,.18), transparent 60%),
-        radial-gradient(800px 450px at 60% 90%, rgba(251,113,133,.18), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+  radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+  radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+
       min-height:100vh;
       padding: 28px 16px 60px;
       display:flex;
@@ -286,10 +289,11 @@
       border-color: rgba(255,255,255,.22);
     }
     .navLink.active{
-      background: linear-gradient(135deg, rgba(56,189,248,.22), rgba(14,165,233,.12));
-      border-color: rgba(56,189,248,.40);
-      box-shadow: 0 14px 30px rgba(14,165,233,.18);
-    }
+  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
+  border-color: rgba(249,115,22,.35);
+  box-shadow: 0 12px 28px rgba(249,115,22,.25);
+}
+
     .navIcon{
       width:30px; height:30px;
       border-radius: 12px;
@@ -326,10 +330,11 @@
     .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
 
     .btn-primary{
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #03202b;
-      box-shadow: 0 10px 26px rgba(14,165,233,.25);
-    }
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  color: #0f0b16;
+  box-shadow: 0 12px 30px rgba(168,85,247,.25);
+}
+
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
     .btn-danger{
