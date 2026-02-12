@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finanzen – Rechnungen</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg1:#0b1220;
+  --bg2:#111c2b;
+  --bg3:#0b2a33;
+
+  --glass: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.18);
+
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.6);
+
+  --accent1:#38bdf8;
+  --accent2:#0ea5e9;
+
+  --ok:#22c55e;
+  --warn:#facc15;
+  --danger:#ef4444;
+
+  --shadow:0 20px 55px rgba(0,0,0,.4);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui;
+  color:var(--text);
+  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+}
+
+header{
+  padding:20px;
+  font-size:20px;
+  font-weight:700;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:var(--glass);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:18px;
+  margin-bottom:20px;
+}
+
+h2{margin-top:0}
+
+button{
+  padding:8px 12px;
+  border:none;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.primary{
+  background:linear-gradient(90deg,var(--accent1),var(--accent2));
+  color:#001018;
+}
+
+.ok{background:var(--ok); color:#052012;}
+.warn{background:var(--warn); color:#2a2100;}
+.danger{background:var(--danger); color:white;}
+.secondary{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  color:var(--text);
+}
+
+.badge{
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:700;
+}
+
+.st-open{background:rgba(239,68,68,.2)}
+.st-check{background:rgba(250,204,21,.2)}
+.st-paid{background:rgba(34,197,94,.2)}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:10px;
+  text-align:left;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+input,select{
+  padding:8px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);
+  color:white;
+}
+</style>
+</head>
+<body>
+
+<header>💰 Finanz-Dashboard – Rechnungen & Auslagen</header>
+
+<div class="container">
+
+<div id="deny" class="card" style="display:none">
+  <h2>Kein Zugriff</h2>
+  Nur Vorstand oder Finanzvorstand darf diese Seite sehen.
+</div>
+
+<div id="app" style="display:none">
+
+<div class="card">
+  <h2>Übersicht</h2>
+  <div id="stats"></div>
+</div>
+
+<div class="card">
+  <h2>Filter</h2>
+  <input id="search" placeholder="Suche Name / Projekt..." />
+  <select id="statusFilter">
+    <option value="">Alle</option>
+    <option value="Rechnung offen">Rechnung offen</option>
+    <option value="In Prüfung">In Prüfung</option>
+    <option value="Bezahlt">Bezahlt</option>
+  </select>
+  <button class="secondary" onclick="loadData()">Neu laden</button>
+  <button class="primary" onclick="exportCSV()">Export CSV</button>
+</div>
+
+<div class="card">
+  <h2>Rechnungen</h2>
+  <div id="table"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const APP_URL = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
+
+const ALLOWED_ROLES = new Set(["Vorstand","Finanzvorstand"]);
+
+const supabase = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+let RAW=[];
+let TOKEN=null;
+
+function formatEUR(n){
+  return new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
+}
+
+async function checkAccess(){
+  const {data:auth}=await supabase.auth.getUser();
+  const user=auth?.user;
+  if(!user){deny();return;}
+
+  const {data:p}=await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id",user.id)
+    .maybeSingle();
+
+  if(!p || !ALLOWED_ROLES.has(p.role)){deny();return;}
+
+  const {data:s}=await supabase
+    .from("app_secrets")
+    .select("value")
+    .eq("key","finance_sheet_token")
+    .maybeSingle();
+
+  if(!s){deny();return;}
+
+  TOKEN=s.value;
+  document.getElementById("app").style.display="block";
+  loadData();
+}
+
+function deny(){
+  document.getElementById("deny").style.display="block";
+}
+
+async function loadData(){
+  const res=await fetch(APP_URL+"?token="+TOKEN);
+  const json=await res.json();
+  RAW=json.rows||[];
+  render();
+}
+
+function render(){
+  const search=document.getElementById("search").value.toLowerCase();
+  const statusFilter=document.getElementById("statusFilter").value;
+
+  const rows=RAW.filter(r=>{
+    if(statusFilter && r.Status!==statusFilter) return false;
+    if(search && !(`${r.Vorname} ${r.Nachname} ${r.Projekt}`).toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const open=RAW.filter(r=>r.Status==="Rechnung offen");
+  const paid=RAW.filter(r=>r.Status==="Bezahlt");
+  const check=RAW.filter(r=>r.Status==="In Prüfung");
+
+  document.getElementById("stats").innerHTML=
+    "Offen: "+formatEUR(sum(open))+" | "+
+    "In Prüfung: "+formatEUR(sum(check))+" | "+
+    "Bezahlt: "+formatEUR(sum(paid));
+
+  let html="<table><tr><th>Name</th><th>Projekt</th><th>Betrag</th><th>Status</th><th>Aktionen</th></tr>";
+
+  rows.forEach(r=>{
+    let badge="st-open";
+    if(r.Status==="In Prüfung") badge="st-check";
+    if(r.Status==="Bezahlt") badge="st-paid";
+
+    html+=`
+      <tr>
+        <td>${r.Vorname} ${r.Nachname}</td>
+        <td>${r.Projekt}</td>
+        <td>${formatEUR(r["Beleg Summe"])}</td>
+        <td><span class="badge ${badge}">${r.Status}</span></td>
+        <td>
+          <button class="danger" onclick="updateStatus('${r.Zeitstempel}','Rechnung offen')">Offen</button>
+          <button class="warn" onclick="updateStatus('${r.Zeitstempel}','In Prüfung')">Prüfung</button>
+          <button class="ok" onclick="updateStatus('${r.Zeitstempel}','Bezahlt')">Bezahlt</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html+="</table>";
+  document.getElementById("table").innerHTML=html;
+}
+
+function sum(arr){
+  return arr.reduce((a,b)=>a+Number(b["Beleg Summe"]||0),0);
+}
+
+async function updateStatus(ts,status){
+  await fetch(APP_URL+"?token="+TOKEN,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({timestamp:ts,status:status})
+  });
+  loadData();
+}
+
+function exportCSV(){
+  let csv="Vorname;Nachname;Projekt;Summe;Status\n";
+  RAW.forEach(r=>{
+    csv+=`${r.Vorname};${r.Nachname};${r.Projekt};${r["Beleg Summe"]};${r.Status}\n`;
+  });
+  const blob=new Blob([csv],{type:"text/csv"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="rechnungen.csv";
+  a.click();
+}
+
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("statusFilter").addEventListener("change",render);
+
+checkAccess();
+</script>
+
+</body>
+</html>
