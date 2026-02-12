@@ -1170,19 +1170,15 @@
 
     async function apiSetStatus(timestamp, status){
   const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
-
-  // ✅ text/plain -> kein CORS Preflight
   const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ timestamp, status })
+    method:"POST",
+    headers:{ "Content-Type":"text/plain;charset=utf-8" },
+    body: JSON.stringify({ timestamp, status, token: TOKEN })
   });
-
-  // Bei no-preflight kommt meist eine normale Antwort zurück.
-  // Falls Google dennoch blockt, bekommst du hier Status != ok.
   const t = await res.text();
   if (!res.ok) throw new Error("POST failed: " + res.status + " " + t.slice(0,200));
 }
+
 
 
     // ==========================
