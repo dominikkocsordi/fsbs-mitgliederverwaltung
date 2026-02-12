@@ -317,7 +317,6 @@
       filter: none !important;
       box-shadow: none !important;
     }
-    button:disabled:hover{ transform:none !important; filter:none !important; }
 
     .btn-secondary{
       background: rgba(255,255,255,.14);
@@ -401,7 +400,7 @@
     .kpi .v{ font-size: 20px; font-weight: 900; letter-spacing:.2px; margin-top:6px; }
     .kpi .h{ color: rgba(255,255,255,.60); font-size:12px; margin-top:4px; }
 
-    /* Grid cards list */
+    /* Cards grid (clean) */
     .grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -429,95 +428,79 @@
       transition: transform .18s ease, filter .18s ease, border-color .18s ease;
       overflow:hidden;
       position: relative;
+      padding: 14px;
     }
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
-    .inner{ display:flex; gap:12px; padding:14px; }
 
-    .avatar{
-      width:56px; height:56px; border-radius:16px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      overflow:hidden; flex:0 0 auto;
-      display:grid; place-items:center;
-      font-weight:900;
-      color: rgba(255,255,255,.75);
-      position: relative;
-    }
-
-    .titleRow{
+    .cardTop{
       display:flex;
       align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
+      gap:12px;
       min-width:0;
     }
-
+    .iconBox{
+      width:44px; height:44px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      display:grid; place-items:center;
+      flex:0 0 auto;
+      font-weight:900;
+      color: rgba(255,255,255,.80);
+    }
+    .cardText{ min-width:0; flex:1 1 auto; }
     .title{
-      font-weight:850;
+      font-weight:900;
       letter-spacing:.2px;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width: 320px;
+      max-width: 100%;
     }
     .sub{
+      margin-top:4px;
       color: rgba(255,255,255,.62);
       font-size:12px;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
-      max-width: 380px;
-      margin-top: 2px;
+      max-width: 100%;
     }
 
-    .tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-    .tag{
+    .metaRow{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .metaPill{
       font-size:12px;
-      padding:6px 8px;
+      padding:7px 10px;
       border-radius: 999px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.78);
+      color: rgba(255,255,255,.82);
       display:inline-flex;
       align-items:center;
       gap:8px;
     }
-    .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
-    .tag a:hover{ text-decoration:underline; }
 
-    /* Corner badge status */
-    .cornerBadge{
+    .statusPill{
       position:absolute;
       top:10px;
       right:10px;
       font-size:12px;
-      font-weight:850;
+      font-weight:900;
       padding:7px 10px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.90);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
     }
-    .cornerBadge.ok{
-      background: rgba(34,197,94,.20);
-      border-color: rgba(34,197,94,.35);
-      color:#bbf7d0;
-    }
-    .cornerBadge.warn{
-      background: rgba(251,146,60,.20);
-      border-color: rgba(251,146,60,.35);
-      color:#fed7aa;
-    }
-    .cornerBadge.bad{
-      background: rgba(239,68,68,.20);
-      border-color: rgba(239,68,68,.35);
-      color:#fecaca;
-    }
+    .statusPill.open{ background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.28); color:#fecaca; }
+    .statusPill.check{ background: rgba(251,146,60,.16); border-color: rgba(251,146,60,.28); color:#fed7aa; }
+    .statusPill.paid{ background: rgba(34,197,94,.16); border-color: rgba(34,197,94,.28); color:#bbf7d0; }
 
     .empty{
       margin-top: 12px;
@@ -558,7 +541,7 @@
 
     .kv{
       display:grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 260px 1fr;
       gap: 10px 14px;
       padding: 12px;
       border:1px solid rgba(255,255,255,.12);
@@ -585,7 +568,13 @@
     }
     .split > *{ flex: 1 1 260px; }
 
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .denyBox{
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(239,68,68,.28);
+      background: rgba(239,68,68,.10);
+      color: rgba(255,255,255,.90);
+    }
 
     .debug{
       display:none;
@@ -600,14 +589,6 @@
       overflow-wrap: anywhere;
     }
     .debug.show{ display:block; }
-
-    .denyBox{
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(239,68,68,.28);
-      background: rgba(239,68,68,.10);
-      color: rgba(255,255,255,.90);
-    }
   </style>
 </head>
 
@@ -617,7 +598,7 @@
     <div class="top">
       <div>
         <h1>Finanzen</h1>
-        <div class="subtitle">Rechnungen & Auslagen · Google Sheet · Status-Workflow · Export</div>
+        <div class="subtitle">Rechnungen & Auslagen · Google Sheet · Status im Modal</div>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
@@ -696,7 +677,7 @@
             <span class="navIcon">📁</span>
             <span>
               <div class="navTitle">Belege</div>
-              <div class="navHint">Drive Ordner</div>
+              <div class="navHint">Drive</div>
             </span>
           </a>
           <button class="btn-secondary" id="logoutBtn">Logout</button>
@@ -709,7 +690,7 @@
       <div class="denyBox">
         <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
         <div style="margin-top:6px; color:rgba(255,255,255,.78);">
-          Diese Seite ist nur für <b>vorstand</b> (kleingeschrieben).
+          Diese Seite ist nur für <b>vorstand</b>.
         </div>
       </div>
     </div>
@@ -765,10 +746,7 @@
         <button class="btn-primary" id="exportBtn">Export CSV</button>
 
         <div class="spacer"></div>
-
-        <button class="btn-danger" id="bulkOpenBtn" disabled>Bulk: Offen</button>
-        <button class="btn-warn" id="bulkCheckBtn" disabled>Bulk: In Prüfung</button>
-        <button class="btn-ok" id="bulkPaidBtn" disabled>Bulk: Bezahlt</button>
+        <div class="pill" style="opacity:.9;">Tipp: Klick auf Karte → Details & Status</div>
       </div>
 
       <div class="debug" id="debugBox"></div>
@@ -792,21 +770,20 @@
 
       <div class="split">
         <div class="glass" style="border-radius:18px; padding:12px;">
-          <div style="font-weight:900; margin-bottom:8px;">Aktionen</div>
+          <div style="font-weight:900; margin-bottom:8px;">Status setzen</div>
           <div class="row" style="gap:10px;">
             <button class="btn-danger" id="setOpenBtn">Rechnung offen</button>
             <button class="btn-warn" id="setCheckBtn">In Prüfung</button>
             <button class="btn-ok" id="setPaidBtn">Bezahlt</button>
-            <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;">📎 Beleg öffnen</a>
+            <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none; display:none;">📎 Beleg öffnen</a>
           </div>
-          <div style="margin-top:10px;" class="pill"><span>Ausgewählt:</span> <strong id="selName">–</strong></div>
         </div>
 
         <div class="glass" style="border-radius:18px; padding:12px;">
-          <div style="font-weight:900; margin-bottom:8px;">Hinweise</div>
-          <div style="color:rgba(255,255,255,.72); font-size:13px; line-height:1.35;">
-            Status wird direkt im Google Sheet gespeichert. Zugriff nur für <b>vorstand</b>.
-          </div>
+          <div style="font-weight:900; margin-bottom:8px;">Kurzinfo</div>
+          <div class="pill"><span>Ausgewählt:</span> <strong id="selName">–</strong></div>
+          <div class="pill" style="margin-top:10px;"><span>Summe:</span> <strong id="selSum">–</strong></div>
+          <div class="pill" style="margin-top:10px;"><span>Status:</span> <strong id="selStatus">–</strong></div>
         </div>
       </div>
 
@@ -830,9 +807,7 @@
 
     const LOGIN_REDIRECT = "/index.html";
     const PROFILES_TABLE = "profiles";
-
-    // ✅ NUR rolle "vorstand" zulassen (kleinschreibung!)
-    const REQUIRED_ROLE = "vorstand";
+    const REQUIRED_ROLE = "vorstand"; // ✅ nur vorstand
 
     // Sheet headers (exakt)
     const F = {
@@ -866,9 +841,6 @@
     const fProj = document.getElementById("fProj");
     const reloadBtn = document.getElementById("reloadBtn");
     const exportBtn = document.getElementById("exportBtn");
-    const bulkOpenBtn = document.getElementById("bulkOpenBtn");
-    const bulkCheckBtn = document.getElementById("bulkCheckBtn");
-    const bulkPaidBtn = document.getElementById("bulkPaidBtn");
 
     const grid = document.getElementById("grid");
     const empty = document.getElementById("empty");
@@ -885,9 +857,12 @@
     const setCheckBtn = document.getElementById("setCheckBtn");
     const setPaidBtn = document.getElementById("setPaidBtn");
     const belegLink = document.getElementById("belegLink");
-    const selName = document.getElementById("selName");
 
-    // Auth badge elements
+    const selName = document.getElementById("selName");
+    const selSum = document.getElementById("selSum");
+    const selStatus = document.getElementById("selStatus");
+
+    // Auth badge
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
@@ -913,7 +888,70 @@
 
     let ALL = [];
     let ACTIVE_ROW = null;
-    let SELECTED = new Set();
+
+    function showDebug(obj){
+      debugBox.classList.add("show");
+      debugBox.textContent = JSON.stringify(obj, null, 2);
+    }
+
+    // ==========================
+    // ✅ PRICE FIX (98.78 bleibt 98,78€)
+    // ==========================
+    function parseEUR(v){
+      if (typeof v === "number" && Number.isFinite(v)) return v;
+
+      const raw = safe(v).trim();
+      if (!raw) return 0;
+
+      // keep digits + separators
+      const s = raw.replace(/\s/g,"").replace(/[^\d.,-]/g,"");
+
+      const hasDot = s.includes(".");
+      const hasComma = s.includes(",");
+
+      // 1) "1.234,56" -> dot thousands, comma decimals
+      if (hasDot && hasComma){
+        const norm = s.replace(/\./g,"").replace(",",".");
+        const n = Number(norm);
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      // 2) "1234,56" -> comma decimals
+      if (hasComma && !hasDot){
+        const n = Number(s.replace(",","."));
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      // 3) "98.78" -> dot decimals (NOT thousands)
+      // If pattern like 1.234 (3 digits after) and no decimals, we could treat as thousands,
+      // but for safety in your data (98.78) we treat dot as decimal.
+      const n = Number(s);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    const fmtEUR = (n)=> new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
+
+    function tsKey(row){ return safe(row?.[F.ts]).trim(); }
+
+    function statusNorm(s){
+      const t = safe(s).trim();
+      if (!t) return "Rechnung offen";
+      const low = t.toLowerCase();
+      if (low.includes("prüfung")) return "In Prüfung";
+      if (low.includes("bezahlt")) return "Bezahlt";
+      if (low.includes("offen")) return "Rechnung offen";
+      return t;
+    }
+
+    function statusClass(st){
+      if (st === "Bezahlt") return "paid";
+      if (st === "In Prüfung") return "check";
+      return "open";
+    }
+
+    function uniq(arr){
+      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
+    }
 
     // ==========================
     // Badge helpers
@@ -958,10 +996,6 @@
       authAvatar.classList.remove("hidden");
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
-    function pulseLogin(){
-      authDot.classList.add("pulsing");
-      setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-    }
     function closeAuthDetails(){ authDetails.classList.add("hidden"); }
     authToggle?.addEventListener("click", (e)=>{
       e.stopPropagation();
@@ -971,7 +1005,12 @@
       if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
     });
 
-    function normRole(v){ return (v || "").trim().toLowerCase(); }
+    function normRole(v){
+      return String(v || "")
+        .replace(/\s+/g," ")
+        .trim()
+        .toLowerCase();
+    }
     function setRolePill(role){
       const r = normRole(role);
       authRolePill.textContent = r || "unbekannt";
@@ -985,7 +1024,7 @@
       authNameInline.textContent = name || fallback;
     }
 
-    function setAuthUI(isAuthed, email = "", doPulse = false){
+    function setAuthUI(isAuthed, email = ""){
       if (isAuthed){
         authDot.classList.remove("warn");
         authDot.classList.add("ok");
@@ -1001,8 +1040,6 @@
 
         navWrap.style.display = "block";
         logoutBtn.classList.remove("hidden");
-
-        if (doPulse) pulseLogin();
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
@@ -1019,39 +1056,6 @@
         navWrap.style.display = "none";
         logoutBtn.classList.add("hidden");
       }
-    }
-
-    function showDebug(obj){
-      debugBox.classList.add("show");
-      debugBox.textContent = JSON.stringify(obj, null, 2);
-    }
-
-    // ==========================
-    // Helpers data
-    // ==========================
-    function parseEUR(v){
-      const s = safe(v).trim();
-      if (!s) return 0;
-      const norm = s.replace(/\./g,'').replace(',', '.').replace(/[^\d.-]/g,'');
-      const n = Number(norm);
-      return Number.isFinite(n) ? n : 0;
-    }
-    const fmtEUR = (n)=> new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
-
-    function tsKey(row){ return safe(row?.[F.ts]).trim(); }
-
-    function statusNorm(s){
-      const t = safe(s).trim();
-      if (!t) return "Rechnung offen";
-      const low = t.toLowerCase();
-      if (low.includes("prüfung")) return "In Prüfung";
-      if (low.includes("bezahlt")) return "Bezahlt";
-      if (low.includes("offen")) return "Rechnung offen";
-      return t;
-    }
-
-    function uniq(arr){
-      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
     }
 
     // ==========================
@@ -1074,33 +1078,30 @@
         .from(PROFILES_TABLE)
         .select("role, display_name")
         .eq("id", uid)
-        .single();
+        .maybeSingle();
 
-      if (error){
+      if (error || !data){
         setCompactIdentity("", email);
         setRolePill("");
         return;
       }
 
       MY_ROLE = normRole(data?.role);
-      CAN_VIEW = (MY_ROLE === REQUIRED_ROLE); // ✅ nur "vorstand"
+      CAN_VIEW = (MY_ROLE === REQUIRED_ROLE);
 
       setCompactIdentity(data?.display_name, email);
       setRolePill(MY_ROLE);
 
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
-
-      authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
     }
 
     async function loadFinanceToken(){
-      // Token aus app_secrets (RLS sollte auf "vorstand" prüfen)
       const { data, error } = await sb
         .from("app_secrets")
         .select("value")
         .eq("key","finance_sheet_token")
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data?.value || "";
@@ -1122,7 +1123,7 @@
       try{
         const session = await requireAuth();
         const mail = session?.user?.email || "";
-        setAuthUI(true, mail, false);
+        setAuthUI(true, mail);
         await loadMyProfile(session);
 
         if (!CAN_VIEW){
@@ -1135,7 +1136,7 @@
         TOKEN = await loadFinanceToken();
         if (!TOKEN){
           statusPill.textContent = "Fehlt: finance_sheet_token";
-          showDebug({hint:"Lege in Supabase app_secrets die Zeile key=finance_sheet_token an (RLS nur 'vorstand')."});
+          showDebug({hint:"Supabase app_secrets: key=finance_sheet_token (RLS nur vorstand)."});
           return;
         }
 
@@ -1151,7 +1152,7 @@
     });
 
     // ==========================
-    // API (Apps Script)
+    // API
     // ==========================
     async function apiGetRows(){
       const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
@@ -1160,9 +1161,7 @@
 
       let json;
       try { json = JSON.parse(text); }
-      catch(err){
-        throw new Error("API liefert kein JSON: " + text.slice(0,200));
-      }
+      catch(err){ throw new Error("API liefert kein JSON: " + text.slice(0,200)); }
 
       if (!res.ok) throw new Error("API Fehler: " + res.status);
       if (json?.error) throw new Error("API: " + json.error);
@@ -1182,7 +1181,7 @@
     }
 
     // ==========================
-    // Rendering
+    // Data & UI
     // ==========================
     function filtered(){
       const text = safe(q.value).trim().toLowerCase();
@@ -1195,9 +1194,7 @@
         if (pr && safe(r[F.proj]).trim() !== pr) return false;
 
         if (text){
-          const blob = [
-            r[F.fn], r[F.ln], r[F.proj], r[F.iban], r[F.desc]
-          ].map(safe).join(" ").toLowerCase();
+          const blob = [r[F.fn], r[F.ln], r[F.proj], r[F.iban], r[F.desc]].map(safe).join(" ").toLowerCase();
           if (!blob.includes(text)) return false;
         }
         return true;
@@ -1238,82 +1235,35 @@
       grid.innerHTML = "";
       empty.style.display = rows.length ? "none" : "block";
 
-      const anySel = SELECTED.size > 0;
-      bulkOpenBtn.disabled = !anySel;
-      bulkCheckBtn.disabled = !anySel;
-      bulkPaidBtn.disabled = !anySel;
-
       rows.forEach(r=>{
         const fn = safe(r[F.fn]).trim();
         const ln = safe(r[F.ln]).trim();
         const name = (fn + " " + ln).trim() || "Unbekannt";
         const proj = safe(r[F.proj]).trim() || "—";
-        const iban = safe(r[F.iban]).trim() || "—";
-        const desc = safe(r[F.desc]).trim() || "—";
+        const date = safe(r[F.date]).trim() || "—";
         const sum = parseEUR(r[F.sum]);
-        const date = safe(r[F.date]).trim();
-        const ts = tsKey(r);
 
         const st = statusNorm(r[F.status]);
-        const isSel = SELECTED.has(ts);
-
-        const beleg = safe(r[F.beleg]).trim();
-        const hasBeleg = beleg.startsWith("http");
-
-        const corner = (st==="Bezahlt")
-          ? `<div class="cornerBadge ok">🟢 Bezahlt</div>`
-          : (st==="In Prüfung")
-            ? `<div class="cornerBadge warn">🟠 In Prüfung</div>`
-            : `<div class="cornerBadge bad">🔴 Offen</div>`;
+        const stCls = statusClass(st);
 
         const card = document.createElement("div");
         card.className = "appCard";
         card.innerHTML = `
-          ${corner}
-          <div class="inner">
-            <div class="avatar">
-              <div style="font-size:18px;">€</div>
+          <div class="statusPill ${stCls}">${st}</div>
+          <div class="cardTop">
+            <div class="iconBox">€</div>
+            <div class="cardText">
+              <div class="title">${esc(name)}</div>
+              <div class="sub">${esc(proj)} · ${esc(date)}</div>
             </div>
-
-            <div style="min-width:0; flex:1 1 auto;">
-              <div class="titleRow">
-                <div class="title">${esc(name)}</div>
-                <label class="tag" style="cursor:pointer; user-select:none;">
-                  <input type="checkbox" data-ts="${esc(ts)}" class="selBox" ${isSel?"checked":""} style="accent-color:#38bdf8;">
-                  <span>Bulk</span>
-                </label>
-              </div>
-              <div class="sub">${esc(proj)} · ${esc(date || "—")}</div>
-
-              <div class="tags">
-                <span class="tag">💶 <b>${esc(fmtEUR(sum))}</b></span>
-                <span class="tag">🏦 <span class="mono">${esc(iban)}</span></span>
-                ${hasBeleg ? `<span class="tag">📎 <a href="${esc(beleg)}" target="_blank" rel="noopener">Beleg</a></span>` : ``}
-                <span class="tag">${esc(desc)}</span>
-              </div>
-
-              <div class="row" style="margin-top:10px; gap:10px;">
-                <button class="btn-danger setBtn" data-ts="${esc(ts)}" data-st="Rechnung offen">Offen</button>
-                <button class="btn-warn setBtn" data-ts="${esc(ts)}" data-st="In Prüfung">In Prüfung</button>
-                <button class="btn-ok setBtn" data-ts="${esc(ts)}" data-st="Bezahlt">Bezahlt</button>
-                <div class="spacer"></div>
-                <span class="pill"><span>Status:</span> <strong>${esc(st)}</strong></span>
-              </div>
-
-              <div class="pill" style="margin-top:10px;">
-                <span style="opacity:.75;">Zeitstempel:</span>
-                <span class="mono">${esc(ts || "—")}</span>
-              </div>
-            </div>
+          </div>
+          <div class="metaRow">
+            <span class="metaPill">💶 <strong>${esc(fmtEUR(sum))}</strong></span>
+            ${safe(r[F.beleg]).trim().startsWith("http") ? `<span class="metaPill">📎 Beleg vorhanden</span>` : ``}
           </div>
         `;
 
-        card.addEventListener("click", (e)=>{
-          const t = e.target;
-          if (t && (t.classList.contains("setBtn") || t.classList.contains("selBox") || t.tagName === "A" || t.tagName === "INPUT" || t.tagName === "BUTTON" || t.closest("button"))) return;
-          openModal(r);
-        });
-
+        card.addEventListener("click", ()=> openModal(r));
         grid.appendChild(card);
       });
     }
@@ -1324,31 +1274,34 @@
       const fn = safe(row[F.fn]).trim();
       const ln = safe(row[F.ln]).trim();
       const name = (fn + " " + ln).trim() || "Rechnung";
-      modalTitle.textContent = name;
 
       const ts = tsKey(row);
       const proj = safe(row[F.proj]).trim();
       const date = safe(row[F.date]).trim();
+      const st = statusNorm(row[F.status]);
+      const sum = parseEUR(row[F.sum]);
+
+      modalTitle.textContent = name;
       modalSub.textContent = [proj, date, ts].filter(Boolean).join(" · ") || "—";
+
       selName.textContent = name;
+      selSum.textContent = fmtEUR(sum);
+      selStatus.textContent = st;
 
       const beleg = safe(row[F.beleg]).trim();
       if (beleg && beleg.startsWith("http")){
         belegLink.href = beleg;
         belegLink.style.display = "inline-flex";
       } else {
-        belegLink.href = "#";
         belegLink.style.display = "none";
       }
 
       const items = [
         ["Zeitstempel", safe(row[F.ts])],
-        ["Vorname", safe(row[F.fn])],
-        ["Nachname", safe(row[F.ln])],
         ["Projekt", safe(row[F.proj])],
-        ["Beleg Summe", fmtEUR(parseEUR(row[F.sum]))],
+        ["Beleg Summe", fmtEUR(sum)],
         ["Beleg Datum", safe(row[F.date])],
-        ["Status", statusNorm(row[F.status])],
+        ["Status", st],
         ["Beleg Erläuterung", safe(row[F.desc])],
         ["Beleg hochladen", safe(row[F.beleg])],
         ["Dein IBAN", safe(row[F.iban])]
@@ -1386,12 +1339,13 @@
       statusPill.textContent = "Lade…";
       try{
         ALL = await apiGetRows();
+
+        // default status
         ALL = ALL.map(r=>{
           if (!safe(r[F.status]).trim()) r[F.status] = "Rechnung offen";
           return r;
         });
 
-        SELECTED.clear();
         fillProjectFilter();
         updateKPIs();
         render();
@@ -1408,30 +1362,12 @@
         if (i >= 0) ALL[i][F.status] = status;
         updateKPIs();
         render();
+        if (ACTIVE_ROW && tsKey(ACTIVE_ROW) === ts) {
+          ACTIVE_ROW[F.status] = status;
+          selStatus.textContent = statusNorm(status);
+        }
       } catch(err){
         alert("Konnte Status nicht setzen: " + (err?.message || err));
-      }
-    }
-
-    async function bulkSet(status){
-      const items = Array.from(SELECTED);
-      if (!items.length) return;
-
-      bulkOpenBtn.disabled = true;
-      bulkCheckBtn.disabled = true;
-      bulkPaidBtn.disabled = true;
-
-      try{
-        for (const ts of items){
-          await apiSetStatus(ts, status);
-          const i = ALL.findIndex(r => tsKey(r) === ts);
-          if (i >= 0) ALL[i][F.status] = status;
-        }
-        SELECTED.clear();
-        updateKPIs();
-        render();
-      } catch(err){
-        alert("Bulk Update fehlgeschlagen: " + (err?.message || err));
       }
     }
 
@@ -1457,34 +1393,9 @@
     }
 
     // Events
-    document.addEventListener("click", (e)=>{
-      const t = e.target;
-
-      if (t && t.classList.contains("setBtn")){
-        e.stopPropagation();
-        const ts = t.getAttribute("data-ts");
-        const st = t.getAttribute("data-st");
-        if (ts && st) setStatusFor(ts, st);
-        return;
-      }
-
-      if (t && t.classList.contains("selBox")){
-        e.stopPropagation();
-        const ts = t.getAttribute("data-ts");
-        if (!ts) return;
-        if (t.checked) SELECTED.add(ts); else SELECTED.delete(ts);
-        render();
-        return;
-      }
-    });
-
     [q, fStatus, fProj].forEach(elm => elm.addEventListener("input", render));
     reloadBtn.addEventListener("click", fetchRows);
     exportBtn.addEventListener("click", exportCSV);
-
-    bulkOpenBtn.addEventListener("click", ()=>bulkSet("Rechnung offen"));
-    bulkCheckBtn.addEventListener("click", ()=>bulkSet("In Prüfung"));
-    bulkPaidBtn.addEventListener("click", ()=>bulkSet("Bezahlt"));
 
     setOpenBtn.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Rechnung offen"));
     setCheckBtn.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "In Prüfung"));
@@ -1498,18 +1409,9 @@
     // Init
     (async function init(){
       await enforceAuth();
-
-      if (!CAN_VIEW){
-        setViewAllowed(false);
-        return;
-      }
+      if (!CAN_VIEW){ setViewAllowed(false); return; }
       setViewAllowed(true);
-
-      if (!TOKEN){
-        statusPill.textContent = "Token nicht geladen";
-        return;
-      }
-
+      if (!TOKEN){ statusPill.textContent = "Token nicht geladen"; return; }
       await fetchRows();
     })();
   </script>
