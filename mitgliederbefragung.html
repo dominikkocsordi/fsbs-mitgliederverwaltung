@@ -1,1 +1,1022 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mitgliederbefragung – Dashboard</title>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      /* Orange/Lila – matte dark + liquid glass */
+      --bg0:#07070b;
+      --bg1:#0b0c12;
+      --bg2:#0f111a;
+
+      --glass: rgba(255,255,255,.07);
+      --glass2: rgba(255,255,255,.10);
+      --border: rgba(255,255,255,.16);
+
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.66);
+
+      --o1:#ff7a18;
+      --o2:#ffb45a;
+      --p1:#a855f7;
+      --p2:#6d28d9;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 15% 15%, rgba(255,122,24,.22), transparent 55%),
+        radial-gradient(1100px 720px at 85% 18%, rgba(168,85,247,.22), transparent 55%),
+        radial-gradient(1200px 900px at 55% 90%, rgba(255,180,90,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 35%, var(--bg2));
+      background-attachment: fixed;
+      overflow-x:hidden;
+    }
+
+    /* Liquid “sheen” overlay */
+    body:before{
+      content:"";
+      position:fixed; inset:-2px;
+      pointer-events:none;
+      background:
+        radial-gradient(900px 380px at 30% 0%, rgba(255,255,255,.10), transparent 55%),
+        radial-gradient(820px 360px at 70% 10%, rgba(255,255,255,.08), transparent 58%);
+      filter: blur(8px);
+      opacity:.8;
+    }
+
+    a{color:inherit}
+    .wrap{max-width:1180px; margin:0 auto; padding:22px 14px 60px}
+
+    header{
+      position:relative;
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .brand{
+      display:flex; flex-direction:column; gap:6px;
+      padding:16px 16px 14px;
+      border:1px solid var(--border);
+      background: linear-gradient(135deg, rgba(255,122,24,.10), rgba(168,85,247,.10));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow:hidden;
+    }
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .loginBadge{
+      position:sticky;
+      top:10px;
+      align-self:flex-start;
+      display:flex; align-items:center; gap:10px;
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 35px rgba(0,0,0,.40);
+      min-height:40px;
+      z-index:10;
+    }
+    .dot{
+      width:10px; height:10px; border-radius:999px;
+      background: rgba(255,255,255,.22);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+    }
+    .dot.ok{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .dot.no{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 3px rgba(239,68,68,.18); }
+    .badgeText{display:flex; flex-direction:column; gap:2px; line-height:1.05}
+    .badgeText b{font-size:12.5px}
+    .badgeText span{font-size:12px; color:var(--muted)}
+    .btnSmall{
+      border:1px solid rgba(255,122,24,.28);
+      background: linear-gradient(135deg, rgba(255,122,24,.20), rgba(255,180,90,.10));
+      color:var(--text);
+      padding:8px 10px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-size:12px;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      white-space:nowrap;
+    }
+    .btnSmall:hover{ transform: translateY(-1px); border-color: rgba(255,122,24,.45); }
+
+    nav{
+      margin:12px 0 18px;
+      display:flex; flex-wrap:wrap; gap:10px;
+      align-items:center;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 14px 45px rgba(0,0,0,.35);
+    }
+    .pill{
+      padding:9px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+      font-size:12.5px;
+      cursor:pointer;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
+      user-select:none;
+    }
+    .pill:hover{ transform: translateY(-1px); border-color: rgba(255,122,24,.35); color: var(--text); }
+    .pill.active{
+      color:var(--text);
+      border-color: rgba(255,122,24,.50);
+      background: linear-gradient(135deg, rgba(255,122,24,.18), rgba(168,85,247,.10));
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      header{flex-direction:column}
+      .loginBadge{width:100%; justify-content:space-between}
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow:hidden;
+    }
+    .cardHead{
+      padding:14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+    }
+    .cardHead h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .cardHead p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:12.5px;
+      line-height:1.35;
+    }
+    .cardBody{padding:14px}
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+    }
+    @media (max-width: 720px){
+      .kpis{grid-template-columns:1fr}
+    }
+    .kpi{
+      padding:12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: linear-gradient(135deg, rgba(255,122,24,.14), rgba(168,85,247,.08));
+      min-height:74px;
+    }
+    .kpi .label{color:var(--muted); font-size:12px}
+    .kpi .value{margin-top:6px; font-size:20px; font-weight:700; letter-spacing:.2px}
+    .kpi .sub{margin-top:2px; color:var(--muted); font-size:12px}
+
+    .filters{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    }
+    select, input[type="date"]{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-radius: 12px;
+      padding:10px 10px;
+      font-size:12.5px;
+      outline:none;
+    }
+    select:focus, input[type="date"]:focus{
+      border-color: rgba(255,122,24,.45);
+      box-shadow: 0 0 0 3px rgba(255,122,24,.15);
+    }
+
+    .chartBox{height:320px}
+    @media (max-width: 720px){
+      .chartBox{height:280px}
+    }
+
+    .list{
+      display:flex; flex-direction:column; gap:10px;
+      max-height:520px;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .item{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      border-radius: 14px;
+      padding:12px;
+    }
+    .item .q{font-size:12.5px; margin:0 0 6px; color:var(--muted)}
+    .item .a{margin:0; font-size:13.5px; line-height:1.45}
+    .tagRow{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .tag{
+      font-size:11.5px;
+      padding:6px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,122,24,.28);
+      background: rgba(255,122,24,.10);
+      color: rgba(255,255,255,.86);
+    }
+    .tag.p{border-color: rgba(168,85,247,.28); background: rgba(168,85,247,.10)}
+    .muted{color:var(--muted)}
+    .warn{
+      border:1px solid rgba(239,68,68,.30);
+      background: rgba(239,68,68,.10);
+      padding:12px;
+      border-radius: 14px;
+      color: rgba(255,255,255,.9);
+      line-height:1.35;
+      font-size:13px;
+    }
+    .okBox{
+      border:1px solid rgba(34,197,94,.26);
+      background: rgba(34,197,94,.08);
+      padding:12px;
+      border-radius: 14px;
+      font-size:13px;
+      color: rgba(255,255,255,.9);
+      line-height:1.35;
+    }
+    .footerNote{margin-top:16px; color:var(--muted); font-size:12.5px; line-height:1.45}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Mitgliederbefragung – Auswertung</h1>
+        <p>Interne Ergebnisse (nur Ressortleiter & Vorstand). Filterbar nach Ressort & Zeitraum, inkl. Charts und Freitext-Feedback.</p>
+      </div>
+
+      <div class="loginBadge" id="loginBadge">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="dot no" id="statusDot"></div>
+          <div class="badgeText">
+            <b id="badgeTitle">Nicht eingeloggt</b>
+            <span id="badgeSub">Bitte anmelden…</span>
+          </div>
+        </div>
+        <button class="btnSmall" id="logoutBtn" style="display:none;">Logout</button>
+      </div>
+    </header>
+
+    <nav id="tabs">
+      <div class="pill active" data-tab="overview">Überblick</div>
+      <div class="pill" data-tab="comm">Kommunikation & Tools</div>
+      <div class="pill" data-tab="events">Interne Events</div>
+      <div class="pill" data-tab="ressort">Ressort & Vorstand</div>
+      <div class="pill" data-tab="text">Freitext-Feedback</div>
+    </nav>
+
+    <!-- FILTERS -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="cardHead">
+        <div>
+          <h2>Filter</h2>
+          <p>Die Diagramme & Listen aktualisieren sich automatisch.</p>
+        </div>
+      </div>
+      <div class="cardBody">
+        <div class="filters">
+          <label class="muted">Ressort:</label>
+          <select id="ressortFilter">
+            <option value="__all__">Alle Ressorts</option>
+          </select>
+
+          <label class="muted">Von:</label>
+          <input type="date" id="dateFrom" />
+
+          <label class="muted">Bis:</label>
+          <input type="date" id="dateTo" />
+
+          <button class="btnSmall" id="resetFilters">Zurücksetzen</button>
+          <span class="muted" id="rowCount" style="margin-left:auto;">–</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <section class="tab" id="tab-overview">
+      <div class="grid">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Kennzahlen</h2>
+              <p>Quick-Überblick über Beteiligung & Zufriedenheit.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="kpis">
+              <div class="kpi">
+                <div class="label">Antworten</div>
+                <div class="value" id="kpiTotal">–</div>
+                <div class="sub" id="kpiPeriod">–</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Ø Einbindung (Score)</div>
+                <div class="value" id="kpiEmbedding">–</div>
+                <div class="sub muted">Skala aus Antworten abgeleitet</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Ø Zusammenarbeit (Score)</div>
+                <div class="value" id="kpiCollab">–</div>
+                <div class="sub muted">Skala aus Antworten abgeleitet</div>
+              </div>
+            </div>
+
+            <div class="footerNote">
+              Hinweis: Viele Fragen sind textbasiert (z. B. „Sehr zufrieden“). Daraus wird ein Score (1–5) berechnet, falls die Antwort zu den bekannten Skalen passt.
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Einbindung – Verteilung</h2>
+              <p>Wie aktiv fühlen sich Mitglieder aktuell eingebunden?</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartEmbedding"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px;">
+        <div class="cardHead">
+          <div>
+            <h2>Zufriedenheit mit MS Teams</h2>
+            <p>Verteilung der Antworten + Score-Schätzung.</p>
+          </div>
+        </div>
+        <div class="cardBody">
+          <div class="chartBox"><canvas id="chartTeams"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMM -->
+    <section class="tab" id="tab-comm" style="display:none;">
+      <div class="grid">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Interne Kommunikation</h2>
+              <p>Wie wird die generelle interne Kommunikation bewertet?</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartInternalComms"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Alternative Tools (Freitext)</h2>
+              <p>Vorschläge für ein anderes Tool.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listAltTools"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVENTS -->
+    <section class="tab" id="tab-events" style="display:none;">
+      <div class="grid">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Teilnahme an internen Events</h2>
+              <p>Wie häufig nehmen Mitglieder teil?</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartEventFreq"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Zufriedenheit mit internen Events</h2>
+              <p>Wie zufrieden sind Mitglieder insgesamt?</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartEventSat"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:14px;">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Was kam gut an?</h2>
+              <p>Highlights aus den bisherigen internen Events.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listEventGood"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Was kann besser werden?</h2>
+              <p>Verbesserungsvorschläge zu internen Events.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listEventImprove"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESSORT -->
+    <section class="tab" id="tab-ressort" style="display:none;">
+      <div class="grid">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Ressortarbeit</h2>
+              <p>Zufriedenheit mit der Arbeit des Ressorts.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartRessortWork"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Ressortleitung</h2>
+              <p>Bewertung der Arbeit der Ressortleitung.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartRessortLead"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:14px;">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Vorstand – Zufriedenheit</h2>
+              <p>Wie zufrieden sind Mitglieder mit der Arbeit des Vorstands?</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartBoardSat"></canvas></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Vorstand – Transparenz</h2>
+              <p>Findet man, dass der Vorstand transparent genug kommuniziert?</p>
+            </div>
+          </div>
+          <div classcardBody></div>
+          <div class="cardBody">
+            <div class="chartBox"><canvas id="chartBoardTrans"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:14px;">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Ressort: Was könnte besser laufen?</h2>
+              <p>Feedback an Ressort / Ressortleitung.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listRessortImprove"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Vorstand: Was könnte verbessert werden?</h2>
+              <p>Feedback an den Vorstand.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listBoardImprove"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEXT -->
+    <section class="tab" id="tab-text" style="display:none;">
+      <div class="grid">
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Zukunftswünsche</h2>
+              <p>Welche Themen/Angebote wünscht man sich in Zukunft?</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listFutureWishes"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardHead">
+            <div>
+              <h2>Weitere Anmerkungen</h2>
+              <p>Offenes Feedback.</p>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="list" id="listOther"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="accessMessage" style="margin-top:14px; display:none;"></div>
+  </div>
+
+  <script>
+    // ============================
+    // ✅ 1) Konfiguration
+    // ============================
+
+    // Supabase – nutze deine bestehende URL/Key (du hattest die vorher schon hier im Projekt)
+    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+
+    // Mitglieder-Tabelle: muss Email + Rolle enthalten (rolle: "ressortleiter" | "vorstand")
+    // Wenn deine Spalten anders heißen, passe HIER an:
+    const MEMBERS_TABLE = "members";
+    const COL_EMAIL = "email";
+    const COL_ROLE  = "rolle";
+    const COL_RESSORT= "ressort";
+
+    const ALLOWED_ROLES = new Set(["ressortleiter", "vorstand"]);
+
+    // Google Sheet (öffentlich) – wir laden per gviz JSON (keine Apps Script Web-App nötig)
+    const SHEET_ID = "1PJAutXFcNr34sSFvVUiKEj1QUDh6xgQ767T8fIZ0F2M";
+    const SHEET_GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+    // Headernamen (müssen exakt so sein wie in deinem Sheet)
+    const H = {
+      ts: "Zeitstempel",
+      embedding: "Wie aktiv fühlst du dich aktuell in der Fachschaft eingebunden?",
+      collab: "Wie schätzt du die generelle Zusammenarbeit in der Fachschaft ein?",
+      teams: "Wie zufrieden bist du mit MS Teams als Kommunikation- und Organisationstool?",
+      altTool: "Hast du einen Vorschlag für ein anderes Tool, das wir nutzen könnten?",
+      internalComms: "Wie bewertest du die generelle interne Kommunikation in der Fachschaft?",
+      eventFreq: "Wie häufig nimmst du an internen Events teil?",
+      eventSat: "Wie zufrieden bist du insgesamt mit den bisherigen internen Events?",
+      eventGood: "Was hat dir an den bisherigen internen Events besonders gut gefallen?",
+      eventImprove: "Was hat dir weniger gut gefallen oder könnte verbessert werden?",
+      ressort: "Im welchem Ressort bist du aktiv?",
+      ressortWork: "Wie zufrieden bist du mit der Arbeit deines Ressorts?",
+      ressortLead: "Wie bewertest du die Arbeit deiner Ressortleitung?",
+      ressortImprove: "Was könnte dein Ressort/ deine Ressortleitung besser machen?",
+      boardSat: "Wie zufrieden bist du mit der Arbeit des Vorstands?",
+      boardTrans: "Findest du, dass der Vorstand transparent genug kommuniziert?",
+      boardImprove: "Gibt es etwas, das der Vorstand verbessern könnte?",
+      future: "Welche Themen oder Angebote wünschst du dir von der Fachschaft in Zukunft?",
+      other: "Hast du weitere Anmerkungen oder Feedback?"
+    };
+
+    // Score-Mapping (falls Antworten in dieser Art kommen)
+    // Du kannst hier jederzeit Begriffe ergänzen, die bei euch im Formular vorkommen.
+    const SCORE_MAP = [
+      // 5
+      [/sehr (aktiv|gut|zufrieden|positiv|hoch)/i, 5],
+      // 4
+      [/(eher|ziemlich) (aktiv|gut|zufrieden|positiv|hoch)/i, 4],
+      // 3
+      [/(neutral|teils\/teils|mittel|okay|ok)/i, 3],
+      // 2
+      [/(eher|ziemlich) (wenig|schlecht|unzufrieden|niedrig)/i, 2],
+      // 1
+      [/(gar nicht|sehr (wenig|schlecht|unzufrieden|niedrig))/i, 1],
+      // Ja/Nein -> 5/1 (für Transparenzfrage, wenn "Ja/Nein")
+      [/^(ja|yes)$/i, 5],
+      [/^(nein|no)$/i, 1],
+    ];
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ============================
+    // ✅ 2) Helpers
+    // ============================
+    const $ = (id) => document.getElementById(id);
+    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
+    const norm = (s) => safe(s).trim();
+
+    function parseDateMaybe(s){
+      const t = norm(s);
+      if(!t) return null;
+      const d = new Date(t);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function toScore(answer){
+      const a = norm(answer);
+      if(!a) return null;
+      for (const [re, sc] of SCORE_MAP){
+        if (re.test(a)) return sc;
+      }
+      return null; // unbekannt
+    }
+
+    function groupCounts(rows, key){
+      const m = new Map();
+      for (const r of rows){
+        const v = norm(r[key]) || "—";
+        m.set(v, (m.get(v) || 0) + 1);
+      }
+      // sort by count desc
+      return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]);
+    }
+
+    function avgScore(rows, key){
+      let sum=0, n=0;
+      for(const r of rows){
+        const sc = toScore(r[key]);
+        if (sc !== null){ sum += sc; n++; }
+      }
+      return n ? (sum / n) : null;
+    }
+
+    function fmtAvg(v){
+      if(v===null) return "–";
+      return v.toFixed(2);
+    }
+
+    function setAccessMessage(type, html){
+      const el = $("accessMessage");
+      el.style.display = "block";
+      el.className = (type==="ok") ? "okBox" : "warn";
+      el.innerHTML = html;
+    }
+
+    function setBadge(ok, title, sub){
+      $("statusDot").classList.remove("ok","no");
+      $("statusDot").classList.add(ok ? "ok" : "no");
+      $("badgeTitle").textContent = title;
+      $("badgeSub").textContent = sub;
+      $("logoutBtn").style.display = ok ? "inline-flex" : "none";
+    }
+
+    // ============================
+    // ✅ 3) Tabs
+    // ============================
+    function setTab(tab){
+      document.querySelectorAll(".pill").forEach(p=>{
+        p.classList.toggle("active", p.dataset.tab === tab);
+      });
+      document.querySelectorAll(".tab").forEach(s=>s.style.display="none");
+      $("tab-"+tab).style.display = "block";
+    }
+    document.getElementById("tabs").addEventListener("click", (e)=>{
+      const pill = e.target.closest(".pill");
+      if(!pill) return;
+      setTab(pill.dataset.tab);
+    });
+
+    // ============================
+    // ✅ 4) Charts
+    // ============================
+    const charts = {};
+    function renderBarChart(canvasId, title, pairs){
+      const ctx = document.getElementById(canvasId);
+      if(!ctx) return;
+
+      const labels = pairs.map(p=>p[0]);
+      const data = pairs.map(p=>p[1]);
+
+      if(charts[canvasId]) charts[canvasId].destroy();
+
+      charts[canvasId] = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: title,
+            data,
+            borderWidth: 1,
+            borderRadius: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display:false },
+            tooltip: {
+              callbacks: {
+                label: (c)=> ` ${c.raw} Antwort(en)`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: "rgba(255,255,255,.75)", maxRotation: 35, minRotation: 0 },
+              grid: { color: "rgba(255,255,255,.08)" }
+            },
+            y: {
+              ticks: { color: "rgba(255,255,255,.75)", precision:0 },
+              grid: { color: "rgba(255,255,255,.08)" }
+            }
+          }
+        }
+      });
+    }
+
+    // ============================
+    // ✅ 5) Google Sheet Loader (gviz)
+    // ============================
+    async function loadSheetRows(){
+      const res = await fetch(SHEET_GVIZ_URL, { cache: "no-store" });
+      const txt = await res.text();
+      // gviz wraps JSON in a JS function call
+      const jsonStr = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
+      const data = JSON.parse(jsonStr);
+
+      const table = data.table;
+      const cols = table.cols.map(c => c.label);
+      const rows = table.rows.map(r => {
+        const obj = {};
+        cols.forEach((label, i)=>{
+          const cell = r.c[i];
+          obj[label] = cell ? (cell.f ?? cell.v) : "";
+        });
+        return obj;
+      });
+
+      return rows;
+    }
+
+    // ============================
+    // ✅ 6) Filters & Rendering
+    // ============================
+    let ALL_ROWS = [];
+    let VIEW_ROWS = [];
+
+    function applyFilters(){
+      const ressort = $("ressortFilter").value;
+      const from = $("dateFrom").value ? new Date($("dateFrom").value + "T00:00:00") : null;
+      const to   = $("dateTo").value ? new Date($("dateTo").value + "T23:59:59") : null;
+
+      VIEW_ROWS = ALL_ROWS.filter(r=>{
+        const rr = norm(r[H.ressort]);
+        if (ressort !== "__all__" && rr !== ressort) return false;
+
+        const d = parseDateMaybe(r[H.ts]);
+        if (from && (!d || d < from)) return false;
+        if (to && (!d || d > to)) return false;
+
+        return true;
+      });
+
+      $("rowCount").textContent = `${VIEW_ROWS.length} Antwort(en) in Ansicht`;
+      renderAll();
+    }
+
+    function fillRessortFilter(rows){
+      const set = new Set(rows.map(r=>norm(r[H.ressort])).filter(Boolean));
+      const opts = Array.from(set).sort((a,b)=>a.localeCompare(b, "de"));
+      const sel = $("ressortFilter");
+      sel.innerHTML = `<option value="__all__">Alle Ressorts</option>` + opts.map(o=>`<option>${escapeHtml(o)}</option>`).join("");
+    }
+
+    function escapeHtml(s){
+      return safe(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderTextList(elId, rows, questionKey, extraTagsFn){
+      const el = $(elId);
+      if(!el) return;
+      const items = rows
+        .map(r=>{
+          const a = norm(r[questionKey]);
+          if(!a) return null;
+          const ts = norm(r[H.ts]);
+          const rr = norm(r[H.ressort]) || "—";
+          const tags = extraTagsFn ? extraTagsFn(r) : [];
+          return { a, ts, rr, tags };
+        })
+        .filter(Boolean);
+
+      if(!items.length){
+        el.innerHTML = `<div class="muted">Keine Einträge in der aktuellen Ansicht.</div>`;
+        return;
+      }
+
+      el.innerHTML = items.slice(0, 200).map(it=>`
+        <div class="item">
+          <p class="a">${escapeHtml(it.a)}</p>
+          <div class="tagRow">
+            <span class="tag">${escapeHtml(it.rr)}</span>
+            ${it.ts ? `<span class="tag p">${escapeHtml(it.ts)}</span>` : ""}
+            ${it.tags.map(t=>`<span class="tag p">${escapeHtml(t)}</span>`).join("")}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderKPIs(){
+      $("kpiTotal").textContent = VIEW_ROWS.length;
+      const from = $("dateFrom").value;
+      const to   = $("dateTo").value;
+      $("kpiPeriod").textContent = (from || to) ? `Zeitraum: ${from || "…"} bis ${to || "…"}`
+                                                : "Zeitraum: alle";
+
+      $("kpiEmbedding").textContent = fmtAvg(avgScore(VIEW_ROWS, H.embedding));
+      $("kpiCollab").textContent    = fmtAvg(avgScore(VIEW_ROWS, H.collab));
+    }
+
+    function renderAll(){
+      // KPIs
+      renderKPIs();
+
+      // Charts (Distribution)
+      renderBarChart("chartEmbedding", "Einbindung", groupCounts(VIEW_ROWS, H.embedding));
+      renderBarChart("chartTeams", "MS Teams", groupCounts(VIEW_ROWS, H.teams));
+      renderBarChart("chartInternalComms", "Interne Kommunikation", groupCounts(VIEW_ROWS, H.internalComms));
+      renderBarChart("chartEventFreq", "Event Teilnahme", groupCounts(VIEW_ROWS, H.eventFreq));
+      renderBarChart("chartEventSat", "Event Zufriedenheit", groupCounts(VIEW_ROWS, H.eventSat));
+      renderBarChart("chartRessortWork", "Ressort Arbeit", groupCounts(VIEW_ROWS, H.ressortWork));
+      renderBarChart("chartRessortLead", "Ressortleitung", groupCounts(VIEW_ROWS, H.ressortLead));
+      renderBarChart("chartBoardSat", "Vorstand Zufriedenheit", groupCounts(VIEW_ROWS, H.boardSat));
+      renderBarChart("chartBoardTrans", "Vorstand Transparenz", groupCounts(VIEW_ROWS, H.boardTrans));
+
+      // Freitextlisten
+      renderTextList("listAltTools", VIEW_ROWS, H.altTool);
+      renderTextList("listEventGood", VIEW_ROWS, H.eventGood);
+      renderTextList("listEventImprove", VIEW_ROWS, H.eventImprove);
+      renderTextList("listRessortImprove", VIEW_ROWS, H.ressortImprove);
+      renderTextList("listBoardImprove", VIEW_ROWS, H.boardImprove);
+      renderTextList("listFutureWishes", VIEW_ROWS, H.future);
+      renderTextList("listOther", VIEW_ROWS, H.other);
+    }
+
+    // ============================
+    // ✅ 7) Auth + Rollencheck
+    // ============================
+    async function requireAuthorizedUser(){
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) console.warn(error);
+
+      if (!user){
+        setBadge(false, "Nicht eingeloggt", "Bitte zuerst anmelden");
+        setAccessMessage("warn", "❌ Zugriff verweigert: Du bist nicht eingeloggt. Bitte logge dich zuerst im Portal ein.");
+        // Optional: redirect
+        setTimeout(()=>{ window.location.href = "index.html"; }, 900);
+        return null;
+      }
+
+      // Rolle aus members laden
+      const email = user.email;
+      const { data: prof, error: e2 } = await supabase
+        .from(MEMBERS_TABLE)
+        .select(`${COL_EMAIL}, ${COL_ROLE}, ${COL_RESSORT}`)
+        .eq(COL_EMAIL, email)
+        .maybeSingle();
+
+      if (e2){
+        console.error(e2);
+        setBadge(true, "Eingeloggt", email);
+        setAccessMessage("warn", "⚠️ Eingeloggt, aber Profil/Rolle konnte nicht geladen werden. Bitte prüfe die Tabelle <b>members</b> (Spalten: <b>email</b>, <b>rolle</b>, optional <b>ressort</b>).");
+        return null;
+      }
+
+      const role = norm(prof?.[COL_ROLE]);
+      const ressort = norm(prof?.[COL_RESSORT]);
+
+      if (!ALLOWED_ROLES.has(role)){
+        setBadge(true, "Eingeloggt", `${email} · Rolle: ${role || "—"}`);
+        setAccessMessage("warn", `❌ Zugriff verweigert: Deine Rolle ist <b>${escapeHtml(role || "—")}</b>. Erlaubt sind nur <b>ressortleiter</b> oder <b>vorstand</b>.`);
+        setTimeout(()=>{ window.location.href = "index.html"; }, 1200);
+        return null;
+      }
+
+      setBadge(true, "Zugriff erlaubt", `${email} · ${role}${ressort ? " · " + ressort : ""}`);
+      return { user, role, ressort };
+    }
+
+    // ============================
+    // ✅ 8) Init
+    // ============================
+    async function init(){
+      // Logout
+      $("logoutBtn").addEventListener("click", async ()=>{
+        await supabase.auth.signOut();
+        window.location.href = "index.html";
+      });
+
+      // Filters listeners
+      $("ressortFilter").addEventListener("change", applyFilters);
+      $("dateFrom").addEventListener("change", applyFilters);
+      $("dateTo").addEventListener("change", applyFilters);
+      $("resetFilters").addEventListener("click", ()=>{
+        $("ressortFilter").value = "__all__";
+        $("dateFrom").value = "";
+        $("dateTo").value = "";
+        applyFilters();
+      });
+
+      // Auth gate
+      const auth = await requireAuthorizedUser();
+      if (!auth) return;
+
+      // Load sheet
+      try{
+        ALL_ROWS = await loadSheetRows();
+
+        // Fill ressort filter options from sheet
+        fillRessortFilter(ALL_ROWS);
+
+        // Initial render
+        VIEW_ROWS = ALL_ROWS.slice();
+        $("rowCount").textContent = `${VIEW_ROWS.length} Antwort(en) in Ansicht`;
+        renderAll();
+
+        setAccessMessage("ok", "✅ Daten geladen. Filter oben nutzen, um Ressorts/Zeiträume zu vergleichen.");
+        $("accessMessage").style.display = "none"; // wirkt sonst nach dem Erfolg zu “laut”
+      }catch(err){
+        console.error(err);
+        setAccessMessage("warn", "⚠️ Konnte Google Sheet nicht laden. Prüfe, ob das Sheet öffentlich ist (jeder mit Link) und ob es die angegebenen Spaltenüberschriften enthält.");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
 
