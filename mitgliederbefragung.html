@@ -1,1022 +1,1184 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mitgliederbefragung – Dashboard</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mitgliederbefragung</title>
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  /* Matte Dark Base */
+  --bg1:#120e18;
+  --bg2:#1a1424;
+  --bg3:#1f162c;
 
-  <style>
-    :root{
-      /* Orange/Lila – matte dark + liquid glass */
-      --bg0:#07070b;
-      --bg1:#0b0c12;
-      --bg2:#0f111a;
+  /* Modern Orange → Purple */
+  --accent1:#f97316;   /* warm orange */
+  --accent2:#a855f7;   /* vibrant purple */
 
-      --glass: rgba(255,255,255,.07);
-      --glass2: rgba(255,255,255,.10);
-      --border: rgba(255,255,255,.16);
+  --glass: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.18);
 
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.66);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
 
-      --o1:#ff7a18;
-      --o2:#ffb45a;
-      --p1:#a855f7;
-      --p2:#6d28d9;
+  --shadow: 0 20px 55px rgba(0,0,0,.50);
 
-      --shadow: 0 18px 60px rgba(0,0,0,.55);
-      --radius: 18px;
-    }
+  --ok: rgba(34,197,94,.95);
+  --bad: rgba(239,68,68,.95);
+  --warn: rgba(251,146,60,.95);
+}
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      color:var(--text);
-      background:
-        radial-gradient(1200px 800px at 15% 15%, rgba(255,122,24,.22), transparent 55%),
-        radial-gradient(1100px 720px at 85% 18%, rgba(168,85,247,.22), transparent 55%),
-        radial-gradient(1200px 900px at 55% 90%, rgba(255,180,90,.10), transparent 60%),
-        linear-gradient(180deg, var(--bg0), var(--bg1) 35%, var(--bg2));
-      background-attachment: fixed;
-      overflow-x:hidden;
-    }
+*{ box-sizing:border-box; }
+html, body { min-height: 100%; }
 
-    /* Liquid “sheen” overlay */
-    body:before{
-      content:"";
-      position:fixed; inset:-2px;
-      pointer-events:none;
-      background:
-        radial-gradient(900px 380px at 30% 0%, rgba(255,255,255,.10), transparent 55%),
-        radial-gradient(820px 360px at 70% 10%, rgba(255,255,255,.08), transparent 58%);
-      filter: blur(8px);
-      opacity:.8;
-    }
+html{
+  background:
+  radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+  radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+  radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  background-attachment: fixed;
+}
 
-    a{color:inherit}
-    .wrap{max-width:1180px; margin:0 auto; padding:22px 14px 60px}
+body{
+  margin:0;
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color: var(--text);
+  background: transparent;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  padding:42px 16px;
+}
 
-    header{
-      position:relative;
-      display:flex; align-items:flex-start; justify-content:space-between;
-      gap:14px;
-      margin-bottom:14px;
-    }
+.app{ width:100%; max-width:1200px; }
 
-    .brand{
-      display:flex; flex-direction:column; gap:6px;
-      padding:16px 16px 14px;
-      border:1px solid var(--border);
-      background: linear-gradient(135deg, rgba(255,122,24,.10), rgba(168,85,247,.10));
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      overflow:hidden;
-    }
-    .brand h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-    }
-    .brand p{
-      margin:0;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
+.top{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+h1{ margin:0; font-size:32px; letter-spacing:.4px; }
+.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-    .loginBadge{
-      position:sticky;
-      top:10px;
-      align-self:flex-start;
-      display:flex; align-items:center; gap:10px;
-      padding:10px 12px;
-      border-radius: 999px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.06);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 10px 35px rgba(0,0,0,.40);
-      min-height:40px;
-      z-index:10;
-    }
-    .dot{
-      width:10px; height:10px; border-radius:999px;
-      background: rgba(255,255,255,.22);
-      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
-    }
-    .dot.ok{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
-    .dot.no{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 3px rgba(239,68,68,.18); }
-    .badgeText{display:flex; flex-direction:column; gap:2px; line-height:1.05}
-    .badgeText b{font-size:12.5px}
-    .badgeText span{font-size:12px; color:var(--muted)}
-    .btnSmall{
-      border:1px solid rgba(255,122,24,.28);
-      background: linear-gradient(135deg, rgba(255,122,24,.20), rgba(255,180,90,.10));
-      color:var(--text);
-      padding:8px 10px;
-      border-radius: 999px;
-      cursor:pointer;
-      font-size:12px;
-      transition: transform .15s ease, border-color .15s ease, background .15s ease;
-      white-space:nowrap;
-    }
-    .btnSmall:hover{ transform: translateY(-1px); border-color: rgba(255,122,24,.45); }
+/* ===== Brand links: Logo + Titel ===== */
+.brandLeft{ display:flex; align-items:center; gap:12px; }
+.brandLogo{
+  width: 60px; height: 60px; border-radius: 14px; padding: 6px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  flex: 0 0 auto;
+  transition: transform .16s ease, filter .16s ease, background .16s ease;
+}
+.brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
+.brandLogo img{
+  width: 100%; height: 100%; border-radius: 10px;
+  object-fit: cover; display:block;
+}
+@media (max-width: 640px){
+  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+  .brandLogo img{ border-radius: 9px; }
+}
 
-    nav{
-      margin:12px 0 18px;
-      display:flex; flex-wrap:wrap; gap:10px;
-      align-items:center;
-      padding:12px;
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      background: rgba(255,255,255,.05);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 14px 45px rgba(0,0,0,.35);
-    }
-    .pill{
-      padding:9px 12px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      color:var(--muted);
-      font-size:12.5px;
-      cursor:pointer;
-      transition: transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
-      user-select:none;
-    }
-    .pill:hover{ transform: translateY(-1px); border-color: rgba(255,122,24,.35); color: var(--text); }
-    .pill.active{
-      color:var(--text);
-      border-color: rgba(255,122,24,.50);
-      background: linear-gradient(135deg, rgba(255,122,24,.18), rgba(168,85,247,.10));
-    }
+.glass{
+  background: rgba(255,255,255,.10);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap:14px;
-    }
-    @media (max-width: 980px){
-      header{flex-direction:column}
-      .loginBadge{width:100%; justify-content:space-between}
-      .grid{grid-template-columns:1fr}
-    }
+.card{ padding:18px; margin-bottom:16px; }
 
-    .card{
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.05);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      overflow:hidden;
-    }
-    .cardHead{
-      padding:14px 14px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-    }
-    .cardHead h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.2px;
-    }
-    .cardHead p{
-      margin:4px 0 0;
-      color:var(--muted);
-      font-size:12.5px;
-      line-height:1.35;
-    }
-    .cardBody{padding:14px}
-    .kpis{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-    }
-    @media (max-width: 720px){
-      .kpis{grid-template-columns:1fr}
-    }
-    .kpi{
-      padding:12px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: linear-gradient(135deg, rgba(255,122,24,.14), rgba(168,85,247,.08));
-      min-height:74px;
-    }
-    .kpi .label{color:var(--muted); font-size:12px}
-    .kpi .value{margin-top:6px; font-size:20px; font-weight:700; letter-spacing:.2px}
-    .kpi .sub{margin-top:2px; color:var(--muted); font-size:12px}
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+.spacer{ flex:1; }
 
-    .filters{
-      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-    }
-    select, input[type="date"]{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      color: var(--text);
-      border-radius: 12px;
-      padding:10px 10px;
-      font-size:12.5px;
-      outline:none;
-    }
-    select:focus, input[type="date"]:focus{
-      border-color: rgba(255,122,24,.45);
-      box-shadow: 0 0 0 3px rgba(255,122,24,.15);
-    }
+input,select{
+  background: rgba(255,255,255,.12);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius: 14px;
+  outline:none;
+  min-width: 210px;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+input::placeholder{ color: rgba(255,255,255,.55); }
+input:focus, select:focus{
+  border-color: rgba(249,115,22,.55);
+  background: rgba(255,255,255,.16);
+  transform: translateY(-1px);
+}
 
-    .chartBox{height:320px}
-    @media (max-width: 720px){
-      .chartBox{height:280px}
-    }
+button{
+  border:none;
+  cursor:pointer;
+  border-radius:14px;
+  padding: 12px 16px;
+  font-weight:650;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+}
+button:active{ transform: translateY(0px) scale(.99); }
+button:disabled{
+  cursor:not-allowed !important;
+  opacity:.55 !important;
+  transform:none !important;
+  filter:none !important;
+  box-shadow:none !important;
+}
+button:disabled:hover{ transform:none !important; filter:none !important; }
 
-    .list{
-      display:flex; flex-direction:column; gap:10px;
-      max-height:520px;
-      overflow:auto;
-      padding-right:4px;
-    }
-    .item{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-      border-radius: 14px;
-      padding:12px;
-    }
-    .item .q{font-size:12.5px; margin:0 0 6px; color:var(--muted)}
-    .item .a{margin:0; font-size:13.5px; line-height:1.45}
-    .tagRow{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
-    .tag{
-      font-size:11.5px;
-      padding:6px 9px;
-      border-radius:999px;
-      border:1px solid rgba(255,122,24,.28);
-      background: rgba(255,122,24,.10);
-      color: rgba(255,255,255,.86);
-    }
-    .tag.p{border-color: rgba(168,85,247,.28); background: rgba(168,85,247,.10)}
-    .muted{color:var(--muted)}
-    .warn{
-      border:1px solid rgba(239,68,68,.30);
-      background: rgba(239,68,68,.10);
-      padding:12px;
-      border-radius: 14px;
-      color: rgba(255,255,255,.9);
-      line-height:1.35;
-      font-size:13px;
-    }
-    .okBox{
-      border:1px solid rgba(34,197,94,.26);
-      background: rgba(34,197,94,.08);
-      padding:12px;
-      border-radius: 14px;
-      font-size:13px;
-      color: rgba(255,255,255,.9);
-      line-height:1.35;
-    }
-    .footerNote{margin-top:16px; color:var(--muted); font-size:12.5px; line-height:1.45}
-  </style>
+.btn-primary{
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  color: #0f0b16;
+  box-shadow: 0 12px 30px rgba(168,85,247,.25);
+}
+.btn-primary:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  box-shadow: 0 18px 36px rgba(249,115,22,.25);
+}
+.btn-secondary{
+  background: rgba(255,255,255,.14);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover{
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.18);
+}
+
+/* ===== Auth badge (kompakt + Details Toggle) ===== */
+.authFloating{
+  position: static;
+  z-index: 1;
+  border-radius: 999px;
+  padding: 10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 55px rgba(0,0,0,.40);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  user-select:none;
+  max-width: min(560px, 100%);
+}
+
+.dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position: relative; flex:0 0 auto; }
+.dot.ok{ background: var(--ok); }
+.dot.warn{ background: rgba(255,255,255,.35); }
+.dot.bad{ background: var(--bad); }
+
+.dot.ok{
+  box-shadow:
+    0 0 0 2px rgba(34,197,94,.20),
+    0 0 18px rgba(34,197,94,.55),
+    0 0 42px rgba(34,197,94,.30);
+}
+
+@keyframes pulseRing {
+  0%   { transform: scale(1); opacity: .0; }
+  10%  { opacity: .6; }
+  70%  { transform: scale(3.2); opacity: 0; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+.dot.pulsing::after{
+  content:"";
+  position:absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: rgba(34,197,94,.25);
+  animation: pulseRing 1.15s ease-out 0s 2;
+  pointer-events:none;
+}
+
+.authAvatar{
+  width: 30px; height: 30px; border-radius: 999px;
+  display:grid; place-items:center;
+  font-weight: 800; font-size: 12px; letter-spacing: .3px;
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+  background: rgba(255,255,255,.10);
+  flex: 0 0 auto;
+}
+.authAvatar.hidden{ display:none; }
+
+.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
+.authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
+.authState.hidden{ display:none; }
+
+.authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+.authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
+.authCompact.hidden{ display:none; }
+
+.authNameInline{
+  font-size:13px; font-weight:850; letter-spacing:.15px;
+  color: rgba(255,255,255,.92);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width: 220px;
+}
+
+.authChevron{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+  width: 30px; height: 26px;
+  border-radius: 999px;
+  padding: 0;
+  display:grid; place-items:center;
+  cursor:pointer;
+  transition: transform .15s ease, background .15s ease;
+  flex: 0 0 auto;
+}
+.authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
+
+.authDetails{
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  display:flex;
+  gap:8px;
+  align-items:center;
+  min-width:0;
+}
+.authDetails.hidden{ display:none; }
+
+.authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
+
+.rolePill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  font-weight:700;
+  font-size: 11px;
+  letter-spacing: .10px;
+  line-height: 1;
+  white-space:nowrap;
+  flex: 0 0 auto;
+}
+.rolePill.vorstand{
+  border-color: rgba(56,189,248,.40);
+  background: rgba(56,189,248,.12);
+}
+.rolePill.ressortleiter{
+  border-color: rgba(251,146,60,.35);
+  background: rgba(251,146,60,.12);
+}
+
+.hidden{ display:none; }
+.small{ font-size: 13px; color: var(--muted); }
+
+/* ===== NAV: sticky beim Scrollen ===== */
+.navWrap{
+  margin-bottom: 16px;
+  position: sticky;
+  top: 14px;
+  z-index: 6;
+}
+.nav{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding: 10px;
+}
+.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+.navLink{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  text-decoration:none;
+  color: rgba(255,255,255,.86);
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
+  user-select:none;
+  white-space:nowrap;
+}
+.navLink:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.22);
+}
+.navLink.active{
+  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
+  border-color: rgba(249,115,22,.35);
+  box-shadow: 0 12px 28px rgba(249,115,22,.25);
+}
+.navIcon{
+  width:30px; height:30px;
+  border-radius: 12px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.12);
+}
+.navTitle{ font-weight:750; letter-spacing:.2px; }
+.navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
+
+/* ===== Dashboard layout ===== */
+.grid{
+  display:grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 14px;
+}
+@media (max-width: 980px){
+  .top{flex-direction:column; align-items:flex-start; gap:10px;}
+  .grid{ grid-template-columns:1fr; }
+}
+.kpis{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:12px;
+}
+@media (max-width: 720px){
+  .kpis{ grid-template-columns:1fr; }
+}
+.kpi{
+  padding:14px;
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.14);
+  background: linear-gradient(135deg, rgba(249,115,22,.16), rgba(168,85,247,.10));
+}
+.kpi .label{ color: var(--muted); font-size:12px; }
+.kpi .value{ font-size:20px; font-weight:900; margin-top:6px; }
+.kpi .sub{ color: var(--muted); font-size:12px; margin-top:2px; }
+
+.chartBox{ height: 320px; }
+@media (max-width: 720px){ .chartBox{ height: 280px; } }
+
+.tabs{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.tabBtn{
+  padding:10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.86);
+}
+.tabBtn:hover{ transform: translateY(-2px); background: rgba(255,255,255,.10); }
+.tabBtn.active{
+  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(168,85,247,.12));
+  border-color: rgba(249,115,22,.35);
+}
+
+.list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  max-height:520px;
+  overflow:auto;
+  padding-right:6px;
+}
+.item{
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  border-radius: 16px;
+  padding: 12px;
+}
+.item .a{ margin:0; font-size: 13.5px; line-height: 1.45; }
+.tagRow{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+.tag{
+  font-size:11.5px;
+  padding:6px 9px;
+  border-radius:999px;
+  border:1px solid rgba(249,115,22,.28);
+  background: rgba(249,115,22,.10);
+  color: rgba(255,255,255,.88);
+}
+.tag.p{ border-color: rgba(168,85,247,.28); background: rgba(168,85,247,.10); }
+
+.notice{
+  padding: 12px 14px;
+  border-radius: 16px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.88);
+  line-height:1.35;
+}
+.notice.bad{
+  border-color: rgba(239,68,68,.25);
+  background: rgba(239,68,68,.10);
+}
+.notice.good{
+  border-color: rgba(34,197,94,.25);
+  background: rgba(34,197,94,.10);
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px){
+  body{ padding: 24px 14px; }
+  h1{ font-size: 26px; }
+  input,select{ min-width: 0; width:100%; }
+  .row{ align-items:stretch; }
+  .row .spacer{ display:none; }
+  .navWrap{ top: 10px; }
+  .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
+  .navLeft{ flex-wrap:nowrap; }
+  .navRight{ margin-left: 0; }
+  .authNameInline{ max-width: 150px; }
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <header>
-      <div class="brand">
-        <h1>Mitgliederbefragung – Auswertung</h1>
-        <p>Interne Ergebnisse (nur Ressortleiter & Vorstand). Filterbar nach Ressort & Zeitraum, inkl. Charts und Freitext-Feedback.</p>
-      </div>
+<div class="app">
 
-      <div class="loginBadge" id="loginBadge">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div class="dot no" id="statusDot"></div>
-          <div class="badgeText">
-            <b id="badgeTitle">Nicht eingeloggt</b>
-            <span id="badgeSub">Bitte anmelden…</span>
+  <!-- HEADER -->
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+        <img src="logo.png" alt="Fachschaft Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Mitgliederbefragung</h1>
+        <div class="subtitle">Auswertung • Nur Ressortleiter & Vorstand</div>
+      </div>
+    </div>
+
+    <div class="brandRight">
+      <!-- Auth Badge -->
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+            </div>
+          </div>
+
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
           </div>
         </div>
-        <button class="btnSmall" id="logoutBtn" style="display:none;">Logout</button>
       </div>
-    </header>
+    </div>
+  </div>
 
-    <nav id="tabs">
-      <div class="pill active" data-tab="overview">Überblick</div>
-      <div class="pill" data-tab="comm">Kommunikation & Tools</div>
-      <div class="pill" data-tab="events">Interne Events</div>
-      <div class="pill" data-tab="ressort">Ressort & Vorstand</div>
-      <div class="pill" data-tab="text">Freitext-Feedback</div>
-    </nav>
+  <!-- NAV (nur eingeloggt) -->
+  <div class="glass navWrap hidden" id="navWrap">
+    <div class="nav">
+      <div class="navLeft">
+        <a class="navLink" href="/index.html"><span class="navIcon">👥</span><span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span></a>
+        <a class="navLink" href="/anwaerter.html"><span class="navIcon">👶🏼</span><span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span></a>
+        <a class="navLink" href="/bewerbungen.html"><span class="navIcon">📝</span><span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span></a>
+        <a class="navLink" href="/rechnungen.html"><span class="navIcon">💰</span><span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen</div></span></a>
+        <a class="navLink active" href="/mitgliederbefragung.html"><span class="navIcon">📊</span><span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span></a>
+      </div>
 
-    <!-- FILTERS -->
-    <div class="card" style="margin-bottom:14px;">
-      <div class="cardHead">
-        <div>
-          <h2>Filter</h2>
-          <p>Die Diagramme & Listen aktualisieren sich automatisch.</p>
+      <div class="navRight">
+        <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH CARD -->
+  <div class="glass card" id="authCard">
+    <div class="row">
+      <input id="loginEmail" placeholder="Email" autocomplete="username">
+      <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password">
+      <button class="btn-primary" onclick="login()">Login</button>
+      <div class="spacer"></div>
+      <div class="small">Zugriff nur für Ressortleiter/Vorstand (Rolle aus <b>profiles</b>).</div>
+    </div>
+    <div class="notice bad hidden" id="authErr" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="glass card hidden" id="mainCard">
+    <div class="row">
+      <div class="tabs">
+        <button class="tabBtn active" data-tab="overview">Überblick</button>
+        <button class="tabBtn" data-tab="comm">Kommunikation</button>
+        <button class="tabBtn" data-tab="events">Interne Events</button>
+        <button class="tabBtn" data-tab="ressort">Ressort/Vorstand</button>
+        <button class="tabBtn" data-tab="text">Freitext</button>
+      </div>
+      <div class="spacer"></div>
+
+      <select id="ressortFilter" title="Ressort Filter" style="min-width:220px;">
+        <option value="__all__">Alle Ressorts</option>
+      </select>
+
+      <input type="date" id="dateFrom" title="Von">
+      <input type="date" id="dateTo" title="Bis">
+
+      <button class="btn-secondary" onclick="resetFilters()">Reset</button>
+      <button class="btn-secondary" onclick="loadSurvey(true)">Aktualisieren</button>
+    </div>
+
+    <div class="notice hidden" id="loadNote" style="margin-top:12px;"></div>
+
+    <!-- OVERVIEW -->
+    <div id="tab-overview" style="margin-top:14px;">
+      <div class="kpis">
+        <div class="kpi">
+          <div class="label">Antworten</div>
+          <div class="value" id="kpiTotal">–</div>
+          <div class="sub" id="kpiPeriod">–</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Ø Einbindung (Score)</div>
+          <div class="value" id="kpiEmbedding">–</div>
+          <div class="sub">aus Textantworten geschätzt (1–5)</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Ø Zusammenarbeit (Score)</div>
+          <div class="value" id="kpiCollab">–</div>
+          <div class="sub">aus Textantworten geschätzt (1–5)</div>
         </div>
       </div>
-      <div class="cardBody">
-        <div class="filters">
-          <label class="muted">Ressort:</label>
-          <select id="ressortFilter">
-            <option value="__all__">Alle Ressorts</option>
-          </select>
 
-          <label class="muted">Von:</label>
-          <input type="date" id="dateFrom" />
-
-          <label class="muted">Bis:</label>
-          <input type="date" id="dateTo" />
-
-          <button class="btnSmall" id="resetFilters">Zurücksetzen</button>
-          <span class="muted" id="rowCount" style="margin-left:auto;">–</span>
+      <div class="grid" style="margin-top:14px;">
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Einbindung – Verteilung</div>
+          <div class="chartBox"><canvas id="chartEmbedding"></canvas></div>
+        </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">MS Teams – Zufriedenheit</div>
+          <div class="chartBox"><canvas id="chartTeams"></canvas></div>
         </div>
       </div>
     </div>
 
-    <!-- OVERVIEW -->
-    <section class="tab" id="tab-overview">
-      <div class="grid">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Kennzahlen</h2>
-              <p>Quick-Überblick über Beteiligung & Zufriedenheit.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="kpis">
-              <div class="kpi">
-                <div class="label">Antworten</div>
-                <div class="value" id="kpiTotal">–</div>
-                <div class="sub" id="kpiPeriod">–</div>
-              </div>
-              <div class="kpi">
-                <div class="label">Ø Einbindung (Score)</div>
-                <div class="value" id="kpiEmbedding">–</div>
-                <div class="sub muted">Skala aus Antworten abgeleitet</div>
-              </div>
-              <div class="kpi">
-                <div class="label">Ø Zusammenarbeit (Score)</div>
-                <div class="value" id="kpiCollab">–</div>
-                <div class="sub muted">Skala aus Antworten abgeleitet</div>
-              </div>
-            </div>
-
-            <div class="footerNote">
-              Hinweis: Viele Fragen sind textbasiert (z. B. „Sehr zufrieden“). Daraus wird ein Score (1–5) berechnet, falls die Antwort zu den bekannten Skalen passt.
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Einbindung – Verteilung</h2>
-              <p>Wie aktiv fühlen sich Mitglieder aktuell eingebunden?</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartEmbedding"></canvas></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:14px;">
-        <div class="cardHead">
-          <div>
-            <h2>Zufriedenheit mit MS Teams</h2>
-            <p>Verteilung der Antworten + Score-Schätzung.</p>
-          </div>
-        </div>
-        <div class="cardBody">
-          <div class="chartBox"><canvas id="chartTeams"></canvas></div>
-        </div>
-      </div>
-    </section>
-
     <!-- COMM -->
-    <section class="tab" id="tab-comm" style="display:none;">
+    <div id="tab-comm" class="hidden" style="margin-top:14px;">
       <div class="grid">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Interne Kommunikation</h2>
-              <p>Wie wird die generelle interne Kommunikation bewertet?</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartInternalComms"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Interne Kommunikation – Bewertung</div>
+          <div class="chartBox"><canvas id="chartInternalComms"></canvas></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Alternative Tools (Freitext)</h2>
-              <p>Vorschläge für ein anderes Tool.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listAltTools"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Alternative Tools – Vorschläge</div>
+          <div class="list" id="listAltTools"></div>
         </div>
       </div>
-    </section>
+    </div>
 
     <!-- EVENTS -->
-    <section class="tab" id="tab-events" style="display:none;">
+    <div id="tab-events" class="hidden" style="margin-top:14px;">
       <div class="grid">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Teilnahme an internen Events</h2>
-              <p>Wie häufig nehmen Mitglieder teil?</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartEventFreq"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Teilnahme an internen Events</div>
+          <div class="chartBox"><canvas id="chartEventFreq"></canvas></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Zufriedenheit mit internen Events</h2>
-              <p>Wie zufrieden sind Mitglieder insgesamt?</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartEventSat"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Zufriedenheit mit internen Events</div>
+          <div class="chartBox"><canvas id="chartEventSat"></canvas></div>
         </div>
       </div>
 
       <div class="grid" style="margin-top:14px;">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Was kam gut an?</h2>
-              <p>Highlights aus den bisherigen internen Events.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listEventGood"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Was hat gut gefallen?</div>
+          <div class="list" id="listEventGood"></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Was kann besser werden?</h2>
-              <p>Verbesserungsvorschläge zu internen Events.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listEventImprove"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Was kann besser werden?</div>
+          <div class="list" id="listEventImprove"></div>
         </div>
       </div>
-    </section>
+    </div>
 
     <!-- RESSORT -->
-    <section class="tab" id="tab-ressort" style="display:none;">
+    <div id="tab-ressort" class="hidden" style="margin-top:14px;">
       <div class="grid">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Ressortarbeit</h2>
-              <p>Zufriedenheit mit der Arbeit des Ressorts.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartRessortWork"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Zufriedenheit mit Ressortarbeit</div>
+          <div class="chartBox"><canvas id="chartRessortWork"></canvas></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Ressortleitung</h2>
-              <p>Bewertung der Arbeit der Ressortleitung.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartRessortLead"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Bewertung der Ressortleitung</div>
+          <div class="chartBox"><canvas id="chartRessortLead"></canvas></div>
         </div>
       </div>
 
       <div class="grid" style="margin-top:14px;">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Vorstand – Zufriedenheit</h2>
-              <p>Wie zufrieden sind Mitglieder mit der Arbeit des Vorstands?</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartBoardSat"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Zufriedenheit mit Vorstand</div>
+          <div class="chartBox"><canvas id="chartBoardSat"></canvas></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Vorstand – Transparenz</h2>
-              <p>Findet man, dass der Vorstand transparent genug kommuniziert?</p>
-            </div>
-          </div>
-          <div classcardBody></div>
-          <div class="cardBody">
-            <div class="chartBox"><canvas id="chartBoardTrans"></canvas></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Vorstand – Transparenz</div>
+          <div class="chartBox"><canvas id="chartBoardTrans"></canvas></div>
         </div>
       </div>
 
       <div class="grid" style="margin-top:14px;">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Ressort: Was könnte besser laufen?</h2>
-              <p>Feedback an Ressort / Ressortleitung.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listRessortImprove"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Was könnte im Ressort besser laufen?</div>
+          <div class="list" id="listRessortImprove"></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Vorstand: Was könnte verbessert werden?</h2>
-              <p>Feedback an den Vorstand.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listBoardImprove"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Was könnte der Vorstand verbessern?</div>
+          <div class="list" id="listBoardImprove"></div>
         </div>
       </div>
-    </section>
+    </div>
 
     <!-- TEXT -->
-    <section class="tab" id="tab-text" style="display:none;">
+    <div id="tab-text" class="hidden" style="margin-top:14px;">
       <div class="grid">
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Zukunftswünsche</h2>
-              <p>Welche Themen/Angebote wünscht man sich in Zukunft?</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listFutureWishes"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Zukunftswünsche</div>
+          <div class="list" id="listFutureWishes"></div>
         </div>
-
-        <div class="card">
-          <div class="cardHead">
-            <div>
-              <h2>Weitere Anmerkungen</h2>
-              <p>Offenes Feedback.</p>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="list" id="listOther"></div>
-          </div>
+        <div class="glass card" style="margin:0;">
+          <div class="small" style="margin-bottom:10px;">Weitere Anmerkungen</div>
+          <div class="list" id="listOther"></div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <div id="accessMessage" style="margin-top:14px; display:none;"></div>
   </div>
+</div>
 
-  <script>
-    // ============================
-    // ✅ 1) Konfiguration
-    // ============================
+<script>
+/* ========= Supabase config ========= */
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Supabase – nutze deine bestehende URL/Key (du hattest die vorher schon hier im Projekt)
-    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+/* ========= Rollen/Permissions (wie Referenz) ========= */
+const PROFILES_TABLE = "profiles";
+let MY_ROLE = ""; // "vorstand" | "ressortleiter"
+const ALLOWED = new Set(["vorstand","ressortleiter"]);
 
-    // Mitglieder-Tabelle: muss Email + Rolle enthalten (rolle: "ressortleiter" | "vorstand")
-    // Wenn deine Spalten anders heißen, passe HIER an:
-    const MEMBERS_TABLE = "members";
-    const COL_EMAIL = "email";
-    const COL_ROLE  = "rolle";
-    const COL_RESSORT= "ressort";
+/* ========= Google Sheet ========= */
+const SHEET_ID = "1PJAutXFcNr34sSFvVUiKEj1QUDh6xgQ767T8fIZ0F2M";
+/* Falls es NICHT das erste Tabellenblatt ist, trage hier die richtige gid ein (steht in der Sheet-URL als gid=...) */
+const SHEET_GID = null; // z.B. 0 oder 123456789
+const SHEET_GVIZ_URL = SHEET_GID === null
+  ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`
+  : `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?gid=${SHEET_GID}&tqx=out:json`;
 
-    const ALLOWED_ROLES = new Set(["ressortleiter", "vorstand"]);
+/* ========= Headernamen (müssen exakt im Sheet so heißen!) ========= */
+const H = {
+  ts: "Zeitstempel",
+  embedding: "Wie aktiv fühlst du dich aktuell in der Fachschaft eingebunden?",
+  collab: "Wie schätzt du die generelle Zusammenarbeit in der Fachschaft ein?",
+  teams: "Wie zufrieden bist du mit MS Teams als Kommunikation- und Organisationstool?",
+  altTool: "Hast du einen Vorschlag für ein anderes Tool, das wir nutzen könnten?",
+  internalComms: "Wie bewertest du die generelle interne Kommunikation in der Fachschaft?",
+  eventFreq: "Wie häufig nimmst du an internen Events teil?",
+  eventSat: "Wie zufrieden bist du insgesamt mit den bisherigen internen Events?",
+  eventGood: "Was hat dir an den bisherigen internen Events besonders gut gefallen?",
+  eventImprove: "Was hat dir weniger gut gefallen oder könnte verbessert werden?",
+  ressort: "Im welchem Ressort bist du aktiv?",
+  ressortWork: "Wie zufrieden bist du mit der Arbeit deines Ressorts?",
+  ressortLead: "Wie bewertest du die Arbeit deiner Ressortleitung?",
+  ressortImprove: "Was könnte dein Ressort/ deine Ressortleitung besser machen?",
+  boardSat: "Wie zufrieden bist du mit der Arbeit des Vorstands?",
+  boardTrans: "Findest du, dass der Vorstand transparent genug kommuniziert?",
+  boardImprove: "Gibt es etwas, das der Vorstand verbessern könnte?",
+  future: "Welche Themen oder Angebote wünschst du dir von der Fachschaft in Zukunft?",
+  other: "Hast du weitere Anmerkungen oder Feedback?"
+};
 
-    // Google Sheet (öffentlich) – wir laden per gviz JSON (keine Apps Script Web-App nötig)
-    const SHEET_ID = "1PJAutXFcNr34sSFvVUiKEj1QUDh6xgQ767T8fIZ0F2M";
-    const SHEET_GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+/* ========= Score-Mapping (optional) ========= */
+const SCORE_MAP = [
+  [/sehr (aktiv|gut|zufrieden|positiv|hoch)/i, 5],
+  [/(eher|ziemlich) (aktiv|gut|zufrieden|positiv|hoch)/i, 4],
+  [/(neutral|teils\/teils|mittel|okay|ok)/i, 3],
+  [/(eher|ziemlich) (wenig|schlecht|unzufrieden|niedrig)/i, 2],
+  [/(gar nicht|sehr (wenig|schlecht|unzufrieden|niedrig))/i, 1],
+  [/^(ja|yes)$/i, 5],
+  [/^(nein|no)$/i, 1],
+];
 
-    // Headernamen (müssen exakt so sein wie in deinem Sheet)
-    const H = {
-      ts: "Zeitstempel",
-      embedding: "Wie aktiv fühlst du dich aktuell in der Fachschaft eingebunden?",
-      collab: "Wie schätzt du die generelle Zusammenarbeit in der Fachschaft ein?",
-      teams: "Wie zufrieden bist du mit MS Teams als Kommunikation- und Organisationstool?",
-      altTool: "Hast du einen Vorschlag für ein anderes Tool, das wir nutzen könnten?",
-      internalComms: "Wie bewertest du die generelle interne Kommunikation in der Fachschaft?",
-      eventFreq: "Wie häufig nimmst du an internen Events teil?",
-      eventSat: "Wie zufrieden bist du insgesamt mit den bisherigen internen Events?",
-      eventGood: "Was hat dir an den bisherigen internen Events besonders gut gefallen?",
-      eventImprove: "Was hat dir weniger gut gefallen oder könnte verbessert werden?",
-      ressort: "Im welchem Ressort bist du aktiv?",
-      ressortWork: "Wie zufrieden bist du mit der Arbeit deines Ressorts?",
-      ressortLead: "Wie bewertest du die Arbeit deiner Ressortleitung?",
-      ressortImprove: "Was könnte dein Ressort/ deine Ressortleitung besser machen?",
-      boardSat: "Wie zufrieden bist du mit der Arbeit des Vorstands?",
-      boardTrans: "Findest du, dass der Vorstand transparent genug kommuniziert?",
-      boardImprove: "Gibt es etwas, das der Vorstand verbessern könnte?",
-      future: "Welche Themen oder Angebote wünschst du dir von der Fachschaft in Zukunft?",
-      other: "Hast du weitere Anmerkungen oder Feedback?"
-    };
+/* ========= State ========= */
+let ALL_ROWS = [];
+let VIEW_ROWS = [];
+const charts = {};
 
-    // Score-Mapping (falls Antworten in dieser Art kommen)
-    // Du kannst hier jederzeit Begriffe ergänzen, die bei euch im Formular vorkommen.
-    const SCORE_MAP = [
-      // 5
-      [/sehr (aktiv|gut|zufrieden|positiv|hoch)/i, 5],
-      // 4
-      [/(eher|ziemlich) (aktiv|gut|zufrieden|positiv|hoch)/i, 4],
-      // 3
-      [/(neutral|teils\/teils|mittel|okay|ok)/i, 3],
-      // 2
-      [/(eher|ziemlich) (wenig|schlecht|unzufrieden|niedrig)/i, 2],
-      // 1
-      [/(gar nicht|sehr (wenig|schlecht|unzufrieden|niedrig))/i, 1],
-      // Ja/Nein -> 5/1 (für Transparenzfrage, wenn "Ja/Nein")
-      [/^(ja|yes)$/i, 5],
-      [/^(nein|no)$/i, 1],
-    ];
+/* ========= Elements ========= */
+const authBadge = document.getElementById("authBadge");
+const authDot = document.getElementById("authDot");
+const authState = document.getElementById("authState");
+const authMail  = document.getElementById("authMail");
+const authAvatar = document.getElementById("authAvatar");
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill = document.getElementById("authRolePill");
+const authToggle = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const logoutBtn = document.getElementById("logoutBtn");
+const mainCard = document.getElementById("mainCard");
+const authCard = document.getElementById("authCard");
+const navWrap = document.getElementById("navWrap");
+const authErr = document.getElementById("authErr");
 
-    // ============================
-    // ✅ 2) Helpers
-    // ============================
-    const $ = (id) => document.getElementById(id);
-    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-    const norm = (s) => safe(s).trim();
+const ressortFilter = document.getElementById("ressortFilter");
+const dateFrom = document.getElementById("dateFrom");
+const dateTo = document.getElementById("dateTo");
+const loadNote = document.getElementById("loadNote");
 
-    function parseDateMaybe(s){
-      const t = norm(s);
-      if(!t) return null;
-      const d = new Date(t);
-      return isNaN(d.getTime()) ? null : d;
-    }
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function norm(s){ return String(s ?? "").trim(); }
+function normRole(v){ return (v || "").trim().toLowerCase(); }
+function roleLabel(role){
+  const r = normRole(role);
+  if (r === "vorstand") return "Vorstand";
+  if (r === "ressortleiter") return "Ressortleiter";
+  return "Unbekannt";
+}
+function setRolePill(role){
+  const r = normRole(role);
+  authRolePill.textContent = roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if (r === "vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
 
-    function toScore(answer){
-      const a = norm(answer);
-      if(!a) return null;
-      for (const [re, sc] of SCORE_MAP){
-        if (re.test(a)) return sc;
-      }
-      return null; // unbekannt
-    }
+function hashString(str){
+  let h = 2166136261;
+  for (let i=0;i<str.length;i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
+function initialsFromEmail(email){
+  const e = (email || "").trim().toLowerCase();
+  if (!e) return "U";
+  const local = e.split("@")[0] || "u";
+  const parts = local.split(/[.\-_]+/).filter(Boolean);
+  const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
+  const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
+function setAvatar(email){
+  const e = (email || "").trim().toLowerCase();
+  if (!e){
+    authAvatar.classList.add("hidden");
+    authAvatar.textContent = "U";
+    authAvatar.style.background = "rgba(255,255,255,.10)";
+    return;
+  }
+  const h = hashString(e);
+  const hue = h % 360;
+  const hue2 = (hue + 38) % 360;
+  authAvatar.textContent = initialsFromEmail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
+}
+function pulseLogin(){
+  authDot.classList.add("pulsing");
+  setTimeout(()=>authDot.classList.remove("pulsing"), 2600);
+}
 
-    function groupCounts(rows, key){
-      const m = new Map();
-      for (const r of rows){
-        const v = norm(r[key]) || "—";
-        m.set(v, (m.get(v) || 0) + 1);
-      }
-      // sort by count desc
-      return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]);
-    }
+function setAuthUI(isAuthed, email="", doPulse=false){
+  authErr.classList.add("hidden");
+  authErr.textContent = "";
 
-    function avgScore(rows, key){
-      let sum=0, n=0;
-      for(const r of rows){
-        const sc = toScore(r[key]);
-        if (sc !== null){ sum += sc; n++; }
-      }
-      return n ? (sum / n) : null;
-    }
+  if (isAuthed){
+    authDot.classList.remove("warn","bad");
+    authDot.classList.add("ok");
 
-    function fmtAvg(v){
-      if(v===null) return "–";
-      return v.toFixed(2);
-    }
+    authState.classList.add("hidden");
+    authState.textContent = "";
 
-    function setAccessMessage(type, html){
-      const el = $("accessMessage");
-      el.style.display = "block";
-      el.className = (type==="ok") ? "okBox" : "warn";
-      el.innerHTML = html;
-    }
+    authCompact.classList.remove("hidden");
+    closeAuthDetails();
 
-    function setBadge(ok, title, sub){
-      $("statusDot").classList.remove("ok","no");
-      $("statusDot").classList.add(ok ? "ok" : "no");
-      $("badgeTitle").textContent = title;
-      $("badgeSub").textContent = sub;
-      $("logoutBtn").style.display = ok ? "inline-flex" : "none";
-    }
+    authMail.textContent = (email || "").trim();
+    setAvatar(email);
 
-    // ============================
-    // ✅ 3) Tabs
-    // ============================
-    function setTab(tab){
-      document.querySelectorAll(".pill").forEach(p=>{
-        p.classList.toggle("active", p.dataset.tab === tab);
-      });
-      document.querySelectorAll(".tab").forEach(s=>s.style.display="none");
-      $("tab-"+tab).style.display = "block";
-    }
-    document.getElementById("tabs").addEventListener("click", (e)=>{
-      const pill = e.target.closest(".pill");
-      if(!pill) return;
-      setTab(pill.dataset.tab);
+    logoutBtn.classList.remove("hidden");
+    mainCard.classList.remove("hidden");
+    navWrap.classList.remove("hidden");
+    authCard.classList.add("hidden");
+
+    if (doPulse) pulseLogin();
+  } else {
+    authDot.classList.remove("ok","bad");
+    authDot.classList.add("warn");
+
+    authState.classList.remove("hidden");
+    authState.textContent = "nicht eingeloggt";
+
+    authCompact.classList.add("hidden");
+    closeAuthDetails();
+
+    authMail.textContent = "";
+    setAvatar("");
+
+    logoutBtn.classList.add("hidden");
+    mainCard.classList.add("hidden");
+    navWrap.classList.add("hidden");
+    authCard.classList.remove("hidden");
+  }
+}
+
+authToggle?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  authDetails.classList.toggle("hidden");
+});
+document.addEventListener("click", (e)=>{
+  if (!authBadge.contains(e.target)) closeAuthDetails();
+});
+
+async function requireAuth(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session) throw new Error("Bitte einloggen.");
+  return data.session;
+}
+
+async function loadMyProfile(session){
+  MY_ROLE = "";
+  const uid = session?.user?.id;
+  const email = session?.user?.email || "";
+
+  if (!uid) throw new Error("Kein User.");
+  const { data, error } = await sb
+    .from(PROFILES_TABLE)
+    .select("role, display_name")
+    .eq("id", uid)
+    .single();
+
+  if (error) throw new Error("Profil konnte nicht geladen werden: " + error.message);
+
+  MY_ROLE = normRole(data?.role);
+  setRolePill(MY_ROLE || "ressortleiter");
+  authNameInline.textContent = (data?.display_name || "").trim() || ((email.split("@")[0] || "User").trim());
+  authBadge.title = `${(data?.display_name || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+  if (!ALLOWED.has(MY_ROLE)){
+    throw new Error(`Zugriff verweigert: Rolle "${MY_ROLE || "—"}" ist nicht erlaubt.`);
+  }
+}
+
+/* ===== Tabs ===== */
+document.querySelectorAll(".tabBtn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tabBtn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    const t = btn.dataset.tab;
+    ["overview","comm","events","ressort","text"].forEach(x=>{
+      document.getElementById("tab-"+x).classList.toggle("hidden", x !== t);
     });
+  });
+});
 
-    // ============================
-    // ✅ 4) Charts
-    // ============================
-    const charts = {};
-    function renderBarChart(canvasId, title, pairs){
-      const ctx = document.getElementById(canvasId);
-      if(!ctx) return;
+/* ===== Survey Data Loader (Google gviz) ===== */
+function parseDateMaybe(s){
+  const t = norm(s);
+  if(!t) return null;
+  const d = new Date(t);
+  return isNaN(d.getTime()) ? null : d;
+}
+function toScore(answer){
+  const a = norm(answer);
+  if(!a) return null;
+  for (const [re, sc] of SCORE_MAP){
+    if (re.test(a)) return sc;
+  }
+  return null;
+}
+function avgScore(rows, key){
+  let sum=0, n=0;
+  for(const r of rows){
+    const sc = toScore(r[key]);
+    if (sc !== null){ sum += sc; n++; }
+  }
+  return n ? (sum / n) : null;
+}
+function fmtAvg(v){ return v===null ? "–" : v.toFixed(2); }
 
-      const labels = pairs.map(p=>p[0]);
-      const data = pairs.map(p=>p[1]);
+function groupCounts(rows, key){
+  const m = new Map();
+  for (const r of rows){
+    const v = norm(r[key]) || "—";
+    m.set(v, (m.get(v)||0) + 1);
+  }
+  return Array.from(m.entries()).sort((a,b)=>b[1]-a[1]);
+}
 
-      if(charts[canvasId]) charts[canvasId].destroy();
+async function loadSheetRows(){
+  const res = await fetch(SHEET_GVIZ_URL, { cache: "no-store" });
+  const txt = await res.text();
+  const start = txt.indexOf("{");
+  const end = txt.lastIndexOf("}");
+  if (start < 0 || end < 0) throw new Error("Unerwartete Google-Antwort (gviz).");
+  const data = JSON.parse(txt.substring(start, end+1));
 
-      charts[canvasId] = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: title,
-            data,
-            borderWidth: 1,
-            borderRadius: 10
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display:false },
-            tooltip: {
-              callbacks: {
-                label: (c)=> ` ${c.raw} Antwort(en)`
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: "rgba(255,255,255,.75)", maxRotation: 35, minRotation: 0 },
-              grid: { color: "rgba(255,255,255,.08)" }
-            },
-            y: {
-              ticks: { color: "rgba(255,255,255,.75)", precision:0 },
-              grid: { color: "rgba(255,255,255,.08)" }
-            }
-          }
-        }
-      });
-    }
+  const table = data.table;
+  const cols = table.cols.map(c => c.label);
+  const rows = table.rows.map(r=>{
+    const obj = {};
+    cols.forEach((label, i)=>{
+      const cell = r.c[i];
+      obj[label] = cell ? (cell.f ?? cell.v) : "";
+    });
+    return obj;
+  });
+  return rows;
+}
 
-    // ============================
-    // ✅ 5) Google Sheet Loader (gviz)
-    // ============================
-    async function loadSheetRows(){
-      const res = await fetch(SHEET_GVIZ_URL, { cache: "no-store" });
-      const txt = await res.text();
-      // gviz wraps JSON in a JS function call
-      const jsonStr = txt.substring(txt.indexOf("{"), txt.lastIndexOf("}") + 1);
-      const data = JSON.parse(jsonStr);
+function fillRessortFilter(rows){
+  const set = new Set(rows.map(r=>norm(r[H.ressort])).filter(Boolean));
+  const opts = Array.from(set).sort((a,b)=>a.localeCompare(b,"de"));
+  ressortFilter.innerHTML =
+    `<option value="__all__">Alle Ressorts</option>` +
+    opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
+}
 
-      const table = data.table;
-      const cols = table.cols.map(c => c.label);
-      const rows = table.rows.map(r => {
-        const obj = {};
-        cols.forEach((label, i)=>{
-          const cell = r.c[i];
-          obj[label] = cell ? (cell.f ?? cell.v) : "";
-        });
-        return obj;
-      });
+function applyFilters(){
+  const ressort = ressortFilter.value;
+  const from = dateFrom.value ? new Date(dateFrom.value + "T00:00:00") : null;
+  const to   = dateTo.value ? new Date(dateTo.value + "T23:59:59") : null;
 
-      return rows;
-    }
+  VIEW_ROWS = ALL_ROWS.filter(r=>{
+    const rr = norm(r[H.ressort]);
+    if (ressort !== "__all__" && rr !== ressort) return false;
 
-    // ============================
-    // ✅ 6) Filters & Rendering
-    // ============================
-    let ALL_ROWS = [];
-    let VIEW_ROWS = [];
+    const d = parseDateMaybe(r[H.ts]);
+    if (from && (!d || d < from)) return false;
+    if (to && (!d || d > to)) return false;
 
-    function applyFilters(){
-      const ressort = $("ressortFilter").value;
-      const from = $("dateFrom").value ? new Date($("dateFrom").value + "T00:00:00") : null;
-      const to   = $("dateTo").value ? new Date($("dateTo").value + "T23:59:59") : null;
+    return true;
+  });
 
-      VIEW_ROWS = ALL_ROWS.filter(r=>{
-        const rr = norm(r[H.ressort]);
-        if (ressort !== "__all__" && rr !== ressort) return false;
+  const periodTxt = (dateFrom.value || dateTo.value)
+    ? `Zeitraum: ${dateFrom.value || "…"} bis ${dateTo.value || "…"}`
+    : "Zeitraum: alle";
+  document.getElementById("kpiTotal").textContent = VIEW_ROWS.length;
+  document.getElementById("kpiPeriod").textContent = periodTxt;
+  document.getElementById("kpiEmbedding").textContent = fmtAvg(avgScore(VIEW_ROWS, H.embedding));
+  document.getElementById("kpiCollab").textContent = fmtAvg(avgScore(VIEW_ROWS, H.collab));
 
-        const d = parseDateMaybe(r[H.ts]);
-        if (from && (!d || d < from)) return false;
-        if (to && (!d || d > to)) return false;
+  renderBar("chartEmbedding", groupCounts(VIEW_ROWS, H.embedding));
+  renderBar("chartTeams", groupCounts(VIEW_ROWS, H.teams));
+  renderBar("chartInternalComms", groupCounts(VIEW_ROWS, H.internalComms));
+  renderBar("chartEventFreq", groupCounts(VIEW_ROWS, H.eventFreq));
+  renderBar("chartEventSat", groupCounts(VIEW_ROWS, H.eventSat));
+  renderBar("chartRessortWork", groupCounts(VIEW_ROWS, H.ressortWork));
+  renderBar("chartRessortLead", groupCounts(VIEW_ROWS, H.ressortLead));
+  renderBar("chartBoardSat", groupCounts(VIEW_ROWS, H.boardSat));
+  renderBar("chartBoardTrans", groupCounts(VIEW_ROWS, H.boardTrans));
 
-        return true;
-      });
+  renderTextList("listAltTools", H.altTool);
+  renderTextList("listEventGood", H.eventGood);
+  renderTextList("listEventImprove", H.eventImprove);
+  renderTextList("listRessortImprove", H.ressortImprove);
+  renderTextList("listBoardImprove", H.boardImprove);
+  renderTextList("listFutureWishes", H.future);
+  renderTextList("listOther", H.other);
+}
 
-      $("rowCount").textContent = `${VIEW_ROWS.length} Antwort(en) in Ansicht`;
-      renderAll();
-    }
+function renderBar(canvasId, pairs){
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
 
-    function fillRessortFilter(rows){
-      const set = new Set(rows.map(r=>norm(r[H.ressort])).filter(Boolean));
-      const opts = Array.from(set).sort((a,b)=>a.localeCompare(b, "de"));
-      const sel = $("ressortFilter");
-      sel.innerHTML = `<option value="__all__">Alle Ressorts</option>` + opts.map(o=>`<option>${escapeHtml(o)}</option>`).join("");
-    }
+  const labels = pairs.map(p=>p[0]);
+  const data = pairs.map(p=>p[1]);
 
-    function escapeHtml(s){
-      return safe(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function renderTextList(elId, rows, questionKey, extraTagsFn){
-      const el = $(elId);
-      if(!el) return;
-      const items = rows
-        .map(r=>{
-          const a = norm(r[questionKey]);
-          if(!a) return null;
-          const ts = norm(r[H.ts]);
-          const rr = norm(r[H.ressort]) || "—";
-          const tags = extraTagsFn ? extraTagsFn(r) : [];
-          return { a, ts, rr, tags };
-        })
-        .filter(Boolean);
-
-      if(!items.length){
-        el.innerHTML = `<div class="muted">Keine Einträge in der aktuellen Ansicht.</div>`;
-        return;
-      }
-
-      el.innerHTML = items.slice(0, 200).map(it=>`
-        <div class="item">
-          <p class="a">${escapeHtml(it.a)}</p>
-          <div class="tagRow">
-            <span class="tag">${escapeHtml(it.rr)}</span>
-            ${it.ts ? `<span class="tag p">${escapeHtml(it.ts)}</span>` : ""}
-            ${it.tags.map(t=>`<span class="tag p">${escapeHtml(t)}</span>`).join("")}
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function renderKPIs(){
-      $("kpiTotal").textContent = VIEW_ROWS.length;
-      const from = $("dateFrom").value;
-      const to   = $("dateTo").value;
-      $("kpiPeriod").textContent = (from || to) ? `Zeitraum: ${from || "…"} bis ${to || "…"}`
-                                                : "Zeitraum: alle";
-
-      $("kpiEmbedding").textContent = fmtAvg(avgScore(VIEW_ROWS, H.embedding));
-      $("kpiCollab").textContent    = fmtAvg(avgScore(VIEW_ROWS, H.collab));
-    }
-
-    function renderAll(){
-      // KPIs
-      renderKPIs();
-
-      // Charts (Distribution)
-      renderBarChart("chartEmbedding", "Einbindung", groupCounts(VIEW_ROWS, H.embedding));
-      renderBarChart("chartTeams", "MS Teams", groupCounts(VIEW_ROWS, H.teams));
-      renderBarChart("chartInternalComms", "Interne Kommunikation", groupCounts(VIEW_ROWS, H.internalComms));
-      renderBarChart("chartEventFreq", "Event Teilnahme", groupCounts(VIEW_ROWS, H.eventFreq));
-      renderBarChart("chartEventSat", "Event Zufriedenheit", groupCounts(VIEW_ROWS, H.eventSat));
-      renderBarChart("chartRessortWork", "Ressort Arbeit", groupCounts(VIEW_ROWS, H.ressortWork));
-      renderBarChart("chartRessortLead", "Ressortleitung", groupCounts(VIEW_ROWS, H.ressortLead));
-      renderBarChart("chartBoardSat", "Vorstand Zufriedenheit", groupCounts(VIEW_ROWS, H.boardSat));
-      renderBarChart("chartBoardTrans", "Vorstand Transparenz", groupCounts(VIEW_ROWS, H.boardTrans));
-
-      // Freitextlisten
-      renderTextList("listAltTools", VIEW_ROWS, H.altTool);
-      renderTextList("listEventGood", VIEW_ROWS, H.eventGood);
-      renderTextList("listEventImprove", VIEW_ROWS, H.eventImprove);
-      renderTextList("listRessortImprove", VIEW_ROWS, H.ressortImprove);
-      renderTextList("listBoardImprove", VIEW_ROWS, H.boardImprove);
-      renderTextList("listFutureWishes", VIEW_ROWS, H.future);
-      renderTextList("listOther", VIEW_ROWS, H.other);
-    }
-
-    // ============================
-    // ✅ 7) Auth + Rollencheck
-    // ============================
-    async function requireAuthorizedUser(){
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) console.warn(error);
-
-      if (!user){
-        setBadge(false, "Nicht eingeloggt", "Bitte zuerst anmelden");
-        setAccessMessage("warn", "❌ Zugriff verweigert: Du bist nicht eingeloggt. Bitte logge dich zuerst im Portal ein.");
-        // Optional: redirect
-        setTimeout(()=>{ window.location.href = "index.html"; }, 900);
-        return null;
-      }
-
-      // Rolle aus members laden
-      const email = user.email;
-      const { data: prof, error: e2 } = await supabase
-        .from(MEMBERS_TABLE)
-        .select(`${COL_EMAIL}, ${COL_ROLE}, ${COL_RESSORT}`)
-        .eq(COL_EMAIL, email)
-        .maybeSingle();
-
-      if (e2){
-        console.error(e2);
-        setBadge(true, "Eingeloggt", email);
-        setAccessMessage("warn", "⚠️ Eingeloggt, aber Profil/Rolle konnte nicht geladen werden. Bitte prüfe die Tabelle <b>members</b> (Spalten: <b>email</b>, <b>rolle</b>, optional <b>ressort</b>).");
-        return null;
-      }
-
-      const role = norm(prof?.[COL_ROLE]);
-      const ressort = norm(prof?.[COL_RESSORT]);
-
-      if (!ALLOWED_ROLES.has(role)){
-        setBadge(true, "Eingeloggt", `${email} · Rolle: ${role || "—"}`);
-        setAccessMessage("warn", `❌ Zugriff verweigert: Deine Rolle ist <b>${escapeHtml(role || "—")}</b>. Erlaubt sind nur <b>ressortleiter</b> oder <b>vorstand</b>.`);
-        setTimeout(()=>{ window.location.href = "index.html"; }, 1200);
-        return null;
-      }
-
-      setBadge(true, "Zugriff erlaubt", `${email} · ${role}${ressort ? " · " + ressort : ""}`);
-      return { user, role, ressort };
-    }
-
-    // ============================
-    // ✅ 8) Init
-    // ============================
-    async function init(){
-      // Logout
-      $("logoutBtn").addEventListener("click", async ()=>{
-        await supabase.auth.signOut();
-        window.location.href = "index.html";
-      });
-
-      // Filters listeners
-      $("ressortFilter").addEventListener("change", applyFilters);
-      $("dateFrom").addEventListener("change", applyFilters);
-      $("dateTo").addEventListener("change", applyFilters);
-      $("resetFilters").addEventListener("click", ()=>{
-        $("ressortFilter").value = "__all__";
-        $("dateFrom").value = "";
-        $("dateTo").value = "";
-        applyFilters();
-      });
-
-      // Auth gate
-      const auth = await requireAuthorizedUser();
-      if (!auth) return;
-
-      // Load sheet
-      try{
-        ALL_ROWS = await loadSheetRows();
-
-        // Fill ressort filter options from sheet
-        fillRessortFilter(ALL_ROWS);
-
-        // Initial render
-        VIEW_ROWS = ALL_ROWS.slice();
-        $("rowCount").textContent = `${VIEW_ROWS.length} Antwort(en) in Ansicht`;
-        renderAll();
-
-        setAccessMessage("ok", "✅ Daten geladen. Filter oben nutzen, um Ressorts/Zeiträume zu vergleichen.");
-        $("accessMessage").style.display = "none"; // wirkt sonst nach dem Erfolg zu “laut”
-      }catch(err){
-        console.error(err);
-        setAccessMessage("warn", "⚠️ Konnte Google Sheet nicht laden. Prüfe, ob das Sheet öffentlich ist (jeder mit Link) und ob es die angegebenen Spaltenüberschriften enthält.");
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(ctx, {
+    type: "bar",
+    data: { labels, datasets: [{ label: "Antworten", data, borderWidth: 1, borderRadius: 10 }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { ticks: { color:"rgba(255,255,255,.75)", maxRotation: 35 }, grid: { color:"rgba(255,255,255,.08)" } },
+        y: { ticks: { color:"rgba(255,255,255,.75)", precision:0 }, grid: { color:"rgba(255,255,255,.08)" } },
       }
     }
+  });
+}
 
-    init();
-  </script>
+function renderTextList(elId, key){
+  const el = document.getElementById(elId);
+  if(!el) return;
+
+  const items = VIEW_ROWS
+    .map(r=>{
+      const a = norm(r[key]);
+      if(!a) return null;
+      const ts = norm(r[H.ts]);
+      const rr = norm(r[H.ressort]) || "—";
+      return { a, ts, rr };
+    })
+    .filter(Boolean);
+
+  if(!items.length){
+    el.innerHTML = `<div class="small">Keine Einträge in der aktuellen Ansicht.</div>`;
+    return;
+  }
+
+  el.innerHTML = items.slice(0, 200).map(it=>`
+    <div class="item">
+      <p class="a">${esc(it.a)}</p>
+      <div class="tagRow">
+        <span class="tag">${esc(it.rr)}</span>
+        ${it.ts ? `<span class="tag p">${esc(it.ts)}</span>` : ``}
+      </div>
+    </div>
+  `).join("");
+}
+
+function setLoadNote(type, msg){
+  loadNote.classList.remove("hidden","bad","good");
+  loadNote.classList.add(type === "bad" ? "bad" : "good");
+  loadNote.innerHTML = msg;
+}
+
+async function loadSurvey(force=false){
+  try{
+    // Sicherstellen: eingeloggt + erlaubt
+    const session = await requireAuth();
+    await loadMyProfile(session);
+
+    setLoadNote("good", "⏳ Lade Umfrageergebnisse…");
+    ALL_ROWS = await loadSheetRows();
+
+    // sehr häufigster Grund für "keine Daten": Header passen nicht -> Check:
+    const sample = ALL_ROWS[0] || {};
+    if (ALL_ROWS.length && !Object.prototype.hasOwnProperty.call(sample, H.ts)){
+      const got = Object.keys(sample).slice(0, 12).map(x=>`<li><code>${esc(x)}</code></li>`).join("");
+      throw new Error(
+        "Sheet geladen, aber Spaltenüberschriften passen nicht zu den erwarteten Headern. " +
+        "Erste Spalten im Sheet sind:<ul style='margin:8px 0 0 18px;'>" + got + "</ul>"
+      );
+    }
+
+    fillRessortFilter(ALL_ROWS);
+    applyFilters();
+
+    setLoadNote("good", `✅ ${ALL_ROWS.length} Zeilen geladen.`);
+    setTimeout(()=>loadNote.classList.add("hidden"), 1500);
+  }catch(err){
+    console.error(err);
+    setLoadNote("bad",
+      "⚠️ " + esc(err.message) +
+      "<div class='small' style='margin-top:8px;'>Check: Ist das Sheet auf „Jeder mit Link darf ansehen“ gestellt? Und ist es das richtige Tabellenblatt (gid)?</div>"
+    );
+  }
+}
+
+function resetFilters(){
+  ressortFilter.value = "__all__";
+  dateFrom.value = "";
+  dateTo.value = "";
+  applyFilters();
+}
+
+ressortFilter.addEventListener("change", applyFilters);
+dateFrom.addEventListener("change", applyFilters);
+dateTo.addEventListener("change", applyFilters);
+
+/* ========= Auth ========= */
+async function login(){
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPass").value;
+  if (!email || !password) return alert("Bitte Email & Passwort eingeben.");
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error){
+    authErr.textContent = error.message;
+    authErr.classList.remove("hidden");
+    return;
+  }
+
+  const session = data?.session;
+  const loggedMail = data?.user?.email || email;
+
+  setAuthUI(true, loggedMail, true);
+
+  try{
+    await loadMyProfile(session);
+  }catch(e){
+    authDot.classList.remove("warn","ok");
+    authDot.classList.add("bad");
+    authErr.innerHTML = "❌ " + esc(e.message);
+    authErr.classList.remove("hidden");
+    // optional: direkt wieder ausloggen
+    // await sb.auth.signOut();
+    return;
+  }
+
+  await loadSurvey(true);
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  ALL_ROWS = [];
+  VIEW_ROWS = [];
+  Object.values(charts).forEach(c=>{ try{ c.destroy(); }catch(_){} });
+  setAuthUI(false);
+}
+
+/* ========= Init ========= */
+(async () => {
+  const { data } = await sb.auth.getSession();
+  const session = data?.session;
+  const mail = session?.user?.email || "";
+
+  setAuthUI(!!session, mail, false);
+
+  if (session){
+    try{
+      await loadMyProfile(session);
+      await loadSurvey(false);
+    }catch(e){
+      // Session da, aber keine Rolle/kein Zugriff -> zeig login card wieder
+      console.warn(e);
+      setAuthUI(false);
+      authErr.innerHTML = "❌ " + esc(e.message);
+      authErr.classList.remove("hidden");
+    }
+  }
+})();
+</script>
+
 </body>
 </html>
-
