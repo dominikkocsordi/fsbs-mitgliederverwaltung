@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mitgliederportal – Login</title>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+      --accent1:#f97316; --accent2:#a855f7;
+      --glass: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --shadow: 0 20px 55px rgba(0,0,0,.45);
+      --ok: rgba(34,197,94,.95);
+      --bad: rgba(239,68,68,.95);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background:
+        radial-gradient(900px 600px at 15% 15%, rgba(249,115,22,.22), transparent 55%),
+        radial-gradient(900px 600px at 85% 25%, rgba(168,85,247,.18), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+      display:flex; align-items:center; justify-content:center;
+      padding:24px;
+    }
+    .wrap{width:min(980px,100%); display:grid; grid-template-columns:1.1fr 1fr; gap:18px;}
+    @media (max-width: 900px){ .wrap{grid-template-columns:1fr;} }
+
+    .card{
+      background: var(--glass);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .hero{
+      padding: 22px 18px;
+      background:
+        radial-gradient(700px 380px at 20% 30%, rgba(249,115,22,.18), transparent 50%),
+        radial-gradient(700px 380px at 80% 25%, rgba(168,85,247,.14), transparent 50%),
+        rgba(0,0,0,.10);
+      min-height: 260px;
+      display:flex; flex-direction:column; justify-content:space-between; gap:14px;
+    }
+    .hero h2{margin:0; font-size:22px;}
+    .hero p{margin:0; color:var(--muted); line-height:1.5; font-size:14px;}
+
+    .head{
+      padding: 18px 18px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+    }
+    .title{margin:0; font-size:18px; font-weight:750;}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.15);
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .dot{width:9px;height:9px;border-radius:50%; background:rgba(255,255,255,.35); box-shadow:0 0 0 3px rgba(255,255,255,.06);}
+    .dot.ok{background:var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.18);}
+    .dot.bad{background:var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.18);}
+
+    .body{padding:18px;}
+    .grid{display:grid; gap:12px;}
+    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+    input{
+      width:100%; padding:12px 12px; border-radius:12px;
+      background: rgba(0,0,0,.18);
+      border:1px solid rgba(255,255,255,.16);
+      color: var(--text);
+      outline:none;
+    }
+    input:focus{border-color: rgba(249,115,22,.55); box-shadow:0 0 0 4px rgba(249,115,22,.14);}
+    .row{display:flex; gap:10px; flex-wrap:wrap;}
+    .btn{
+      border:1px solid rgba(249,115,22,.45);
+      background: linear-gradient(180deg, rgba(249,115,22,.24), rgba(0,0,0,.10));
+      color: var(--text);
+      padding: 11px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 650;
+      letter-spacing: .2px;
+    }
+    .btn:hover{border-color: rgba(249,115,22,.70);}
+    .btn.secondary{
+      border-color: rgba(255,255,255,.20);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .btn.purple{
+      border-color: rgba(168,85,247,.45);
+      background: linear-gradient(180deg, rgba(168,85,247,.20), rgba(0,0,0,.10));
+    }
+    .note{font-size:13px; color:var(--muted); line-height:1.45;}
+    .divider{height:1px; background: rgba(255,255,255,.10); margin:14px 0;}
+    .msg{margin-top:10px; font-size:13px; color:var(--muted); min-height:18px;}
+    .msg.ok{color: rgba(34,197,94,.95);}
+    .msg.bad{color: rgba(239,68,68,.95);}
+    .hidden{display:none !important;}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="hero">
+        <div>
+          <h2>Mitgliederportal</h2>
+          <p>
+            Einladung erhalten? Dann legst du zuerst ein Passwort fest.<br/>
+            Danach kannst du dich mit Passwort anmelden oder einen Login-Link per Mail anfordern.
+          </p>
+        </div>
+        <div class="note">
+          Sicherheit: Diese Seite entfernt automatisch Token aus der URL.
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h1 class="title" id="modeTitle">Login</h1>
+        <div class="badge">
+          <span class="dot bad" id="statusDot"></span>
+          <span id="statusText">nicht eingeloggt</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- INVITE: Passwort anlegen -->
+        <section id="inviteSection" class="hidden">
+          <div class="note">Du bist über eine Einladung hier. Bitte lege jetzt dein Passwort fest.</div>
+          <div class="divider"></div>
+
+          <div class="grid">
+            <div>
+              <label for="invPw1">Neues Passwort</label>
+              <input id="invPw1" type="password" autocomplete="new-password" placeholder="mind. 8 Zeichen" />
+            </div>
+            <div>
+              <label for="invPw2">Passwort wiederholen</label>
+              <input id="invPw2" type="password" autocomplete="new-password" placeholder="wiederholen" />
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnSetPassword">Passwort setzen</button>
+              <button class="btn secondary hidden" id="btnContinue">Weiter ins Portal</button>
+              <button class="btn secondary" id="btnInviteCancel">Abbrechen</button>
+            </div>
+
+            <div id="inviteMsg" class="msg"></div>
+          </div>
+        </section>
+
+        <!-- NORMAL: Passwortlogin + Magic Link -->
+        <section id="loginSection">
+          <div class="grid">
+            <div>
+              <label for="email">E-Mail</label>
+              <input id="email" type="email" autocomplete="email" placeholder="name@domain.de" />
+            </div>
+            <div>
+              <label for="password">Passwort</label>
+              <input id="password" type="password" autocomplete="current-password" placeholder="dein Passwort" />
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnLoginPw">Mit Passwort einloggen</button>
+              <button class="btn purple" id="btnMagicLink">Login-Link per Mail</button>
+              <button class="btn secondary hidden" id="btnGoApp">Ins Portal</button>
+              <button class="btn secondary hidden" id="btnLogout">Logout</button>
+            </div>
+
+            <div class="note">
+              Login-Link: Du bekommst eine Mail. Der Link loggt dich ein und bringt dich zurück.
+            </div>
+            <div id="loginMsg" class="msg"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ========= SUPABASE =========
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ========= APP =========
+  const APP_REDIRECT = "index.html"; // nach Login/Setup
+
+  // ========= HELPERS =========
+  function hashParams(){
+    const h = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
+    return new URLSearchParams(h);
+  }
+  function getHashParam(name){ return hashParams().get(name); }
+
+  function setStatus(loggedIn){
+    const dot = document.getElementById("statusDot");
+    const txt = document.getElementById("statusText");
+    dot.classList.toggle("ok", !!loggedIn);
+    dot.classList.toggle("bad", !loggedIn);
+    txt.textContent = loggedIn ? "eingeloggt" : "nicht eingeloggt";
+  }
+
+  function setMsg(el, text, kind){
+    el.textContent = text || "";
+    el.classList.remove("ok","bad");
+    if (kind) el.classList.add(kind);
+  }
+
+  function cleanHash(){
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+
+  function showInviteMode(){
+    document.getElementById("modeTitle").textContent = "Passwort anlegen";
+    document.getElementById("inviteSection").classList.remove("hidden");
+    document.getElementById("loginSection").classList.add("hidden");
+  }
+
+  function showLoginMode(){
+    document.getElementById("modeTitle").textContent = "Login";
+    document.getElementById("inviteSection").classList.add("hidden");
+    document.getElementById("loginSection").classList.remove("hidden");
+  }
+
+  // ========= INIT =========
+  async function init(){
+    const { data: { session } } = await sb.auth.getSession();
+
+    const type = getHashParam("type"); // invite / recovery / magiclink / ...
+    const isInvite = (type === "invite" || type === "recovery");
+
+    setStatus(!!session);
+
+    // wenn wir über Link kamen: Token aus URL entfernen (Session bleibt!)
+    if (session && location.hash) cleanHash();
+
+    // Invite: Passwort setzen erzwingen
+    if (session && isInvite){
+      showInviteMode();
+      setMsg(document.getElementById("inviteMsg"), "Bitte lege jetzt ein Passwort fest.", null);
+      return;
+    }
+
+    // normaler Login
+    showLoginMode();
+
+    // bereits eingeloggt?
+    if (session){
+      document.getElementById("btnGoApp").classList.remove("hidden");
+      document.getElementById("btnLogout").classList.remove("hidden");
+      setMsg(document.getElementById("loginMsg"), "Du bist bereits eingeloggt.", "ok");
+    }
+  }
+
+  // ========= INVITE: PASSWORT SETZEN =========
+  document.getElementById("btnSetPassword").addEventListener("click", async () => {
+    const msg = document.getElementById("inviteMsg");
+    const pw1 = document.getElementById("invPw1").value.trim();
+    const pw2 = document.getElementById("invPw2").value.trim();
+
+    if (pw1.length < 8) return setMsg(msg, "Passwort muss mindestens 8 Zeichen haben.", "bad");
+    if (pw1 !== pw2) return setMsg(msg, "Passwörter stimmen nicht überein.", "bad");
+
+    setMsg(msg, "Speichere Passwort…", null);
+
+    const { error } = await sb.auth.updateUser({ password: pw1 });
+    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
+
+    setMsg(msg, "✅ Passwort gesetzt. Du kannst jetzt ins Portal.", "ok");
+    document.getElementById("btnContinue").classList.remove("hidden");
+    setStatus(true);
+  });
+
+  document.getElementById("btnContinue").addEventListener("click", () => {
+    window.location.href = APP_REDIRECT;
+  });
+
+  document.getElementById("btnInviteCancel").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    setStatus(false);
+    showLoginMode();
+    setMsg(document.getElementById("loginMsg"), "Abgebrochen. Bitte normal einloggen.", null);
+  });
+
+  // ========= LOGIN MIT PASSWORT =========
+  document.getElementById("btnLoginPw").addEventListener("click", async () => {
+    const msg = document.getElementById("loginMsg");
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email) return setMsg(msg, "Bitte E-Mail eingeben.", "bad");
+    if (!password) return setMsg(msg, "Bitte Passwort eingeben.", "bad");
+
+    setMsg(msg, "Login…", null);
+
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
+
+    setMsg(msg, "✅ Eingeloggt. Weiterleitung…", "ok");
+    setStatus(true);
+    window.location.href = APP_REDIRECT;
+  });
+
+  // ========= MAGIC LINK =========
+  document.getElementById("btnMagicLink").addEventListener("click", async () => {
+    const msg = document.getElementById("loginMsg");
+    const email = document.getElementById("email").value.trim();
+
+    if (!email) return setMsg(msg, "Bitte E-Mail eingeben.", "bad");
+
+    setMsg(msg, "Sende Login-Link…", null);
+
+    // muss exakt auf diese login.html zeigen
+    const redirectTo = "https://portal.fsbs-hm.de/login.html";
+
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo }
+    });
+
+    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
+    setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
+  });
+
+  // ========= LOGOUT =========
+  document.getElementById("btnLogout").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    setStatus(false);
+    document.getElementById("btnGoApp").classList.add("hidden");
+    document.getElementById("btnLogout").classList.add("hidden");
+    setMsg(document.getElementById("loginMsg"), "Ausgeloggt.", null);
+  });
+
+  document.getElementById("btnGoApp").addEventListener("click", () => {
+    window.location.href = APP_REDIRECT;
+  });
+
+  window.addEventListener("load", init);
+</script>
+</body>
+</html>
