@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Anwärter</title>
 
-  <!-- PWA / Theme -->
   <meta name="theme-color" content="#120e18">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -45,7 +43,7 @@
     }
 
     *{box-sizing:border-box}
-    html, body { height: 100%; }
+    html, body { height:100%; }
 
     html{
       background:
@@ -61,13 +59,10 @@
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
       background: transparent;
-
-      /* ✅ Scroll stabil: kein flex-body */
       padding: 28px 16px 60px;
-
-      /* ✅ Page transition */
-      animation: pageIn .38s ease both;
       overflow-x:hidden;
+
+      animation: pageIn .38s ease both;
     }
     @keyframes pageIn{
       from{ opacity:0; transform: translateY(8px); }
@@ -77,13 +72,13 @@
       body{ animation:none !important; }
     }
 
-    .app{
-      width:100%;
-      max-width:1200px;
-
-      /* ✅ zentrieren ohne flex-body */
-      margin: 0 auto;
+    /* ✅ Modal open => Background scroll aus */
+    body.modal-open{
+      overflow:hidden;
+      height:100vh;
     }
+
+    .app{ width:100%; max-width:1200px; margin:0 auto; }
 
     .glass{
       background: rgba(255,255,255,.10);
@@ -105,20 +100,12 @@
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-    /* Brand */
-    .brandLeft{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
+    .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
     .brandLogo{
-      width: 52px;
-      height: 52px;
+      width: 52px; height: 52px;
       border-radius: 14px;
       padding: 6px;
-      display:grid;
-      place-items:center;
+      display:grid; place-items:center;
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 16px 44px rgba(0,0,0,.30);
@@ -131,14 +118,9 @@
       font-weight: 900;
       letter-spacing: .2px;
     }
-    .brandLogo:hover{
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-      background: rgba(255,255,255,.12);
-    }
+    .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
     .brandLogo img{
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       border-radius: 10px;
       object-fit: cover;
       display:block;
@@ -148,7 +130,6 @@
       .brandLogo img{ border-radius: 9px; }
     }
 
-    /* Small status pill */
     .pill{
       padding: 8px 12px;
       border-radius: 999px;
@@ -179,21 +160,13 @@
       user-select:none;
       max-width: min(560px, 100%);
     }
-    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position:relative; flex:0 0 auto; }
-    .dot.ok{ background: var(--ok); }
+    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); flex:0 0 auto; }
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 2px rgba(34,197,94,.20), 0 0 18px rgba(34,197,94,.55), 0 0 42px rgba(34,197,94,.30); }
     .dot.warn{ background: rgba(255,255,255,.35); }
-    .dot.ok{
-      box-shadow:
-        0 0 0 2px rgba(34,197,94,.20),
-        0 0 18px rgba(34,197,94,.55),
-        0 0 42px rgba(34,197,94,.30);
-    }
     .authAvatar{
-      width: 30px;
-      height: 30px;
+      width: 30px; height: 30px;
       border-radius: 999px;
-      display:grid;
-      place-items:center;
+      display:grid; place-items:center;
       font-weight: 800;
       font-size: 12px;
       letter-spacing: .3px;
@@ -242,14 +215,8 @@
       white-space:nowrap;
       flex: 0 0 auto;
     }
-    .rolePill.vorstand{
-      border-color: rgba(56,189,248,.40);
-      background: rgba(56,189,248,.12);
-    }
-    .rolePill.ressortleiter{
-      border-color: rgba(251,146,60,.35);
-      background: rgba(251,146,60,.12);
-    }
+    .rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
+    .rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
     .authChevron{
       border: 1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.06);
@@ -281,18 +248,8 @@
       top: var(--stickyTop);
       z-index: 10;
       margin-bottom: 16px;
-
-      /* ✅ stabil beim Scrollen (kleines Dashboard oben) */
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
     }
-    .nav{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      padding: 10px;
-    }
+    .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
@@ -348,7 +305,6 @@
       filter: none !important;
       box-shadow: none !important;
     }
-
     .btn-secondary{
       background: rgba(255,255,255,.14);
       color: var(--text);
@@ -394,18 +350,37 @@
       transition: transform .15s ease, background .15s ease, border-color .15s ease;
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
-
     input:focus, select:focus{
       border-color: rgba(249,115,22,.55);
       background: rgba(255,255,255,.16);
       transform: translateY(-1px);
     }
+    select option{ background: #1a1424; color: rgba(255,255,255,.92); }
 
-    select option{
-      background: #1a1424;
-      color: rgba(255,255,255,.92);
+    /* ✅ MINI DASHBOARD */
+    .miniDash{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 14px;
     }
-    select:disabled{ opacity:.75; }
+    .dashCard{
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .dashLabel{ font-size:12px; color: rgba(255,255,255,.68); }
+    .dashValue{ font-size:18px; font-weight: 900; letter-spacing:.2px; }
+    .dashHint{ font-size:11px; color: rgba(255,255,255,.55); margin-top:2px; }
+
+    @media (max-width: 900px){
+      .miniDash{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
 
     .tableWrap{
       overflow:auto;
@@ -422,11 +397,6 @@
       text-transform:uppercase;
       background: rgba(255,255,255,.04);
       border-bottom:1px solid rgba(255,255,255,.10);
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
     }
     tr + tr td{ border-top:1px solid rgba(255,255,255,.08); }
 
@@ -451,37 +421,13 @@
       color: rgba(255,255,255,.85);
       flex: 0 0 auto;
     }
-    .avatarSmall img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .nameCell{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width: 220px;
-    }
-    .nameMeta{
-      display:flex;
-      flex-direction:column;
-      line-height:1.15;
-      min-width:0;
-    }
-    .nameMeta strong{
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .miniLink a{
-      font-size:12px;
-      color: rgba(249,115,22,.95);
-      text-decoration:none;
-    }
+    .avatarSmall img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .nameCell{ display:flex; align-items:center; gap:10px; min-width: 220px; }
+    .nameMeta{ display:flex; flex-direction:column; line-height:1.15; min-width:0; }
+    .nameMeta strong{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .miniLink a{ font-size:12px; color: rgba(249,115,22,.95); text-decoration:none; }
     .miniLink a:hover{ text-decoration:underline; }
-    .miniLink span{
-      font-size:12px;
-      color: rgba(255,255,255,.55);
-    }
+    .miniLink span{ font-size:12px; color: rgba(255,255,255,.55); }
 
     .ressortPill{
       display:inline-flex;
@@ -507,10 +453,6 @@
       align-items:center;
       justify-content:center;
       padding: 18px;
-
-      /* ✅ iOS: scroll inside overlay */
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
     }
     .modalOverlay.show{ display:flex; }
 
@@ -534,8 +476,7 @@
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
     .photoPreview{
-      width: 120px;
-      height: 120px;
+      width: 120px; height: 120px;
       border-radius: 22px;
       border: 1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.06);
@@ -547,10 +488,7 @@
       cursor: pointer;
       transition: transform .16s ease, filter .16s ease;
     }
-    .photoPreview:hover{
-      transform: translateY(-2px);
-      filter: brightness(1.06);
-    }
+    .photoPreview:hover{ transform: translateY(-2px); filter: brightness(1.06); }
     .photoPreview img{ width:100%; height:100%; object-fit:cover; display:block; }
 
     @media (max-width: 640px){
@@ -596,7 +534,7 @@
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
                 <span class="rolePill" id="authRolePill">Rolle</span>
-                <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+                <button class="authChevron" id="authToggle" type="button" aria-label="Details">⌄</button>
               </div>
             </div>
 
@@ -663,7 +601,7 @@
         </div>
 
         <div class="navRight">
-          <button class="btn-secondary hidden" id="logoutBtn">Logout</button>
+          <button class="btn-secondary hidden" id="logoutBtn" type="button">Logout</button>
         </div>
       </div>
     </div>
@@ -673,12 +611,42 @@
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fRessort"></select>
-        <button class="btn-secondary" id="reloadBtn">Neu laden</button>
+        <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
         <div class="spacer"></div>
         <div class="pill" id="countPill">0</div>
       </div>
 
-      <div style="height:10px;"></div>
+      <!-- ✅ MINI DASHBOARD (das meinst du mit "kleines Dashboard oben") -->
+      <div class="miniDash" id="miniDash" aria-label="Mini Dashboard">
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Anwärter</div>
+            <div class="dashHint">aktuell sichtbar</div>
+          </div>
+          <div class="dashValue" id="dashTotal">0</div>
+        </div>
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Dein Ressort</div>
+            <div class="dashHint" id="dashMineHint">–</div>
+          </div>
+          <div class="dashValue" id="dashMine">0</div>
+        </div>
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Ohne Ressort</div>
+            <div class="dashHint">bitte zuweisen</div>
+          </div>
+          <div class="dashValue" id="dashNoRes">0</div>
+        </div>
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Vollmitglied</div>
+            <div class="dashHint">bereits übernommen</div>
+          </div>
+          <div class="dashValue" id="dashFull">0</div>
+        </div>
+      </div>
 
       <div class="tableWrap">
         <table>
@@ -707,7 +675,7 @@
           <h2 class="modalTitle">Anwärter bearbeiten</h2>
           <div class="modalSub" id="editSub">–</div>
         </div>
-        <button class="btn-secondary closeX" id="closeEditBtn">✕</button>
+        <button class="btn-secondary closeX" id="closeEditBtn" type="button">✕</button>
       </div>
 
       <div class="card" style="padding:12px; margin:0;">
@@ -725,8 +693,8 @@
             <select id="editRessort" style="width:100%; min-width:0;"></select>
 
             <div class="row" style="margin-top:14px; justify-content:flex-end;">
-              <button class="btn-secondary" id="editCancelBtn">Abbrechen</button>
-              <button class="btn-primary" id="saveEditBtn">Speichern</button>
+              <button class="btn-secondary" id="editCancelBtn" type="button">Abbrechen</button>
+              <button class="btn-primary" id="saveEditBtn" type="button">Speichern</button>
             </div>
           </div>
         </div>
@@ -796,6 +764,13 @@
     const countPill = document.getElementById("countPill");
     const tbody = document.getElementById("tbody");
     const empty = document.getElementById("empty");
+
+    // Mini dashboard values
+    const dashTotal = document.getElementById("dashTotal");
+    const dashMine  = document.getElementById("dashMine");
+    const dashNoRes = document.getElementById("dashNoRes");
+    const dashFull  = document.getElementById("dashFull");
+    const dashMineHint = document.getElementById("dashMineHint");
 
     // Edit modal
     const editOverlay = document.getElementById("editOverlay");
@@ -939,10 +914,22 @@
       if (!authBadge.contains(e.target)) closeAuthDetails();
     });
 
-    async function requireAuth(){
-      const { data } = await sb.auth.getSession();
-      if (!data.session) throw new Error("Bitte einloggen.");
-      return data.session;
+    /* ✅ Fallback Rolle aus Token-Metadaten (falls profiles nicht klappt) */
+    function roleFromSessionMeta(session){
+      const r1 = session?.user?.app_metadata?.role;
+      const r2 = session?.user?.user_metadata?.role;
+      const r3 = session?.user?.app_metadata?.claims?.role;
+      return normRole(r1 || r2 || r3);
+    }
+    function ressortFromSessionMeta(session){
+      const a = session?.user?.app_metadata?.ressort;
+      const b = session?.user?.user_metadata?.ressort;
+      return safe(a || b).trim();
+    }
+    function displayNameFromSessionMeta(session){
+      const a = session?.user?.user_metadata?.display_name;
+      const b = session?.user?.user_metadata?.full_name;
+      return safe(a || b).trim();
     }
 
     async function loadMyProfile(session){
@@ -953,45 +940,54 @@
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      if (!uid){
-        setCompactIdentity("", email);
-        setRolePill("ressortleiter");
-        return;
-      }
+      // Default UI
+      setCompactIdentity(displayNameFromSessionMeta(session), email);
 
-      let data = null;
-      const res = await sb
-        .from("profiles")
-        .select("role, display_name, ressort")
-        .eq("id", uid)
-        .single();
-
-      data = res.data;
-
-      if (res.error){
-        const res2 = await sb
-          .from("profiles")
-          .select("role, display_name")
+      // 1) Versuch: profiles (beste Quelle)
+      if (uid){
+        const res = await sb
+          .from(PROFILES_TABLE)
+          .select("role, display_name, ressort")
           .eq("id", uid)
-          .single();
-        data = res2.data;
+          .maybeSingle();
+
+        if (res?.data){
+          MY_ROLE = normRole(res.data.role);
+          MY_RESSORT = safe(res.data.ressort).trim();
+          CAN_EDIT = (MY_ROLE === "vorstand");
+
+          setCompactIdentity(res.data.display_name, email);
+          setRolePill(MY_ROLE || "ressortleiter");
+          dashMineHint.textContent = MY_RESSORT || "–";
+
+          const dn = (res.data.display_name || "").trim();
+          authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+          if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
+
+          // ✅ Debug: zeigt dir sofort, ob Profile wirklich geladen wurde
+          statusPill.textContent = `Login OK • role=${MY_ROLE || "?"} • edit=${CAN_EDIT ? "ja" : "nein"}`;
+          return;
+        }
+
+        // Wenn profiles nicht geht: zeigen wir dir den Grund direkt
+        if (res?.error){
+          statusPill.textContent = `profiles ERROR: ${res.error.message}`;
+        }
       }
 
-      MY_ROLE = normRole(data?.role);
+      // 2) Fallback: aus Token metadata
+      MY_ROLE = roleFromSessionMeta(session);
+      MY_RESSORT = ressortFromSessionMeta(session);
       CAN_EDIT = (MY_ROLE === "vorstand");
-      MY_RESSORT = safe(data?.ressort).trim();
 
-      setCompactIdentity(data?.display_name, email);
       setRolePill(MY_ROLE || "ressortleiter");
+      dashMineHint.textContent = MY_RESSORT || "–";
+      authBadge.title = `${(email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+      if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
 
-      const dn = (data?.display_name || "").trim();
-      if (dn) authAvatar.textContent = initialsFromText(dn);
-
-      authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
-
-      if (navFinance){
-        navFinance.style.display = CAN_EDIT ? "" : "none";
-      }
+      // ✅ Debug
+      statusPill.textContent = `Fallback role=${MY_ROLE || "?"} • edit=${CAN_EDIT ? "ja" : "nein"}`;
     }
 
     logoutBtn.addEventListener("click", async () => {
@@ -1022,6 +1018,19 @@
       return (a + b).toUpperCase() || "•";
     }
 
+    function updateMiniDash(){
+      const total = ALL.length;
+      const mine = (MY_RESSORT ? ALL.filter(r => safe(r.ressort).trim() === MY_RESSORT).length : 0);
+      const noRes = ALL.filter(r => !safe(r.ressort).trim()).length;
+      const full = ALL.filter(r => isVollmitglied(r[BEWERBUNG_STATUS_COL])).length;
+
+      dashTotal.textContent = String(total);
+      dashMine.textContent  = String(mine);
+      dashNoRes.textContent = String(noRes);
+      dashFull.textContent  = String(full);
+      dashMineHint.textContent = MY_RESSORT || "–";
+    }
+
     function render(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
@@ -1045,13 +1054,14 @@
         const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
         const fullAlready = isVollmitglied(stRaw);
 
+        // ✅ wenn CAN_EDIT false: Buttons disabled -> das war bei dir "Bearbeitung kaputt"
         const editDisabled = !CAN_EDIT;
         const rejectDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
         const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
 
-        const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
-        const rejectTitle = !CAN_EDIT ? "Nur Vorstand darf ablehnen" : (rejectedAlready ? "Bereits abgelehnt" : (fullAlready ? "Ist bereits Vollmitglied" : "Anwärter ablehnen"));
-        const fullTitle = !CAN_EDIT ? "Nur Vorstand darf Vollmitglied setzen" : (rejectedAlready ? "Abgelehnt" : (fullAlready ? "Bereits Vollmitglied" : "Als Vollmitglied übernehmen"));
+        const editTitle = !CAN_EDIT ? "Kein Edit: Role nicht 'vorstand' (siehe Status oben)" : "Bearbeiten";
+        const rejectTitle = !CAN_EDIT ? "Kein Edit: Role nicht 'vorstand' (siehe Status oben)" : (rejectedAlready ? "Bereits abgelehnt" : (fullAlready ? "Ist bereits Vollmitglied" : "Anwärter ablehnen"));
+        const fullTitle = !CAN_EDIT ? "Kein Edit: Role nicht 'vorstand' (siehe Status oben)" : (rejectedAlready ? "Abgelehnt" : (fullAlready ? "Bereits Vollmitglied" : "Als Vollmitglied übernehmen"));
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1089,22 +1099,24 @@
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button class="btn-secondary" data-action="edit" data-id="${r.id}"
-                ${editDisabled ? "disabled" : ""} title="${esc(editTitle)}">Bearbeiten</button>
+                ${editDisabled ? "disabled" : ""} title="${esc(editTitle)}" type="button">Bearbeiten</button>
 
               <button class="btn-done" data-action="full" data-id="${r.id}"
-                ${fullDisabled ? "disabled" : ""} title="${esc(fullTitle)}">Vollmitglied</button>
+                ${fullDisabled ? "disabled" : ""} title="${esc(fullTitle)}" type="button">Vollmitglied</button>
 
               <button class="btn-danger" data-action="reject" data-id="${r.id}"
-                ${rejectDisabled ? "disabled" : ""} title="${esc(rejectTitle)}">Ablehnen</button>
+                ${rejectDisabled ? "disabled" : ""} title="${esc(rejectTitle)}" type="button">Ablehnen</button>
             </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      updateMiniDash();
     }
 
     async function fetchCandidates(){
-      statusPill.textContent = "Lade…";
+      statusPill.textContent = (statusPill.textContent || "") + " • Lade…";
 
       const { data, error } = await sb
         .from(CANDIDATES_TABLE)
@@ -1120,8 +1132,91 @@
       ALL = (Array.isArray(data) ? data : [])
         .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
-      statusPill.textContent = `Geladen: ${ALL.length}`;
+      // ✅ Dashboard + Tabelle aktualisieren
       render();
+    }
+
+    function openEdit(row){
+      if (!CAN_EDIT) {
+        alert("Bearbeiten gesperrt: Du bist nicht als 'vorstand' erkannt.\nOben im Status steht warum (profiles / fallback).");
+        return;
+      }
+      if (!row?.id) return;
+
+      EDITING = row;
+      editSub.textContent = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
+
+      editRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
+      editRessort.value = RESSORTS_FIXED.includes(safe(row.ressort).trim()) ? safe(row.ressort).trim() : RESSORTS_FIXED[0];
+
+      const thumb = safe(row.photo_thumb).trim();
+      const photo = safe(row.photo_url).trim();
+
+      editPhoto.innerHTML = "";
+      editPhotoLink.innerHTML = "";
+
+      if (thumb){
+        const img = document.createElement("img");
+        img.src = thumb;
+        img.alt = "Foto";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.referrerPolicy = "no-referrer";
+        img.onerror = () => {
+          editPhoto.innerHTML = initialsFromName(row.vorname, row.nachname);
+          editPhoto.style.cursor = "default";
+        };
+        editPhoto.appendChild(img);
+      } else {
+        editPhoto.textContent = initialsFromName(row.vorname, row.nachname);
+      }
+
+      if (photo){
+        editPhoto.style.cursor = "pointer";
+        editPhoto.onclick = () => window.open(photo, "_blank", "noopener");
+        editPhotoLink.innerHTML = `<a href="${esc(photo)}" target="_blank" rel="noopener">Foto öffnen</a>`;
+      } else {
+        editPhoto.style.cursor = "default";
+        editPhoto.onclick = null;
+        editPhotoLink.innerHTML = `<span style="font-size:12px;color:rgba(255,255,255,.55)">kein Foto-Link gespeichert</span>`;
+      }
+
+      // ✅ Modal öffnen + Background scroll stoppen
+      document.body.classList.add("modal-open");
+      editOverlay.classList.add("show");
+
+      setTimeout(() => editRessort.focus(), 60);
+    }
+
+    function closeEdit(){
+      editOverlay.classList.remove("show");
+      document.body.classList.remove("modal-open");
+      EDITING = null;
+    }
+
+    async function saveEdit(){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
+      if (!EDITING) return alert("Kein Datensatz gewählt (EDITING ist leer).");
+
+      const ressort = safe(editRessort.value).trim();
+      if (!ressort) return alert("Bitte Ressort wählen.");
+
+      saveEditBtn.disabled = true;
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .update({ ressort })
+        .eq("id", EDITING.id);
+
+      saveEditBtn.disabled = false;
+
+      if (error){
+        alert("Fehler beim Speichern: " + error.message);
+        return;
+      }
+
+      closeEdit();
+      await fetchCandidates();
     }
 
     async function rejectCandidate(id){
@@ -1183,12 +1278,7 @@
 
       const { error: insErr } = await sb
         .from(MEMBERS_TABLE)
-        .insert([{
-          vorname,
-          nachname,
-          email,
-          ressort
-        }]);
+        .insert([{ vorname, nachname, email, ressort }]);
 
       if (insErr){
         alert("Konnte nicht in members übernehmen: " + insErr.message);
@@ -1208,109 +1298,10 @@
       await fetchCandidates();
     }
 
-    /* ✅ Modal Scroll-Lock ohne Jump (stabil auf iOS/Chrome) */
-    let _scrollY = 0;
-    function lockScroll(){
-      _scrollY = window.scrollY || document.documentElement.scrollTop || 0;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${_scrollY}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-    }
-    function unlockScroll(){
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      window.scrollTo({ top: _scrollY, behavior: "instant" });
-    }
-
-    function openEdit(row){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
-
-      lockScroll();
-
-      EDITING = row;
-      editSub.textContent = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
-
-      editRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
-      editRessort.value = RESSORTS_FIXED.includes(safe(row.ressort).trim()) ? safe(row.ressort).trim() : RESSORTS_FIXED[0];
-
-      const thumb = safe(row.photo_thumb).trim();
-      const photo = safe(row.photo_url).trim();
-
-      editPhoto.innerHTML = "";
-      editPhotoLink.innerHTML = "";
-
-      if (thumb){
-        const img = document.createElement("img");
-        img.src = thumb;
-        img.alt = "Foto";
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.referrerPolicy = "no-referrer";
-        img.onerror = () => {
-          editPhoto.innerHTML = initialsFromName(row.vorname, row.nachname);
-          editPhoto.style.cursor = "default";
-        };
-        editPhoto.appendChild(img);
-      } else {
-        editPhoto.textContent = initialsFromName(row.vorname, row.nachname);
-      }
-
-      if (photo){
-        editPhoto.style.cursor = "pointer";
-        editPhoto.onclick = () => window.open(photo, "_blank", "noopener");
-        editPhotoLink.innerHTML = `<a href="${esc(photo)}" target="_blank" rel="noopener">Foto öffnen</a>`;
-      } else {
-        editPhoto.style.cursor = "default";
-        editPhoto.onclick = null;
-        editPhotoLink.innerHTML = `<span style="font-size:12px;color:rgba(255,255,255,.55)">kein Foto-Link gespeichert</span>`;
-      }
-
-      editOverlay.classList.add("show");
-      setTimeout(() => editRessort.focus(), 60);
-    }
-
-    function closeEdit(){
-      editOverlay.classList.remove("show");
-      EDITING = null;
-      unlockScroll();
-    }
-
-    async function saveEdit(){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
-      if (!EDITING) return;
-
-      const ressort = safe(editRessort.value).trim();
-      if (!ressort) return alert("Bitte Ressort wählen.");
-
-      saveEditBtn.disabled = true;
-      saveEditBtn.style.opacity = ".75";
-
-      const { error } = await sb
-        .from(CANDIDATES_TABLE)
-        .update({ ressort })
-        .eq("id", EDITING.id);
-
-      saveEditBtn.disabled = false;
-      saveEditBtn.style.opacity = "1";
-
-      if (error){
-        alert("Fehler beim Speichern: " + error.message);
-        return;
-      }
-
-      closeEdit();
-      await fetchCandidates();
-    }
-
     // Events
     fillRessortFilter();
     q.addEventListener("input", render);
-    fRessort.addEventListener("input", render);
+    fRessort.addEventListener("change", render); // ✅ change statt input
     reloadBtn.addEventListener("click", fetchCandidates);
 
     saveEditBtn.addEventListener("click", saveEdit);
@@ -1340,23 +1331,27 @@
 
     /* ========= Init ========= */
     (async () => {
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
-      const mail = session?.user?.email || "";
+      try{
+        const { data } = await sb.auth.getSession();
+        const session = data?.session;
+        const mail = session?.user?.email || "";
 
-      setAuthUI(!!session, mail);
+        setAuthUI(!!session, mail);
 
-      if (!session){
-        window.location.href = LOGIN_REDIRECT;
-        return;
+        if (!session){
+          window.location.href = LOGIN_REDIRECT;
+          return;
+        }
+
+        await loadMyProfile(session);
+        applyRoleUX();
+        await fetchCandidates();
+      } catch (err){
+        statusPill.textContent = "Init Fehler: " + (err?.message || String(err));
+        console.error(err);
       }
-
-      await loadMyProfile(session);
-      applyRoleUX();
-      await fetchCandidates();
     })();
 
-    /* ✅ PWA: Service Worker registrieren (sw.js muss im Root liegen) */
     if ("serviceWorker" in navigator){
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").catch(console.warn);
