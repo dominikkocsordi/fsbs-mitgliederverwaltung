@@ -9,27 +9,25 @@
 
   <style>
     :root{
-  /* Matte Dark Base */
-  --bg1:#120e18;
-  --bg2:#1a1424;
-  --bg3:#1f162c;
+      --bg1:#120e18;
+      --bg2:#1a1424;
+      --bg3:#1f162c;
 
-  /* Modern Orange → Purple */
-  --accent1:#f97316;   /* warm orange */
-  --accent2:#a855f7;   /* vibrant purple */
+      --accent1:#f97316;
+      --accent2:#a855f7;
 
-  --glass: rgba(255,255,255,.08);
-  --border: rgba(255,255,255,.18);
+      --glass: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.18);
 
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.65);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
 
-  --shadow: 0 20px 55px rgba(0,0,0,.50);
+      --shadow: 0 20px 55px rgba(0,0,0,.50);
 
-  --ok: rgba(34,197,94,.95);
-  --bad: rgba(239,68,68,.95);
-  --warn: rgba(251,146,60,.95);
-}
+      --ok: rgba(34,197,94,.95);
+      --bad: rgba(239,68,68,.95);
+      --warn: rgba(251,146,60,.95);
+    }
 
     *{box-sizing:border-box}
     body{
@@ -37,11 +35,10 @@
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
       background:
-  radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-  radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-  radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-
+        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
       min-height:100vh;
       padding: 28px 16px 60px;
       display:flex;
@@ -60,10 +57,51 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
+    /* ✅ Brand links: Logo + Titel (wie Finanzen) */
+    .brandLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .brandLogo{
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      padding: 6px;
+      display:grid;
+      place-items:center;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 16px 44px rgba(0,0,0,.30);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      flex: 0 0 auto;
+      transition: transform .16s ease, filter .16s ease, background .16s ease;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .brandLogo:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      background: rgba(255,255,255,.12);
+    }
+    .brandLogo img{
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      display:block;
+    }
+    @media (max-width: 640px){
+      .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+      .brandLogo img{ border-radius: 9px; }
+    }
+
     /* ===== Auth badge (kompakt + Details Toggle) ===== */
     .authFloating{
-      position: static;
-      z-index: 1;
       border-radius: 999px;
       padding: 10px 12px;
       display:flex;
@@ -78,37 +116,9 @@
       max-width: min(560px, 100%);
     }
 
-    .dot{
-      width:10px;height:10px;border-radius:999px;
-      background: rgba(255,255,255,.35);
-      position: relative;
-      flex: 0 0 auto;
-    }
+    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position: relative; flex: 0 0 auto; }
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
-
-    .dot.ok{
-      box-shadow:
-        0 0 0 2px rgba(34,197,94,.20),
-        0 0 18px rgba(34,197,94,.55),
-        0 0 42px rgba(34,197,94,.30);
-    }
-
-    @keyframes pulseRing {
-      0%   { transform: scale(1); opacity: .0; }
-      10%  { opacity: .6; }
-      70%  { transform: scale(3.2); opacity: 0; }
-      100% { transform: scale(3.2); opacity: 0; }
-    }
-    .dot.pulsing::after{
-      content:"";
-      position:absolute;
-      inset: -2px;
-      border-radius: 999px;
-      background: rgba(34,197,94,.25);
-      animation: pulseRing 1.15s ease-out 0s 2;
-      pointer-events:none;
-    }
 
     .authAvatar{
       width: 30px;
@@ -127,33 +137,12 @@
     }
     .authAvatar.hidden{ display:none; }
 
-    .authInfo{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-      min-width:0;
-      flex: 1 1 auto;
-    }
-    .authState{
-      font-size:13px;
-      font-weight:750;
-      letter-spacing:.25px;
-    }
+    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex: 1 1 auto; }
+    .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
     .authState.hidden{ display:none; }
 
-    .authTopLine{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      min-width:0;
-    }
-    .authCompact{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      min-width:0;
-    }
+    .authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+    .authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
     .authCompact.hidden{ display:none; }
 
     .authNameInline{
@@ -193,42 +182,36 @@
     }
     .authDetails.hidden{ display:none; }
 
-    .authMail{
-      font-size:11px;
-      color: rgba(255,255,255,.58);
-      margin-top:0;
-      word-break:break-all;
+    .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
+
+    .rolePill{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.82);
+      font-weight:700;
+      font-size: 11px;
+      letter-spacing: .10px;
+      line-height: 1;
+      white-space:nowrap;
+      flex: 0 0 auto;
     }
-
-  .rolePill{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  padding: 2px 6px;          /* kleiner */
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.82);
-  font-weight:700;          /* leicht weniger fett */
-  font-size: 11px;          /* kleiner */
-  letter-spacing: .10px;    /* weniger spacing */
-  line-height: 1;           /* kompakter */
-  white-space:nowrap;
-  flex: 0 0 auto;
-}
-
     .rolePill.vorstand{
       border-color: rgba(56,189,248,.40);
       background: rgba(56,189,248,.12);
     }
-    .rolePill.ressortleiter{
+    .rolePill.other{
       border-color: rgba(251,146,60,.35);
       background: rgba(251,146,60,.12);
     }
 
     .hidden{ display:none; }
 
-    /* Header + Controls */
+    /* Header */
     .top{
       display:flex;
       align-items:flex-end;
@@ -289,10 +272,10 @@
       border-color: rgba(255,255,255,.22);
     }
     .navLink.active{
-  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
-  border-color: rgba(249,115,22,.35);
-  box-shadow: 0 12px 28px rgba(249,115,22,.25);
-}
+      background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
+      border-color: rgba(249,115,22,.35);
+      box-shadow: 0 12px 28px rgba(249,115,22,.25);
+    }
 
     .navIcon{
       width:30px; height:30px;
@@ -313,14 +296,7 @@
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
-    button:disabled{
-      cursor: not-allowed !important;
-      opacity: .55 !important;
-      transform: none !important;
-      filter: none !important;
-      box-shadow: none !important;
-    }
-    button:disabled:hover{ transform:none !important; filter:none !important; }
+    button:disabled{ cursor: not-allowed !important; opacity: .55 !important; transform:none !important; }
 
     .btn-secondary{
       background: rgba(255,255,255,.14);
@@ -330,11 +306,10 @@
     .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
 
     .btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: #0f0b16;
-  box-shadow: 0 12px 30px rgba(168,85,247,.25);
-}
-
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #0f0b16;
+      box-shadow: 0 12px 30px rgba(168,85,247,.25);
+    }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
     .btn-danger{
@@ -345,13 +320,7 @@
     .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
 
     .card{ padding:16px; margin-bottom:14px; }
-
-    .row{
-      display:flex;
-      gap:12px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
 
     input,select{
@@ -386,6 +355,9 @@
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
+      .navRight button{ white-space:nowrap; }
+      button{ width:100%; }
+      .row .spacer{ display:none; }
     }
 
     .appCard{
@@ -401,6 +373,7 @@
       position: relative;
     }
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
+
     .inner{ display:flex; gap:12px; padding:14px; }
 
     .avatar{
@@ -428,7 +401,7 @@
     .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
     .tag a:hover{ text-decoration:underline; }
 
-    /* Corner badge (live status) */
+    /* Corner badge */
     .cornerBadge{
       position:absolute;
       top:10px;
@@ -466,7 +439,7 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* Debug box */
+    /* Debug */
     .debug{
       display:none;
       margin-top: 10px;
@@ -509,12 +482,7 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
-    /* Modal Photo */
-    .modalPhotoWrap{
-      display:flex;
-      justify-content:center;
-      margin: 6px 0 16px;
-    }
+    .modalPhotoWrap{ display:flex; justify-content:center; margin: 6px 0 16px; }
     .modalPhoto{
       width: 220px;
       height: 220px;
@@ -536,12 +504,7 @@
       filter: brightness(1.06);
       box-shadow: 0 18px 45px rgba(0,0,0,.35);
     }
-    .modalPhoto img{
-      width:100%;
-      height:100%;
-      object-fit: cover;
-      display:block;
-    }
+    .modalPhoto img{ width:100%; height:100%; object-fit: cover; display:block; }
 
     .kv{
       display:grid;
@@ -608,10 +571,13 @@
       margin-top: 12px;
     }
 
-    @media (max-width: 640px){
-      .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
-      .navLeft{ flex-wrap:nowrap; }
-      .navRight{ margin-left: 0; }
+    /* ✅ Zugriff verweigert (wie Finanzen) */
+    .denyBox{
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(239,68,68,.28);
+      background: rgba(239,68,68,.10);
+      color: rgba(255,255,255,.90);
     }
   </style>
 </head>
@@ -619,16 +585,23 @@
 <body>
   <div class="app">
 
+    <!-- ✅ Header wie Finanzen -->
     <div class="top">
-      <div>
-        <h1>Bewerbungen</h1>
-        <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
+      <div class="brandLeft">
+        <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+          <img src="logo.png" alt="Fachschaft Logo"
+               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+        </a>
+
+        <div>
+          <h1>Bewerbungen</h1>
+          <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
+        </div>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="pill" id="statusPill">–</div>
 
-        <!-- ✅ Badge wie bei Index/Anwärter: kompakt + Rolle + Name + Mail im Toggle -->
         <div class="authFloating" id="authBadge" title="Login-Status">
           <span class="dot warn" id="authDot"></span>
           <div class="authAvatar hidden" id="authAvatar">U</div>
@@ -639,7 +612,7 @@
 
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
-                <span class="rolePill" id="authRolePill">Rolle</span>
+                <span class="rolePill other" id="authRolePill">rolle</span>
                 <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
               </div>
             </div>
@@ -652,7 +625,7 @@
       </div>
     </div>
 
-    <!-- NAV (nur eingeloggt) -->
+    <!-- NAV (NUR Vorstand sichtbar) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
@@ -680,23 +653,22 @@
             </span>
           </a>
 
-           <a class="navLink" href="/rechnungen.html" id="navFinance">
-          <span class="navIcon">💰</span>
-          <span>
-            <div class="navTitle">Finanzen</div>
-            <div class="navHint">Rechnungen & Auslagen</div>
-          </span>
-        </a>
+          <a class="navLink" href="/rechnungen.html" id="navFinance">
+            <span class="navIcon">💰</span>
+            <span>
+              <div class="navTitle">Finanzen</div>
+              <div class="navHint">Rechnungen & Auslagen</div>
+            </span>
+          </a>
 
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
-  <span class="navIcon">📊</span>
-  <span>
-    <div class="navTitle">Befragung</div>
-    <div class="navHint">Auswertung</div>
-  </span>
-</a>
-
-      </div>
+            <span class="navIcon">📊</span>
+            <span>
+              <div class="navTitle">Befragung</div>
+              <div class="navHint">Auswertung</div>
+            </span>
+          </a>
+        </div>
 
         <div class="navRight">
           <button class="btn-secondary" id="logoutBtn">Logout</button>
@@ -704,7 +676,22 @@
       </div>
     </div>
 
-    <div class="glass card">
+    <!-- ✅ Kein Zugriff (wie Finanzen) -->
+    <div class="glass card" id="denyWrap" style="display:none;">
+      <div class="denyBox">
+        <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
+        <div style="margin-top:6px; color:rgba(255,255,255,.78);">
+          Diese Seite ist nur für <b>vorstand</b>.
+        </div>
+        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-secondary" id="logoutBtn2">Logout</button>
+          <a class="pill" href="/index.html" style="text-decoration:none;">Zur Startseite</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls (NUR Vorstand) -->
+    <div class="glass card" id="controlsCard" style="display:none;">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fR1"><option value="">Prio 1 (alle)</option></select>
@@ -714,13 +701,11 @@
         <div class="spacer"></div>
         <div class="pill" id="countPill">0</div>
       </div>
-
       <div class="debug" id="debugBox"></div>
     </div>
 
-    <div id="grid" class="grid"></div>
+    <div id="grid" class="grid" style="display:none;"></div>
     <div id="empty" class="empty" style="display:none;">Keine Bewerbungen gefunden.</div>
-
   </div>
 
   <!-- Bewerber Modal -->
@@ -777,7 +762,7 @@
   </div>
 
   <script>
-    // ====== HIER EINTRAGEN ======
+    // ====== Google Sheet API ======
     const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec";
     const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
 
@@ -787,25 +772,21 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Rollen/Permissions (aus public.profiles) ======
+    // ====== Permissions ======
     const PROFILES_TABLE = "profiles";
+    const REQUIRED_ROLE = "vorstand";
     let MY_ROLE = "";
-    let CAN_EDIT = false; // nur Vorstand darf ablehnen/übernehmen
+    let CAN_VIEW = false;      // Seite komplett
+    let CAN_EDIT = false;      // Buttons
 
-    function normRole(v){ return (v || "").trim().toLowerCase(); }
-    function roleLabel(role){
-      const r = normRole(role);
-      if (r === "vorstand") return "Vorstand";
-      if (r === "ressortleiter") return "Ressortleiter";
-      return "Unbekannt";
-    }
+    function normRole(v){ return String(v || "").trim().toLowerCase(); }
 
-    // ====== Anwärter Tabelle (Status ist SPALTE in anwaerter!) ======
+    // ====== Anwärter Tabelle ======
     const CANDIDATES_TABLE = "anwaerter";
     const CAND_ID_COL = "bewerbung_id";
-    const CAND_STATUS_COL = "bewerbung_status"; // "anwaerter" | "abgelehnt"
+    const CAND_STATUS_COL = "bewerbung_status";
 
-    // ✅ Ressorts fix
+    // Ressorts fix
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
@@ -835,42 +816,47 @@
     // ====== Elements ======
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
+    const logoutBtn2 = document.getElementById("logoutBtn2");
 
+    const denyWrap = document.getElementById("denyWrap");
+    const controlsCard = document.getElementById("controlsCard");
+    const grid = document.getElementById("grid");
+    const empty = document.getElementById("empty");
+
+    const statusPill = document.getElementById("statusPill");
+    const countPill = document.getElementById("countPill");
+    const debugBox = document.getElementById("debugBox");
+
+    // Auth badge
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
     const authMail  = document.getElementById("authMail");
     const authAvatar = document.getElementById("authAvatar");
-
-    // ✅ compact badge elements
     const authCompact = document.getElementById("authCompact");
     const authNameInline = document.getElementById("authNameInline");
     const authRolePill = document.getElementById("authRolePill");
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
 
+    // Controls
     const q = document.getElementById("q");
     const fR1 = document.getElementById("fR1");
     const fR2 = document.getElementById("fR2");
     const fSem = document.getElementById("fSem");
     const reloadBtn = document.getElementById("reloadBtn");
 
-    const grid = document.getElementById("grid");
-    const empty = document.getElementById("empty");
-    const statusPill = document.getElementById("statusPill");
-    const countPill = document.getElementById("countPill");
-    const debugBox = document.getElementById("debugBox");
-
+    // Modal
     const modalOverlay = document.getElementById("modalOverlay");
     const modalTitle = document.getElementById("modalTitle");
     const modalSub = document.getElementById("modalSub");
     const modalPhoto = document.getElementById("modalPhoto");
     const kv = document.getElementById("kv");
     const closeModalBtn = document.getElementById("closeModalBtn");
-
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
     const rejectBtn = document.getElementById("rejectBtn");
 
+    // Candidate modal
     const candOverlay = document.getElementById("candOverlay");
     const candSub = document.getElementById("candSub");
     const candRessort = document.getElementById("candRessort");
@@ -882,8 +868,6 @@
     // ====== State ======
     let ALL = [];
     let ACTIVE_ROW = null;
-
-    // ✅ StatusMap: bewerbung_id -> status (aus anwaerter)
     let statusMap = new Map();
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -896,7 +880,7 @@
       debugBox.textContent = JSON.stringify(obj, null, 2);
     }
 
-    // ===== Badge helpers =====
+    /* ===== Badge helpers ===== */
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -937,12 +921,7 @@
       authAvatar.classList.remove("hidden");
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
-    function pulseLogin(){
-      authDot.classList.add("pulsing");
-      setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-    }
 
-    // ✅ Badge: Details Toggle
     function closeAuthDetails(){ authDetails.classList.add("hidden"); }
     authToggle?.addEventListener("click", (e)=>{
       e.stopPropagation();
@@ -954,10 +933,10 @@
 
     function setRolePill(role){
       const r = normRole(role);
-      authRolePill.textContent = roleLabel(r);
-      authRolePill.classList.remove("vorstand","ressortleiter");
+      authRolePill.textContent = r || "unbekannt";
+      authRolePill.classList.remove("vorstand","other");
       if (r === "vorstand") authRolePill.classList.add("vorstand");
-      else authRolePill.classList.add("ressortleiter");
+      else authRolePill.classList.add("other");
     }
     function setCompactIdentity(displayName, email){
       const name = (displayName || "").trim();
@@ -965,53 +944,55 @@
       authNameInline.textContent = name || fallback;
     }
 
-    // ✅ Auth UI: kein "eingeloggt" Text, Name+Rolle kompakt
-    function setAuthUI(isAuthed, email = "", doPulse = false){
+    function setAuthUI(isAuthed, email=""){
       if (isAuthed){
-        authDot.classList.remove("warn");
-        authDot.classList.add("ok");
-
+        authDot.classList.remove("warn"); authDot.classList.add("ok");
         authState.classList.add("hidden");
-        authState.textContent = "";
-
         authCompact.classList.remove("hidden");
-        closeAuthDetails();
-
         authMail.textContent = (email || "").trim();
         setAvatar(email);
-
-        navWrap.style.display = "block";
-        logoutBtn.classList.remove("hidden");
-
-        // Aktionen nach Permission
-        applyPermissions();
-
-        if (doPulse) pulseLogin();
       } else {
-        authDot.classList.remove("ok");
-        authDot.classList.add("warn");
-
+        authDot.classList.remove("ok"); authDot.classList.add("warn");
         authState.classList.remove("hidden");
         authState.textContent = "nicht eingeloggt";
-
         authCompact.classList.add("hidden");
-        closeAuthDetails();
-
         authMail.textContent = "";
         setAvatar("");
-
-        navWrap.style.display = "none";
-        logoutBtn.classList.add("hidden");
       }
     }
 
-    async function requireAuth(){
-      const res = await sb.auth.getSession();
-      if (!res?.data?.session) throw new Error("not_logged_in");
-      return res.data.session;
+    function applyAccessUI(allowed){
+      CAN_VIEW = !!allowed;
+
+      navWrap.style.display = allowed ? "block" : "none";
+
+      denyWrap.style.display = allowed ? "none" : "block";
+      controlsCard.style.display = allowed ? "block" : "none";
+      grid.style.display = allowed ? "grid" : "none";
+
+      if (!allowed){
+        empty.style.display = "none";
+        grid.innerHTML = "";
+        ALL = [];
+        ACTIVE_ROW = null;
+        statusMap = new Map();
+      }
     }
 
-    // ✅ Rolle + Display Name laden
+    function applyEditPermissions(){
+      const can = !!CAN_EDIT;
+      rejectBtn.disabled = !can;
+      moveToCandidateBtn.disabled = !can;
+      rejectBtn.title = can ? "Bewerbung ablehnen" : "Nur Vorstand";
+      moveToCandidateBtn.title = can ? "Als Anwärter übernehmen" : "Nur Vorstand";
+    }
+
+    async function requireAuth(){
+      const { data } = await sb.auth.getSession();
+      if (!data?.session) throw new Error("not_logged_in");
+      return data.session;
+    }
+
     async function loadMyProfile(session){
       MY_ROLE = "";
       CAN_EDIT = false;
@@ -1019,66 +1000,39 @@
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      if (!uid){
-        setCompactIdentity("", email);
-        setRolePill("ressortleiter");
-        return;
-      }
-
       const { data, error } = await sb
         .from(PROFILES_TABLE)
         .select("role, display_name")
         .eq("id", uid)
-        .single();
+        .maybeSingle();
 
-      if (error){
-        console.warn("Profil konnte nicht geladen werden:", error.message);
+      if (error || !data){
         setCompactIdentity("", email);
-        setRolePill("ressortleiter");
-        return;
+        setRolePill("");
+        return "";
       }
 
       MY_ROLE = normRole(data?.role);
-      CAN_EDIT = (MY_ROLE === "vorstand");
+      CAN_EDIT = (MY_ROLE === REQUIRED_ROLE);
 
       setCompactIdentity(data?.display_name, email);
-      setRolePill(MY_ROLE || "ressortleiter");
+      setRolePill(MY_ROLE);
 
       const dn = (data?.display_name || "").trim();
-      if (dn){
-        authAvatar.textContent = initialsFromText(dn);
-      }
+      if (dn) authAvatar.textContent = initialsFromText(dn);
 
-      authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
-      applyPermissions();
+      authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
+      applyEditPermissions();
+
+      return MY_ROLE;
     }
 
-    function applyPermissions(){
-      // Nur Vorstand darf in Bewerbungen: Ablehnen + Übernehmen
-      const can = !!CAN_EDIT;
-      rejectBtn.disabled = !can;
-      moveToCandidateBtn.disabled = !can;
-
-      rejectBtn.title = can ? "Bewerbung ablehnen" : "Nur Vorstand darf ablehnen";
-      moveToCandidateBtn.title = can ? "Als Anwärter übernehmen" : "Nur Vorstand darf übernehmen";
-    }
-
-    async function enforceAuth(){
-      try{
-        const session = await requireAuth();
-        const mail = session?.user?.email || "";
-        setAuthUI(true, mail, false);
-        await loadMyProfile(session);
-      } catch(e){
-        setAuthUI(false);
-        window.location.href = LOGIN_REDIRECT;
-      }
-    }
-
-    logoutBtn.addEventListener("click", async () => {
+    async function doLogout(){
       await sb.auth.signOut();
       window.location.href = "/index.html";
-    });
+    }
+    logoutBtn?.addEventListener("click", doLogout);
+    logoutBtn2?.addEventListener("click", doLogout);
 
     function uniq(arr){
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
@@ -1104,7 +1058,6 @@
       return (a + b).toUpperCase() || "•";
     }
 
-    // ✅ Foto-Helfer: Thumb + großer Link
     function getThumb(row){
       try{
         if (row?.__photo?.items?.[0]?.thumb){
@@ -1146,7 +1099,6 @@
       );
     }
 
-    // ===== Bewerbungs-ID (stabil, in beiden Welten gleich) =====
     function normId(v){ return String(v || "").trim(); }
     function makeBewerbungId(row){
       const ts = safe(row?.[F.ts]).trim();
@@ -1154,7 +1106,6 @@
       return [ts, email].filter(Boolean).join(" | ") || "";
     }
 
-    // ===== StatusMap aus anwaerter laden =====
     async function refreshStatusMapFor(rows){
       statusMap = new Map();
       const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
@@ -1179,14 +1130,11 @@
       return statusMap.get(normId(makeBewerbungId(row))) || "";
     }
 
-    // ===== Status via UPSERT in anwaerter setzen =====
     async function upsertApplicantStatusFromActive(status, extra = {}){
       if (!ACTIVE_ROW) return;
 
       const bewerbung_id = makeBewerbungId(ACTIVE_ROW);
-      if (!bewerbung_id){
-        throw new Error("Bewerbung-ID fehlt (Zeitstempel/Mail).");
-      }
+      if (!bewerbung_id) throw new Error("Bewerbung-ID fehlt (Zeitstempel/Mail).");
 
       const vorname = safe(ACTIVE_ROW[F.fn]).trim();
       const nachname = safe(ACTIVE_ROW[F.ln]).trim();
@@ -1216,14 +1164,16 @@
     }
 
     async function fetchRows(){
+      if (!CAN_VIEW) return;
+
       statusPill.textContent = "Lade…";
 
-      if (!SHEET_API_URL || SHEET_API_URL.includes("PASTE_")){
+      if (!SHEET_API_URL || !SHEET_API_URL.includes("/exec")){
         statusPill.textContent = "Fehlt: SHEET_API_URL";
         showDebug({hint:"Trage deine Apps Script Web-App URL (…/exec) in SHEET_API_URL ein."});
         return;
       }
-      if (!SHEET_API_KEY || SHEET_API_KEY.includes("PASTE_")){
+      if (!SHEET_API_KEY){
         statusPill.textContent = "Fehlt: API_KEY";
         showDebug({hint:"Trage deinen API_KEY (wie im Apps Script) in SHEET_API_KEY ein."});
         return;
@@ -1250,7 +1200,8 @@
         }
 
         ALL = Array.isArray(json.rows) ? json.rows : [];
-        await refreshStatusMapFor(ALL); // ✅ LIVE Status laden
+        await refreshStatusMapFor(ALL);
+
         statusPill.textContent = `Geladen: ${ALL.length}`;
         fillFilters();
         render();
@@ -1261,6 +1212,8 @@
     }
 
     function render(){
+      if (!CAN_VIEW) return;
+
       const rows = filtered();
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       grid.innerHTML = "";
@@ -1277,7 +1230,7 @@
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
 
-        const st = getStatusForRow(row); // "" | "anwaerter" | "abgelehnt"
+        const st = getStatusForRow(row);
 
         const card = document.createElement("div");
         card.className = "appCard";
@@ -1330,13 +1283,12 @@
 
       if (thumb){
         const img = document.createElement("img");
-        img.src = thumb; // ✅ thumb zuerst
+        img.src = thumb;
         img.alt = "Foto";
         img.loading = "eager";
         img.decoding = "async";
         img.referrerPolicy = "no-referrer";
 
-        // ✅ nach Load: große URL nachladen (schneller perceived loading)
         img.onload = () => {
           if (photoUrl && photoUrl !== thumb){
             const hi = new Image();
@@ -1354,9 +1306,7 @@
         };
 
         modalPhoto.style.cursor = photoUrl ? "pointer" : "default";
-        modalPhoto.onclick = () => {
-          if (photoUrl) window.open(photoUrl, "_blank", "noopener");
-        };
+        modalPhoto.onclick = () => { if (photoUrl) window.open(photoUrl, "_blank", "noopener"); };
 
         modalPhoto.appendChild(img);
       } else {
@@ -1367,6 +1317,8 @@
     }
 
     function openModal(row){
+      if (!CAN_VIEW) return;
+
       ACTIVE_ROW = row;
 
       const fn = safe(row[F.fn]).trim();
@@ -1395,7 +1347,7 @@
         v.className = "v";
 
         const val = safe(row[key]).trim();
-        if (val.includes("http://") || val.includes("https://") || val.includes("drive.google.com")){
+        if (val.startsWith("http://") || val.startsWith("https://") || val.includes("drive.google.com")){
           v.innerHTML = `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
         } else {
           v.textContent = val || "—";
@@ -1405,18 +1357,12 @@
         kv.appendChild(v);
       });
 
-      // Buttons nach Permission (auch falls Role erst später geladen)
-      applyPermissions();
-
+      applyEditPermissions();
       modalOverlay.classList.add("show");
     }
 
-    // ===== Anwärter-Übernahme Modal =====
     function openCandModal(){
-      if (!ACTIVE_ROW){
-        alert("Kein Bewerber ausgewählt.");
-        return;
-      }
+      if (!ACTIVE_ROW) return alert("Kein Bewerber ausgewählt.");
 
       const fn = safe(ACTIVE_ROW[F.fn]).trim();
       const ln = safe(ACTIVE_ROW[F.ln]).trim();
@@ -1439,9 +1385,7 @@
       candOverlay.classList.add("show");
     }
 
-    function closeCandModal(){
-      candOverlay.classList.remove("show");
-    }
+    function closeCandModal(){ candOverlay.classList.remove("show"); }
 
     async function insertCandidateFromActive(){
       if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf übernehmen.");
@@ -1452,17 +1396,10 @@
       const email = safe(ACTIVE_ROW[F.email]).trim();
       const ressort = safe(candRessort.value).trim();
 
-      if (!vorname || !nachname || !email){
-        alert("Vorname/Nachname/E-Mail fehlen in der Bewerbung. Bitte prüfen.");
-        return;
-      }
-      if (!ressort){
-        alert("Bitte ein Ressort auswählen.");
-        return;
-      }
+      if (!vorname || !nachname || !email) return alert("Vorname/Nachname/E-Mail fehlen in der Bewerbung.");
+      if (!ressort) return alert("Bitte ein Ressort auswählen.");
 
       candConfirm.disabled = true;
-      candConfirm.style.opacity = ".75";
 
       try{
         await upsertApplicantStatusFromActive("anwaerter", { ressort });
@@ -1474,7 +1411,6 @@
         alert("Konnte nicht übernehmen: " + (e?.message || e));
       } finally {
         candConfirm.disabled = false;
-        candConfirm.style.opacity = "1";
       }
     }
 
@@ -1484,9 +1420,9 @@
       if (!confirm("Wirklich ablehnen?")) return;
 
       rejectBtn.disabled = true;
-      rejectBtn.style.opacity = ".75";
 
       try{
+        // damit NOT NULL ressort nicht crasht, setzen wir "—"
         await upsertApplicantStatusFromActive("abgelehnt", { ressort: "—" });
         closeModal();
         render();
@@ -1494,21 +1430,14 @@
         alert("Konnte nicht ablehnen: " + (e?.message || e));
       } finally {
         rejectBtn.disabled = false;
-        rejectBtn.style.opacity = "1";
       }
     }
 
-    // ===== Overlay close =====
+    // Overlay close
     closeModalBtn.addEventListener("click", closeModal);
+    modalOverlay.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
 
-    modalOverlay.addEventListener("click", (e)=>{
-      if (e.target === modalOverlay) closeModal();
-    });
-
-    candOverlay.addEventListener("click", (e)=>{
-      if (e.target === candOverlay) closeCandModal();
-    });
-
+    candOverlay.addEventListener("click", (e)=>{ if (e.target === candOverlay) closeCandModal(); });
     closeCandBtn.addEventListener("click", closeCandModal);
     candCancelBtn.addEventListener("click", closeCandModal);
 
@@ -1520,34 +1449,42 @@
     [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
     reloadBtn.addEventListener("click", fetchRows);
 
-    moveToCandidateBtn.addEventListener("click", async ()=>{
-      try{
-        const session = await requireAuth();
-        await loadMyProfile(session);
-        if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf übernehmen.");
-        openCandModal();
-      } catch(e){
-        alert("Bitte einloggen.");
-        window.location.href = LOGIN_REDIRECT;
-      }
+    moveToCandidateBtn.addEventListener("click", () => {
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand.");
+      openCandModal();
     });
 
-    rejectBtn.addEventListener("click", async ()=>{
-      try{
-        const session = await requireAuth();
-        await loadMyProfile(session);
-        await rejectActive();
-      } catch(e){
-        alert("Bitte einloggen.");
-        window.location.href = LOGIN_REDIRECT;
-      }
-    });
-
+    rejectBtn.addEventListener("click", rejectActive);
     candConfirm.addEventListener("click", insertCandidateFromActive);
 
-    // Init
-    (async function init(){
-      await enforceAuth();
+    /* ========= Init (wie Finanzen) ========= */
+    (async () => {
+      // default: locked
+      applyAccessUI(false);
+
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+      const mail = session?.user?.email || "";
+      setAuthUI(!!session, mail);
+
+      if (!session){
+        window.location.href = LOGIN_REDIRECT;
+        return;
+      }
+
+      const role = await loadMyProfile(session);
+      const allowed = (role === REQUIRED_ROLE);
+
+      if (!allowed){
+        statusPill.textContent = "Kein Zugriff";
+        applyAccessUI(false);
+        return;
+      }
+
+      CAN_EDIT = true;
+      applyEditPermissions();
+      applyAccessUI(true);
+
       await fetchRows();
     })();
   </script>
