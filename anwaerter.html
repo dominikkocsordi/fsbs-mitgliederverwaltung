@@ -34,7 +34,6 @@
 
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
-      --warn: rgba(251,146,60,.95);
 
       --danger1: #fb7185;
       --danger2: #e11d48;
@@ -61,7 +60,6 @@
       background: transparent;
       padding: 28px 16px 60px;
       overflow-x:hidden;
-
       animation: pageIn .38s ease both;
     }
     @keyframes pageIn{
@@ -357,10 +355,10 @@
     }
     select option{ background: #1a1424; color: rgba(255,255,255,.92); }
 
-    /* ✅ MINI DASHBOARD */
+    /* ✅ MINI DASHBOARD (2 Cards) */
     .miniDash{
       display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
       margin: 12px 0 14px;
     }
@@ -377,10 +375,6 @@
     .dashLabel{ font-size:12px; color: rgba(255,255,255,.68); }
     .dashValue{ font-size:18px; font-weight: 900; letter-spacing:.2px; }
     .dashHint{ font-size:11px; color: rgba(255,255,255,.55); margin-top:2px; }
-
-    @media (max-width: 900px){
-      .miniDash{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
 
     .tableWrap{
       overflow:auto;
@@ -567,7 +561,7 @@
             </span>
           </a>
 
-          <a class="navLink active" href="/anwaerter.html" id="navCandidates">
+          <a class="navLink active" href="/anwaerter.html">
             <span class="navIcon">👶🏼</span>
             <span>
               <div class="navTitle">Anwärter</div>
@@ -591,7 +585,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
+          <a class="navLink" href="/mitgliederbefragung.html">
             <span class="navIcon">📊</span>
             <span>
               <div class="navTitle">Befragung</div>
@@ -616,35 +610,22 @@
         <div class="pill" id="countPill">0</div>
       </div>
 
-      <!-- ✅ MINI DASHBOARD (das meinst du mit "kleines Dashboard oben") -->
-      <div class="miniDash" id="miniDash" aria-label="Mini Dashboard">
+      <!-- ✅ MINI DASHBOARD (nur 2 Cards) -->
+      <div class="miniDash" aria-label="Mini Dashboard">
         <div class="dashCard">
           <div>
-            <div class="dashLabel">Anwärter</div>
-            <div class="dashHint">aktuell sichtbar</div>
+            <div class="dashLabel">Alle Anwärter</div>
+            <div class="dashHint">gesamt</div>
           </div>
           <div class="dashValue" id="dashTotal">0</div>
         </div>
+
         <div class="dashCard">
           <div>
             <div class="dashLabel">Dein Ressort</div>
             <div class="dashHint" id="dashMineHint">–</div>
           </div>
           <div class="dashValue" id="dashMine">0</div>
-        </div>
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Ohne Ressort</div>
-            <div class="dashHint">bitte zuweisen</div>
-          </div>
-          <div class="dashValue" id="dashNoRes">0</div>
-        </div>
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Vollmitglied</div>
-            <div class="dashHint">bereits übernommen</div>
-          </div>
-          <div class="dashValue" id="dashFull">0</div>
         </div>
       </div>
 
@@ -765,11 +746,9 @@
     const tbody = document.getElementById("tbody");
     const empty = document.getElementById("empty");
 
-    // Mini dashboard values
+    // Mini dashboard values (2 cards)
     const dashTotal = document.getElementById("dashTotal");
     const dashMine  = document.getElementById("dashMine");
-    const dashNoRes = document.getElementById("dashNoRes");
-    const dashFull  = document.getElementById("dashFull");
     const dashMineHint = document.getElementById("dashMineHint");
 
     // Edit modal
@@ -914,12 +893,10 @@
       if (!authBadge.contains(e.target)) closeAuthDetails();
     });
 
-    /* ✅ Fallback Rolle aus Token-Metadaten (falls profiles nicht klappt) */
     function roleFromSessionMeta(session){
       const r1 = session?.user?.app_metadata?.role;
       const r2 = session?.user?.user_metadata?.role;
-      const r3 = session?.user?.app_metadata?.claims?.role;
-      return normRole(r1 || r2 || r3);
+      return normRole(r1 || r2);
     }
     function ressortFromSessionMeta(session){
       const a = session?.user?.app_metadata?.ressort;
@@ -940,10 +917,8 @@
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      // Default UI
       setCompactIdentity(displayNameFromSessionMeta(session), email);
 
-      // 1) Versuch: profiles (beste Quelle)
       if (uid){
         const res = await sb
           .from(PROFILES_TABLE)
@@ -960,34 +935,18 @@
           setRolePill(MY_ROLE || "ressortleiter");
           dashMineHint.textContent = MY_RESSORT || "–";
 
-          const dn = (res.data.display_name || "").trim();
-          authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
-
           if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
-
-          // ✅ Debug: zeigt dir sofort, ob Profile wirklich geladen wurde
-          statusPill.textContent = `Login OK • role=${MY_ROLE || "?"} • edit=${CAN_EDIT ? "ja" : "nein"}`;
           return;
-        }
-
-        // Wenn profiles nicht geht: zeigen wir dir den Grund direkt
-        if (res?.error){
-          statusPill.textContent = `profiles ERROR: ${res.error.message}`;
         }
       }
 
-      // 2) Fallback: aus Token metadata
       MY_ROLE = roleFromSessionMeta(session);
       MY_RESSORT = ressortFromSessionMeta(session);
       CAN_EDIT = (MY_ROLE === "vorstand");
 
       setRolePill(MY_ROLE || "ressortleiter");
       dashMineHint.textContent = MY_RESSORT || "–";
-      authBadge.title = `${(email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
       if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
-
-      // ✅ Debug
-      statusPill.textContent = `Fallback role=${MY_ROLE || "?"} • edit=${CAN_EDIT ? "ja" : "nein"}`;
     }
 
     logoutBtn.addEventListener("click", async () => {
@@ -1019,15 +978,9 @@
     }
 
     function updateMiniDash(){
-      const total = ALL.length;
+      dashTotal.textContent = String(ALL.length);
       const mine = (MY_RESSORT ? ALL.filter(r => safe(r.ressort).trim() === MY_RESSORT).length : 0);
-      const noRes = ALL.filter(r => !safe(r.ressort).trim()).length;
-      const full = ALL.filter(r => isVollmitglied(r[BEWERBUNG_STATUS_COL])).length;
-
-      dashTotal.textContent = String(total);
-      dashMine.textContent  = String(mine);
-      dashNoRes.textContent = String(noRes);
-      dashFull.textContent  = String(full);
+      dashMine.textContent = String(mine);
       dashMineHint.textContent = MY_RESSORT || "–";
     }
 
@@ -1054,14 +1007,9 @@
         const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
         const fullAlready = isVollmitglied(stRaw);
 
-        // ✅ wenn CAN_EDIT false: Buttons disabled -> das war bei dir "Bearbeitung kaputt"
         const editDisabled = !CAN_EDIT;
         const rejectDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
         const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
-
-        const editTitle = !CAN_EDIT ? "Kein Edit: Role nicht 'vorstand' (siehe Status oben)" : "Bearbeiten";
-        const rejectTitle = !CAN_EDIT ? "Kein Edit: Role nicht 'vorstand' (siehe Status oben)" : (rejectedAlready ? "Bereits abgelehnt" : (fullAlready ? "Ist bereits Vollmitglied" : "Anwärter ablehnen"));
-        const fullTitle = !CAN_EDIT ? "Kein Edit: Role nicht 'vorstand' (siehe Status oben)" : (rejectedAlready ? "Abgelehnt" : (fullAlready ? "Bereits Vollmitglied" : "Als Vollmitglied übernehmen"));
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1099,13 +1047,13 @@
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button class="btn-secondary" data-action="edit" data-id="${r.id}"
-                ${editDisabled ? "disabled" : ""} title="${esc(editTitle)}" type="button">Bearbeiten</button>
+                ${editDisabled ? "disabled" : ""} type="button">Bearbeiten</button>
 
               <button class="btn-done" data-action="full" data-id="${r.id}"
-                ${fullDisabled ? "disabled" : ""} title="${esc(fullTitle)}" type="button">Vollmitglied</button>
+                ${fullDisabled ? "disabled" : ""} type="button">Vollmitglied</button>
 
               <button class="btn-danger" data-action="reject" data-id="${r.id}"
-                ${rejectDisabled ? "disabled" : ""} title="${esc(rejectTitle)}" type="button">Ablehnen</button>
+                ${rejectDisabled ? "disabled" : ""} type="button">Ablehnen</button>
             </div>
           </td>
         `;
@@ -1116,7 +1064,7 @@
     }
 
     async function fetchCandidates(){
-      statusPill.textContent = (statusPill.textContent || "") + " • Lade…";
+      statusPill.textContent = "Lade…";
 
       const { data, error } = await sb
         .from(CANDIDATES_TABLE)
@@ -1132,15 +1080,12 @@
       ALL = (Array.isArray(data) ? data : [])
         .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
-      // ✅ Dashboard + Tabelle aktualisieren
+      statusPill.textContent = `Geladen: ${ALL.length}`;
       render();
     }
 
     function openEdit(row){
-      if (!CAN_EDIT) {
-        alert("Bearbeiten gesperrt: Du bist nicht als 'vorstand' erkannt.\nOben im Status steht warum (profiles / fallback).");
-        return;
-      }
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
       if (!row?.id) return;
 
       EDITING = row;
@@ -1181,10 +1126,8 @@
         editPhotoLink.innerHTML = `<span style="font-size:12px;color:rgba(255,255,255,.55)">kein Foto-Link gespeichert</span>`;
       }
 
-      // ✅ Modal öffnen + Background scroll stoppen
       document.body.classList.add("modal-open");
       editOverlay.classList.add("show");
-
       setTimeout(() => editRessort.focus(), 60);
     }
 
@@ -1196,7 +1139,7 @@
 
     async function saveEdit(){
       if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
-      if (!EDITING) return alert("Kein Datensatz gewählt (EDITING ist leer).");
+      if (!EDITING) return alert("Kein Datensatz gewählt.");
 
       const ressort = safe(editRessort.value).trim();
       if (!ressort) return alert("Bitte Ressort wählen.");
@@ -1301,7 +1244,7 @@
     // Events
     fillRessortFilter();
     q.addEventListener("input", render);
-    fRessort.addEventListener("change", render); // ✅ change statt input
+    fRessort.addEventListener("change", render);
     reloadBtn.addEventListener("click", fetchCandidates);
 
     saveEditBtn.addEventListener("click", saveEdit);
@@ -1331,25 +1274,20 @@
 
     /* ========= Init ========= */
     (async () => {
-      try{
-        const { data } = await sb.auth.getSession();
-        const session = data?.session;
-        const mail = session?.user?.email || "";
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+      const mail = session?.user?.email || "";
 
-        setAuthUI(!!session, mail);
+      setAuthUI(!!session, mail);
 
-        if (!session){
-          window.location.href = LOGIN_REDIRECT;
-          return;
-        }
-
-        await loadMyProfile(session);
-        applyRoleUX();
-        await fetchCandidates();
-      } catch (err){
-        statusPill.textContent = "Init Fehler: " + (err?.message || String(err));
-        console.error(err);
+      if (!session){
+        window.location.href = LOGIN_REDIRECT;
+        return;
       }
+
+      await loadMyProfile(session);
+      applyRoleUX();
+      await fetchCandidates();
     })();
 
     if ("serviceWorker" in navigator){
