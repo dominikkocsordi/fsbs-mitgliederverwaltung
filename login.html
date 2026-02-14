@@ -9,190 +9,348 @@
 
   <style>
     :root{
-      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
-      --accent1:#f97316; --accent2:#a855f7;
+      --bg1:#120e18;
+      --bg2:#1a1424;
+      --bg3:#1f162c;
+
+      --accent1:#f97316;   /* orange */
+      --accent2:#a855f7;   /* purple */
+
       --glass: rgba(255,255,255,.08);
       --border: rgba(255,255,255,.18);
+
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.65);
+
       --shadow: 0 20px 55px rgba(0,0,0,.45);
+
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
     }
+
     *{box-sizing:border-box}
+    html, body{min-height:100%}
+
+    html{
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      background-attachment: fixed;
+    }
+
     body{
-      margin:0; min-height:100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      margin:0;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(900px 600px at 15% 15%, rgba(249,115,22,.22), transparent 55%),
-        radial-gradient(900px 600px at 85% 25%, rgba(168,85,247,.18), transparent 55%),
-        linear-gradient(180deg, var(--bg1), var(--bg2) 45%, var(--bg3));
-      display:flex; align-items:center; justify-content:center;
-      padding:24px;
+      background: transparent;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 42px 16px;
     }
-    .wrap{width:min(980px,100%); display:grid; grid-template-columns:1.1fr 1fr; gap:18px;}
-    @media (max-width: 900px){ .wrap{grid-template-columns:1fr;} }
 
-    .card{
-      background: var(--glass);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      border-radius: 18px;
+    .app{
+      width: min(560px, 100%);
+    }
+
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .brandLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .brandLogo{
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      padding: 6px;
+      display:grid;
+      place-items:center;
+
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 16px 44px rgba(0,0,0,.30);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      flex: 0 0 auto;
+      transition: transform .16s ease, filter .16s ease, background .16s ease;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      font-weight: 850;
+      letter-spacing: .2px;
+      font-size: 14px;
+    }
+
+    .brandLogo:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      background: rgba(255,255,255,.12);
+    }
+
+    .brandLogo img{
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      display:block;
+    }
+
+    @media (max-width: 420px){
+      .brandLogo{ width: 44px; height: 44px; border-radius: 13px; padding: 5px; }
+      .brandLogo img{ border-radius: 9px; }
+    }
+
+    .titles{min-width:0}
+    .titles h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: .25px;
+      line-height: 1.15;
+    }
+    .subtitle{
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      white-space:nowrap;
       overflow:hidden;
-      backdrop-filter: blur(10px);
+      text-overflow:ellipsis;
     }
-    .hero{
-      padding: 22px 18px;
-      background:
-        radial-gradient(700px 380px at 20% 30%, rgba(249,115,22,.18), transparent 50%),
-        radial-gradient(700px 380px at 80% 25%, rgba(168,85,247,.14), transparent 50%),
-        rgba(0,0,0,.10);
-      min-height: 260px;
-      display:flex; flex-direction:column; justify-content:space-between; gap:14px;
-    }
-    .hero h2{margin:0; font-size:22px;}
-    .hero p{margin:0; color:var(--muted); line-height:1.5; font-size:14px;}
 
-    .head{
-      padding: 18px 18px 10px;
-      border-bottom: 1px solid rgba(255,255,255,.10);
-      display:flex; justify-content:space-between; align-items:center; gap:12px;
+    .glass{
+      background: rgba(255,255,255,.10);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
     }
-    .title{margin:0; font-size:18px; font-weight:750;}
+
+    .card{ padding:18px; }
+
     .badge{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:12px; padding:8px 10px; border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(0,0,0,.15);
       color: var(--muted);
       white-space:nowrap;
     }
-    .dot{width:9px;height:9px;border-radius:50%; background:rgba(255,255,255,.35); box-shadow:0 0 0 3px rgba(255,255,255,.06);}
-    .dot.ok{background:var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.18);}
-    .dot.bad{background:var(--bad); box-shadow:0 0 0 3px rgba(239,68,68,.18);}
+    .dot{
+      width:9px;height:9px;border-radius:50%;
+      background: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
+    }
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
+    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(239,68,68,.18); }
 
-    .body{padding:18px;}
-    .grid{display:grid; gap:12px;}
-    label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
     input{
-      width:100%; padding:12px 12px; border-radius:12px;
-      background: rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.16);
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.16);
       color: var(--text);
       outline:none;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
     }
-    input:focus{border-color: rgba(249,115,22,.55); box-shadow:0 0 0 4px rgba(249,115,22,.14);}
-    .row{display:flex; gap:10px; flex-wrap:wrap;}
-    .btn{
-      border:1px solid rgba(249,115,22,.45);
-      background: linear-gradient(180deg, rgba(249,115,22,.24), rgba(0,0,0,.10));
-      color: var(--text);
-      padding: 11px 12px;
-      border-radius: 12px;
+    input:focus{
+      border-color: rgba(249,115,22,.55);
+      background: rgba(255,255,255,.16);
+      transform: translateY(-1px);
+    }
+    input::placeholder{ color: rgba(255,255,255,.55); }
+
+    .grid{ display:grid; gap: 12px; }
+
+    .row{
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    button{
+      border:none;
       cursor:pointer;
-      font-weight: 650;
-      letter-spacing: .2px;
+      border-radius:14px;
+      padding: 12px 16px;
+      font-weight:650;
+      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
     }
-    .btn:hover{border-color: rgba(249,115,22,.70);}
-    .btn.secondary{
-      border-color: rgba(255,255,255,.20);
-      background: rgba(255,255,255,.06);
+    button:active{ transform: translateY(0px) scale(.99); }
+
+    .btn-primary{
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #0f0b16;
+      box-shadow: 0 12px 30px rgba(168,85,247,.25);
+    }
+    .btn-primary:hover{
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+      box-shadow: 0 18px 36px rgba(14,165,233,.33);
+    }
+
+    .btn-secondary{
+      background: rgba(255,255,255,.14);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .btn-secondary:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.18);
+      border-color: rgba(255,255,255,.26);
+    }
+
+    .btn-purple{
+      background: linear-gradient(135deg, rgba(168,85,247,.22), rgba(0,0,0,.10));
+      color: var(--text);
+      border: 1px solid rgba(168,85,247,.45);
+      box-shadow: 0 12px 30px rgba(168,85,247,.18);
+    }
+    .btn-purple:hover{
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+      box-shadow: 0 18px 36px rgba(168,85,247,.22);
+    }
+
+    .divider{
+      height:1px;
+      background: rgba(255,255,255,.10);
+      margin: 14px 0;
+    }
+
+    .note{
+      font-size: 13px;
       color: var(--muted);
-      font-weight: 600;
+      line-height: 1.45;
     }
-    .btn.purple{
-      border-color: rgba(168,85,247,.45);
-      background: linear-gradient(180deg, rgba(168,85,247,.20), rgba(0,0,0,.10));
+
+    .msg{
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
     }
-    .note{font-size:13px; color:var(--muted); line-height:1.45;}
-    .divider{height:1px; background: rgba(255,255,255,.10); margin:14px 0;}
-    .msg{margin-top:10px; font-size:13px; color:var(--muted); min-height:18px;}
-    .msg.ok{color: rgba(34,197,94,.95);}
-    .msg.bad{color: rgba(239,68,68,.95);}
-    .hidden{display:none !important;}
+    .msg.ok{ color: rgba(34,197,94,.95); }
+    .msg.bad{ color: rgba(239,68,68,.95); }
+
+    .hidden{ display:none !important; }
+
+    footer{
+      margin-top: 14px;
+      text-align:center;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+    }
+    footer strong{
+      color: rgba(255,255,255,.78);
+      font-weight: 750;
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="hero">
-        <div>
-          <h2>Mitgliederportal</h2>
-          <p>
-            Einladung erhalten? Dann legst du zuerst ein Passwort fest.<br/>
-            Danach kannst du dich mit Passwort anmelden oder einen Login-Link per Mail anfordern.
-          </p>
+  <div class="app">
+    <div class="top">
+      <div class="brandLeft">
+        <a class="brandLogo" href="index.html" title="Fachschaft Business School e.V.">
+          <img src="logo.png" alt="Fachschaft Logo"
+               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+        </a>
+        <div class="titles">
+          <h1>Mitgliederportal</h1>
+          <div class="subtitle">Fachschaft Business School e.V.</div>
         </div>
+      </div>
+
+      <div class="badge" title="Login-Status">
+        <span class="dot bad" id="statusDot"></span>
+        <span id="statusText">nicht eingeloggt</span>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <!-- INVITE -->
+      <section id="inviteSection" class="hidden">
         <div class="note">
-          Sicherheit: Diese Seite entfernt automatisch Token aus der URL.
+          Du bist über eine Einladung hier. Bitte lege jetzt dein Passwort fest.
         </div>
-      </div>
+        <div class="divider"></div>
+
+        <div class="grid">
+          <div>
+            <label for="invPw1">Neues Passwort</label>
+            <input id="invPw1" type="password" autocomplete="new-password" placeholder="mind. 8 Zeichen" />
+          </div>
+          <div>
+            <label for="invPw2">Passwort wiederholen</label>
+            <input id="invPw2" type="password" autocomplete="new-password" placeholder="wiederholen" />
+          </div>
+
+          <div class="row">
+            <button class="btn-primary" id="btnSetPassword">Passwort setzen</button>
+            <button class="btn-secondary hidden" id="btnContinue">Weiter ins Portal</button>
+            <button class="btn-secondary" id="btnInviteCancel">Abbrechen</button>
+          </div>
+
+          <div id="inviteMsg" class="msg"></div>
+        </div>
+      </section>
+
+      <!-- LOGIN -->
+      <section id="loginSection">
+        <div class="grid">
+          <div>
+            <label for="email">E-Mail</label>
+            <input id="email" type="email" autocomplete="email" placeholder="name@domain.de" />
+          </div>
+          <div>
+            <label for="password">Passwort</label>
+            <input id="password" type="password" autocomplete="current-password" placeholder="dein Passwort" />
+          </div>
+
+          <div class="row">
+            <button class="btn-primary" id="btnLoginPw">Login</button>
+            <button class="btn-purple" id="btnMagicLink">Login-Link per Mail</button>
+            <button class="btn-secondary hidden" id="btnGoApp">Ins Portal</button>
+            <button class="btn-secondary hidden" id="btnLogout">Logout</button>
+          </div>
+
+          <div class="note">
+            Alternativ kannst du dir einen Login-Link per E-Mail schicken lassen.
+          </div>
+
+          <div id="loginMsg" class="msg"></div>
+        </div>
+      </section>
     </div>
 
-    <div class="card">
-      <div class="head">
-        <h1 class="title" id="modeTitle">Login</h1>
-        <div class="badge">
-          <span class="dot bad" id="statusDot"></span>
-          <span id="statusText">nicht eingeloggt</span>
-        </div>
-      </div>
-
-      <div class="body">
-        <!-- INVITE: Passwort anlegen -->
-        <section id="inviteSection" class="hidden">
-          <div class="note">Du bist über eine Einladung hier. Bitte lege jetzt dein Passwort fest.</div>
-          <div class="divider"></div>
-
-          <div class="grid">
-            <div>
-              <label for="invPw1">Neues Passwort</label>
-              <input id="invPw1" type="password" autocomplete="new-password" placeholder="mind. 8 Zeichen" />
-            </div>
-            <div>
-              <label for="invPw2">Passwort wiederholen</label>
-              <input id="invPw2" type="password" autocomplete="new-password" placeholder="wiederholen" />
-            </div>
-
-            <div class="row">
-              <button class="btn" id="btnSetPassword">Passwort setzen</button>
-              <button class="btn secondary hidden" id="btnContinue">Weiter ins Portal</button>
-              <button class="btn secondary" id="btnInviteCancel">Abbrechen</button>
-            </div>
-
-            <div id="inviteMsg" class="msg"></div>
-          </div>
-        </section>
-
-        <!-- NORMAL: Passwortlogin + Magic Link -->
-        <section id="loginSection">
-          <div class="grid">
-            <div>
-              <label for="email">E-Mail</label>
-              <input id="email" type="email" autocomplete="email" placeholder="name@domain.de" />
-            </div>
-            <div>
-              <label for="password">Passwort</label>
-              <input id="password" type="password" autocomplete="current-password" placeholder="dein Passwort" />
-            </div>
-
-            <div class="row">
-              <button class="btn" id="btnLoginPw">Mit Passwort einloggen</button>
-              <button class="btn purple" id="btnMagicLink">Login-Link per Mail</button>
-              <button class="btn secondary hidden" id="btnGoApp">Ins Portal</button>
-              <button class="btn secondary hidden" id="btnLogout">Logout</button>
-            </div>
-
-            <div class="note">
-              Login-Link: Du bekommst eine Mail. Der Link loggt dich ein und bringt dich zurück.
-            </div>
-            <div id="loginMsg" class="msg"></div>
-          </div>
-        </section>
-      </div>
-    </div>
+    <footer>
+      <strong>Fachschaft Business School e.V.</strong> · portal.fsbs-hm.de
+    </footer>
   </div>
 
 <script>
@@ -201,22 +359,16 @@
   const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ========= APP =========
-  const APP_REDIRECT = "index.html"; // nach Login/Setup
+  const APP_REDIRECT = "index.html";
+  const REDIRECT_TO = "https://portal.fsbs-hm.de/login.html";
 
-  // ========= HELPERS =========
-  function hashParams(){
-    const h = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
-    return new URLSearchParams(h);
-  }
-  function getHashParam(name){ return hashParams().get(name); }
+  const statusDot = document.getElementById("statusDot");
+  const statusText = document.getElementById("statusText");
 
-  function setStatus(loggedIn){
-    const dot = document.getElementById("statusDot");
-    const txt = document.getElementById("statusText");
-    dot.classList.toggle("ok", !!loggedIn);
-    dot.classList.toggle("bad", !loggedIn);
-    txt.textContent = loggedIn ? "eingeloggt" : "nicht eingeloggt";
+  function setStatus(isAuthed){
+    statusDot.classList.toggle("ok", !!isAuthed);
+    statusDot.classList.toggle("bad", !isAuthed);
+    statusText.textContent = isAuthed ? "eingeloggt" : "nicht eingeloggt";
   }
 
   function setMsg(el, text, kind){
@@ -225,45 +377,43 @@
     if (kind) el.classList.add(kind);
   }
 
+  function hashParams(){
+    const h = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
+    return new URLSearchParams(h);
+  }
+
   function cleanHash(){
     history.replaceState(null, "", location.pathname + location.search);
   }
 
-  function showInviteMode(){
-    document.getElementById("modeTitle").textContent = "Passwort anlegen";
+  function showInvite(){
     document.getElementById("inviteSection").classList.remove("hidden");
     document.getElementById("loginSection").classList.add("hidden");
   }
-
-  function showLoginMode(){
-    document.getElementById("modeTitle").textContent = "Login";
+  function showLogin(){
     document.getElementById("inviteSection").classList.add("hidden");
     document.getElementById("loginSection").classList.remove("hidden");
   }
 
-  // ========= INIT =========
   async function init(){
     const { data: { session } } = await sb.auth.getSession();
-
-    const type = getHashParam("type"); // invite / recovery / magiclink / ...
+    const type = hashParams().get("type"); // invite / recovery / magiclink / ...
     const isInvite = (type === "invite" || type === "recovery");
 
     setStatus(!!session);
 
-    // wenn wir über Link kamen: Token aus URL entfernen (Session bleibt!)
+    // Wenn wir über Link kamen: Token aus URL entfernen (Session bleibt)
     if (session && location.hash) cleanHash();
 
-    // Invite: Passwort setzen erzwingen
     if (session && isInvite){
-      showInviteMode();
+      showInvite();
       setMsg(document.getElementById("inviteMsg"), "Bitte lege jetzt ein Passwort fest.", null);
       return;
     }
 
-    // normaler Login
-    showLoginMode();
+    showLogin();
 
-    // bereits eingeloggt?
+    // wenn schon eingeloggt -> optional direkt weiter
     if (session){
       document.getElementById("btnGoApp").classList.remove("hidden");
       document.getElementById("btnLogout").classList.remove("hidden");
@@ -271,7 +421,7 @@
     }
   }
 
-  // ========= INVITE: PASSWORT SETZEN =========
+  // INVITE: Passwort setzen
   document.getElementById("btnSetPassword").addEventListener("click", async () => {
     const msg = document.getElementById("inviteMsg");
     const pw1 = document.getElementById("invPw1").value.trim();
@@ -285,9 +435,9 @@
     const { error } = await sb.auth.updateUser({ password: pw1 });
     if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
 
+    setStatus(true);
     setMsg(msg, "✅ Passwort gesetzt. Du kannst jetzt ins Portal.", "ok");
     document.getElementById("btnContinue").classList.remove("hidden");
-    setStatus(true);
   });
 
   document.getElementById("btnContinue").addEventListener("click", () => {
@@ -297,11 +447,11 @@
   document.getElementById("btnInviteCancel").addEventListener("click", async () => {
     await sb.auth.signOut();
     setStatus(false);
-    showLoginMode();
+    showLogin();
     setMsg(document.getElementById("loginMsg"), "Abgebrochen. Bitte normal einloggen.", null);
   });
 
-  // ========= LOGIN MIT PASSWORT =========
+  // Passwort Login
   document.getElementById("btnLoginPw").addEventListener("click", async () => {
     const msg = document.getElementById("loginMsg");
     const email = document.getElementById("email").value.trim();
@@ -315,12 +465,12 @@
     const { error } = await sb.auth.signInWithPassword({ email, password });
     if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
 
-    setMsg(msg, "✅ Eingeloggt. Weiterleitung…", "ok");
     setStatus(true);
+    setMsg(msg, "✅ Eingeloggt. Weiterleitung…", "ok");
     window.location.href = APP_REDIRECT;
   });
 
-  // ========= MAGIC LINK =========
+  // Magic Link
   document.getElementById("btnMagicLink").addEventListener("click", async () => {
     const msg = document.getElementById("loginMsg");
     const email = document.getElementById("email").value.trim();
@@ -329,19 +479,15 @@
 
     setMsg(msg, "Sende Login-Link…", null);
 
-    // muss exakt auf diese login.html zeigen
-    const redirectTo = "https://portal.fsbs-hm.de/login.html";
-
     const { error } = await sb.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo }
+      options: { emailRedirectTo: REDIRECT_TO }
     });
 
     if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
     setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
   });
 
-  // ========= LOGOUT =========
   document.getElementById("btnLogout").addEventListener("click", async () => {
     await sb.auth.signOut();
     setStatus(false);
