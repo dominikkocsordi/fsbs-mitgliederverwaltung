@@ -7,7 +7,7 @@
 
 <meta name="theme-color" content="#120e18">
 
-<!-- Favicon (liegt im /favicon Ordner) -->
+<!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -18,10 +18,12 @@
 
 <style>
 :root{
+  /* Matte Dark Base */
   --bg1:#120e18;
   --bg2:#1a1424;
   --bg3:#1f162c;
 
+  /* Modern Orange → Purple */
   --accent1:#f97316;
   --accent2:#a855f7;
 
@@ -84,19 +86,27 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-.brandLeft{ display:flex; align-items:center; gap:12px; }
+/* ===== Brand links: Logo + Titel ===== */
+.brandLeft{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
 
 .brandLogo{
-  width: 60px; height: 60px;
+  width: 60px;
+  height: 60px;
   border-radius: 14px;
   padding: 6px;
   display:grid;
   place-items:center;
+
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 16px 44px rgba(0,0,0,.30);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+
   flex: 0 0 auto;
   transition: transform .16s ease, filter .16s ease, background .16s ease;
 }
@@ -106,7 +116,8 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   background: rgba(255,255,255,.12);
 }
 .brandLogo img{
-  width: 100%; height: 100%;
+  width: 100%;
+  height: 100%;
   border-radius: 10px;
   object-fit: cover;
   display:block;
@@ -124,16 +135,11 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
+
 .card{ padding:18px; margin-bottom:16px; }
+.small{ font-size: 13px; color: var(--muted); }
 
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
-}
-.spacer{ flex:1; }
-
+/* ===== buttons (nur logout) ===== */
 button{
   border:none;
   cursor:pointer;
@@ -143,17 +149,6 @@ button{
   transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
 }
 button:active{ transform: translateY(0px) scale(.99); }
-
-.btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: #0f0b16;
-  box-shadow: 0 12px 30px rgba(168,85,247,.25);
-}
-.btn-primary:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.03);
-  box-shadow: 0 18px 36px rgba(168,85,247,.33);
-}
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
@@ -164,10 +159,10 @@ button:active{ transform: translateY(0px) scale(.99); }
   background: rgba(255,255,255,.18);
 }
 
-.small{ font-size: 13px; color: var(--muted); }
-
-/* Auth badge */
+/* ===== Auth badge (wie andere Seiten) ===== */
 .authFloating{
+  position: static;
+  z-index: 1;
   border-radius: 999px;
   padding: 10px 12px;
   display:flex;
@@ -181,6 +176,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   user-select:none;
   max-width: min(560px, 100%);
 }
+
 .dot{
   width:10px;height:10px;border-radius:999px;
   background: rgba(255,255,255,.35);
@@ -188,16 +184,37 @@ button:active{ transform: translateY(0px) scale(.99); }
   flex: 0 0 auto;
 }
 .dot.ok{ background: var(--ok); }
+.dot.warn{ background: rgba(255,255,255,.35); }
+
 .dot.ok{
   box-shadow:
     0 0 0 2px rgba(34,197,94,.20),
     0 0 18px rgba(34,197,94,.55),
     0 0 42px rgba(34,197,94,.30);
 }
-.authAvatar{
-  width: 30px; height: 30px;
+
+@keyframes pulseRing {
+  0%   { transform: scale(1); opacity: .0; }
+  10%  { opacity: .6; }
+  70%  { transform: scale(3.2); opacity: 0; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+.dot.pulsing::after{
+  content:"";
+  position:absolute;
+  inset: -2px;
   border-radius: 999px;
-  display:grid; place-items:center;
+  background: rgba(34,197,94,.25);
+  animation: pulseRing 1.15s ease-out 0s 2;
+  pointer-events:none;
+}
+
+.authAvatar{
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display:grid;
+  place-items:center;
   font-weight: 800;
   font-size: 12px;
   letter-spacing: .3px;
@@ -207,14 +224,83 @@ button:active{ transform: translateY(0px) scale(.99); }
   background: rgba(255,255,255,.10);
   flex: 0 0 auto;
 }
-.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
-.authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+.authAvatar.hidden{ display:none; }
+
+.authInfo{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+  min-width:0;
+  flex: 1 1 auto;
+}
+
+.authState{
+  font-size:13px;
+  font-weight:750;
+  letter-spacing:.25px;
+}
+.authState.hidden{ display:none; }
+
+.authTopLine{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+
+.authCompact{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.authCompact.hidden{ display:none; }
+
 .authNameInline{
-  font-size:13px; font-weight:850; letter-spacing:.15px;
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:.15px;
   color: rgba(255,255,255,.92);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
   max-width: 220px;
 }
+
+.authChevron{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+  width: 30px; height: 26px;
+  border-radius: 999px;
+  padding: 0;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition: transform .15s ease, background .15s ease;
+  flex: 0 0 auto;
+}
+.authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
+
+.authDetails{
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  display:flex;
+  gap:8px;
+  align-items:center;
+  min-width:0;
+}
+.authDetails.hidden{ display:none; }
+
+.authMail{
+  font-size:11px;
+  color: rgba(255,255,255,.58);
+  margin-top:0;
+  word-break:break-all;
+}
+
 .rolePill{
   display:inline-flex;
   align-items:center;
@@ -231,10 +317,18 @@ button:active{ transform: translateY(0px) scale(.99); }
   white-space:nowrap;
   flex: 0 0 auto;
 }
-.rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
-.rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
+.rolePill.vorstand{
+  border-color: rgba(56,189,248,.40);
+  background: rgba(56,189,248,.12);
+}
+.rolePill.ressortleiter{
+  border-color: rgba(251,146,60,.35);
+  background: rgba(251,146,60,.12);
+}
 
-/* NAV */
+.hidden{ display:none; }
+
+/* ===== NAV ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -248,7 +342,12 @@ button:active{ transform: translateY(0px) scale(.99); }
   flex-wrap:wrap;
   padding: 10px;
 }
-.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.navLeft{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
 .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
 .navLink{
@@ -286,7 +385,7 @@ button:active{ transform: translateY(0px) scale(.99); }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-/* Dashboard cards */
+/* ===== Dashboard cards ===== */
 .grid{
   display:grid;
   grid-template-columns: repeat(12, 1fr);
@@ -300,10 +399,44 @@ button:active{ transform: translateY(0px) scale(.99); }
 .kpiBig{ grid-column: span 6; }
 .kpiFull{ grid-column: 1 / -1; }
 
-.kpiTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.kpiTitle{ font-size:13px; color: rgba(255,255,255,.70); font-weight:700; letter-spacing:.2px; }
-.kpiValue{ margin-top:6px; font-size:28px; font-weight:900; letter-spacing:.2px; }
-.kpiSub{ margin-top:8px; font-size:13px; color: rgba(255,255,255,.62); line-height:1.4; }
+.kpiCard{
+  text-decoration:none;
+  color: inherit;
+  display:block;
+  position: relative;
+  overflow:hidden;
+  transition: transform .16s ease, filter .16s ease, border-color .16s ease, background .16s ease;
+}
+.kpiCard:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.11);
+}
+.kpiTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+.kpiTitle{
+  font-size:13px;
+  color: rgba(255,255,255,.70);
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.kpiValue{
+  margin-top:6px;
+  font-size:28px;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+.kpiSub{
+  margin-top:8px;
+  font-size:13px;
+  color: rgba(255,255,255,.62);
+  line-height:1.4;
+}
 
 .kpiIcon{
   width:42px; height:42px;
@@ -313,7 +446,20 @@ button:active{ transform: translateY(0px) scale(.99); }
   border: 1px solid rgba(255,255,255,.12);
 }
 
-.kpiActions{ margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+.kpiChip{
+  margin-top: 14px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.86);
+  font-weight:800;
+  font-size:12px;
+  width: fit-content;
+}
 
 .hr{
   height:1px;
@@ -321,7 +467,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   margin: 12px 0 0;
 }
 
-/* ressort list */
+/* ressort badges */
 .ressortList{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
 .badge{
   display:inline-flex;
@@ -338,6 +484,7 @@ button:active{ transform: translateY(0px) scale(.99); }
 }
 .badge strong{ font-weight:900; }
 
+/* ===== mobile ===== */
 @media (max-width: 900px){
   .kpi{ grid-column: span 6; }
   .kpiBig{ grid-column: span 12; }
@@ -345,12 +492,19 @@ button:active{ transform: translateY(0px) scale(.99); }
 @media (max-width: 640px){
   body{ padding: 24px 14px; }
   h1{ font-size: 26px; }
-  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+
+  .top{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
   .authNameInline{ max-width: 150px; }
+
   .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
   .navRight{ margin-left: 0; }
+
   .kpi{ grid-column: span 12; }
 }
 </style>
@@ -372,20 +526,31 @@ button:active{ transform: translateY(0px) scale(.99); }
     </div>
 
     <div class="brandRight">
+      <!-- Auth Badge (wie andere Seiten) -->
       <div class="authFloating" id="authBadge" title="Login-Status">
-        <span class="dot ok" id="authDot"></span>
-        <div class="authAvatar" id="authAvatar">U</div>
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+
         <div class="authInfo">
           <div class="authTopLine">
-            <span class="authNameInline" id="authNameInline">User</span>
-            <span class="rolePill" id="authRolePill">Rolle</span>
+            <div class="authState" id="authState">nicht eingeloggt</div>
+
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
           </div>
-          <div class="small" id="authMail" style="margin-top:6px; word-break:break-all;"></div>
+
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- NAV -->
   <div class="glass navWrap" id="navWrap">
     <div class="nav">
       <div class="navLeft">
@@ -413,22 +578,6 @@ button:active{ transform: translateY(0px) scale(.99); }
           </span>
         </a>
 
-        <a class="navLink" href="bewerbungen.html">
-          <span class="navIcon">📝</span>
-          <span>
-            <div class="navTitle">Bewerbungen</div>
-            <div class="navHint">Google Sheet</div>
-          </span>
-        </a>
-
-        <a class="navLink" href="rechnungen.html" id="navFinance">
-          <span class="navIcon">💰</span>
-          <span>
-            <div class="navTitle">Finanzen</div>
-            <div class="navHint">Rechnungen & Auslagen</div>
-          </span>
-        </a>
-
         <a class="navLink" href="mitgliederbefragung.html">
           <span class="navIcon">📊</span>
           <span>
@@ -450,23 +599,34 @@ button:active{ transform: translateY(0px) scale(.99); }
 </div>
 
 <script>
+/* ========= Supabase config ========= */
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* ✅ Login page */
 const LOGIN_PAGE = "login.html";
+
+/* ========= Profiles ========= */
 const PROFILES_TABLE = "profiles";
 
-/* Ressort Farben (gleich wie members) */
+/* ✅ Deine Ressorts (fix) */
+const RESSORTS = [
+  "Externe Events",
+  "Interne Events",
+  "Merchandise",
+  "Kommunikation",
+  "Sponsoring"
+];
+
+/* Farben für Ressort-Badges */
 const RESSORT_COLORS = {
-  "Vorstand":   ["rgba(168,85,247,.22)", "rgba(249,115,22,.18)"],
-  "Finanzen":   ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
-  "Sponsoring": ["rgba(59,130,246,.22)", "rgba(99,102,241,.14)"],
-  "Marketing":  ["rgba(168,85,247,.22)", "rgba(236,72,153,.14)"],
-  "IT":         ["rgba(14,165,233,.22)", "rgba(56,189,248,.14)"],
-  "Events":     ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-  "PR":         ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
-  "Orga":       ["rgba(234,179,8,.22)",  "rgba(251,146,60,.12)"],
+  "Externe Events": ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
+  "Interne Events": ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
+  "Merchandise":    ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
+  "Kommunikation":  ["rgba(59,130,246,.22)", "rgba(99,102,241,.14)"],
+  "Sponsoring":     ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
+  "Abgelehnt":      ["rgba(239,68,68,.18)",  "rgba(251,113,133,.12)"], // falls du intern nutzt
 };
 
 function pillStyle(label){
@@ -486,6 +646,37 @@ function roleLabel(role){
   return "Unbekannt";
 }
 
+/* ========= Elements ========= */
+const authBadge = document.getElementById("authBadge");
+const authDot = document.getElementById("authDot");
+const authState = document.getElementById("authState");
+const authMail  = document.getElementById("authMail");
+const authAvatar = document.getElementById("authAvatar");
+
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill = document.getElementById("authRolePill");
+const authToggle = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
+
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+
+authToggle?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  authDetails.classList.toggle("hidden");
+});
+document.addEventListener("click", (e)=>{
+  if (!authBadge.contains(e.target)) closeAuthDetails();
+});
+
+function hashString(str){
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
 function initialsFromEmail(email){
   const e = (email || "").trim().toLowerCase();
   if (!e) return "U";
@@ -494,6 +685,76 @@ function initialsFromEmail(email){
   const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
   const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
   return (a + b).trim() || a;
+}
+function initialsFromText(txt){
+  const t = (txt || "").trim();
+  if (!t) return "U";
+  const parts = t.split(/\s+/).filter(Boolean);
+  const a = (parts[0]?.[0] || "U").toUpperCase();
+  const b = (parts[1]?.[0] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
+function setAvatar(email){
+  const e = (email || "").trim().toLowerCase();
+  if (!e){
+    authAvatar.classList.add("hidden");
+    authAvatar.textContent = "U";
+    authAvatar.style.background = "rgba(255,255,255,.10)";
+    return;
+  }
+  const h = hashString(e);
+  const hue = h % 360;
+  const hue2 = (hue + 38) % 360;
+  authAvatar.textContent = initialsFromEmail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
+}
+function pulseLogin(){
+  authDot.classList.add("pulsing");
+  setTimeout(() => authDot.classList.remove("pulsing"), 2600);
+}
+function setRolePill(role){
+  const r = normRole(role);
+  authRolePill.textContent = roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if (r === "vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function setCompactIdentity(displayName, email){
+  const name = (displayName || "").trim();
+  const fallback = ((email || "").split("@")[0] || "User").trim();
+  authNameInline.textContent = name || fallback;
+}
+
+/* ✅ Auth UI */
+function setAuthUI(isAuthed, email = "", doPulse = false){
+  if (isAuthed){
+    authDot.classList.remove("warn");
+    authDot.classList.add("ok");
+
+    authState.classList.add("hidden");
+    authState.textContent = "";
+
+    authCompact.classList.remove("hidden");
+    closeAuthDetails();
+
+    authMail.textContent = (email || "").trim();
+    setAvatar(email);
+
+    if (doPulse) pulseLogin();
+  } else {
+    authDot.classList.remove("ok");
+    authDot.classList.add("warn");
+
+    authState.classList.remove("hidden");
+    authState.textContent = "nicht eingeloggt";
+
+    authCompact.classList.add("hidden");
+    closeAuthDetails();
+
+    authMail.textContent = "";
+    setAvatar("");
+  }
 }
 
 async function requireAuthOrRedirect(){
@@ -505,41 +766,43 @@ async function requireAuthOrRedirect(){
   return data.session;
 }
 
-async function loadMe(session){
-  const uid = session.user.id;
-  const email = session.user.email || "";
+/* ✅ Profil laden: role + display_name + ressort */
+async function loadMyProfile(session){
+  const uid = session?.user?.id;
+  const email = session?.user?.email || "";
 
-  // ⚠️ Wichtig für Ressortleiter Dashboard:
-  // profiles braucht: role, display_name, ressort
-  const { data: me, error } = await sb
+  const { data, error } = await sb
     .from(PROFILES_TABLE)
     .select("role, display_name, ressort")
     .eq("id", uid)
     .single();
 
   if (error){
-    // fallback ohne profil
+    console.warn("Profil konnte nicht geladen werden:", error.message);
+    setCompactIdentity("", email);
+    setRolePill("ressortleiter");
     return { role: "ressortleiter", display_name: "", ressort: "", email };
   }
-  return { ...me, email };
+
+  const myRole = normRole(data?.role);
+  setCompactIdentity(data?.display_name, email);
+  setRolePill(myRole || "ressortleiter");
+
+  const dn = (data?.display_name || "").trim();
+  if (dn){
+    authAvatar.textContent = initialsFromText(dn);
+  }
+
+  authBadge.title = `${(dn || email || "User")} • ${roleLabel(myRole || "ressortleiter")}`;
+  return { role: myRole || "ressortleiter", display_name: dn, ressort: (data?.ressort || "").trim(), email };
 }
 
-function setAuthBadge(me){
-  document.getElementById("authNameInline").textContent =
-    (me.display_name || (me.email?.split("@")[0] || "User")).trim();
+/* ========= Dashboard building ========= */
+const grid = document.getElementById("grid");
 
-  const pill = document.getElementById("authRolePill");
-  pill.textContent = roleLabel(me.role);
-  pill.classList.remove("vorstand","ressortleiter");
-  pill.classList.add(normRole(me.role) === "vorstand" ? "vorstand" : "ressortleiter");
-
-  document.getElementById("authMail").textContent = me.email || "";
-  document.getElementById("authAvatar").textContent = initialsFromEmail(me.email || "");
-}
-
-function card({title, value, sub, icon, actionsHtml="", span="kpi"}){
+function cardLink({href, span="kpi", title, value, sub, icon, chipText="Öffnen"}){
   return `
-    <div class="glass ${span} kpi">
+    <a class="glass ${span} kpi kpiCard" href="${href}">
       <div class="kpiTop">
         <div>
           <div class="kpiTitle">${title}</div>
@@ -548,7 +811,18 @@ function card({title, value, sub, icon, actionsHtml="", span="kpi"}){
         </div>
         <div class="kpiIcon">${icon || "✨"}</div>
       </div>
-      ${actionsHtml ? `<div class="kpiActions">${actionsHtml}</div>` : ""}
+      <div class="kpiChip">↗ ${chipText}</div>
+    </a>
+  `;
+}
+
+function cardStatic({span="kpiFull", title, sub, innerHtml=""}){
+  return `
+    <div class="glass ${span} card">
+      <div style="font-weight:900; font-size:16px; letter-spacing:.2px;">${title}</div>
+      ${sub ? `<div class="small" style="margin-top:6px;">${sub}</div>` : ""}
+      <div class="hr"></div>
+      ${innerHtml}
     </div>
   `;
 }
@@ -561,6 +835,7 @@ function resortBadge(name, membersCount, candCount){
   `;
 }
 
+/* count helper */
 async function countTable(table, filterCol=null, filterVal=null){
   let q = sb.from(table).select("id", { count:"exact", head:true });
   if (filterCol && filterVal) q = q.eq(filterCol, filterVal);
@@ -570,126 +845,95 @@ async function countTable(table, filterCol=null, filterVal=null){
 
 async function loadDashboard(){
   const session = await requireAuthOrRedirect();
-  const me = await loadMe(session);
-  setAuthBadge(me);
+  const email = session?.user?.email || "";
+  setAuthUI(true, email, false);
 
-  const role = normRole(me.role);
-  const isVorstand = (role === "vorstand");
-
-  // Vorstand sieht Finanzen Nav, Ressortleiter nicht (Design-Choice)
-  const navFinance = document.getElementById("navFinance");
-  if (!isVorstand) navFinance.style.display = "none";
-
-  // Zähl-Logik:
-  // - members: ressort column = "ressort"
-  // - anwaerter: wir gehen davon aus, dass dort auch "ressort" existiert (sonst wird 0 oder alles gezählt)
+  const me = await loadMyProfile(session);
+  const isVorstand = normRole(me.role) === "vorstand";
   const myRessort = (me.ressort || "").trim();
 
+  // Zählungen
   const membersAll = await countTable("members");
-  const candAll    = await countTable("anwaerter"); // falls Tabelle existiert
+  const candAll    = await countTable("anwaerter");
 
   const membersMine = myRessort ? await countTable("members","ressort", myRessort) : 0;
   const candMine    = myRessort ? await countTable("anwaerter","ressort", myRessort) : 0;
 
-  const grid = document.getElementById("grid");
-
-  // --- Bereich: Ressortleiter ---
+  // ===== Ressortleiter Dashboard =====
   if (!isVorstand){
     grid.innerHTML = `
-      ${card({
-        title: "Mein Ressort",
-        value: myRessort || "—",
-        sub: "Deine Übersicht (nur dein Ressort).",
-        icon: "🧩",
-        actionsHtml: `
-          <a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="members.html">Mitglieder öffnen</a>
-          <a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="anwaerter.html">Anwärter öffnen</a>
-        `,
-        span: "kpiBig"
+      ${cardStatic({
+        span:"kpiBig",
+        title:"Mein Ressort",
+        sub:"Deine Übersicht (nur dein Ressort).",
+        innerHtml: `
+          <div style="margin-top:12px;">
+            <span class="badge" style="${pillStyle(myRessort || "Kommunikation")}">
+              ${myRessort ? myRessort : "—"} · <strong>${membersMine}</strong> Mitgl · <strong>${candMine}</strong> Anw
+            </span>
+          </div>
+          <div class="small" style="margin-top:12px; line-height:1.5;">
+            Vorstand sieht alle Ressorts. Du siehst nur dein Ressort.
+          </div>
+        `
       })}
-      ${card({
-        title: "Mitglieder",
-        value: String(membersMine),
-        sub: "Anzahl Mitglieder in deinem Ressort.",
-        icon: "👥"
+
+      ${cardLink({
+        href:"members.html",
+        title:"Mitglieder",
+        value:String(membersMine),
+        sub:"Mitglieder in deinem Ressort.",
+        icon:"👥"
       })}
-      ${card({
-        title: "Anwärter",
-        value: String(candMine),
-        sub: "Anzahl Anwärter in deinem Ressort.",
-        icon: "👶🏼"
+
+      ${cardLink({
+        href:"anwaerter.html",
+        title:"Anwärter",
+        value:String(candMine),
+        sub:"Anwärter in deinem Ressort.",
+        icon:"👶🏼"
       })}
-      ${card({
-        title: "Bewerbungen",
-        value: "—",
-        sub: "Zählung kommt später (Google Sheet). Seite öffnen geht schon.",
-        icon: "📝",
-        actionsHtml: `<a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="bewerbungen.html">Bewerbungen öffnen</a>`
-      })}
-      <div class="glass kpiFull card">
-        <div style="font-weight:900; font-size:16px; letter-spacing:.2px;">Hinweis</div>
-        <div class="small" style="margin-top:8px; line-height:1.5;">
-          Finanzen sind für Ressortleitungen ausgeblendet. Wenn du Daten vermisst, sag kurz Bescheid.
-        </div>
-      </div>
     `;
     return;
   }
 
-  // --- Bereich: Vorstand ---
-  // Ressort-Übersicht (Mitglieder + Anwärter pro Ressort)
-  const ressorts = ["Vorstand","Finanzen","Sponsoring","Marketing","IT","Events","PR","Orga"];
-  const byR = await Promise.all(ressorts.map(async r => ({
+  // ===== Vorstand Dashboard =====
+  const byR = await Promise.all(RESSORTS.map(async r => ({
     r,
     m: await countTable("members","ressort", r),
     a: await countTable("anwaerter","ressort", r)
   })));
 
-  const openFinanceCount = await countTable("rechnungen"); // falls existiert
-
   grid.innerHTML = `
-    ${card({
-      title: "Gesamt Mitglieder",
-      value: String(membersAll),
-      sub: "Alle Ressorts zusammen.",
-      icon: "👥",
-      actionsHtml: `<a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="members.html">Mitglieder öffnen</a>`
-    })}
-    ${card({
-      title: "Gesamt Anwärter",
-      value: String(candAll),
-      sub: "Alle Ressorts zusammen.",
-      icon: "👶🏼",
-      actionsHtml: `<a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="anwaerter.html">Anwärter öffnen</a>`
-    })}
-    ${card({
-      title: "Finanzen",
-      value: String(openFinanceCount),
-      sub: "Einträge in Rechnungen/Auslagen.",
-      icon: "💰",
-      actionsHtml: `<a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="rechnungen.html">Finanzen öffnen</a>`
-    })}
-    ${card({
-      title: "Bewerbungen",
-      value: "—",
-      sub: "Zählung kommt später (Google Sheet).",
-      icon: "📝",
-      actionsHtml: `<a class="btn-secondary" style="text-decoration:none; display:inline-block;" href="bewerbungen.html">Bewerbungen öffnen</a>`
+    ${cardLink({
+      href:"members.html",
+      title:"Gesamt Mitglieder",
+      value:String(membersAll),
+      sub:"Alle Ressorts zusammen.",
+      icon:"👥",
+      span:"kpiBig",
+      chipText:"Mitglieder öffnen"
     })}
 
-    <div class="glass kpiFull card">
-      <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-        <div>
-          <div style="font-weight:900; font-size:16px; letter-spacing:.2px;">Ressort-Übersicht</div>
-          <div class="small" style="margin-top:6px;">Mitglieder & Anwärter pro Ressort.</div>
+    ${cardLink({
+      href:"anwaerter.html",
+      title:"Gesamt Anwärter",
+      value:String(candAll),
+      sub:"Alle Ressorts zusammen.",
+      icon:"👶🏼",
+      span:"kpiBig",
+      chipText:"Anwärter öffnen"
+    })}
+
+    ${cardStatic({
+      title:"Ressort-Übersicht",
+      sub:"Mitglieder & Anwärter pro Ressort (nur Vorstand).",
+      innerHtml: `
+        <div class="ressortList">
+          ${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}
         </div>
-        <div class="small">Nur Vorstand</div>
-      </div>
-      <div class="hr"></div>
-      <div class="ressortList">
-        ${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}
-      </div>
-    </div>
+      `
+    })}
   `;
 }
 
@@ -698,7 +942,17 @@ async function logout(){
   window.location.replace(LOGIN_PAGE);
 }
 
-loadDashboard().catch(err => console.warn(err));
+/* ========= Init ========= */
+(async () => {
+  try{
+    const session = await requireAuthOrRedirect();
+    const email = session?.user?.email || "";
+    setAuthUI(true, email, false);
+    await loadDashboard();
+  } catch(e){
+    setAuthUI(false);
+  }
+})();
 
 /* PWA: Service Worker (sw.js muss im Root liegen) */
 if ("serviceWorker" in navigator){
