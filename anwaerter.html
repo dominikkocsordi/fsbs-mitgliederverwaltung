@@ -42,8 +42,8 @@
       --danger2: #e11d48;
     }
 
-    *{ box-sizing:border-box; }
-    html, body{ min-height:100%; }
+    *{box-sizing:border-box}
+    html, body { min-height: 100%; }
 
     html{
       background:
@@ -140,7 +140,7 @@
       .brandLogo img{ border-radius: 9px; }
     }
 
-    /* ===== Pills ===== */
+    /* Small status pill */
     .pill{
       padding: 8px 12px;
       border-radius: 999px;
@@ -153,103 +153,11 @@
       gap:8px;
       white-space:nowrap;
     }
-    .pillSmall{
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.08);
-      font-size: 12px;
-      color: rgba(255,255,255,.86);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-    }
-    .pillOk{
-      background: rgba(34,197,94,.20);
-      border-color: rgba(34,197,94,.35);
-      color:#bbf7d0;
-    }
-    .pillWarn{
-      background: rgba(251,146,60,.18);
-      border-color: rgba(251,146,60,.35);
-      color:#ffedd5;
-    }
-    .pillDone{
-      background: rgba(16,185,129,.18);
-      border-color: rgba(16,185,129,.35);
-      color:#d1fae5;
-    }
 
-    /* ===== Buttons ===== */
-    button{
-      border:none;
-      cursor:pointer;
-      border-radius:14px;
-      padding: 10px 14px;
-      font-weight:700;
-      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
-    }
-    button:active{ transform: translateY(0px) scale(.99); }
-    button:disabled{
-      cursor: not-allowed !important;
-      opacity: .55 !important;
-      transform: none !important;
-      filter: none !important;
-      box-shadow: none !important;
-    }
-    button:disabled:hover{ transform:none !important; filter:none !important; }
-
-    .btn-secondary{
-      background: rgba(255,255,255,.14);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
-
-    .btn-primary{
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #0f0b16;
-      box-shadow: 0 12px 30px rgba(168,85,247,.25);
-    }
-    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-
-    .btn-danger{
-      background: linear-gradient(135deg, rgba(251,113,133,.35), rgba(225,29,72,.25));
-      color: rgba(255,255,255,.95);
-      border: 1px solid rgba(239,68,68,.28);
-      box-shadow: 0 10px 26px rgba(225,29,72,.14);
-    }
-    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
-
-    .btn-done{
-      background: rgba(16,185,129,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(16,185,129,.30);
-      box-shadow: 0 10px 26px rgba(16,185,129,.12);
-    }
-    .btn-done:hover{ transform: translateY(-2px); filter: brightness(1.05); }
-
-    /* ===== Inputs ===== */
-    input,select{
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.22);
-      color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      outline:none;
-      min-width: 190px;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus, select:focus{
-      border-color: rgba(249,115,22,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
-    }
-
-    /* ===== Auth badge (wie andere Seiten) ===== */
+    /* ===== Auth badge ===== */
     .authFloating{
+      position: static;
+      z-index: 1;
       border-radius: 999px;
       padding: 10px 12px;
       display:flex;
@@ -272,24 +180,9 @@
         0 0 18px rgba(34,197,94,.55),
         0 0 42px rgba(34,197,94,.30);
     }
-    @keyframes pulseRing {
-      0%   { transform: scale(1); opacity: .0; }
-      10%  { opacity: .6; }
-      70%  { transform: scale(3.2); opacity: 0; }
-      100% { transform: scale(3.2); opacity: 0; }
-    }
-    .dot.pulsing::after{
-      content:"";
-      position:absolute;
-      inset: -2px;
-      border-radius: 999px;
-      background: rgba(34,197,94,.25);
-      animation: pulseRing 1.15s ease-out 0s 2;
-      pointer-events:none;
-    }
-
     .authAvatar{
-      width: 30px; height: 30px;
+      width: 30px;
+      height: 30px;
       border-radius: 999px;
       display:grid;
       place-items:center;
@@ -303,15 +196,12 @@
       flex: 0 0 auto;
     }
     .authAvatar.hidden{ display:none; }
-
     .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
     .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
     .authState.hidden{ display:none; }
-
     .authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
     .authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
     .authCompact.hidden{ display:none; }
-
     .authNameInline{
       font-size:13px;
       font-weight:850;
@@ -322,7 +212,12 @@
       text-overflow:ellipsis;
       max-width: 220px;
     }
-
+    .authMail{
+      font-size:11px;
+      color: rgba(255,255,255,.58);
+      margin-top:0;
+      word-break:break-all;
+    }
     .rolePill{
       display:inline-flex;
       align-items:center;
@@ -347,7 +242,6 @@
       border-color: rgba(251,146,60,.35);
       background: rgba(251,146,60,.12);
     }
-
     .authChevron{
       border: 1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.06);
@@ -362,7 +256,6 @@
       flex: 0 0 auto;
     }
     .authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
-
     .authDetails{
       margin-top: 8px;
       padding-top: 8px;
@@ -372,12 +265,9 @@
       align-items:center;
       min-width:0;
     }
-    .authDetails.hidden{ display:none; }
-    .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
-
     .hidden{ display:none; }
 
-    /* ===== NAV (wie members) ===== */
+    /* ===== NAV ===== */
     .navWrap{ position: sticky; top: 14px; z-index: 10; margin-bottom: 16px; }
     .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
@@ -418,38 +308,91 @@
     .navTitle{ font-weight:750; letter-spacing:.2px; }
     .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-    /* ===== Layout cards ===== */
+    /* ===== Buttons ===== */
+    button{
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding: 10px 14px;
+      font-weight:700;
+      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+    }
+    button:active{ transform: translateY(0px) scale(.99); }
+    button:disabled{
+      cursor: not-allowed !important;
+      opacity: .55 !important;
+      transform: none !important;
+      filter: none !important;
+      box-shadow: none !important;
+    }
+
+    .btn-secondary{
+      background: rgba(255,255,255,.14);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+    .btn-primary{
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #0f0b16;
+      box-shadow: 0 12px 30px rgba(168,85,247,.25);
+    }
+    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+
+    .btn-danger{
+      background: linear-gradient(135deg, var(--danger1), var(--danger2));
+      color: #fff;
+      box-shadow: 0 10px 26px rgba(225,29,72,.22);
+    }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+
+    .btn-done{
+      background: rgba(16,185,129,.16);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(16,185,129,.30);
+      box-shadow: 0 10px 26px rgba(16,185,129,.12);
+    }
+    .btn-done:hover{ transform: translateY(-2px); filter: brightness(1.05); }
+
+    /* ===== Content ===== */
     .card{ padding:16px; margin-bottom:14px; }
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
 
-    /* Stats cards */
-    .statsGrid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
-      margin-bottom: 14px;
+    input, select{
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      outline:none;
+      min-width: 190px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
     }
-    .statCard{
-      grid-column: span 4;
-      padding: 14px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-    }
-    .statLabel{ font-size:12px; color: rgba(255,255,255,.65); }
-    .statValue{ margin-top:6px; font-size:22px; font-weight:900; letter-spacing:.2px; }
-    .statHint{ margin-top:6px; font-size:12px; color: rgba(255,255,255,.60); }
-    .statPillRow{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+    input::placeholder{ color: rgba(255,255,255,.55); }
 
-    /* Table */
+    /* ✅ Fokus nicht blau -> orange */
+    input:focus, select:focus{
+      border-color: rgba(249,115,22,.55);
+      background: rgba(255,255,255,.16);
+      transform: translateY(-1px);
+    }
+
+    /* ✅ DROPDOWN FIX: Optionen sichtbar */
+    select option{
+      background: #1a1424;
+      color: rgba(255,255,255,.92);
+    }
+    select:disabled{ opacity:.75; }
+
     .tableWrap{
       overflow:auto;
       border-radius: 18px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.05);
     }
-    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 980px; }
+    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 860px; }
     th, td{ padding:12px 14px; text-align:left; font-size:14px; vertical-align:middle; }
     th{
       font-size:12px;
@@ -470,7 +413,6 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* Avatar/name */
     .avatarSmall{
       width:34px; height:34px;
       border-radius: 12px;
@@ -483,40 +425,58 @@
       color: rgba(255,255,255,.85);
       flex: 0 0 auto;
     }
-    .avatarSmall img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .nameCell{ display:flex; align-items:center; gap:10px; min-width: 220px; }
-    .nameMeta{ display:flex; flex-direction:column; line-height:1.15; min-width:0; }
-    .nameMeta strong{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
+    .avatarSmall img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .nameCell{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width: 220px;
+    }
+    .nameMeta{
+      display:flex;
+      flex-direction:column;
+      line-height:1.15;
+      min-width:0;
+    }
+    .nameMeta strong{
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
     .miniLink a{
       font-size:12px;
-      color: rgba(255,255,255,.78);
+      color: rgba(249,115,22,.95);
       text-decoration:none;
-      border-bottom: 1px solid rgba(255,255,255,.22);
     }
-    .miniLink a:hover{ border-bottom-color: rgba(255,255,255,.45); }
-    .miniLink span{ font-size:12px; color: rgba(255,255,255,.55); }
+    .miniLink a:hover{ text-decoration:underline; }
+    .miniLink span{
+      font-size:12px;
+      color: rgba(255,255,255,.55);
+    }
 
-    /* Ressort pill style */
+    /* Ressort pill */
     .ressortPill{
       display:inline-flex;
       align-items:center;
       gap:8px;
-      padding:6px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:800;
+      padding: 6px 10px;
+      border-radius: 999px;
       border:1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.90);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      color: rgba(255,255,255,.92);
+      font-size: 12px;
+      font-weight: 850;
       white-space:nowrap;
     }
 
-    /* Modal */
+    /* ===== Modal ===== */
     .modalOverlay{
-      position: fixed; inset:0; z-index:60;
+      position: fixed;
+      inset:0;
+      z-index:60;
       background: rgba(0,0,0,.55);
       display:none;
       align-items:center;
@@ -524,6 +484,7 @@
       padding: 18px;
     }
     .modalOverlay.show{ display:flex; }
+
     .modal{
       width:min(720px, 100%);
       max-height: 86vh;
@@ -531,6 +492,7 @@
       border-radius: 26px;
       padding: 16px;
     }
+
     .modalHeader{
       display:flex;
       justify-content:space-between;
@@ -556,16 +518,14 @@
       cursor: pointer;
       transition: transform .16s ease, filter .16s ease;
     }
-    .photoPreview:hover{ transform: translateY(-2px); filter: brightness(1.06); }
+    .photoPreview:hover{
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+    }
     .photoPreview img{ width:100%; height:100%; object-fit:cover; display:block; }
 
-    /* Mobile */
-    @media (max-width: 980px){
-      table{ min-width: 860px; }
-      .statCard{ grid-column: span 6; }
-    }
     @media (max-width: 640px){
-      input,select{ min-width:0; width:100%; }
+      input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authNameInline{ max-width: 140px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
@@ -573,7 +533,6 @@
       .navRight{ margin-left: 0; }
       table{ min-width: 720px; }
       th:nth-child(3), td:nth-child(3){ display:none; }
-      .statCard{ grid-column: span 12; }
     }
   </style>
 </head>
@@ -583,7 +542,7 @@
 
     <div class="top">
       <div class="brandLeft">
-        <a class="brandLogo" href="index.html" title="FSBS Intern">
+        <a class="brandLogo" href="/index.html" title="FSBS Intern">
           <img src="logo.png" alt="Fachschaft Logo"
                onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
         </a>
@@ -625,7 +584,7 @@
     <div class="glass navWrap hidden" id="navWrap">
       <div class="nav">
         <div class="navLeft">
-          <a class="navLink" href="index.html">
+          <a class="navLink" href="/index.html">
             <span class="navIcon">🏠</span>
             <span>
               <div class="navTitle">Dashboard</div>
@@ -633,7 +592,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="members.html">
+          <a class="navLink" href="/members.html">
             <span class="navIcon">👥</span>
             <span>
               <div class="navTitle">Mitglieder</div>
@@ -641,7 +600,7 @@
             </span>
           </a>
 
-          <a class="navLink active" href="anwaerter.html" id="navCandidates">
+          <a class="navLink active" href="/anwaerter.html" id="navCandidates">
             <span class="navIcon">👶🏼</span>
             <span>
               <div class="navTitle">Anwärter</div>
@@ -649,7 +608,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="bewerbungen.html">
+          <a class="navLink" href="/bewerbungen.html">
             <span class="navIcon">📝</span>
             <span>
               <div class="navTitle">Bewerbungen</div>
@@ -657,7 +616,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="rechnungen.html" id="navFinance">
+          <a class="navLink" href="/rechnungen.html" id="navFinance">
             <span class="navIcon">💰</span>
             <span>
               <div class="navTitle">Finanzen</div>
@@ -665,7 +624,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="mitgliederbefragung.html" id="navSurvey">
+          <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
             <span class="navIcon">📊</span>
             <span>
               <div class="navTitle">Befragung</div>
@@ -680,30 +639,7 @@
       </div>
     </div>
 
-    <!-- ✅ Ressortleiter-Info + Stats -->
-    <div class="glass card hidden" id="statsCard">
-      <div class="statsGrid">
-        <div class="statCard">
-          <div class="statLabel">Anwärter gesamt</div>
-          <div class="statValue" id="statTotal">0</div>
-          <div class="statHint" id="statTotalHint">ohne abgelehnte Einträge</div>
-        </div>
-        <div class="statCard">
-          <div class="statLabel">Dein Ressort</div>
-          <div class="statValue" id="statMyRessort">–</div>
-          <div class="statHint" id="statMyHint">Filter wird automatisch gesetzt</div>
-          <div class="statPillRow" id="statMyPills"></div>
-        </div>
-        <div class="statCard">
-          <div class="statLabel">Ressort-Verteilung</div>
-          <div class="statValue" id="statDist">—</div>
-          <div class="statHint">Top-Ressorts (Vorstand sieht alles)</div>
-          <div class="statPillRow" id="statDistPills"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAIN -->
+    <!-- CONTENT -->
     <div class="glass card hidden" id="contentCard">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
@@ -722,7 +658,7 @@
               <th>Name</th>
               <th>Ressort</th>
               <th>Email</th>
-              <th style="width:360px;">Aktionen</th>
+              <th style="width:340px;">Aktionen</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -734,12 +670,12 @@
 
   </div>
 
-  <!-- Edit modal -->
+  <!-- EDIT MODAL -->
   <div class="modalOverlay" id="editOverlay">
     <div class="glass modal" onclick="event.stopPropagation()">
       <div class="modalHeader">
         <div>
-          <h2 class="modalTitle" id="editTitle">Anwärter</h2>
+          <h2 class="modalTitle">Anwärter bearbeiten</h2>
           <div class="modalSub" id="editSub">–</div>
         </div>
         <button class="btn-secondary closeX" id="closeEditBtn">✕</button>
@@ -760,15 +696,12 @@
             <select id="editRessort" style="width:100%; min-width:0;"></select>
 
             <div class="row" style="margin-top:14px; justify-content:flex-end;">
-              <button class="btn-secondary" id="editCancelBtn">Schließen</button>
+              <button class="btn-secondary" id="editCancelBtn">Abbrechen</button>
               <button class="btn-primary" id="saveEditBtn">Speichern</button>
             </div>
           </div>
         </div>
 
-        <div style="margin-top:10px;">
-          <span class="pillSmall pillOk" title="kommt aus bewerbung_status">👶🏼 Anwärter</span>
-        </div>
       </div>
     </div>
   </div>
@@ -779,45 +712,39 @@
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const LOGIN_PAGE = "login.html";
+    const LOGIN_REDIRECT = "/login.html";
 
-    /* ========= Tabellen / Spalten ========= */
+    /* ========= Rollen/Permissions ========= */
     const PROFILES_TABLE = "profiles";
+    let MY_ROLE = "";
+    let MY_RESSORT = ""; // optional aus profiles.ressort
+    let CAN_EDIT = false;
+
+    function normRole(v){ return (v || "").trim().toLowerCase(); }
+    function roleLabel(role){
+      const r = normRole(role);
+      if (r === "vorstand") return "Vorstand";
+      if (r === "ressortleiter") return "Ressortleiter";
+      return "Unbekannt";
+    }
+
+    /* ========= Tabellen ========= */
     const CANDIDATES_TABLE = "anwaerter";
     const MEMBERS_TABLE = "members";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
-    /* ✅ Fixe Ressorts (deine Liste) */
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
+      "Sponsoring",
       "Merchandise",
-      "Kommunikation",
-      "Sponsoring"
+      "Kommunikation"
     ];
-
-    /* ✅ Feste Ressort-Farben */
-    const RESSORT_COLORS = {
-      "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-      "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
-      "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
-      "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
-      "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
-    };
-
-    function pillRessortStyle(label){
-      const key = (label || "").trim();
-      const pair = RESSORT_COLORS[key];
-      const a = pair?.[0] ?? "rgba(255,255,255,.10)";
-      const b = pair?.[1] ?? "rgba(255,255,255,.06)";
-      return `background: linear-gradient(135deg, ${a}, ${b});
-              border-color: rgba(255,255,255,.18);
-              color: rgba(255,255,255,.92);`;
-    }
 
     /* ========= Elements ========= */
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
+    const navFinance = document.getElementById("navFinance");
 
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
@@ -834,13 +761,6 @@
     const statusPill = document.getElementById("statusPill");
     const contentCard = document.getElementById("contentCard");
 
-    const statsCard = document.getElementById("statsCard");
-    const statTotal = document.getElementById("statTotal");
-    const statMyRessort = document.getElementById("statMyRessort");
-    const statMyPills = document.getElementById("statMyPills");
-    const statDist = document.getElementById("statDist");
-    const statDistPills = document.getElementById("statDistPills");
-
     const q = document.getElementById("q");
     const fRessort = document.getElementById("fRessort");
     const reloadBtn = document.getElementById("reloadBtn");
@@ -848,9 +768,8 @@
     const tbody = document.getElementById("tbody");
     const empty = document.getElementById("empty");
 
-    // Modal
+    // Edit modal
     const editOverlay = document.getElementById("editOverlay");
-    const editTitle = document.getElementById("editTitle");
     const editSub = document.getElementById("editSub");
     const editRessort = document.getElementById("editRessort");
     const saveEditBtn = document.getElementById("saveEditBtn");
@@ -863,39 +782,38 @@
     let ALL = [];
     let EDITING = null;
 
-    let MY_ROLE = "";
-    let CAN_EDIT = false;
-
-    let MY_RESSORT = ""; // ✅ für Ressortleiter Auto-Filter
-
-    /* ========= Helpers ========= */
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-    const esc = (s) => String(s ?? "")
+    const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    function normRole(v){ return (v || "").trim().toLowerCase(); }
-    function roleLabel(role){
-      const r = normRole(role);
-      if (r === "vorstand") return "Vorstand";
-      if (r === "ressortleiter") return "Ressortleiter";
-      return "Unbekannt";
-    }
-
     function normalizeStatus(v){ return safe(v).trim().toLowerCase(); }
-    function isHiddenStatus(statusRaw){
+    function isAnwaerterAbgelehnt(statusRaw){
       const st = normalizeStatus(statusRaw);
-      return st === "abgelehnt" || st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
+      return st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
     }
     function isVollmitglied(statusRaw){ return normalizeStatus(statusRaw) === "vollmitglied"; }
 
-    function initialsFromName(vorname, nachname){
-      const a = safe(vorname).trim().slice(0,1);
-      const b = safe(nachname).trim().slice(0,1);
-      return (a + b).toUpperCase() || "•";
+    /* ========= Ressort Pill Style (fixed) ========= */
+    const RESSORT_COLORS = {
+      "Externe Events":   ["rgba(249,115,22,.22)", "rgba(168,85,247,.12)"],
+      "Interne Events":   ["rgba(168,85,247,.22)", "rgba(249,115,22,.12)"],
+      "Sponsoring":       ["rgba(56,189,248,.22)", "rgba(99,102,241,.12)"],
+      "Merchandise":      ["rgba(234,179,8,.22)",  "rgba(251,146,60,.12)"],
+      "Kommunikation":    ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
+      "Abgelehnt":        ["rgba(239,68,68,.18)",  "rgba(239,68,68,.10)"]
+    };
+    function pillRessortStyle(label){
+      const key = (label || "").trim();
+      const pair = RESSORT_COLORS[key];
+      const a = pair?.[0] ?? "rgba(255,255,255,.10)";
+      const b = pair?.[1] ?? "rgba(255,255,255,.06)";
+      return `background: linear-gradient(135deg, ${a}, ${b});
+              border-color: rgba(255,255,255,.18);
+              color: rgba(255,255,255,.92);`;
     }
 
-    /* ========= Auth badge helpers ========= */
+    /* ========= Badge helpers ========= */
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -936,11 +854,6 @@
       authAvatar.classList.remove("hidden");
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
-    function pulseLogin(){
-      authDot.classList.add("pulsing");
-      setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-    }
-
     function closeAuthDetails(){ authDetails.classList.add("hidden"); }
     function setRolePill(role){
       const r = normRole(role);
@@ -955,14 +868,12 @@
       authNameInline.textContent = name || fallback;
     }
 
-    function setAuthUI(isAuthed, email = "", doPulse = false){
+    function setAuthUI(isAuthed, email = ""){
       if (isAuthed){
         authDot.classList.remove("warn");
         authDot.classList.add("ok");
 
         authState.classList.add("hidden");
-        authState.textContent = "";
-
         authCompact.classList.remove("hidden");
         closeAuthDetails();
 
@@ -972,9 +883,6 @@
         navWrap.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
         contentCard.classList.remove("hidden");
-        statsCard.classList.remove("hidden");
-
-        if (doPulse) pulseLogin();
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
@@ -991,7 +899,6 @@
         navWrap.classList.add("hidden");
         logoutBtn.classList.add("hidden");
         contentCard.classList.add("hidden");
-        statsCard.classList.add("hidden");
       }
     }
 
@@ -1003,63 +910,72 @@
       if (!authBadge.contains(e.target)) closeAuthDetails();
     });
 
-    async function requireAuthOrRedirect(){
+    async function requireAuth(){
       const { data } = await sb.auth.getSession();
-      if (!data?.session){
-        window.location.replace(LOGIN_PAGE);
-        throw new Error("No session");
-      }
+      if (!data.session) throw new Error("Bitte einloggen.");
       return data.session;
     }
 
-    /* ========= Profile + Ressortleiter Auto-Ressort ========= */
     async function loadMyProfile(session){
       MY_ROLE = "";
+      MY_RESSORT = "";
       CAN_EDIT = false;
 
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      // profiles: role + display_name
-      const { data, error } = await sb
+      if (!uid){
+        setCompactIdentity("", email);
+        setRolePill("ressortleiter");
+        return;
+      }
+
+      // ✅ versucht auch ressort zu laden (wenn Spalte nicht existiert: fallback)
+      let data = null;
+      let error = null;
+
+      const res = await sb
         .from(PROFILES_TABLE)
-        .select("role, display_name")
+        .select("role, display_name, ressort")
         .eq("id", uid)
         .single();
 
-      if (error){
-        console.warn("Profil konnte nicht geladen werden:", error.message);
-        setCompactIdentity("", email);
-        setRolePill("ressortleiter");
-        MY_ROLE = "ressortleiter";
-      } else {
-        MY_ROLE = normRole(data?.role);
-        setCompactIdentity(data?.display_name, email);
-        setRolePill(MY_ROLE || "ressortleiter");
+      data = res.data;
+      error = res.error;
 
-        const dn = (data?.display_name || "").trim();
-        if (dn) authAvatar.textContent = initialsFromText(dn);
+      if (error){
+        // fallback ohne ressort
+        const res2 = await sb
+          .from(PROFILES_TABLE)
+          .select("role, display_name")
+          .eq("id", uid)
+          .single();
+        data = res2.data;
       }
 
+      MY_ROLE = normRole(data?.role);
       CAN_EDIT = (MY_ROLE === "vorstand");
-      authBadge.title = `${(authNameInline.textContent || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+      MY_RESSORT = safe(data?.ressort).trim();
 
-      // ✅ Ressort ermitteln über members by email (für Ressortleiter Auto-Filter)
-      MY_RESSORT = "";
-      if (!CAN_EDIT && email){
-        const { data: m, error: mErr } = await sb
-          .from(MEMBERS_TABLE)
-          .select("ressort")
-          .eq("email", email)
-          .maybeSingle();
+      setCompactIdentity(data?.display_name, email);
+      setRolePill(MY_ROLE || "ressortleiter");
 
-        if (!mErr && m?.ressort){
-          MY_RESSORT = String(m.ressort).trim();
-        }
+      const dn = (data?.display_name || "").trim();
+      if (dn) authAvatar.textContent = initialsFromText(dn);
+
+      authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+      // ✅ Finanzen im Nav nur für Vorstand (wie besprochen)
+      if (navFinance){
+        navFinance.style.display = CAN_EDIT ? "" : "none";
       }
     }
 
-    /* ========= UI: Filter dropdown ========= */
+    logoutBtn.addEventListener("click", async () => {
+      await sb.auth.signOut();
+      window.location.href = LOGIN_REDIRECT;
+    });
+
     function fillRessortFilter(){
       fRessort.innerHTML =
         `<option value="">Ressort (alle)</option>` +
@@ -1067,80 +983,23 @@
     }
 
     function applyRoleUX(){
-      // Ressortleiter: Filter fixieren (wenn Ressort gefunden)
+      // Ressortleiter: Filter startet auf eigenes Ressort, bleibt änderbar
       if (!CAN_EDIT && MY_RESSORT && RESSORTS_FIXED.includes(MY_RESSORT)){
         fRessort.value = MY_RESSORT;
-        fRessort.disabled = true;
-        fRessort.title = "Als Ressortleiter siehst du standardmäßig dein Ressort.";
+        fRessort.disabled = false;
+        fRessort.title = "Start-Filter ist dein Ressort (änderbar).";
       } else {
         fRessort.disabled = false;
         fRessort.title = "";
       }
     }
 
-    /* ========= Stats ========= */
-    function updateStats(){
-      const visible = ALL.slice();
-      statTotal.textContent = String(visible.length);
-
-      // My ressort
-      statMyPills.innerHTML = "";
-      if (MY_RESSORT){
-        statMyRessort.textContent = MY_RESSORT;
-        const mine = visible.filter(x => String(x.ressort || "").trim() === MY_RESSORT);
-        statMyPills.innerHTML = `
-          <span class="pillSmall" style="${pillRessortStyle(MY_RESSORT)}">👤 ${esc(MY_RESSORT)}</span>
-          <span class="pillSmall pillOk">👶🏼 ${mine.length} Anwärter</span>
-        `;
-      } else {
-        statMyRessort.textContent = (CAN_EDIT ? "Vorstand" : "—");
-        statMyPills.innerHTML = CAN_EDIT
-          ? `<span class="pillSmall pillDone">✅ Vollzugriff</span>`
-          : `<span class="pillSmall pillWarn">ℹ️ Kein Ressort im members-Profil gefunden</span>`;
-      }
-
-      // Distribution (Top)
-      const counts = {};
-      for (const r of visible){
-        const k = String(r.ressort || "").trim() || "—";
-        counts[k] = (counts[k] || 0) + 1;
-      }
-      const top = Object.entries(counts)
-        .sort((a,b) => b[1] - a[1])
-        .slice(0, 5);
-
-      statDist.textContent = top.length ? "Top 5" : "—";
-      statDistPills.innerHTML = top.map(([k,v]) => {
-        const style = k !== "—" ? pillRessortStyle(k) : "";
-        return `<span class="pillSmall" style="${style}">${esc(k)} · ${v}</span>`;
-      }).join("");
+    function initialsFromName(vorname, nachname){
+      const a = safe(vorname).trim().slice(0,1);
+      const b = safe(nachname).trim().slice(0,1);
+      return (a + b).toUpperCase() || "•";
     }
 
-    /* ========= Data fetch ========= */
-    async function fetchCandidates(){
-      statusPill.textContent = "Lade…";
-
-      const { data, error } = await sb
-        .from(CANDIDATES_TABLE)
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error){
-        statusPill.textContent = "Fehler";
-        alert("Fehler beim Laden: " + error.message);
-        return;
-      }
-
-      // ✅ Nur echte Anwärter: alles abgelehnte/hide raus
-      ALL = (Array.isArray(data) ? data : [])
-        .filter(r => !isHiddenStatus(r[BEWERBUNG_STATUS_COL]));
-
-      statusPill.textContent = `Geladen: ${ALL.length}`;
-      updateStats();
-      render();
-    }
-
-    /* ========= Rendering ========= */
     function render(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
@@ -1161,15 +1020,16 @@
         const photo = safe(r.photo_url).trim();
 
         const stRaw = r[BEWERBUNG_STATUS_COL];
+        const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
         const fullAlready = isVollmitglied(stRaw);
 
-        const badge =
-          fullAlready
-            ? `<span class="pillSmall pillDone">✅ Vollmitglied</span>`
-            : `<span class="pillSmall pillOk">👶🏼 Anwärter</span>`;
+        const editDisabled = !CAN_EDIT;
+        const rejectDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
+        const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
 
-        // ✅ Vorstand-only actions (Ressortleiter kann ansehen)
-        const canActions = CAN_EDIT;
+        const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
+        const rejectTitle = !CAN_EDIT ? "Nur Vorstand darf ablehnen" : (rejectedAlready ? "Bereits abgelehnt" : (fullAlready ? "Ist bereits Vollmitglied" : "Anwärter ablehnen"));
+        const fullTitle = !CAN_EDIT ? "Nur Vorstand darf Vollmitglied setzen" : (rejectedAlready ? "Abgelehnt" : (fullAlready ? "Bereits Vollmitglied" : "Als Vollmitglied übernehmen"));
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1197,23 +1057,23 @@
           </td>
 
           <td>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-              <span class="ressortPill" style="${pillRessortStyle(r.ressort)}">${esc(safe(r.ressort) || "—")}</span>
-              ${badge}
-            </div>
+            <span class="ressortPill" style="${pillRessortStyle(safe(r.ressort) || "—")}">
+              ${esc(safe(r.ressort) || "—")}
+            </span>
           </td>
 
           <td>${esc(safe(r.email) || "—")}</td>
 
           <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn-secondary" data-action="view" data-id="${r.id}">Details</button>
+              <button class="btn-secondary" data-action="edit" data-id="${r.id}"
+                ${editDisabled ? "disabled" : ""} title="${esc(editTitle)}">Bearbeiten</button>
 
               <button class="btn-done" data-action="full" data-id="${r.id}"
-                ${canActions ? "" : "disabled"} title="${canActions ? "Als Vollmitglied übernehmen" : "Nur Vorstand"}">Vollmitglied</button>
+                ${fullDisabled ? "disabled" : ""} title="${esc(fullTitle)}">Vollmitglied</button>
 
               <button class="btn-danger" data-action="reject" data-id="${r.id}"
-                ${canActions ? "" : "disabled"} title="${canActions ? "Anwärter ablehnen" : "Nur Vorstand"}">Ablehnen</button>
+                ${rejectDisabled ? "disabled" : ""} title="${esc(rejectTitle)}">Ablehnen</button>
             </div>
           </td>
         `;
@@ -1221,7 +1081,28 @@
       });
     }
 
-    /* ========= Actions ========= */
+    async function fetchCandidates(){
+      statusPill.textContent = "Lade…";
+
+      const { data, error } = await sb
+        .from(CANDIDATES_TABLE)
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error){
+        statusPill.textContent = "Fehler";
+        alert("Fehler beim Laden: " + error.message);
+        return;
+      }
+
+      // ✅ wie vorher: "abgelehnt" ausblenden
+      ALL = (Array.isArray(data) ? data : [])
+        .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
+
+      statusPill.textContent = `Geladen: ${ALL.length}`;
+      render();
+    }
+
     async function rejectCandidate(id){
       if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen/bearbeiten.");
 
@@ -1306,24 +1187,32 @@
       await fetchCandidates();
     }
 
-    /* ========= Modal (Details + optional Ressort edit for Vorstand) ========= */
-    function openDetails(row){
-      EDITING = row;
+    /* ✅ Modal scroll fix: kein hochscrollen nötig */
+    function lockScroll(){
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    }
+    function unlockScroll(){
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
 
-      const name = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
-      editTitle.textContent = CAN_EDIT ? "Anwärter bearbeiten" : "Anwärter Details";
-      editSub.textContent = name;
+    function openEdit(row){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
+
+      // ✅ sorgt dafür, dass du nicht „hochscrollen“ musst
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      lockScroll();
+
+      EDITING = row;
+      editSub.textContent = `${safe(row.vorname)} ${safe(row.nachname)}`.trim() || "—";
 
       editRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
-      const current = safe(row.ressort).trim();
-      editRessort.value = RESSORTS_FIXED.includes(current) ? current : RESSORTS_FIXED[0];
-
-      // Ressortleiter: nur ansehen
-      editRessort.disabled = !CAN_EDIT;
-      saveEditBtn.classList.toggle("hidden", !CAN_EDIT);
+      editRessort.value = RESSORTS_FIXED.includes(safe(row.ressort).trim()) ? safe(row.ressort).trim() : RESSORTS_FIXED[0];
 
       const thumb = safe(row.photo_thumb).trim();
       const photo = safe(row.photo_url).trim();
+
       editPhoto.innerHTML = "";
       editPhotoLink.innerHTML = "";
 
@@ -1354,21 +1243,25 @@
       }
 
       editOverlay.classList.add("show");
+      // Fokus direkt aufs Ressort-Dropdown
+      setTimeout(() => editRessort.focus(), 60);
     }
 
     function closeEdit(){
       editOverlay.classList.remove("show");
       EDITING = null;
+      unlockScroll();
     }
 
     async function saveEdit(){
-      if (!CAN_EDIT) return;
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
       if (!EDITING) return;
 
       const ressort = safe(editRessort.value).trim();
       if (!ressort) return alert("Bitte Ressort wählen.");
 
       saveEditBtn.disabled = true;
+      saveEditBtn.style.opacity = ".75";
 
       const { error } = await sb
         .from(CANDIDATES_TABLE)
@@ -1376,6 +1269,7 @@
         .eq("id", EDITING.id);
 
       saveEditBtn.disabled = false;
+      saveEditBtn.style.opacity = "1";
 
       if (error){
         alert("Fehler beim Speichern: " + error.message);
@@ -1386,7 +1280,7 @@
       await fetchCandidates();
     }
 
-    /* ========= Events ========= */
+    // Events
     fillRessortFilter();
     q.addEventListener("input", render);
     fRessort.addEventListener("input", render);
@@ -1396,39 +1290,42 @@
     closeEditBtn.addEventListener("click", closeEdit);
     editCancelBtn.addEventListener("click", closeEdit);
 
-    editOverlay.addEventListener("click", (e)=>{ if (e.target === editOverlay) closeEdit(); });
+    editOverlay.addEventListener("click", (e)=>{
+      if (e.target === editOverlay) closeEdit();
+    });
 
     tbody.addEventListener("click", (e)=>{
       const btn = e.target.closest("button[data-action]");
-      if (!btn) return;
+      if (!btn || btn.disabled) return;
 
       const id = Number(btn.dataset.id);
       const action = btn.dataset.action;
       const row = ALL.find(x => Number(x.id) === id);
 
-      if (action === "view" && row) openDetails(row);
-      if (action === "full" && row && !btn.disabled) makeFullMember(row);
-      if (action === "reject" && !btn.disabled) rejectCandidate(id);
+      if (action === "edit" && row) openEdit(row);
+      if (action === "full" && row) makeFullMember(row);
+      if (action === "reject") rejectCandidate(id);
     });
 
     document.addEventListener("keydown", (e)=>{
       if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEdit();
     });
 
-    logoutBtn.addEventListener("click", async () => {
-      await sb.auth.signOut();
-      window.location.replace(LOGIN_PAGE);
-    });
-
     /* ========= Init ========= */
     (async () => {
-      const session = await requireAuthOrRedirect();
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
       const mail = session?.user?.email || "";
-      setAuthUI(true, mail, false);
+
+      setAuthUI(!!session, mail);
+
+      if (!session){
+        window.location.href = LOGIN_REDIRECT;
+        return;
+      }
 
       await loadMyProfile(session);
       applyRoleUX();
-
       await fetchCandidates();
     })();
 
