@@ -859,15 +859,13 @@ function getRole(m){ return m?.[DB.role] ?? ""; }
 
 /* ✅ FIX: feste Ressort-Farben (nicht random) */
 const RESSORT_COLORS = {
-  "Vorstand":   ["rgba(168,85,247,.22)", "rgba(249,115,22,.18)"],
-  "Finanzen":   ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
-  "Sponsoring": ["rgba(59,130,246,.22)", "rgba(99,102,241,.14)"],
-  "Marketing":  ["rgba(168,85,247,.22)", "rgba(236,72,153,.14)"],
-  "IT":         ["rgba(14,165,233,.22)", "rgba(56,189,248,.14)"],
-  "Events":     ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-  "PR":         ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
-  "Orga":       ["rgba(234,179,8,.22)",  "rgba(251,146,60,.12)"],
+  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
+  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
+  "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
+  "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
+  "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
 };
+
 
 function pillColorStyle(label){
   const key = (label || "").trim();
@@ -893,7 +891,14 @@ function refreshDropdowns(){
   const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !baseStatus.includes(s));
   setSelectOptions(mStatus, baseStatus.concat(moreStatus), "Status wählen");
 
-  const baseRessort = ["Vorstand","Finanzen","Sponsoring","Marketing","IT","Events","PR","Orga"];
+  const baseRessort = [
+  "Externe Events",
+  "Interne Events",
+  "Merchandise",
+  "Kommunikation",
+  "Sponsoring"
+];
+
   const baseRolle   = ["Mitglied","Leitung","Stellvertretung","Vorstand","Admin"];
 
   const ressort = uniqSorted(baseRessort.concat(members.map(m => getDept(m))));
