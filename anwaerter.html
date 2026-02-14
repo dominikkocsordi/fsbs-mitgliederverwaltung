@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Anwärter</title>
 
+  <!-- ✅ Safari Cache aggressiv → deaktivieren -->
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -31,18 +36,16 @@
   --warn: rgba(251,146,60,.95);
 }
 
-
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       color: var(--text);
       background:
-  radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-  radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-  radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-
+        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
       min-height:100vh;
       padding: 28px 16px 60px;
       display:flex;
@@ -60,6 +63,26 @@
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
     }
+
+    /* ✅ Logo */
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .logo{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      object-fit: contain;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: 0 14px 34px rgba(0,0,0,.28);
+      padding: 6px;
+      flex: 0 0 auto;
+    }
+    .brandText{ min-width:0; }
 
     /* Auth badge */
     .authFloating{
@@ -146,22 +169,22 @@
       margin-top:0;
       word-break:break-all;
     }
-.rolePill{
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  padding: 2px 6px;          /* kleiner */
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.82);
-  font-weight:700;          /* leicht weniger fett */
-  font-size: 11px;          /* kleiner */
-  letter-spacing: .10px;    /* weniger spacing */
-  line-height: 1;           /* kompakter */
-  white-space:nowrap;
-  flex: 0 0 auto;
-}
+    .rolePill{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.82);
+      font-weight:700;
+      font-size: 11px;
+      letter-spacing: .10px;
+      line-height: 1;
+      white-space:nowrap;
+      flex: 0 0 auto;
+    }
 
     .rolePill.vorstand{
       border-color: rgba(56,189,248,.40);
@@ -249,10 +272,10 @@
       border-color: rgba(255,255,255,.22);
     }
     .navLink.active{
-  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
-  border-color: rgba(249,115,22,.35);
-  box-shadow: 0 12px 28px rgba(249,115,22,.25);
-}
+      background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
+      border-color: rgba(249,115,22,.35);
+      box-shadow: 0 12px 28px rgba(249,115,22,.25);
+    }
 
     .navIcon{
       width:30px; height:30px;
@@ -293,11 +316,10 @@
     }
     .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
     .btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: #0f0b16;
-  box-shadow: 0 12px 30px rgba(168,85,247,.25);
-}
-
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #0f0b16;
+      box-shadow: 0 12px 30px rgba(168,85,247,.25);
+    }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
     .btn-danger{
       background: rgba(239,68,68,.16);
@@ -493,7 +515,7 @@
     @media (max-width: 640px){
       input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-
+      .logo{ width: 40px; height: 40px; border-radius: 14px; }
       .authNameInline{ max-width: 140px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
@@ -507,9 +529,13 @@
   <div class="app">
 
     <div class="top">
-      <div>
-        <h1>Anwärter</h1>
-        <div class="subtitle">Liste der Anwärter · übernommen aus Bewerbungen</div>
+      <div class="brand">
+        <!-- ✅ Logo wie Startseite (Pfad ggf. anpassen: /logo.png, /assets/logo.png, etc.) -->
+        <img class="logo" src="/logo.png" alt="Logo" onerror="this.style.display='none'">
+        <div class="brandText">
+          <h1>Anwärter</h1>
+          <div class="subtitle">Liste der Anwärter · übernommen aus Bewerbungen</div>
+        </div>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
@@ -521,7 +547,7 @@
 
           <div class="authInfo">
             <div class="authTopLine">
-              <div class="authState" id="authState">nicht eingeloggt</div>
+              <div class="authState" id="authState">prüfe login…</div>
 
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
@@ -567,22 +593,21 @@
           </a>
 
           <a class="navLink" href="/rechnungen.html" id="navFinance">
-          <span class="navIcon">💰</span>
-          <span>
-            <div class="navTitle">Finanzen</div>
-            <div class="navHint">Rechnungen & Auslagen</div>
-          </span>
-        </a>
+            <span class="navIcon">💰</span>
+            <span>
+              <div class="navTitle">Finanzen</div>
+              <div class="navHint">Rechnungen & Auslagen</div>
+            </span>
+          </a>
 
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
-  <span class="navIcon">📊</span>
-  <span>
-    <div class="navTitle">Befragung</div>
-    <div class="navHint">Auswertung</div>
-  </span>
-</a>
-
-      </div>
+            <span class="navIcon">📊</span>
+            <span>
+              <div class="navTitle">Befragung</div>
+              <div class="navHint">Auswertung</div>
+            </span>
+          </a>
+        </div>
 
         <div class="navRight">
           <button class="btn-secondary" id="logoutBtn">Logout</button>
@@ -662,13 +687,24 @@
     // ====== Supabase Auth ======
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ✅ Safari/Reload stabil: persistSession + autoRefresh
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    });
+
     const LOGIN_REDIRECT = "/index.html";
 
     // ====== Rollen/Permissions ======
     const PROFILES_TABLE = "profiles";
     let MY_ROLE = "";
     let CAN_EDIT = false;
+    let CURRENT_SESSION = null;
+    let BOOTED = false;
 
     function normRole(v){ return (v || "").trim().toLowerCase(); }
     function roleLabel(role){
@@ -680,7 +716,7 @@
 
     // ====== Tabellen ======
     const CANDIDATES_TABLE = "anwaerter";
-    const MEMBERS_TABLE = "members";                 // ✅ Ziel-Tabelle
+    const MEMBERS_TABLE = "members";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
     const RESSORTS_FIXED = [
@@ -791,7 +827,7 @@
       );
       if (!ok) return;
 
-      // 1) Optional: Duplicate-Check (über Email)
+      // Duplicate-Check (über Email)
       const { data: exists, error: existsErr } = await sb
         .from(MEMBERS_TABLE)
         .select("id")
@@ -807,22 +843,22 @@
         return;
       }
 
-          // 2) Insert in members (nur die gewünschten Felder)
-    const { error: insErr } = await sb
-      .from(MEMBERS_TABLE)
-      .insert([{
-        vorname: vorname,     // ✅ Spalte heißt bei dir "voname"
-        nachname,
-        email,
-        ressort
-      }]);
+      // ✅ Insert in members (Spalten korrekt)
+      const { error: insErr } = await sb
+        .from(MEMBERS_TABLE)
+        .insert([{
+          vorname,     // ✅ vorname
+          nachname,
+          email,
+          ressort
+        }]);
 
       if (insErr){
         alert("Konnte nicht in members übernehmen: " + insErr.message);
         return;
       }
 
-      // 3) Status in anwaerter updaten
+      // Status in anwaerter updaten
       const { error: upErr } = await sb
         .from(CANDIDATES_TABLE)
         .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied" })
@@ -916,7 +952,6 @@
         closeAuthDetails();
 
         authMail.textContent = (email || "").trim();
-
         setAvatar(email);
 
         navWrap.style.display = "block";
@@ -950,12 +985,6 @@
       if (!authBadge.contains(e.target)) closeAuthDetails();
     });
 
-    async function requireAuth(){
-      const res = await sb.auth.getSession();
-      if (!res?.data?.session) throw new Error("not_logged_in");
-      return res.data.session;
-    }
-
     async function loadMyProfile(session){
       MY_ROLE = "";
       CAN_EDIT = false;
@@ -973,6 +1002,7 @@
         console.warn("Profil konnte nicht geladen werden:", error.message);
         setCompactIdentity("", session?.user?.email || "");
         setRolePill("ressortleiter");
+        CAN_EDIT = false;
         return;
       }
 
@@ -991,16 +1021,57 @@
       authBadge.title = tip;
     }
 
-    async function enforceAuth(){
-      try{
-        const session = await requireAuth();
-        setAuthUI(true, session?.user?.email || "");
-        await loadMyProfile(session);
-      } catch(e){
+    // ✅ Safari-fix: Session kann beim Reload kurz "null" sein → robustes init + Listener
+    async function bootFromSession(session){
+      if (!session?.user){
         setAuthUI(false);
         window.location.href = LOGIN_REDIRECT;
+        return;
+      }
+
+      CURRENT_SESSION = session;
+
+      // UI sofort sichtbar, aber Aktionen bleiben korrekt, sobald Rolle geladen ist
+      setAuthUI(true, session.user.email || "");
+      authState.classList.remove("hidden");
+      authState.textContent = "lade rolle…";
+
+      await loadMyProfile(session);
+
+      authState.classList.add("hidden");
+      authState.textContent = "";
+
+      // nachdem CAN_EDIT sicher ist: neu rendern (Buttons korrekt)
+      render();
+
+      // Daten laden nur einmal
+      if (!BOOTED){
+        BOOTED = true;
+        await fetchCandidates();
       }
     }
+
+    async function initAuth(){
+      // 1) Direkt versuchen
+      const { data: { session } } = await sb.auth.getSession();
+      if (session?.user){
+        await bootFromSession(session);
+        return;
+      }
+
+      // 2) Falls Safari noch restored: kurz UI auf "prüfe login…"
+      setAuthUI(false);
+      authState.classList.remove("hidden");
+      authState.textContent = "prüfe login…";
+    }
+
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user){
+        await bootFromSession(session);
+      } else {
+        setAuthUI(false);
+      }
+    });
 
     logoutBtn.addEventListener("click", async () => {
       await sb.auth.signOut();
@@ -1123,7 +1194,7 @@
         return;
       }
 
-      // ✅ weiterhin: "abgelehnt" rausfiltern (wie bei dir)
+      // ✅ abgelehnt rausfiltern (wie bei dir)
       ALL = (Array.isArray(data) ? data : [])
         .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
@@ -1240,8 +1311,13 @@
 
     // Init
     (async function init(){
-      await enforceAuth();
-      await fetchCandidates();
+      // UI erstmal "locked" bis Session da ist (Safari reload-fix)
+      setAuthUI(false);
+      statusPill.textContent = "Login prüfen…";
+      await initAuth();
+
+      // falls Session sofort da war, bootFromSession hat fetchCandidates schon gestartet
+      // falls nicht: onAuthStateChange übernimmt
     })();
   </script>
 </body>
