@@ -72,8 +72,8 @@
       min-width:0;
     }
     .logo{
-      width: 44px;
-      height: 44px;
+      width: 60px;
+      height: 60px;
       border-radius: 14px;
       object-fit: contain;
       background: rgba(255,255,255,.06);
@@ -1309,16 +1309,66 @@
       if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEdit();
     });
 
-    // Init
-    (async function init(){
-      // UI erstmal "locked" bis Session da ist (Safari reload-fix)
-      setAuthUI(false);
-      statusPill.textContent = "Login prüfen…";
-      await initAuth();
+    // ============================
+// ✅ AUTH – stabil (Safari Reload)
+// ============================
 
-      // falls Session sofort da war, bootFromSession hat fetchCandidates schon gestartet
-      // falls nicht: onAuthStateChange übernimmt
-    })();
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function getSessionWithRetry(tries = 8, delayMs = 180){
+  for (let i = 0; i < tries; i++){
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.user) return session;
+    await sleep(delayMs);
+  }
+  return null;
+}
+
+async function enforceAuthStable(){
+  // UI zeigt erstmal "prüfe..."
+  setAuthUI(false);
+  authState.classList.remove("hidden");
+  authState.textContent = "login prüfen…";
+  statusPill.textContent = "Login prüfen…";
+
+  // 1) Retry-Session holen (Safari braucht manchmal paar hundert ms)
+  const session = await getSessionWithRetry();
+
+  if (!session?.user){
+    // 2) Wenn wirklich keine Session -> redirect wie früher
+    setAuthUI(false);
+    window.location.href = LOGIN_REDIRECT;
+    return;
+  }
+
+  // 3) Session da → UI aktivieren + Rolle laden
+  setAuthUI(true, session.user.email || "");
+  authState.classList.remove("hidden");
+  authState.textContent = "lade rolle…";
+
+  await loadMyProfile(session);
+
+  authState.classList.add("hidden");
+  authState.textContent = "";
+  statusPill.textContent = "–";
+
+  // ✅ Wichtig: Jetzt erst Daten laden
+  await fetchCandidates();
+}
+
+// Listener: wenn Safari später doch Session “nachliefert”
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user){
+    setAuthUI(true, session.user.email || "");
+    await loadMyProfile(session);
+    render(); // Buttons korrekt nach CAN_EDIT
+  }
+});
+
+(async function init(){
+  await enforceAuthStable();
+})();
+
   </script>
 </body>
 </html>
