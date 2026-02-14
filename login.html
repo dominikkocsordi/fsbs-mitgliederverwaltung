@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mitgliederportal – Login</title>
+  <title>FSBS Intern – Login</title>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
@@ -202,6 +202,14 @@
     }
     button:active{ transform: translateY(0px) scale(.99); }
 
+    button:disabled{
+      cursor:not-allowed !important;
+      opacity:.55 !important;
+      transform:none !important;
+      filter:none !important;
+      box-shadow:none !important;
+    }
+
     .btn-primary{
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
       color: #0f0b16;
@@ -281,8 +289,8 @@
                onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
         </a>
         <div class="titles">
-          <h1>Mitgliederportal</h1>
-          <div class="subtitle">Fachschaft Business School e.V.</div>
+          <h1>FSBS Intern</h1>
+          <div class="subtitle">Vorstand & Ressortleitung · Login</div>
         </div>
       </div>
 
@@ -293,10 +301,10 @@
     </div>
 
     <div class="glass card">
-      <!-- INVITE -->
+      <!-- INVITE / RECOVERY: Passwort setzen -->
       <section id="inviteSection" class="hidden">
-        <div class="note">
-          Du bist über eine Einladung hier. Bitte lege jetzt dein Passwort fest.
+        <div class="note" id="inviteNote">
+          Bitte lege jetzt dein Passwort fest.
         </div>
         <div class="divider"></div>
 
@@ -311,8 +319,8 @@
           </div>
 
           <div class="row">
-            <button class="btn-primary" id="btnSetPassword">Passwort setzen</button>
-            <button class="btn-secondary hidden" id="btnContinue">Weiter ins Portal</button>
+            <button class="btn-primary" id="btnSetPassword">Passwort speichern</button>
+            <button class="btn-secondary hidden" id="btnContinue">Weiter</button>
             <button class="btn-secondary" id="btnInviteCancel">Abbrechen</button>
           </div>
 
@@ -335,12 +343,13 @@
           <div class="row">
             <button class="btn-primary" id="btnLoginPw">Login</button>
             <button class="btn-purple" id="btnMagicLink">Login-Link per Mail</button>
+            <button class="btn-secondary" id="btnForgotPw">Passwort vergessen?</button>
             <button class="btn-secondary hidden" id="btnGoApp">Ins Portal</button>
             <button class="btn-secondary hidden" id="btnLogout">Logout</button>
           </div>
 
           <div class="note">
-            Alternativ kannst du dir einen Login-Link per E-Mail schicken lassen.
+            Tipp: Wenn du dein Passwort vergessen hast, nutze “Passwort vergessen?” – du bekommst dann einen Link zum Zurücksetzen.
           </div>
 
           <div id="loginMsg" class="msg"></div>
@@ -398,16 +407,21 @@
   async function init(){
     const { data: { session } } = await sb.auth.getSession();
     const type = hashParams().get("type"); // invite / recovery / magiclink / ...
-    const isInvite = (type === "invite" || type === "recovery");
+    const isInviteOrRecovery = (type === "invite" || type === "recovery");
 
     setStatus(!!session);
 
     // Wenn wir über Link kamen: Token aus URL entfernen (Session bleibt)
     if (session && location.hash) cleanHash();
 
-    if (session && isInvite){
+    // Invite/Recovery: Passwort setzen
+    if (session && isInviteOrRecovery){
+      const note = document.getElementById("inviteNote");
+      note.textContent = (type === "recovery")
+        ? "Passwort zurücksetzen: Bitte lege jetzt ein neues Passwort fest."
+        : "Einladung: Bitte lege jetzt dein Passwort fest.";
       showInvite();
-      setMsg(document.getElementById("inviteMsg"), "Bitte lege jetzt ein Passwort fest.", null);
+      setMsg(document.getElementById("inviteMsg"), "Bitte lege jetzt dein Passwort fest.", null);
       return;
     }
 
@@ -421,7 +435,7 @@
     }
   }
 
-  // INVITE: Passwort setzen
+  // INVITE/RECOVERY: Passwort setzen
   document.getElementById("btnSetPassword").addEventListener("click", async () => {
     const msg = document.getElementById("inviteMsg");
     const pw1 = document.getElementById("invPw1").value.trim();
@@ -436,7 +450,7 @@
     if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
 
     setStatus(true);
-    setMsg(msg, "✅ Passwort gesetzt. Du kannst jetzt ins Portal.", "ok");
+    setMsg(msg, "✅ Passwort gespeichert. Du kannst jetzt weiter.", "ok");
     document.getElementById("btnContinue").classList.remove("hidden");
   });
 
@@ -485,6 +499,21 @@
     });
 
     if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
+    setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
+  });
+
+  // Passwort vergessen
+  document.getElementById("btnForgotPw").addEventListener("click", async () => {
+    const msg = document.getElementById("loginMsg");
+    const email = document.getElementById("email").value.trim();
+
+    if (!email) return setMsg(msg, "Bitte E-Mail eingeben.", "bad");
+
+    setMsg(msg, "Sende Wiederherstellungs-Mail…", null);
+
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_TO });
+    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
+
     setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
   });
 
