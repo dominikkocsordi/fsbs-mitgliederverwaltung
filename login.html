@@ -26,6 +26,7 @@
 
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
+      --warn: rgba(251,146,60,.95);
     }
 
     *{box-sizing:border-box}
@@ -51,9 +52,7 @@
       padding: 42px 16px;
     }
 
-    .app{
-      width: min(560px, 100%);
-    }
+    .app{ width: min(560px, 100%); }
 
     .top{
       display:flex;
@@ -215,7 +214,6 @@
       color: #0f0b16;
       box-shadow: 0 12px 30px rgba(168,85,247,.25);
     }
-    /* ✅ Hover NICHT blau */
     .btn-primary:hover{
       transform: translateY(-2px);
       filter: brightness(1.05);
@@ -233,18 +231,6 @@
       transform: translateY(-2px);
       background: rgba(255,255,255,.18);
       border-color: rgba(255,255,255,.26);
-    }
-
-    .btn-purple{
-      background: linear-gradient(135deg, rgba(168,85,247,.22), rgba(0,0,0,.10));
-      color: var(--text);
-      border: 1px solid rgba(168,85,247,.45);
-      box-shadow: 0 12px 30px rgba(168,85,247,.18);
-    }
-    .btn-purple:hover{
-      transform: translateY(-2px);
-      filter: brightness(1.03);
-      box-shadow: 0 18px 36px rgba(168,85,247,.22);
     }
 
     .divider{
@@ -267,8 +253,37 @@
     }
     .msg.ok{ color: rgba(34,197,94,.95); }
     .msg.bad{ color: rgba(239,68,68,.95); }
+    .msg.warn{ color: rgba(251,146,60,.95); }
 
     .hidden{ display:none !important; }
+
+    /* OTP boxes */
+    .otpWrap{
+      display:flex;
+      gap:10px;
+      justify-content:flex-start;
+      flex-wrap:wrap;
+      margin-top: 4px;
+    }
+    .otpBox{
+      width: 44px;
+      height: 50px;
+      text-align:center;
+      font-size:18px;
+      font-weight:850;
+      letter-spacing:.6px;
+      border-radius:14px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      color: var(--text);
+      outline: none;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .otpBox:focus{
+      border-color: rgba(249,115,22,.55);
+      background: rgba(255,255,255,.16);
+      transform: translateY(-1px);
+    }
 
     footer{
       margin-top: 14px;
@@ -293,7 +308,7 @@
         </a>
         <div class="titles">
           <h1>FSBS Intern</h1>
-          <div class="subtitle">Vorstand & Ressortleitung · Login</div>
+          <div class="subtitle">Vorstand & Ressortleitung · Einmalcode Login</div>
         </div>
       </div>
 
@@ -304,55 +319,47 @@
     </div>
 
     <div class="glass card">
-      <!-- INVITE / RECOVERY: Passwort setzen -->
-      <section id="inviteSection" class="hidden">
-        <div class="note" id="inviteNote">Bitte lege jetzt dein Passwort fest.</div>
-        <div class="divider"></div>
-
-        <div class="grid">
-          <div>
-            <label for="invPw1">Neues Passwort</label>
-            <input id="invPw1" type="password" autocomplete="new-password" placeholder="mind. 8 Zeichen" />
-          </div>
-          <div>
-            <label for="invPw2">Passwort wiederholen</label>
-            <input id="invPw2" type="password" autocomplete="new-password" placeholder="wiederholen" />
-          </div>
-
-          <div class="row">
-            <button class="btn-primary" id="btnSetPassword">Passwort speichern</button>
-            <button class="btn-secondary hidden" id="btnContinue">Weiter</button>
-            <button class="btn-secondary" id="btnInviteCancel">Abbrechen</button>
-          </div>
-
-          <div id="inviteMsg" class="msg"></div>
-        </div>
-      </section>
-
-      <!-- LOGIN -->
-      <section id="loginSection">
+      <!-- STEP 1: EMAIL -->
+      <section id="stepEmail">
         <div class="grid">
           <div>
             <label for="email">E-Mail</label>
             <input id="email" type="email" autocomplete="email" placeholder="name@domain.de" />
           </div>
-          <div>
-            <label for="password">Passwort</label>
-            <input id="password" type="password" autocomplete="current-password" placeholder="dein Passwort" />
-          </div>
 
           <div class="row">
-            <button class="btn-primary" id="btnLoginPw">Login</button>
-            <button class="btn-purple" id="btnMagicLink">Login-Link per Mail</button>
-            <button class="btn-secondary" id="btnForgotPw">Passwort vergessen?</button>
+            <button class="btn-primary" id="btnSendOtp">Einmalcode senden</button>
             <button class="btn-secondary hidden" id="btnLogout">Logout</button>
           </div>
 
           <div class="note">
-            Tipp: “Passwort vergessen?” schickt dir einen Link zum Zurücksetzen.
+            Du bekommst einen Einmalcode per Mail. Code eingeben → direkt ins Portal.
           </div>
 
-          <div id="loginMsg" class="msg"></div>
+          <div id="msg" class="msg"></div>
+        </div>
+      </section>
+
+      <!-- STEP 2: OTP CODE -->
+      <section id="stepCode" class="hidden">
+        <div class="note">
+          Bitte gib den Einmalcode ein, den du per Mail erhalten hast.
+        </div>
+        <div class="divider"></div>
+
+        <div class="grid">
+          <div>
+            <label>Einmalcode</label>
+            <div class="otpWrap" id="otpWrap"></div>
+          </div>
+
+          <div class="row">
+            <button class="btn-primary" id="btnVerify">Code bestätigen</button>
+            <button class="btn-secondary" id="btnResend">Code neu senden</button>
+            <button class="btn-secondary" id="btnBack">Zurück</button>
+          </div>
+
+          <div id="codeMsg" class="msg"></div>
         </div>
       </section>
     </div>
@@ -363,16 +370,24 @@
   </div>
 
 <script>
-  // ========= SUPABASE =========
   const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
   const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const APP_REDIRECT = "index.html";
-  const REDIRECT_TO = "https://portal.fsbs-hm.de/login.html";
 
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
+  const msgEl = document.getElementById("msg");
+  const codeMsgEl = document.getElementById("codeMsg");
+
+  const stepEmail = document.getElementById("stepEmail");
+  const stepCode  = document.getElementById("stepCode");
+
+  const emailEl = document.getElementById("email");
+
+  // OTP config (UI): wie viele Kästchen
+  const OTP_LEN = 6;
 
   function setStatus(isAuthed){
     statusDot.classList.toggle("ok", !!isAuthed);
@@ -382,164 +397,159 @@
 
   function setMsg(el, text, kind){
     el.textContent = text || "";
-    el.classList.remove("ok","bad");
+    el.classList.remove("ok","bad","warn");
     if (kind) el.classList.add(kind);
   }
 
-  function getParam(name){
-    // Supabase kann Hash (#...) ODER Query (?...) benutzen
-    const fromHash = new URLSearchParams((location.hash || "").replace(/^#/, ""));
-    const fromQuery = new URLSearchParams(location.search || "");
-    return fromHash.get(name) ?? fromQuery.get(name);
+  function showEmail(){
+    stepEmail.classList.remove("hidden");
+    stepCode.classList.add("hidden");
   }
 
-  function cleanUrlAll(){
-    // entfernt Hash + Query (Tokens/Codes nicht stehen lassen)
-    const clean = location.origin + location.pathname;
-    history.replaceState(null, "", clean);
+  function showCode(){
+    stepEmail.classList.add("hidden");
+    stepCode.classList.remove("hidden");
   }
 
-  function showInvite(){
-    document.getElementById("inviteSection").classList.remove("hidden");
-    document.getElementById("loginSection").classList.add("hidden");
-  }
-  function showLogin(){
-    document.getElementById("inviteSection").classList.add("hidden");
-    document.getElementById("loginSection").classList.remove("hidden");
+  // Build OTP boxes
+  const otpWrap = document.getElementById("otpWrap");
+  function buildOtpBoxes(){
+    otpWrap.innerHTML = "";
+    for (let i=0;i<OTP_LEN;i++){
+      const inp = document.createElement("input");
+      inp.className = "otpBox";
+      inp.inputMode = "numeric";
+      inp.autocomplete = "one-time-code";
+      inp.maxLength = 1;
+      inp.setAttribute("aria-label", "OTP Ziffer " + (i+1));
+      inp.addEventListener("input", (e)=>{
+        inp.value = (inp.value || "").replace(/\D/g,"").slice(0,1);
+        if (inp.value && i < OTP_LEN-1) otpWrap.children[i+1].focus();
+        tryAutoSubmit();
+      });
+      inp.addEventListener("keydown", (e)=>{
+        if (e.key === "Backspace" && !inp.value && i>0){
+          otpWrap.children[i-1].focus();
+        }
+        if (e.key === "ArrowLeft" && i>0) otpWrap.children[i-1].focus();
+        if (e.key === "ArrowRight" && i<OTP_LEN-1) otpWrap.children[i+1].focus();
+      });
+      otpWrap.appendChild(inp);
+    }
   }
 
-  async function init(){
-    // ✅ PKCE-Fall: ?code=... => gegen Session tauschen
-    const code = getParam("code");
-    if (code){
-      const { error } = await sb.auth.exchangeCodeForSession(location.href);
-      if (error){
-        setStatus(false);
-        showLogin();
-        setMsg(document.getElementById("loginMsg"), "Fehler beim Link: " + error.message, "bad");
-        return;
+  function getOtpValue(){
+    return [...otpWrap.children].map(x => x.value || "").join("");
+  }
+
+  function setOtpValue(str){
+    const s = (str || "").replace(/\D/g,"").slice(0, OTP_LEN);
+    [...otpWrap.children].forEach((box, idx)=>{
+      box.value = s[idx] || "";
+    });
+    if (s.length < OTP_LEN) otpWrap.children[s.length]?.focus();
+  }
+
+  otpWrap.addEventListener("paste", (e)=>{
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData("text");
+    setOtpValue(text);
+    tryAutoSubmit();
+  });
+
+  async function tryAutoSubmit(){
+    const code = getOtpValue();
+    if (code.length === OTP_LEN){
+      // optional auto-verify:
+      // await verifyOtp();
+    }
+  }
+
+  let lastEmail = "";
+
+  async function sendOtp(){
+    const email = emailEl.value.trim();
+    if (!email) return setMsg(msgEl, "Bitte E-Mail eingeben.", "bad");
+
+    setMsg(msgEl, "Sende Einmalcode…", null);
+
+    // ✅ Supabase OTP anfordern
+    // Hinweis: Je nach Supabase-Einstellung kommt entweder ein CODE oder ein LINK.
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: {
+        // Wenn dein Projekt eher Link statt Code sendet, brauchst du nichts weiter.
+        // Für Code-Verifizierung nutzen wir später verifyOtp().
       }
-      cleanUrlAll();
+    });
+
+    if (error){
+      return setMsg(msgEl, "Fehler: " + error.message, "bad");
     }
 
+    lastEmail = email;
+    buildOtpBoxes();
+    showCode();
+    setMsg(codeMsgEl, "✅ Mail gesendet. Bitte Code eingeben. (Falls ein Link kommt: Link klicken.)", "ok");
+    setTimeout(()=> otpWrap.children[0]?.focus(), 50);
+  }
+
+  async function verifyOtp(){
+    const email = (lastEmail || emailEl.value.trim());
+    const token = getOtpValue();
+
+    if (!email) return setMsg(codeMsgEl, "Bitte E-Mail angeben.", "bad");
+    if (token.length !== OTP_LEN) return setMsg(codeMsgEl, `Bitte ${OTP_LEN}-stelligen Code eingeben.`, "bad");
+
+    setMsg(codeMsgEl, "Prüfe Code…", null);
+
+    const { data, error } = await sb.auth.verifyOtp({
+      email,
+      token,
+      type: "email" // ✅ Email OTP
+    });
+
+    if (error){
+      return setMsg(codeMsgEl, "Code ungültig oder abgelaufen. Bitte neu senden.", "bad");
+    }
+
+    setStatus(true);
+    setMsg(codeMsgEl, "✅ Erfolgreich. Weiterleitung…", "ok");
+    window.location.replace(APP_REDIRECT);
+  }
+
+  document.getElementById("btnSendOtp").addEventListener("click", sendOtp);
+  document.getElementById("btnVerify").addEventListener("click", verifyOtp);
+
+  document.getElementById("btnResend").addEventListener("click", async ()=>{
+    // resend using lastEmail
+    if (lastEmail) emailEl.value = lastEmail;
+    await sendOtp();
+  });
+
+  document.getElementById("btnBack").addEventListener("click", ()=>{
+    showEmail();
+    setMsg(msgEl, "", null);
+  });
+
+  document.getElementById("btnLogout").addEventListener("click", async ()=>{
+    await sb.auth.signOut();
+    setStatus(false);
+    showEmail();
+    setMsg(msgEl, "Ausgeloggt.", null);
+  });
+
+  // ✅ Wenn bereits eingeloggt -> direkt ins Portal
+  (async ()=>{
     const { data: { session } } = await sb.auth.getSession();
-
-    const type = getParam("type"); // invite / recovery / magiclink / ...
-    const isInviteOrRecovery = (type === "invite" || type === "recovery");
-
-    setStatus(!!session);
-
-    // Hash/Query bereinigen, sobald Session da ist
-    if (session && (location.hash || location.search)) cleanUrlAll();
-
-    // ✅ Invite/Recovery: Passwort setzen anzeigen
-    if (session && isInviteOrRecovery){
-      const note = document.getElementById("inviteNote");
-      note.textContent = (type === "recovery")
-        ? "Passwort zurücksetzen: Bitte lege jetzt ein neues Passwort fest."
-        : "Einladung: Bitte lege jetzt dein Passwort fest.";
-      showInvite();
-      setMsg(document.getElementById("inviteMsg"), "Bitte lege jetzt dein Passwort fest.", null);
-      return;
-    }
-
-    // ✅ Wenn bereits eingeloggt -> DIREKT ins Portal
     if (session){
+      setStatus(true);
       window.location.replace(APP_REDIRECT);
       return;
     }
-
-    // Normaler Login
-    showLogin();
-  }
-
-  // INVITE/RECOVERY: Passwort setzen
-  document.getElementById("btnSetPassword").addEventListener("click", async () => {
-    const msg = document.getElementById("inviteMsg");
-    const pw1 = document.getElementById("invPw1").value.trim();
-    const pw2 = document.getElementById("invPw2").value.trim();
-
-    if (pw1.length < 8) return setMsg(msg, "Passwort muss mindestens 8 Zeichen haben.", "bad");
-    if (pw1 !== pw2) return setMsg(msg, "Passwörter stimmen nicht überein.", "bad");
-
-    setMsg(msg, "Speichere Passwort…", null);
-
-    const { error } = await sb.auth.updateUser({ password: pw1 });
-    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
-
-    setStatus(true);
-    setMsg(msg, "✅ Passwort gespeichert. Weiterleitung…", "ok");
-    // ✅ direkt ins Portal (kein Extra Button nötig)
-    setTimeout(() => window.location.replace(APP_REDIRECT), 350);
-  });
-
-  document.getElementById("btnInviteCancel").addEventListener("click", async () => {
-    await sb.auth.signOut();
     setStatus(false);
-    showLogin();
-    setMsg(document.getElementById("loginMsg"), "Abgebrochen. Bitte normal einloggen.", null);
-  });
-
-  // Passwort Login
-  document.getElementById("btnLoginPw").addEventListener("click", async () => {
-    const msg = document.getElementById("loginMsg");
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-
-    if (!email) return setMsg(msg, "Bitte E-Mail eingeben.", "bad");
-    if (!password) return setMsg(msg, "Bitte Passwort eingeben.", "bad");
-
-    setMsg(msg, "Login…", null);
-
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
-
-    setStatus(true);
-    setMsg(msg, "✅ Eingeloggt. Weiterleitung…", "ok");
-    window.location.replace(APP_REDIRECT);
-  });
-
-  // Magic Link
-  document.getElementById("btnMagicLink").addEventListener("click", async () => {
-    const msg = document.getElementById("loginMsg");
-    const email = document.getElementById("email").value.trim();
-
-    if (!email) return setMsg(msg, "Bitte E-Mail eingeben.", "bad");
-
-    setMsg(msg, "Sende Login-Link…", null);
-
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: REDIRECT_TO }
-    });
-
-    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
-    setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
-  });
-
-  // Passwort vergessen
-  document.getElementById("btnForgotPw").addEventListener("click", async () => {
-    const msg = document.getElementById("loginMsg");
-    const email = document.getElementById("email").value.trim();
-
-    if (!email) return setMsg(msg, "Bitte E-Mail eingeben.", "bad");
-
-    setMsg(msg, "Sende Wiederherstellungs-Mail…", null);
-
-    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: REDIRECT_TO });
-    if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
-
-    setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
-  });
-
-  // Logout (nur sichtbar, falls du es später brauchst)
-  document.getElementById("btnLogout").addEventListener("click", async () => {
-    await sb.auth.signOut();
-    setStatus(false);
-    setMsg(document.getElementById("loginMsg"), "Ausgeloggt.", null);
-  });
-
-  window.addEventListener("load", init);
+    showEmail();
+  })();
 </script>
 </body>
 </html>
