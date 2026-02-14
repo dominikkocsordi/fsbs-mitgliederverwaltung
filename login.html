@@ -9,24 +9,15 @@
 
   <style>
     :root{
-      --bg1:#120e18;
-      --bg2:#1a1424;
-      --bg3:#1f162c;
-
-      --accent1:#f97316;   /* orange */
-      --accent2:#a855f7;   /* purple */
-
+      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+      --accent1:#f97316; --accent2:#a855f7;
       --glass: rgba(255,255,255,.08);
       --border: rgba(255,255,255,.18);
-
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.65);
-
       --shadow: 0 20px 55px rgba(0,0,0,.45);
-
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
-      --warn: rgba(251,146,60,.95);
     }
 
     *{box-sizing:border-box}
@@ -58,74 +49,31 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 14px;
-      margin-bottom: 14px;
+      gap:14px;
+      margin-bottom:14px;
     }
 
-    .brandLeft{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
+    .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
 
     .brandLogo{
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      padding: 6px;
-      display:grid;
-      place-items:center;
-
+      width: 52px; height: 52px; border-radius: 14px; padding: 6px;
+      display:grid; place-items:center;
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 16px 44px rgba(0,0,0,.30);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
-
-      flex: 0 0 auto;
+      flex:0 0 auto;
       transition: transform .16s ease, filter .16s ease, background .16s ease;
       text-decoration:none;
       color: rgba(255,255,255,.92);
-      font-weight: 850;
-      letter-spacing: .2px;
-      font-size: 14px;
+      font-weight:850;
     }
+    .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
+    .brandLogo img{ width:100%; height:100%; border-radius: 10px; object-fit:cover; display:block; }
 
-    .brandLogo:hover{
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-      background: rgba(255,255,255,.12);
-    }
-
-    .brandLogo img{
-      width: 100%;
-      height: 100%;
-      border-radius: 10px;
-      object-fit: cover;
-      display:block;
-    }
-
-    @media (max-width: 420px){
-      .brandLogo{ width: 44px; height: 44px; border-radius: 13px; padding: 5px; }
-      .brandLogo img{ border-radius: 9px; }
-    }
-
-    .titles{min-width:0}
-    .titles h1{
-      margin:0;
-      font-size: 22px;
-      letter-spacing: .25px;
-      line-height: 1.15;
-    }
-    .subtitle{
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 13px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
+    .titles h1{ margin:0; font-size:22px; letter-spacing:.25px; line-height:1.15; }
+    .subtitle{ margin-top:4px; color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
     .glass{
       background: rgba(255,255,255,.10);
@@ -135,36 +83,21 @@
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
     }
-
     .card{ padding:18px; }
 
     .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      padding:8px 10px;
-      border-radius:999px;
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; padding:8px 10px; border-radius:999px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(0,0,0,.15);
       color: var(--muted);
       white-space:nowrap;
     }
-    .dot{
-      width:9px;height:9px;border-radius:50%;
-      background: rgba(255,255,255,.35);
-      box-shadow: 0 0 0 3px rgba(255,255,255,.06);
-    }
+    .dot{ width:9px; height:9px; border-radius:50%; background: rgba(255,255,255,.35); box-shadow: 0 0 0 3px rgba(255,255,255,.06); }
     .dot.ok{ background: var(--ok); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
     .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(239,68,68,.18); }
 
-    label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
+    label{ display:block; font-size:12px; color: var(--muted); margin-bottom:6px; }
     input{
       width:100%;
       padding: 12px 12px;
@@ -182,32 +115,18 @@
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
 
-    .grid{ display:grid; gap: 12px; }
-
-    .row{
-      display:flex;
-      gap: 10px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
+    .grid{ display:grid; gap:12px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 
     button{
-      border:none;
-      cursor:pointer;
+      border:none; cursor:pointer;
       border-radius:14px;
       padding: 12px 16px;
       font-weight:650;
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
-
-    button:disabled{
-      cursor:not-allowed !important;
-      opacity:.55 !important;
-      transform:none !important;
-      filter:none !important;
-      box-shadow:none !important;
-    }
+    button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transform:none !important; filter:none !important; box-shadow:none !important; }
 
     .btn-primary{
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
@@ -233,68 +152,14 @@
       border-color: rgba(255,255,255,.26);
     }
 
-    .divider{
-      height:1px;
-      background: rgba(255,255,255,.10);
-      margin: 14px 0;
-    }
+    .note{ font-size:13px; color: var(--muted); line-height:1.45; }
 
-    .note{
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .msg{
-      margin-top: 10px;
-      font-size: 13px;
-      color: var(--muted);
-      min-height: 18px;
-    }
+    .msg{ margin-top:10px; font-size:13px; color: var(--muted); min-height:18px; }
     .msg.ok{ color: rgba(34,197,94,.95); }
     .msg.bad{ color: rgba(239,68,68,.95); }
-    .msg.warn{ color: rgba(251,146,60,.95); }
 
-    .hidden{ display:none !important; }
-
-    /* OTP boxes */
-    .otpWrap{
-      display:flex;
-      gap:10px;
-      justify-content:flex-start;
-      flex-wrap:wrap;
-      margin-top: 4px;
-    }
-    .otpBox{
-      width: 44px;
-      height: 50px;
-      text-align:center;
-      font-size:18px;
-      font-weight:850;
-      letter-spacing:.6px;
-      border-radius:14px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.18);
-      color: var(--text);
-      outline: none;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    .otpBox:focus{
-      border-color: rgba(249,115,22,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
-    }
-
-    footer{
-      margin-top: 14px;
-      text-align:center;
-      color: rgba(255,255,255,.55);
-      font-size: 12px;
-    }
-    footer strong{
-      color: rgba(255,255,255,.78);
-      font-weight: 750;
-    }
+    footer{ margin-top:14px; text-align:center; color: rgba(255,255,255,.55); font-size: 12px; }
+    footer strong{ color: rgba(255,255,255,.78); font-weight: 750; }
   </style>
 </head>
 
@@ -308,7 +173,7 @@
         </a>
         <div class="titles">
           <h1>FSBS Intern</h1>
-          <div class="subtitle">Vorstand & Ressortleitung · Einmalcode Login</div>
+          <div class="subtitle">Vorstand & Ressortleitung · Login per Mail-Link</div>
         </div>
       </div>
 
@@ -319,49 +184,23 @@
     </div>
 
     <div class="glass card">
-      <!-- STEP 1: EMAIL -->
-      <section id="stepEmail">
-        <div class="grid">
-          <div>
-            <label for="email">E-Mail</label>
-            <input id="email" type="email" autocomplete="email" placeholder="name@domain.de" />
-          </div>
-
-          <div class="row">
-            <button class="btn-primary" id="btnSendOtp">Einmalcode senden</button>
-            <button class="btn-secondary hidden" id="btnLogout">Logout</button>
-          </div>
-
-          <div class="note">
-            Du bekommst einen Einmalcode per Mail. Code eingeben → direkt ins Portal.
-          </div>
-
-          <div id="msg" class="msg"></div>
+      <div class="grid">
+        <div>
+          <label for="email">E-Mail</label>
+          <input id="email" type="email" autocomplete="email" placeholder="name@domain.de" />
         </div>
-      </section>
 
-      <!-- STEP 2: OTP CODE -->
-      <section id="stepCode" class="hidden">
+        <div class="row">
+          <button class="btn-primary" id="btnSend">Login-Link senden</button>
+          <button class="btn-secondary" id="btnResend" disabled>Erneut senden</button>
+        </div>
+
         <div class="note">
-          Bitte gib den Einmalcode ein, den du per Mail erhalten hast.
+          Du bekommst einen sicheren Login-Link per E-Mail. Link klicken → du wirst automatisch eingeloggt und ins Portal weitergeleitet.
         </div>
-        <div class="divider"></div>
 
-        <div class="grid">
-          <div>
-            <label>Einmalcode</label>
-            <div class="otpWrap" id="otpWrap"></div>
-          </div>
-
-          <div class="row">
-            <button class="btn-primary" id="btnVerify">Code bestätigen</button>
-            <button class="btn-secondary" id="btnResend">Code neu senden</button>
-            <button class="btn-secondary" id="btnBack">Zurück</button>
-          </div>
-
-          <div id="codeMsg" class="msg"></div>
-        </div>
-      </section>
+        <div id="msg" class="msg"></div>
+      </div>
     </div>
 
     <footer>
@@ -375,180 +214,106 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   const APP_REDIRECT = "index.html";
+  const EMAIL_REDIRECT_TO = "https://portal.fsbs-hm.de/login.html";
 
   const statusDot = document.getElementById("statusDot");
   const statusText = document.getElementById("statusText");
   const msgEl = document.getElementById("msg");
-  const codeMsgEl = document.getElementById("codeMsg");
-
-  const stepEmail = document.getElementById("stepEmail");
-  const stepCode  = document.getElementById("stepCode");
-
   const emailEl = document.getElementById("email");
-
-  // OTP config (UI): wie viele Kästchen
-  const OTP_LEN = 6;
+  const btnSend = document.getElementById("btnSend");
+  const btnResend = document.getElementById("btnResend");
 
   function setStatus(isAuthed){
     statusDot.classList.toggle("ok", !!isAuthed);
     statusDot.classList.toggle("bad", !isAuthed);
     statusText.textContent = isAuthed ? "eingeloggt" : "nicht eingeloggt";
   }
-
-  function setMsg(el, text, kind){
-    el.textContent = text || "";
-    el.classList.remove("ok","bad","warn");
-    if (kind) el.classList.add(kind);
+  function setMsg(text, kind){
+    msgEl.textContent = text || "";
+    msgEl.classList.remove("ok","bad");
+    if (kind) msgEl.classList.add(kind);
   }
 
-  function showEmail(){
-    stepEmail.classList.remove("hidden");
-    stepCode.classList.add("hidden");
+  function getParam(name){
+    const fromHash = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    const fromQuery = new URLSearchParams(location.search || "");
+    return fromHash.get(name) ?? fromQuery.get(name);
   }
 
-  function showCode(){
-    stepEmail.classList.add("hidden");
-    stepCode.classList.remove("hidden");
+  function cleanUrlAll(){
+    const clean = location.origin + location.pathname;
+    history.replaceState(null, "", clean);
   }
 
-  // Build OTP boxes
-  const otpWrap = document.getElementById("otpWrap");
-  function buildOtpBoxes(){
-    otpWrap.innerHTML = "";
-    for (let i=0;i<OTP_LEN;i++){
-      const inp = document.createElement("input");
-      inp.className = "otpBox";
-      inp.inputMode = "numeric";
-      inp.autocomplete = "one-time-code";
-      inp.maxLength = 1;
-      inp.setAttribute("aria-label", "OTP Ziffer " + (i+1));
-      inp.addEventListener("input", (e)=>{
-        inp.value = (inp.value || "").replace(/\D/g,"").slice(0,1);
-        if (inp.value && i < OTP_LEN-1) otpWrap.children[i+1].focus();
-        tryAutoSubmit();
-      });
-      inp.addEventListener("keydown", (e)=>{
-        if (e.key === "Backspace" && !inp.value && i>0){
-          otpWrap.children[i-1].focus();
-        }
-        if (e.key === "ArrowLeft" && i>0) otpWrap.children[i-1].focus();
-        if (e.key === "ArrowRight" && i<OTP_LEN-1) otpWrap.children[i+1].focus();
-      });
-      otpWrap.appendChild(inp);
-    }
-  }
-
-  function getOtpValue(){
-    return [...otpWrap.children].map(x => x.value || "").join("");
-  }
-
-  function setOtpValue(str){
-    const s = (str || "").replace(/\D/g,"").slice(0, OTP_LEN);
-    [...otpWrap.children].forEach((box, idx)=>{
-      box.value = s[idx] || "";
-    });
-    if (s.length < OTP_LEN) otpWrap.children[s.length]?.focus();
-  }
-
-  otpWrap.addEventListener("paste", (e)=>{
-    e.preventDefault();
-    const text = (e.clipboardData || window.clipboardData).getData("text");
-    setOtpValue(text);
-    tryAutoSubmit();
-  });
-
-  async function tryAutoSubmit(){
-    const code = getOtpValue();
-    if (code.length === OTP_LEN){
-      // optional auto-verify:
-      // await verifyOtp();
-    }
-  }
-
-  let lastEmail = "";
-
-  async function sendOtp(){
-    const email = emailEl.value.trim();
-    if (!email) return setMsg(msgEl, "Bitte E-Mail eingeben.", "bad");
-
-    setMsg(msgEl, "Sende Einmalcode…", null);
-
-    // ✅ Supabase OTP anfordern
-    // Hinweis: Je nach Supabase-Einstellung kommt entweder ein CODE oder ein LINK.
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: {
-        // Wenn dein Projekt eher Link statt Code sendet, brauchst du nichts weiter.
-        // Für Code-Verifizierung nutzen wir später verifyOtp().
+  async function handleCallbackIfNeeded(){
+    // PKCE: ?code=... -> exchange
+    const code = getParam("code");
+    if (code){
+      const { error } = await sb.auth.exchangeCodeForSession(location.href);
+      if (error){
+        setMsg("Fehler beim Login-Link: " + error.message, "bad");
+        return;
       }
-    });
-
-    if (error){
-      return setMsg(msgEl, "Fehler: " + error.message, "bad");
+      cleanUrlAll();
     }
 
-    lastEmail = email;
-    buildOtpBoxes();
-    showCode();
-    setMsg(codeMsgEl, "✅ Mail gesendet. Bitte Code eingeben. (Falls ein Link kommt: Link klicken.)", "ok");
-    setTimeout(()=> otpWrap.children[0]?.focus(), 50);
-  }
-
-  async function verifyOtp(){
-    const email = (lastEmail || emailEl.value.trim());
-    const token = getOtpValue();
-
-    if (!email) return setMsg(codeMsgEl, "Bitte E-Mail angeben.", "bad");
-    if (token.length !== OTP_LEN) return setMsg(codeMsgEl, `Bitte ${OTP_LEN}-stelligen Code eingeben.`, "bad");
-
-    setMsg(codeMsgEl, "Prüfe Code…", null);
-
-    const { data, error } = await sb.auth.verifyOtp({
-      email,
-      token,
-      type: "email" // ✅ Email OTP
-    });
-
-    if (error){
-      return setMsg(codeMsgEl, "Code ungültig oder abgelaufen. Bitte neu senden.", "bad");
-    }
-
-    setStatus(true);
-    setMsg(codeMsgEl, "✅ Erfolgreich. Weiterleitung…", "ok");
-    window.location.replace(APP_REDIRECT);
-  }
-
-  document.getElementById("btnSendOtp").addEventListener("click", sendOtp);
-  document.getElementById("btnVerify").addEventListener("click", verifyOtp);
-
-  document.getElementById("btnResend").addEventListener("click", async ()=>{
-    // resend using lastEmail
-    if (lastEmail) emailEl.value = lastEmail;
-    await sendOtp();
-  });
-
-  document.getElementById("btnBack").addEventListener("click", ()=>{
-    showEmail();
-    setMsg(msgEl, "", null);
-  });
-
-  document.getElementById("btnLogout").addEventListener("click", async ()=>{
-    await sb.auth.signOut();
-    setStatus(false);
-    showEmail();
-    setMsg(msgEl, "Ausgeloggt.", null);
-  });
-
-  // ✅ Wenn bereits eingeloggt -> direkt ins Portal
-  (async ()=>{
+    // Token-Hash: falls Supabase das nutzt, Hash entfernen sobald Session existiert
     const { data: { session } } = await sb.auth.getSession();
     if (session){
       setStatus(true);
+      if (location.hash || location.search) cleanUrlAll();
+      // ✅ direkt ins Portal
       window.location.replace(APP_REDIRECT);
       return;
     }
+
     setStatus(false);
-    showEmail();
+  }
+
+  async function sendMagicLink(){
+    const email = emailEl.value.trim();
+    if (!email) return setMsg("Bitte E-Mail eingeben.", "bad");
+
+    btnSend.disabled = true;
+    btnResend.disabled = true;
+    setMsg("Sende Login-Link…", null);
+
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: EMAIL_REDIRECT_TO }
+    });
+
+    btnSend.disabled = false;
+
+    if (error){
+      setMsg("Fehler: " + error.message, "bad");
+      return;
+    }
+
+    setMsg("✅ Mail gesendet. Bitte Link in der E-Mail klicken.", "ok");
+
+    // Resend erst nach kurzer Zeit aktivieren (Spam-Schutz)
+    let sec = 15;
+    btnResend.disabled = true;
+    btnResend.textContent = `Erneut senden (${sec}s)`;
+    const t = setInterval(()=>{
+      sec--;
+      if (sec <= 0){
+        clearInterval(t);
+        btnResend.disabled = false;
+        btnResend.textContent = "Erneut senden";
+        return;
+      }
+      btnResend.textContent = `Erneut senden (${sec}s)`;
+    }, 1000);
+  }
+
+  btnSend.addEventListener("click", sendMagicLink);
+  btnResend.addEventListener("click", sendMagicLink);
+
+  // init
+  (async ()=>{
+    await handleCallbackIfNeeded();
   })();
 </script>
 </body>
