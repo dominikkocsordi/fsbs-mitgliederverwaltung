@@ -215,10 +215,13 @@
       color: #0f0b16;
       box-shadow: 0 12px 30px rgba(168,85,247,.25);
     }
+    /* ✅ Hover NICHT blau */
     .btn-primary:hover{
       transform: translateY(-2px);
-      filter: brightness(1.03);
-      box-shadow: 0 18px 36px rgba(14,165,233,.33);
+      filter: brightness(1.05);
+      box-shadow:
+        0 18px 36px rgba(249,115,22,.25),
+        0 0 40px rgba(168,85,247,.25);
     }
 
     .btn-secondary{
@@ -303,9 +306,7 @@
     <div class="glass card">
       <!-- INVITE / RECOVERY: Passwort setzen -->
       <section id="inviteSection" class="hidden">
-        <div class="note" id="inviteNote">
-          Bitte lege jetzt dein Passwort fest.
-        </div>
+        <div class="note" id="inviteNote">Bitte lege jetzt dein Passwort fest.</div>
         <div class="divider"></div>
 
         <div class="grid">
@@ -344,12 +345,11 @@
             <button class="btn-primary" id="btnLoginPw">Login</button>
             <button class="btn-purple" id="btnMagicLink">Login-Link per Mail</button>
             <button class="btn-secondary" id="btnForgotPw">Passwort vergessen?</button>
-            <button class="btn-secondary hidden" id="btnGoApp">Ins Portal</button>
             <button class="btn-secondary hidden" id="btnLogout">Logout</button>
           </div>
 
           <div class="note">
-            Tipp: Wenn du dein Passwort vergessen hast, nutze “Passwort vergessen?” – du bekommst dann einen Link zum Zurücksetzen.
+            Tipp: “Passwort vergessen?” schickt dir einen Link zum Zurücksetzen.
           </div>
 
           <div id="loginMsg" class="msg"></div>
@@ -386,13 +386,17 @@
     if (kind) el.classList.add(kind);
   }
 
-  function hashParams(){
-    const h = location.hash.startsWith("#") ? location.hash.slice(1) : location.hash;
-    return new URLSearchParams(h);
+  function getParam(name){
+    // Supabase kann Hash (#...) ODER Query (?...) benutzen
+    const fromHash = new URLSearchParams((location.hash || "").replace(/^#/, ""));
+    const fromQuery = new URLSearchParams(location.search || "");
+    return fromHash.get(name) ?? fromQuery.get(name);
   }
 
-  function cleanHash(){
-    history.replaceState(null, "", location.pathname + location.search);
+  function cleanUrlAll(){
+    // entfernt Hash + Query (Tokens/Codes nicht stehen lassen)
+    const clean = location.origin + location.pathname;
+    history.replaceState(null, "", clean);
   }
 
   function showInvite(){
@@ -405,16 +409,30 @@
   }
 
   async function init(){
+    // ✅ PKCE-Fall: ?code=... => gegen Session tauschen
+    const code = getParam("code");
+    if (code){
+      const { error } = await sb.auth.exchangeCodeForSession(location.href);
+      if (error){
+        setStatus(false);
+        showLogin();
+        setMsg(document.getElementById("loginMsg"), "Fehler beim Link: " + error.message, "bad");
+        return;
+      }
+      cleanUrlAll();
+    }
+
     const { data: { session } } = await sb.auth.getSession();
-    const type = hashParams().get("type"); // invite / recovery / magiclink / ...
+
+    const type = getParam("type"); // invite / recovery / magiclink / ...
     const isInviteOrRecovery = (type === "invite" || type === "recovery");
 
     setStatus(!!session);
 
-    // Wenn wir über Link kamen: Token aus URL entfernen (Session bleibt)
-    if (session && location.hash) cleanHash();
+    // Hash/Query bereinigen, sobald Session da ist
+    if (session && (location.hash || location.search)) cleanUrlAll();
 
-    // Invite/Recovery: Passwort setzen
+    // ✅ Invite/Recovery: Passwort setzen anzeigen
     if (session && isInviteOrRecovery){
       const note = document.getElementById("inviteNote");
       note.textContent = (type === "recovery")
@@ -425,14 +443,14 @@
       return;
     }
 
-    showLogin();
-
-    // wenn schon eingeloggt -> optional direkt weiter
+    // ✅ Wenn bereits eingeloggt -> DIREKT ins Portal
     if (session){
-      document.getElementById("btnGoApp").classList.remove("hidden");
-      document.getElementById("btnLogout").classList.remove("hidden");
-      setMsg(document.getElementById("loginMsg"), "Du bist bereits eingeloggt.", "ok");
+      window.location.replace(APP_REDIRECT);
+      return;
     }
+
+    // Normaler Login
+    showLogin();
   }
 
   // INVITE/RECOVERY: Passwort setzen
@@ -450,12 +468,9 @@
     if (error) return setMsg(msg, "Fehler: " + error.message, "bad");
 
     setStatus(true);
-    setMsg(msg, "✅ Passwort gespeichert. Du kannst jetzt weiter.", "ok");
-    document.getElementById("btnContinue").classList.remove("hidden");
-  });
-
-  document.getElementById("btnContinue").addEventListener("click", () => {
-    window.location.href = APP_REDIRECT;
+    setMsg(msg, "✅ Passwort gespeichert. Weiterleitung…", "ok");
+    // ✅ direkt ins Portal (kein Extra Button nötig)
+    setTimeout(() => window.location.replace(APP_REDIRECT), 350);
   });
 
   document.getElementById("btnInviteCancel").addEventListener("click", async () => {
@@ -481,7 +496,7 @@
 
     setStatus(true);
     setMsg(msg, "✅ Eingeloggt. Weiterleitung…", "ok");
-    window.location.href = APP_REDIRECT;
+    window.location.replace(APP_REDIRECT);
   });
 
   // Magic Link
@@ -517,16 +532,11 @@
     setMsg(msg, "✅ E-Mail gesendet. Bitte Postfach prüfen.", "ok");
   });
 
+  // Logout (nur sichtbar, falls du es später brauchst)
   document.getElementById("btnLogout").addEventListener("click", async () => {
     await sb.auth.signOut();
     setStatus(false);
-    document.getElementById("btnGoApp").classList.add("hidden");
-    document.getElementById("btnLogout").classList.add("hidden");
     setMsg(document.getElementById("loginMsg"), "Ausgeloggt.", null);
-  });
-
-  document.getElementById("btnGoApp").addEventListener("click", () => {
-    window.location.href = APP_REDIRECT;
   });
 
   window.addEventListener("load", init);
