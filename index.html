@@ -29,8 +29,11 @@
   --ok: rgba(34,197,94,.95);
   --bad: rgba(239,68,68,.95);
   --warn: rgba(251,146,60,.95);
-}
 
+  /* ✅ FIX: danger vars (wurden genutzt aber nicht definiert) */
+  --danger1: #fb7185;
+  --danger2: #e11d48;
+}
 
 *{ box-sizing:border-box; }
 html, body { min-height: 100%; }
@@ -41,7 +44,6 @@ html{
   radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
   radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
   linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-
   background-attachment: fixed;
 }
 
@@ -49,13 +51,12 @@ body{
   margin:0;
   font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   color: var(--text);
-  background: transparent;         /* wichtig */
+  background: transparent;
   display:flex;
   justify-content:center;
   align-items:flex-start;
   padding:42px 16px;
 }
-
 
 .app{ width:100%; max-width:1200px; }
 
@@ -113,8 +114,6 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
   .brandLogo img{ border-radius: 9px; }
 }
-
-
 
 .glass{
   background: rgba(255,255,255,.10);
@@ -350,15 +349,15 @@ button:disabled:hover{
   display:inline-flex;
   align-items:center;
   gap:5px;
-  padding: 2px 6px;          /* kleiner */
+  padding: 2px 6px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.82);
-  font-weight:700;          /* leicht weniger fett */
-  font-size: 11px;          /* kleiner */
-  letter-spacing: .10px;    /* weniger spacing */
-  line-height: 1;           /* kompakter */
+  font-weight:700;
+  font-size: 11px;
+  letter-spacing: .10px;
+  line-height: 1;
   white-space:nowrap;
   flex: 0 0 auto;
 }
@@ -422,7 +421,6 @@ button:disabled:hover{
   border-color: rgba(249,115,22,.35);
   box-shadow: 0 12px 28px rgba(249,115,22,.25);
 }
-
 
 .navIcon{
   width:30px; height:30px;
@@ -525,9 +523,7 @@ hr.sep{
   margin: 14px 0;
 }
 
-/* =========================
-   MOBILE OPTIMIZATIONS
-   ========================= */
+/* ========================= MOBILE OPTIMIZATIONS ========================= */
 @media (max-width: 900px){
   table{ min-width: 860px; }
 }
@@ -576,51 +572,49 @@ hr.sep{
 <div class="app">
 
   <div class="top">
-  <div class="brandLeft">
-  <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
-    <img src="logo.png" alt="Fachschaft Logo"
-         onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
-  </a>
+    <div class="brandLeft">
+      <!-- ✅ besser relativ (keine Domain-Probleme) -->
+      <a class="brandLogo" href="index.html" title="Fachschaft Business School e.V.">
+        <img src="logo.png" alt="Fachschaft Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
 
-  <div>
-    <h1>Mitgliederportal</h1>
-    <div class="subtitle">Fachschaft Business School e.V.</div>
-  </div>
-</div>
+      <div>
+        <h1>Mitgliederportal</h1>
+        <div class="subtitle">Fachschaft Business School e.V.</div>
+      </div>
+    </div>
 
+    <div class="brandRight">
+      <!-- ✅ Auth Badge -->
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
 
-  <div class="brandRight">
-    <!-- ✅ Auth Badge -->
-    <div class="authFloating" id="authBadge" title="Login-Status">
-      <span class="dot warn" id="authDot"></span>
-      <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
 
-      <div class="authInfo">
-        <div class="authTopLine">
-          <div class="authState" id="authState">nicht eingeloggt</div>
-
-          <div class="authCompact hidden" id="authCompact">
-            <span class="authNameInline" id="authNameInline">User</span>
-            <span class="rolePill" id="authRolePill">Rolle</span>
-            <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+            </div>
           </div>
-        </div>
 
-        <div class="authDetails hidden" id="authDetails">
-          <div class="authMail" id="authMail"></div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
-
 
   <!-- NAV (nur eingeloggt) -->
   <div class="glass navWrap hidden" id="navWrap">
     <div class="nav">
       <div class="navLeft">
-        <a class="navLink active" href="/index.html" id="navMembers">
+        <a class="navLink active" href="index.html" id="navMembers">
           <span class="navIcon">👥</span>
           <span>
             <div class="navTitle">Mitglieder</div>
@@ -628,7 +622,7 @@ hr.sep{
           </span>
         </a>
 
-        <a class="navLink" href="/anwaerter.html" id="navCandidates">
+        <a class="navLink" href="anwaerter.html" id="navCandidates">
           <span class="navIcon">👶🏼</span>
           <span>
             <div class="navTitle">Anwärter</div>
@@ -636,7 +630,7 @@ hr.sep{
           </span>
         </a>
 
-        <a class="navLink" href="/bewerbungen.html" id="navApps">
+        <a class="navLink" href="bewerbungen.html" id="navApps">
           <span class="navIcon">📝</span>
           <span>
             <div class="navTitle">Bewerbungen</div>
@@ -644,7 +638,7 @@ hr.sep{
           </span>
         </a>
 
-        <a class="navLink" href="/rechnungen.html" id="navFinance">
+        <a class="navLink" href="rechnungen.html" id="navFinance">
           <span class="navIcon">💰</span>
           <span>
             <div class="navTitle">Finanzen</div>
@@ -652,30 +646,18 @@ hr.sep{
           </span>
         </a>
 
-        <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
-  <span class="navIcon">📊</span>
-  <span>
-    <div class="navTitle">Befragung</div>
-    <div class="navHint">Auswertung</div>
-  </span>
-</a>
-
+        <a class="navLink" href="mitgliederbefragung.html" id="navSurvey">
+          <span class="navIcon">📊</span>
+          <span>
+            <div class="navTitle">Befragung</div>
+            <div class="navHint">Auswertung</div>
+          </span>
+        </a>
       </div>
 
       <div class="navRight">
-        <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
+        <button class="btn-secondary" id="logoutBtn" onclick="logout()">Logout</button>
       </div>
-    </div>
-  </div>
-
-  <!-- AUTH -->
-  <div class="glass card" id="authCard">
-    <div class="row">
-      <input id="loginEmail" placeholder="Email" autocomplete="username">
-      <input id="loginPass" type="password" placeholder="Passwort" autocomplete="current-password">
-      <button class="btn-primary" onclick="login()">Login</button>
-      <div class="spacer"></div>
-      <div class="small">User werden von dir in Supabase per Invite freigeschaltet.</div>
     </div>
   </div>
 
@@ -763,7 +745,6 @@ hr.sep{
         <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()">Speichern</button>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -773,10 +754,13 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* ✅ Neu: Login-Seite */
+const LOGIN_PAGE = "login.html";
+
 /* ========= Rollen/Permissions (aus public.profiles) ========= */
 const PROFILES_TABLE = "profiles";
-let MY_ROLE = "";     // "vorstand" | "ressortleiter" | ""
-let CAN_EDIT = false; // nur Vorstand true
+let MY_ROLE = "";
+let CAN_EDIT = false;
 
 function normRole(v){ return (v || "").trim().toLowerCase(); }
 function roleLabel(role){
@@ -810,16 +794,13 @@ const authState = document.getElementById("authState");
 const authMail  = document.getElementById("authMail");
 const authAvatar = document.getElementById("authAvatar");
 
-// ✅ compact badge
 const authCompact = document.getElementById("authCompact");
 const authNameInline = document.getElementById("authNameInline");
 const authRolePill = document.getElementById("authRolePill");
 const authToggle = document.getElementById("authToggle");
 const authDetails = document.getElementById("authDetails");
 
-const logoutBtn = document.getElementById("logoutBtn");
 const mainCard = document.getElementById("mainCard");
-const authCard = document.getElementById("authCard");
 const navWrap = document.getElementById("navWrap");
 
 const searchEl = document.getElementById("search");
@@ -954,7 +935,7 @@ function pulseLogin(){
   setTimeout(() => authDot.classList.remove("pulsing"), 2600);
 }
 
-/* Badge helpers (kompakt + Details) */
+/* Badge helpers */
 function closeAuthDetails(){ authDetails.classList.add("hidden"); }
 function setRolePill(role){
   const r = normRole(role);
@@ -969,13 +950,12 @@ function setCompactIdentity(displayName, email){
   authNameInline.textContent = name || fallback;
 }
 
-/* ✅ Auth UI: wie bei Anwärter (kein "eingeloggt" Text, Details toggle) */
+/* ✅ Auth UI (index hat kein Login mehr) */
 function setAuthUI(isAuthed, email = "", doPulse = false){
   if (isAuthed){
     authDot.classList.remove("warn");
     authDot.classList.add("ok");
 
-    // kein "eingeloggt"
     authState.classList.add("hidden");
     authState.textContent = "";
 
@@ -985,36 +965,26 @@ function setAuthUI(isAuthed, email = "", doPulse = false){
     authMail.textContent = (email || "").trim();
     setAvatar(email);
 
-    logoutBtn.classList.remove("hidden");
     mainCard.classList.remove("hidden");
     navWrap.classList.remove("hidden");
-    authCard.classList.add("hidden");
 
-    // Buttons nach Permission
     applyPermissions();
-
     if (doPulse) pulseLogin();
   } else {
+    // auf dieser Seite wird bei "nicht eingeloggt" sowieso redirect gemacht
     authDot.classList.remove("ok");
     authDot.classList.add("warn");
-
     authState.classList.remove("hidden");
     authState.textContent = "nicht eingeloggt";
-
     authCompact.classList.add("hidden");
     closeAuthDetails();
-
     authMail.textContent = "";
     setAvatar("");
-
-    logoutBtn.classList.add("hidden");
     mainCard.classList.add("hidden");
     navWrap.classList.add("hidden");
-    authCard.classList.remove("hidden");
   }
 }
 
-/* Toggle Details */
 authToggle?.addEventListener("click", (e)=>{
   e.stopPropagation();
   authDetails.classList.toggle("hidden");
@@ -1023,9 +993,12 @@ document.addEventListener("click", (e)=>{
   if (!authBadge.contains(e.target)) closeAuthDetails();
 });
 
-async function requireAuth(){
+async function requireAuthOrRedirect(){
   const { data } = await sb.auth.getSession();
-  if (!data.session) throw new Error("Bitte einloggen.");
+  if (!data.session){
+    window.location.replace(LOGIN_PAGE);
+    throw new Error("No session");
+  }
   return data.session;
 }
 
@@ -1036,12 +1009,6 @@ async function loadMyProfile(session){
 
   const uid = session?.user?.id;
   const email = session?.user?.email || "";
-
-  if (!uid){
-    setCompactIdentity("", email);
-    setRolePill("ressortleiter");
-    return;
-  }
 
   const { data, error } = await sb
     .from(PROFILES_TABLE)
@@ -1070,51 +1037,20 @@ async function loadMyProfile(session){
   authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
 }
 
-/* Permissions in dieser Seite */
 function applyPermissions(){
-  // Vorstand: alles
-  // Ressortleiter: nur lesen/filtern -> kein Create/Edit/Delete
   const canEdit = !!CAN_EDIT;
-
   if (createBtn) createBtn.disabled = !canEdit;
-  // Edit/Delete Buttons werden in render() disabled gesetzt
 }
 
-/* ========= Auth ========= */
-async function login(){
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPass").value;
-
-  if (!email || !password) return alert("Bitte Email & Passwort eingeben.");
-
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) return alert(error.message);
-
-  const session = data?.session;
-  const loggedMail = data?.user?.email || email;
-
-  setAuthUI(true, loggedMail, true);
-
-  // ✅ Rolle + Name laden
-  await loadMyProfile(session || (await requireAuth()));
-
-  // Buttons aktualisieren
-  applyPermissions();
-
-  await load();
-}
-
+/* ========= Logout ========= */
 async function logout(){
   await sb.auth.signOut();
-  members = [];
-  listEl.innerHTML = "";
-  setAuthUI(false);
+  window.location.replace(LOGIN_PAGE);
 }
 
 /* ========= Data ========= */
 async function load(){
-  try { await requireAuth(); }
-  catch(e){ setAuthUI(false); return; }
+  await requireAuthOrRedirect();
 
   const { data, error } = await sb
     .from(DB.table)
@@ -1243,11 +1179,10 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
 });
 
-/* ========= CRUD from modal ========= */
+/* ========= CRUD ========= */
 async function saveModal(){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
-  try { await requireAuth(); }
-  catch(e){ return alert("Bitte einloggen."); }
+  await requireAuthOrRedirect();
 
   const payload = {};
   payload[DB.no] = mNo.value.trim() ? Number(mNo.value.trim()) : null;
@@ -1280,8 +1215,7 @@ async function saveModal(){
 
 async function del(pk){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf löschen.");
-  try { await requireAuth(); }
-  catch(e){ return alert("Bitte einloggen."); }
+  await requireAuthOrRedirect();
 
   const m = members.find(x => Number(getPk(x)) === Number(pk));
   const name = m ? `${getFirst(m) || ""} ${getLast(m) || ""}`.trim() : `ID ${pk}`;
@@ -1296,17 +1230,15 @@ async function del(pk){
 
 /* ========= Init ========= */
 (async () => {
-  const { data } = await sb.auth.getSession();
-  const session = data?.session;
+  // ✅ Wenn nicht eingeloggt -> direkt auf login.html
+  const session = await requireAuthOrRedirect();
+
   const mail = session?.user?.email || "";
+  setAuthUI(true, mail, false);
 
-  setAuthUI(!!session, mail, false);
-
-  if (session){
-    await loadMyProfile(session);
-    applyPermissions();
-    await load();
-  }
+  await loadMyProfile(session);
+  applyPermissions();
+  await load();
 })();
 </script>
 
