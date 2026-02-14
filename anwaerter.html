@@ -5,36 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Anwärter</title>
 
-  <!-- ✅ Safari Cache aggressiv → deaktivieren -->
-  <meta http-equiv="Cache-Control" content="no-store" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
    :root{
-  /* Matte Dark Base */
-  --bg1:#120e18;
-  --bg2:#1a1424;
-  --bg3:#1f162c;
+    --bg1:#120e18;
+    --bg2:#1a1424;
+    --bg3:#1f162c;
 
-  /* Modern Orange → Purple */
-  --accent1:#f97316;   /* warm orange */
-  --accent2:#a855f7;   /* vibrant purple */
+    --accent1:#f97316;
+    --accent2:#a855f7;
 
-  --glass: rgba(255,255,255,.08);
-  --border: rgba(255,255,255,.18);
+    --glass: rgba(255,255,255,.08);
+    --border: rgba(255,255,255,.18);
 
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.65);
+    --text: rgba(255,255,255,.92);
+    --muted: rgba(255,255,255,.65);
 
-  --shadow: 0 20px 55px rgba(0,0,0,.50);
+    --shadow: 0 20px 55px rgba(0,0,0,.50);
 
-  --ok: rgba(34,197,94,.95);
-  --bad: rgba(239,68,68,.95);
-  --warn: rgba(251,146,60,.95);
-}
+    --ok: rgba(34,197,94,.95);
+    --bad: rgba(239,68,68,.95);
+    --warn: rgba(251,146,60,.95);
+  }
 
     *{box-sizing:border-box}
     body{
@@ -64,25 +57,49 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ✅ Logo */
-    .brand{
+    /* ✅ Brand links: Logo + Titel (wie Startseite) */
+    .brandLeft{
       display:flex;
       align-items:center;
       gap:12px;
       min-width:0;
     }
-    .logo{
-      width: 60px;
-      height: 60px;
+    .brandLogo{
+      width: 52px;
+      height: 52px;
       border-radius: 14px;
-      object-fit: contain;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 14px 34px rgba(0,0,0,.28);
       padding: 6px;
+      display:grid;
+      place-items:center;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 16px 44px rgba(0,0,0,.30);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
       flex: 0 0 auto;
+      transition: transform .16s ease, filter .16s ease, background .16s ease;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      font-weight: 900;
+      letter-spacing: .2px;
     }
-    .brandText{ min-width:0; }
+    .brandLogo:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      background: rgba(255,255,255,.12);
+    }
+    .brandLogo img{
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      display:block;
+    }
+
+    @media (max-width: 640px){
+      .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+      .brandLogo img{ border-radius: 9px; }
+    }
 
     /* Auth badge */
     .authFloating{
@@ -151,6 +168,7 @@
       gap:8px;
       min-width:0;
     }
+    .authCompact.hidden{ display:none; }
 
     .authNameInline{
       font-size:13px;
@@ -169,6 +187,7 @@
       margin-top:0;
       word-break:break-all;
     }
+
     .rolePill{
       display:inline-flex;
       align-items:center;
@@ -185,7 +204,6 @@
       white-space:nowrap;
       flex: 0 0 auto;
     }
-
     .rolePill.vorstand{
       border-color: rgba(56,189,248,.40);
       background: rgba(56,189,248,.12);
@@ -219,7 +237,6 @@
       align-items:center;
       min-width:0;
     }
-
     .hidden{ display:none; }
 
     /* Header */
@@ -315,12 +332,14 @@
       border: 1px solid var(--border);
     }
     .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
     .btn-primary{
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
       color: #0f0b16;
       box-shadow: 0 12px 30px rgba(168,85,247,.25);
     }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+
     .btn-danger{
       background: rgba(239,68,68,.16);
       color: rgba(255,255,255,.92);
@@ -328,7 +347,6 @@
     }
     .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
 
-    /* ✅ Vollmitglied Button */
     .btn-done{
       background: rgba(16,185,129,.16);
       color: rgba(255,255,255,.92);
@@ -356,12 +374,6 @@
       outline:none;
       min-width: 190px;
       transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus, select:focus{
-      border-color: rgba(56,189,248,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
     }
 
     .tableWrap{
@@ -419,7 +431,6 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* Avatar / Foto */
     .avatarSmall{
       width:34px; height:34px;
       border-radius: 12px;
@@ -464,7 +475,6 @@
       color: rgba(255,255,255,.55);
     }
 
-    /* Edit modal */
     .modalOverlay{
       position: fixed; inset:0; z-index:60;
       background: rgba(0,0,0,.55);
@@ -515,12 +525,11 @@
     @media (max-width: 640px){
       input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-      .logo{ width: 40px; height: 40px; border-radius: 14px; }
       .authNameInline{ max-width: 140px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
-      th:nth-child(3), td:nth-child(3){ display:none; } /* Email verstecken auf Handy */
+      th:nth-child(3), td:nth-child(3){ display:none; }
     }
   </style>
 </head>
@@ -529,10 +538,13 @@
   <div class="app">
 
     <div class="top">
-      <div class="brand">
-        <!-- ✅ Logo wie Startseite (Pfad ggf. anpassen: /logo.png, /assets/logo.png, etc.) -->
-        <img class="logo" src="/logo.png" alt="Logo" onerror="this.style.display='none'">
-        <div class="brandText">
+      <div class="brandLeft">
+        <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+          <img src="logo.png" alt="Fachschaft Logo"
+               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+        </a>
+
+        <div>
           <h1>Anwärter</h1>
           <div class="subtitle">Liste der Anwärter · übernommen aus Bewerbungen</div>
         </div>
@@ -547,7 +559,7 @@
 
           <div class="authInfo">
             <div class="authTopLine">
-              <div class="authState" id="authState">prüfe login…</div>
+              <div class="authState" id="authState">nicht eingeloggt</div>
 
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
@@ -565,7 +577,7 @@
       </div>
     </div>
 
-    <div class="glass navWrap" id="navWrap" style="display:none;">
+    <div class="glass navWrap hidden" id="navWrap">
       <div class="nav">
         <div class="navLeft">
           <a class="navLink" href="/index.html">
@@ -610,12 +622,12 @@
         </div>
 
         <div class="navRight">
-          <button class="btn-secondary" id="logoutBtn">Logout</button>
+          <button class="btn-secondary hidden" id="logoutBtn">Logout</button>
         </div>
       </div>
     </div>
 
-    <div class="glass card" id="contentCard" style="display:none;">
+    <div class="glass card hidden" id="contentCard">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fRessort"></select>
@@ -640,7 +652,7 @@
         </table>
       </div>
 
-      <div id="empty" class="empty" style="display:none;">Keine Anwärter gefunden.</div>
+      <div id="empty" class="empty hidden">Keine Anwärter gefunden.</div>
     </div>
 
   </div>
@@ -684,27 +696,17 @@
   </div>
 
   <script>
-    // ====== Supabase Auth ======
+    /* ========= Supabase config ========= */
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-
-    // ✅ Safari/Reload stabil: persistSession + autoRefresh
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const LOGIN_REDIRECT = "/index.html";
 
-    // ====== Rollen/Permissions ======
+    /* ========= Rollen/Permissions ========= */
     const PROFILES_TABLE = "profiles";
     let MY_ROLE = "";
     let CAN_EDIT = false;
-    let CURRENT_SESSION = null;
-    let BOOTED = false;
 
     function normRole(v){ return (v || "").trim().toLowerCase(); }
     function roleLabel(role){
@@ -714,7 +716,7 @@
       return "Unbekannt";
     }
 
-    // ====== Tabellen ======
+    /* ========= Tabellen ========= */
     const CANDIDATES_TABLE = "anwaerter";
     const MEMBERS_TABLE = "members";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
@@ -727,7 +729,7 @@
       "Kommunikation"
     ];
 
-    // Elements
+    /* ========= Elements ========= */
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
 
@@ -763,7 +765,7 @@
     const editPhoto = document.getElementById("editPhoto");
     const editPhotoLink = document.getElementById("editPhotoLink");
 
-    // State
+    /* ========= State ========= */
     let ALL = [];
     let EDITING = null;
 
@@ -772,111 +774,14 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    function normalizeStatus(v){
-      return safe(v).trim().toLowerCase();
-    }
+    function normalizeStatus(v){ return safe(v).trim().toLowerCase(); }
     function isAnwaerterAbgelehnt(statusRaw){
       const st = normalizeStatus(statusRaw);
       return st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
     }
-    function isVollmitglied(statusRaw){
-      return normalizeStatus(statusRaw) === "vollmitglied";
-    }
+    function isVollmitglied(statusRaw){ return normalizeStatus(statusRaw) === "vollmitglied"; }
 
-    // ====== Ablehnen (nur Vorstand) ======
-    async function rejectCandidate(id){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen/bearbeiten.");
-
-      const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt.");
-      if (!ok) return;
-
-      const { error } = await sb
-        .from(CANDIDATES_TABLE)
-        .update({ [BEWERBUNG_STATUS_COL]: "Anwärter abgelehnt" })
-        .eq("id", id);
-
-      if (error){
-        alert("Fehler beim Ablehnen: " + error.message);
-        return;
-      }
-
-      await fetchCandidates();
-    }
-
-    // ====== ✅ Vollmitglied (nur Vorstand) ======
-    async function makeFullMember(row){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Vollmitglied setzen.");
-      if (!row?.id) return;
-
-      const stRaw = row[BEWERBUNG_STATUS_COL];
-      if (isVollmitglied(stRaw)) return;
-
-      const vorname = safe(row.vorname).trim();
-      const nachname = safe(row.nachname).trim();
-      const email = safe(row.email).trim();
-      const ressort = safe(row.ressort).trim();
-
-      if (!vorname || !nachname || !email || !ressort){
-        return alert("Fehlende Daten: Vorname/Nachname/Mail/Ressort müssen gesetzt sein.");
-      }
-
-      const ok = confirm(
-        `Als Vollmitglied übernehmen?\n\n` +
-        `${vorname} ${nachname}\n${email}\nRessort: ${ressort}\n\n` +
-        `→ wird in „${MEMBERS_TABLE}“ eingefügt und Status auf „Vollmitglied“ gesetzt.`
-      );
-      if (!ok) return;
-
-      // Duplicate-Check (über Email)
-      const { data: exists, error: existsErr } = await sb
-        .from(MEMBERS_TABLE)
-        .select("id")
-        .eq("email", email)
-        .maybeSingle();
-
-      if (existsErr){
-        alert("Fehler beim Prüfen der members-Tabelle: " + existsErr.message);
-        return;
-      }
-      if (exists){
-        alert("Dieses Mitglied existiert in „members“ bereits (gleiche Mail). Abbruch.");
-        return;
-      }
-
-      // ✅ Insert in members (Spalten korrekt)
-      const { error: insErr } = await sb
-        .from(MEMBERS_TABLE)
-        .insert([{
-          vorname,     // ✅ vorname
-          nachname,
-          email,
-          ressort
-        }]);
-
-      if (insErr){
-        alert("Konnte nicht in members übernehmen: " + insErr.message);
-        return;
-      }
-
-      // Status in anwaerter updaten
-      const { error: upErr } = await sb
-        .from(CANDIDATES_TABLE)
-        .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied" })
-        .eq("id", row.id);
-
-      if (upErr){
-        alert(
-          "Mitglied wurde in members angelegt, aber Status konnte nicht gesetzt werden:\n" +
-          upErr.message +
-          "\n\nBitte Status manuell auf „Vollmitglied“ setzen."
-        );
-        return;
-      }
-
-      await fetchCandidates();
-    }
-
-    // Badge helpers
+    /* ========= Badge helpers ========= */
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -885,7 +790,6 @@
       }
       return (h >>> 0);
     }
-
     function initialsFromText(txt){
       const t = (txt || "").trim();
       if (!t) return "U";
@@ -894,7 +798,6 @@
       const b = (parts[1]?.[0] || "").toUpperCase();
       return (a + b).trim() || a;
     }
-
     function initialsFromEmail(email){
       const e = (email || "").trim().toLowerCase();
       if (!e) return "U";
@@ -904,7 +807,6 @@
       const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
       return (a + b).trim() || a;
     }
-
     function setAvatar(email){
       const e = (email || "").trim().toLowerCase();
       if (!e){
@@ -921,10 +823,11 @@
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
 
+    function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+
     function setRolePill(role){
       const r = normRole(role);
       authRolePill.textContent = roleLabel(r);
-
       authRolePill.classList.remove("vorstand","ressortleiter");
       if (r === "vorstand") authRolePill.classList.add("vorstand");
       else authRolePill.classList.add("ressortleiter");
@@ -934,10 +837,6 @@
       const name = (displayName || "").trim();
       const fallback = ((email || "").split("@")[0] || "User").trim();
       authNameInline.textContent = name || fallback;
-    }
-
-    function closeAuthDetails(){
-      authDetails.classList.add("hidden");
     }
 
     function setAuthUI(isAuthed, email = ""){
@@ -954,9 +853,9 @@
         authMail.textContent = (email || "").trim();
         setAvatar(email);
 
-        navWrap.style.display = "block";
+        navWrap.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
-        contentCard.style.display = "block";
+        contentCard.classList.remove("hidden");
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
@@ -970,9 +869,9 @@
         authMail.textContent = "";
         setAvatar("");
 
-        navWrap.style.display = "none";
+        navWrap.classList.add("hidden");
         logoutBtn.classList.add("hidden");
-        contentCard.style.display = "none";
+        contentCard.classList.add("hidden");
       }
     }
 
@@ -980,17 +879,28 @@
       e.stopPropagation();
       authDetails.classList.toggle("hidden");
     });
-
     document.addEventListener("click", (e)=>{
       if (!authBadge.contains(e.target)) closeAuthDetails();
     });
+
+    async function requireAuth(){
+      const { data } = await sb.auth.getSession();
+      if (!data.session) throw new Error("Bitte einloggen.");
+      return data.session;
+    }
 
     async function loadMyProfile(session){
       MY_ROLE = "";
       CAN_EDIT = false;
 
       const uid = session?.user?.id;
-      if (!uid) return;
+      const email = session?.user?.email || "";
+
+      if (!uid){
+        setCompactIdentity("", email);
+        setRolePill("ressortleiter");
+        return;
+      }
 
       const { data, error } = await sb
         .from(PROFILES_TABLE)
@@ -1000,16 +910,15 @@
 
       if (error){
         console.warn("Profil konnte nicht geladen werden:", error.message);
-        setCompactIdentity("", session?.user?.email || "");
+        setCompactIdentity("", email);
         setRolePill("ressortleiter");
-        CAN_EDIT = false;
         return;
       }
 
       MY_ROLE = normRole(data?.role);
       CAN_EDIT = (MY_ROLE === "vorstand");
 
-      setCompactIdentity(data?.display_name, session?.user?.email || "");
+      setCompactIdentity(data?.display_name, email);
       setRolePill(MY_ROLE || "ressortleiter");
 
       const dn = (data?.display_name || "").trim();
@@ -1017,61 +926,8 @@
         authAvatar.textContent = initialsFromText(dn);
       }
 
-      const tip = `${(data?.display_name || session?.user?.email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
-      authBadge.title = tip;
+      authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
     }
-
-    // ✅ Safari-fix: Session kann beim Reload kurz "null" sein → robustes init + Listener
-    async function bootFromSession(session){
-      if (!session?.user){
-        setAuthUI(false);
-        window.location.href = LOGIN_REDIRECT;
-        return;
-      }
-
-      CURRENT_SESSION = session;
-
-      // UI sofort sichtbar, aber Aktionen bleiben korrekt, sobald Rolle geladen ist
-      setAuthUI(true, session.user.email || "");
-      authState.classList.remove("hidden");
-      authState.textContent = "lade rolle…";
-
-      await loadMyProfile(session);
-
-      authState.classList.add("hidden");
-      authState.textContent = "";
-
-      // nachdem CAN_EDIT sicher ist: neu rendern (Buttons korrekt)
-      render();
-
-      // Daten laden nur einmal
-      if (!BOOTED){
-        BOOTED = true;
-        await fetchCandidates();
-      }
-    }
-
-    async function initAuth(){
-      // 1) Direkt versuchen
-      const { data: { session } } = await sb.auth.getSession();
-      if (session?.user){
-        await bootFromSession(session);
-        return;
-      }
-
-      // 2) Falls Safari noch restored: kurz UI auf "prüfe login…"
-      setAuthUI(false);
-      authState.classList.remove("hidden");
-      authState.textContent = "prüfe login…";
-    }
-
-    sb.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user){
-        await bootFromSession(session);
-      } else {
-        setAuthUI(false);
-      }
-    });
 
     logoutBtn.addEventListener("click", async () => {
       await sb.auth.signOut();
@@ -1103,7 +959,7 @@
 
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       tbody.innerHTML = "";
-      empty.style.display = rows.length ? "none" : "block";
+      empty.classList.toggle("hidden", rows.length !== 0);
 
       rows.forEach(r => {
         const thumb = safe(r.photo_thumb).trim();
@@ -1194,7 +1050,6 @@
         return;
       }
 
-      // ✅ abgelehnt rausfiltern (wie bei dir)
       ALL = (Array.isArray(data) ? data : [])
         .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
 
@@ -1202,7 +1057,90 @@
       render();
     }
 
-    // Edit modal
+    async function rejectCandidate(id){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen/bearbeiten.");
+
+      const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt.");
+      if (!ok) return;
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .update({ [BEWERBUNG_STATUS_COL]: "Anwärter abgelehnt" })
+        .eq("id", id);
+
+      if (error){
+        alert("Fehler beim Ablehnen: " + error.message);
+        return;
+      }
+
+      await fetchCandidates();
+    }
+
+    async function makeFullMember(row){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Vollmitglied setzen.");
+      if (!row?.id) return;
+
+      const stRaw = row[BEWERBUNG_STATUS_COL];
+      if (isVollmitglied(stRaw)) return;
+
+      const vorname = safe(row.vorname).trim();
+      const nachname = safe(row.nachname).trim();
+      const email = safe(row.email).trim();
+      const ressort = safe(row.ressort).trim();
+
+      if (!vorname || !nachname || !email || !ressort){
+        return alert("Fehlende Daten: Vorname/Nachname/Mail/Ressort müssen gesetzt sein.");
+      }
+
+      const ok = confirm(
+        `Als Vollmitglied übernehmen?\n\n` +
+        `${vorname} ${nachname}\n${email}\nRessort: ${ressort}\n\n` +
+        `→ wird in „${MEMBERS_TABLE}“ eingefügt und Status auf „Vollmitglied“ gesetzt.`
+      );
+      if (!ok) return;
+
+      const { data: exists, error: existsErr } = await sb
+        .from(MEMBERS_TABLE)
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+
+      if (existsErr){
+        alert("Fehler beim Prüfen der members-Tabelle: " + existsErr.message);
+        return;
+      }
+      if (exists){
+        alert("Dieses Mitglied existiert in „members“ bereits (gleiche Mail). Abbruch.");
+        return;
+      }
+
+      const { error: insErr } = await sb
+        .from(MEMBERS_TABLE)
+        .insert([{
+          vorname,
+          nachname,
+          email,
+          ressort
+        }]);
+
+      if (insErr){
+        alert("Konnte nicht in members übernehmen: " + insErr.message);
+        return;
+      }
+
+      const { error: upErr } = await sb
+        .from(CANDIDATES_TABLE)
+        .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied" })
+        .eq("id", row.id);
+
+      if (upErr){
+        alert("Mitglied wurde in members angelegt, aber Status konnte nicht gesetzt werden:\n" + upErr.message);
+        return;
+      }
+
+      await fetchCandidates();
+    }
+
     function openEdit(row){
       if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
 
@@ -1309,66 +1247,23 @@
       if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEdit();
     });
 
-    // ============================
-// ✅ AUTH – stabil (Safari Reload)
-// ============================
+    /* ========= Init (wie Startseite) ========= */
+    (async () => {
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+      const mail = session?.user?.email || "";
 
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+      setAuthUI(!!session, mail);
 
-async function getSessionWithRetry(tries = 8, delayMs = 180){
-  for (let i = 0; i < tries; i++){
-    const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) return session;
-    await sleep(delayMs);
-  }
-  return null;
-}
+      if (!session){
+        // wie du es vorher wolltest: ohne Session zurück zur Login-Seite
+        window.location.href = LOGIN_REDIRECT;
+        return;
+      }
 
-async function enforceAuthStable(){
-  // UI zeigt erstmal "prüfe..."
-  setAuthUI(false);
-  authState.classList.remove("hidden");
-  authState.textContent = "login prüfen…";
-  statusPill.textContent = "Login prüfen…";
-
-  // 1) Retry-Session holen (Safari braucht manchmal paar hundert ms)
-  const session = await getSessionWithRetry();
-
-  if (!session?.user){
-    // 2) Wenn wirklich keine Session -> redirect wie früher
-    setAuthUI(false);
-    window.location.href = LOGIN_REDIRECT;
-    return;
-  }
-
-  // 3) Session da → UI aktivieren + Rolle laden
-  setAuthUI(true, session.user.email || "");
-  authState.classList.remove("hidden");
-  authState.textContent = "lade rolle…";
-
-  await loadMyProfile(session);
-
-  authState.classList.add("hidden");
-  authState.textContent = "";
-  statusPill.textContent = "–";
-
-  // ✅ Wichtig: Jetzt erst Daten laden
-  await fetchCandidates();
-}
-
-// Listener: wenn Safari später doch Session “nachliefert”
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user){
-    setAuthUI(true, session.user.email || "");
-    await loadMyProfile(session);
-    render(); // Buttons korrekt nach CAN_EDIT
-  }
-});
-
-(async function init(){
-  await enforceAuthStable();
-})();
-
+      await loadMyProfile(session);
+      await fetchCandidates();
+    })();
   </script>
 </body>
 </html>
