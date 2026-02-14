@@ -9,28 +9,25 @@
 
   <style>
     :root{
-  /* Matte Dark Base */
-  --bg1:#120e18;
-  --bg2:#1a1424;
-  --bg3:#1f162c;
+      --bg1:#120e18;
+      --bg2:#1a1424;
+      --bg3:#1f162c;
 
-  /* Modern Orange → Purple */
-  --accent1:#f97316;   /* warm orange */
-  --accent2:#a855f7;   /* vibrant purple */
+      --accent1:#f97316;
+      --accent2:#a855f7;
 
-  --glass: rgba(255,255,255,.08);
-  --border: rgba(255,255,255,.18);
+      --glass: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.18);
 
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.65);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
 
-  --shadow: 0 20px 55px rgba(0,0,0,.50);
+      --shadow: 0 20px 55px rgba(0,0,0,.50);
 
-  --ok: rgba(34,197,94,.95);
-  --bad: rgba(239,68,68,.95);
-  --warn: rgba(251,146,60,.95);
-}
-
+      --ok: rgba(34,197,94,.95);
+      --bad: rgba(239,68,68,.95);
+      --warn: rgba(251,146,60,.95);
+    }
 
     *{box-sizing:border-box}
     body{
@@ -42,7 +39,6 @@
         radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
         radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
         linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-
       min-height:100vh;
       padding: 28px 16px 60px;
       display:flex;
@@ -61,7 +57,50 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ===== Auth badge (kompakt + Details Toggle) ===== */
+    /* ✅ Brand links: Logo + Titel (wie Startseite) */
+    .brandLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .brandLogo{
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      padding: 6px;
+      display:grid;
+      place-items:center;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 16px 44px rgba(0,0,0,.30);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      flex: 0 0 auto;
+      transition: transform .16s ease, filter .16s ease, background .16s ease;
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .brandLogo:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      background: rgba(255,255,255,.12);
+    }
+    .brandLogo img{
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      object-fit: cover;
+      display:block;
+    }
+    @media (max-width: 640px){
+      .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+      .brandLogo img{ border-radius: 9px; }
+    }
+
+    /* Auth badge */
     .authFloating{
       border-radius: 999px;
       padding: 10px 12px;
@@ -76,13 +115,7 @@
       user-select:none;
       max-width: min(560px, 100%);
     }
-
-    .dot{
-      width:10px;height:10px;border-radius:999px;
-      background: rgba(255,255,255,.35);
-      position: relative;
-      flex: 0 0 auto;
-    }
+    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position:relative; flex:0 0 auto; }
     .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
 
@@ -103,33 +136,12 @@
     }
     .authAvatar.hidden{ display:none; }
 
-    .authInfo{
-      display:flex;
-      flex-direction:column;
-      line-height:1.1;
-      min-width:0;
-      flex: 1 1 auto;
-    }
-    .authState{
-      font-size:13px;
-      font-weight:750;
-      letter-spacing:.25px;
-    }
+    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex: 1 1 auto; }
+    .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
     .authState.hidden{ display:none; }
 
-    .authTopLine{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      min-width:0;
-    }
-    .authCompact{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      min-width:0;
-    }
+    .authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+    .authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
     .authCompact.hidden{ display:none; }
 
     .authNameInline{
@@ -169,12 +181,7 @@
     }
     .authDetails.hidden{ display:none; }
 
-    .authMail{
-      font-size:11px;
-      color: rgba(255,255,255,.58);
-      margin-top:0;
-      word-break:break-all;
-    }
+    .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
 
     .rolePill{
       display:inline-flex;
@@ -192,18 +199,12 @@
       white-space:nowrap;
       flex: 0 0 auto;
     }
-    .rolePill.vorstand{
-      border-color: rgba(56,189,248,.40);
-      background: rgba(56,189,248,.12);
-    }
-    .rolePill.other{
-      border-color: rgba(251,146,60,.35);
-      background: rgba(251,146,60,.12);
-    }
+    .rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
+    .rolePill.other{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
 
     .hidden{ display:none; }
 
-    /* Header + Controls */
+    /* Header */
     .top{
       display:flex;
       align-items:flex-end;
@@ -226,7 +227,6 @@
       gap:8px;
       white-space:nowrap;
     }
-    .pill strong{ color: rgba(255,255,255,.92); font-weight:900; }
 
     /* NAV */
     .navWrap{
@@ -265,12 +265,10 @@
       border-color: rgba(255,255,255,.22);
     }
     .navLink.active{
-  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
-  border-color: rgba(249,115,22,.35);
-  box-shadow: 0 12px 28px rgba(249,115,22,.25);
-}
-
-
+      background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
+      border-color: rgba(249,115,22,.35);
+      box-shadow: 0 12px 28px rgba(249,115,22,.25);
+    }
     .navIcon{
       width:30px; height:30px;
       border-radius: 12px;
@@ -300,11 +298,10 @@
     .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
 
     .btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: #0f0b16;
-  box-shadow: 0 12px 30px rgba(168,85,247,.25);
-}
-
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #0f0b16;
+      box-shadow: 0 12px 30px rgba(168,85,247,.25);
+    }
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
     .btn-danger{
@@ -329,7 +326,6 @@
     .btn-ok:hover{ transform: translateY(-2px); filter: brightness(1.04); }
 
     .card{ padding:16px; margin-bottom:14px; }
-
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
 
@@ -376,23 +372,6 @@
       gap:14px;
     }
     @media (max-width: 1020px){ .grid{grid-template-columns: repeat(2, minmax(0,1fr));} }
-    @media (max-width: 640px){
-      .grid{grid-template-columns: 1fr;}
-      input,select{min-width:0; width:100%;}
-      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-      .authNameInline{ max-width: 150px; }
-
-      /* mobile nav scroll */
-      .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
-      .navLeft{ flex-wrap:nowrap; }
-      .navRight{ margin-left: 0; flex-wrap:nowrap; }
-      .navRight button{ white-space:nowrap; }
-
-      /* controls stacked, less cramped */
-      .card .row{ gap:10px; }
-      button{ width:100%; }
-      .row .spacer{ display:none; }
-    }
 
     .appCard{
       border:1px solid rgba(255,255,255,.18);
@@ -475,6 +454,15 @@
       color: rgba(255,255,255,.78);
     }
 
+    /* Deny */
+    .denyBox{
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid rgba(239,68,68,.28);
+      background: rgba(239,68,68,.10);
+      color: rgba(255,255,255,.90);
+    }
+
     /* Modal */
     .modalOverlay{
       position: fixed; inset:0; z-index:50;
@@ -529,37 +517,40 @@
     .split{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
     .split > *{ flex: 1 1 260px; }
 
-    .denyBox{
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(239,68,68,.28);
-      background: rgba(239,68,68,.10);
-      color: rgba(255,255,255,.90);
-    }
+    @media (max-width: 640px){
+      input,select{min-width:0; width:100%;}
+      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+      .authNameInline{ max-width: 150px; }
 
-    .debug{
-      display:none;
-      margin-top: 10px;
-      padding: 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.25);
-      color: rgba(255,255,255,.84);
-      font-size: 12px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
+      .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
+      .navLeft{ flex-wrap:nowrap; }
+      .navRight{ margin-left: 0; flex-wrap:nowrap; }
+      .navRight button{ white-space:nowrap; }
+
+      .card .row{ gap:10px; }
+      button{ width:100%; }
+      .row .spacer{ display:none; }
+
+      .grid{ grid-template-columns: 1fr; }
     }
-    .debug.show{ display:block; }
   </style>
 </head>
 
 <body>
   <div class="app">
 
+    <!-- ✅ Header wie Startseite -->
     <div class="top">
-      <div>
-        <h1>Finanzen</h1>
-        <div class="subtitle">Rechnungen & Auslagen</div>
+      <div class="brandLeft">
+        <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+          <img src="logo.png" alt="Fachschaft Logo"
+               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+        </a>
+
+        <div>
+          <h1>Finanzen</h1>
+          <div class="subtitle">Rechnungen & Auslagen</div>
+        </div>
       </div>
 
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
@@ -588,7 +579,7 @@
       </div>
     </div>
 
-    <!-- NAV (wird NUR für Vorstand sichtbar geschaltet) -->
+    <!-- NAV (NUR Vorstand sichtbar) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
@@ -625,18 +616,18 @@
           </a>
 
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
-  <span class="navIcon">📊</span>
-  <span>
-    <div class="navTitle">Befragung</div>
-    <div class="navHint">Auswertung</div>
-  </span>
-</a>
-
+            <span class="navIcon">📊</span>
+            <span>
+              <div class="navTitle">Befragung</div>
+              <div class="navHint">Auswertung</div>
+            </span>
+          </a>
         </div>
 
         <div class="navRight">
-          <!-- ✅ Belege-Link wird nur für Vorstand angezeigt -->
-          <a class="navLink" id="belegeNavLink" href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing" target="_blank" rel="noopener" style="display:none;">
+          <a class="navLink" id="belegeNavLink"
+             href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing"
+             target="_blank" rel="noopener" style="display:none;">
             <span class="navIcon">📁</span>
             <span>
               <div class="navTitle">Belege</div>
@@ -649,7 +640,7 @@
       </div>
     </div>
 
-    <!-- Zugriff verweigert -->
+    <!-- Kein Zugriff -->
     <div class="glass card" id="denyWrap" style="display:none;">
       <div class="denyBox">
         <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
@@ -715,8 +706,6 @@
         <div class="spacer"></div>
         <div class="pill" style="opacity:.9;">Klick auf Karte → Details & Status</div>
       </div>
-
-      <div class="debug" id="debugBox"></div>
     </div>
 
     <div id="grid" class="grid" style="display:none;"></div>
@@ -764,7 +753,7 @@
 
   <script>
     // ==========================
-    // ✅ KONFIG
+    // KONFIG
     // ==========================
     const APP_URL = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
 
@@ -774,7 +763,7 @@
 
     const LOGIN_REDIRECT = "/index.html";
     const PROFILES_TABLE = "profiles";
-    const REQUIRED_ROLE = "vorstand"; // ✅ exakt so, kleinschreibung
+    const REQUIRED_ROLE = "vorstand";
 
     const F = {
       ts: "Zeitstempel",
@@ -789,9 +778,7 @@
       iban: "Dein IBAN"
     };
 
-    // ==========================
     // Elements
-    // ==========================
     const navWrap = document.getElementById("navWrap");
     const belegeNavLink = document.getElementById("belegeNavLink");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -811,7 +798,6 @@
     const fProj = document.getElementById("fProj");
     const reloadBtn = document.getElementById("reloadBtn");
     const exportBtn = document.getElementById("exportBtn");
-    const debugBox = document.getElementById("debugBox");
 
     const modalOverlay = document.getElementById("modalOverlay");
     const modalTitle = document.getElementById("modalTitle");
@@ -841,9 +827,7 @@
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
 
-    // ==========================
     // State
-    // ==========================
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
@@ -856,23 +840,14 @@
     let ALL = [];
     let ACTIVE_ROW = null;
 
-    function showDebug(obj){
-      debugBox.classList.add("show");
-      debugBox.textContent = JSON.stringify(obj, null, 2);
-    }
-
-    // ==========================
-    // PRICE
-    // ==========================
+    // Helpers
     function parseEUR(v){
       if (typeof v === "number" && Number.isFinite(v)) return v;
       const raw = safe(v).trim();
       if (!raw) return 0;
-
       const s = raw.replace(/\s/g,"").replace(/[^\d.,-]/g,"");
       const hasDot = s.includes(".");
       const hasComma = s.includes(",");
-
       if (hasDot && hasComma){
         const norm = s.replace(/\./g,"").replace(",",".");
         const n = Number(norm);
@@ -907,9 +882,7 @@
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
     }
 
-    // ==========================
     // Badge helpers
-    // ==========================
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -950,6 +923,7 @@
       authAvatar.classList.remove("hidden");
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
+
     function closeAuthDetails(){ authDetails.classList.add("hidden"); }
     authToggle?.addEventListener("click", (e)=>{
       e.stopPropagation();
@@ -959,9 +933,7 @@
       if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
     });
 
-    function normRole(v){
-      return String(v || "").replace(/\s+/g," ").trim().toLowerCase();
-    }
+    function normRole(v){ return String(v || "").replace(/\s+/g," ").trim().toLowerCase(); }
     function setRolePill(role){
       const r = normRole(role);
       authRolePill.textContent = r || "unbekannt";
@@ -973,29 +945,6 @@
       const name = (displayName || "").trim();
       const fallback = ((email || "").split("@")[0] || "User").trim();
       authNameInline.textContent = name || fallback;
-    }
-
-    // ✅ Nav/Content harte Freigabe
-    function applyAccessUI(allowed){
-      CAN_VIEW = !!allowed;
-
-      // NAV + Drive Link nur für Vorstand
-      navWrap.style.display = allowed ? "block" : "none";
-      belegeNavLink.style.display = allowed ? "inline-flex" : "none";
-
-      // Content
-      denyWrap.style.display = allowed ? "none" : "block";
-      kpiCard.style.display = allowed ? "block" : "none";
-      controlsCard.style.display = allowed ? "block" : "none";
-      grid.style.display = allowed ? "grid" : "none";
-
-      if (!allowed){
-        // ✅ Sensitive UI weg
-        empty.style.display = "none";
-        grid.innerHTML = "";
-        ALL = [];
-        TOKEN = null;
-      }
     }
 
     function setAuthUI(isAuthed, email=""){
@@ -1015,13 +964,29 @@
       }
     }
 
-    // ==========================
-    // Auth + Permissions
-    // ==========================
+    function applyAccessUI(allowed){
+      CAN_VIEW = !!allowed;
+
+      navWrap.style.display = allowed ? "block" : "none";
+      belegeNavLink.style.display = allowed ? "inline-flex" : "none";
+
+      denyWrap.style.display = allowed ? "none" : "block";
+      kpiCard.style.display = allowed ? "block" : "none";
+      controlsCard.style.display = allowed ? "block" : "none";
+      grid.style.display = allowed ? "grid" : "none";
+
+      if (!allowed){
+        empty.style.display = "none";
+        grid.innerHTML = "";
+        ALL = [];
+        TOKEN = null;
+      }
+    }
+
     async function requireAuth(){
-      const res = await sb.auth.getSession();
-      if (!res?.data?.session) throw new Error("not_logged_in");
-      return res.data.session;
+      const { data } = await sb.auth.getSession();
+      if (!data.session) throw new Error("not_logged_in");
+      return data.session;
     }
 
     async function loadMyProfile(session){
@@ -1048,6 +1013,8 @@
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
+      authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
+
       return MY_ROLE;
     }
 
@@ -1062,36 +1029,6 @@
       return data?.value || "";
     }
 
-    async function enforceAuth(){
-      try{
-        const session = await requireAuth();
-        const mail = session?.user?.email || "";
-        setAuthUI(true, mail);
-
-        const role = await loadMyProfile(session);
-        const allowed = (role === REQUIRED_ROLE);
-
-        if (!allowed){
-          statusPill.textContent = "Kein Zugriff";
-          applyAccessUI(false);
-          return;
-        }
-
-        applyAccessUI(true);
-
-        TOKEN = await loadFinanceToken();
-        if (!TOKEN){
-          statusPill.textContent = "Fehlt: finance_sheet_token";
-          showDebug({hint:"Supabase app_secrets: key=finance_sheet_token (RLS nur vorstand)."});
-          return;
-        }
-
-      } catch(e){
-        setAuthUI(false);
-        window.location.href = LOGIN_REDIRECT;
-      }
-    }
-
     async function doLogout(){
       await sb.auth.signOut();
       window.location.href = "/index.html";
@@ -1099,18 +1036,14 @@
     logoutBtn?.addEventListener("click", doLogout);
     logoutBtn2?.addEventListener("click", doLogout);
 
-    // ==========================
     // API
-    // ==========================
     async function apiGetRows(){
       const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
       const res = await fetch(url, { method:"GET" });
       const text = await res.text();
-
       let json;
       try { json = JSON.parse(text); }
       catch(err){ throw new Error("API liefert kein JSON: " + text.slice(0,200)); }
-
       if (!res.ok) throw new Error("API Fehler: " + res.status);
       if (json?.error) throw new Error("API: " + json.error);
       return Array.isArray(json.rows) ? json.rows : [];
@@ -1127,9 +1060,6 @@
       if (!res.ok) throw new Error("POST failed: " + res.status + " " + t.slice(0,200));
     }
 
-    // ==========================
-    // Data & UI
-    // ==========================
     function filtered(){
       const text = safe(q.value).trim().toLowerCase();
       const st = safe(fStatus.value).trim();
@@ -1221,7 +1151,6 @@
       const ln = safe(row[F.ln]).trim();
       const name = (fn + " " + ln).trim() || "Rechnung";
 
-      const ts = tsKey(row);
       const proj = safe(row[F.proj]).trim();
       const date = safe(row[F.date]).trim();
       const st = statusNorm(row[F.status]);
@@ -1284,38 +1213,31 @@
       if (!CAN_VIEW) return;
 
       statusPill.textContent = "Lade…";
-      try{
-        ALL = await apiGetRows();
+      ALL = await apiGetRows();
 
-        // default status
-        ALL = ALL.map(r=>{
-          if (!safe(r[F.status]).trim()) r[F.status] = "Rechnung offen";
-          return r;
-        });
+      ALL = ALL.map(r=>{
+        if (!safe(r[F.status]).trim()) r[F.status] = "Rechnung offen";
+        return r;
+      });
 
-        fillProjectFilter();
-        updateKPIs();
-        render();
-      } catch(err){
-        statusPill.textContent = "API Fehler";
-        showDebug({error: String(err)});
-      }
+      fillProjectFilter();
+      updateKPIs();
+      render();
     }
 
     async function setStatusFor(ts, status){
       if (!CAN_VIEW) return;
-      try{
-        await apiSetStatus(ts, status);
-        const i = ALL.findIndex(r => tsKey(r) === ts);
-        if (i >= 0) ALL[i][F.status] = status;
-        updateKPIs();
-        render();
-        if (ACTIVE_ROW && tsKey(ACTIVE_ROW) === ts) {
-          ACTIVE_ROW[F.status] = status;
-          selStatus.textContent = statusNorm(status);
-        }
-      } catch(err){
-        alert("Konnte Status nicht setzen: " + (err?.message || err));
+
+      await apiSetStatus(ts, status);
+      const i = ALL.findIndex(r => tsKey(r) === ts);
+      if (i >= 0) ALL[i][F.status] = status;
+
+      updateKPIs();
+      render();
+
+      if (ACTIVE_ROW && tsKey(ACTIVE_ROW) === ts) {
+        ACTIVE_ROW[F.status] = status;
+        selStatus.textContent = statusNorm(status);
       }
     }
 
@@ -1356,13 +1278,39 @@
     modalOverlay?.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
 
-    // Init
-    (async function init(){
-      // default locked down until permission is known
+    /* ========= Init (wie Startseite) ========= */
+    (async () => {
+      // default: alles zu bis Rolle sicher ist
       applyAccessUI(false);
-      await enforceAuth();
-      if (!CAN_VIEW) return;
-      if (!TOKEN){ statusPill.textContent = "Token nicht geladen"; return; }
+
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+      const mail = session?.user?.email || "";
+
+      setAuthUI(!!session, mail);
+
+      if (!session){
+        window.location.href = LOGIN_REDIRECT;
+        return;
+      }
+
+      const role = await loadMyProfile(session);
+      const allowed = (role === REQUIRED_ROLE);
+
+      if (!allowed){
+        statusPill.textContent = "Kein Zugriff";
+        applyAccessUI(false);
+        return;
+      }
+
+      applyAccessUI(true);
+
+      TOKEN = await loadFinanceToken();
+      if (!TOKEN){
+        statusPill.textContent = "Fehlt: finance_sheet_token";
+        return;
+      }
+
       await fetchRows();
     })();
   </script>
