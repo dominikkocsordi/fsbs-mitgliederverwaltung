@@ -18,12 +18,10 @@
 
 <style>
 :root{
-  /* Matte Dark Base */
   --bg1:#120e18;
   --bg2:#1a1424;
   --bg3:#1f162c;
 
-  /* Modern Orange → Purple */
   --accent1:#f97316;
   --accent2:#a855f7;
 
@@ -86,13 +84,11 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-/* ===== Brand links: Logo + Titel ===== */
 .brandLeft{
   display:flex;
   align-items:center;
   gap:12px;
 }
-
 .brandLogo{
   width: 60px;
   height: 60px;
@@ -100,13 +96,11 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   padding: 6px;
   display:grid;
   place-items:center;
-
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 16px 44px rgba(0,0,0,.30);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-
   flex: 0 0 auto;
   transition: transform .16s ease, filter .16s ease, background .16s ease;
 }
@@ -139,7 +133,6 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .card{ padding:18px; margin-bottom:16px; }
 .small{ font-size: 13px; color: var(--muted); }
 
-/* ===== buttons (nur logout) ===== */
 button{
   border:none;
   cursor:pointer;
@@ -149,6 +142,17 @@ button{
   transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
 }
 button:active{ transform: translateY(0px) scale(.99); }
+
+.btn-primary{
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  color: #0f0b16;
+  box-shadow: 0 12px 30px rgba(168,85,247,.25);
+}
+.btn-primary:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  box-shadow: 0 18px 36px rgba(14,165,233,.33);
+}
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
@@ -176,7 +180,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   user-select:none;
   max-width: min(560px, 100%);
 }
-
 .dot{
   width:10px;height:10px;border-radius:999px;
   background: rgba(255,255,255,.35);
@@ -192,7 +195,6 @@ button:active{ transform: translateY(0px) scale(.99); }
     0 0 18px rgba(34,197,94,.55),
     0 0 42px rgba(34,197,94,.30);
 }
-
 @keyframes pulseRing {
   0%   { transform: scale(1); opacity: .0; }
   10%  { opacity: .6; }
@@ -233,7 +235,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   min-width:0;
   flex: 1 1 auto;
 }
-
 .authState{
   font-size:13px;
   font-weight:750;
@@ -248,7 +249,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   gap:10px;
   min-width:0;
 }
-
 .authCompact{
   display:flex;
   align-items:center;
@@ -267,7 +267,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   text-overflow:ellipsis;
   max-width: 220px;
 }
-
 .authChevron{
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
@@ -391,18 +390,11 @@ button:active{ transform: translateY(0px) scale(.99); }
   grid-template-columns: repeat(12, 1fr);
   gap: 12px;
 }
-.kpi{
-  grid-column: span 4;
-  padding: 18px;
-  border-radius: 22px;
-}
+.kpi{ grid-column: span 4; padding: 18px; border-radius: 22px; }
 .kpiBig{ grid-column: span 6; }
 .kpiFull{ grid-column: 1 / -1; }
 
 .kpiCard{
-  text-decoration:none;
-  color: inherit;
-  display:block;
   position: relative;
   overflow:hidden;
   transition: transform .16s ease, filter .16s ease, border-color .16s ease, background .16s ease;
@@ -413,6 +405,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   border-color: rgba(255,255,255,.22);
   background: rgba(255,255,255,.11);
 }
+
 .kpiTop{
   display:flex;
   align-items:flex-start;
@@ -437,7 +430,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   color: rgba(255,255,255,.62);
   line-height:1.4;
 }
-
 .kpiIcon{
   width:42px; height:42px;
   border-radius: 16px;
@@ -446,25 +438,19 @@ button:active{ transform: translateY(0px) scale(.99); }
   border: 1px solid rgba(255,255,255,.12);
 }
 
-.kpiChip{
+/* clean action row */
+.kpiActions{
   margin-top: 14px;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.86);
-  font-weight:800;
-  font-size:12px;
-  width: fit-content;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
 }
-
-.hr{
-  height:1px;
-  background: rgba(255,255,255,.10);
-  margin: 12px 0 0;
+.kpiActions .btn-secondary,
+.kpiActions .btn-primary{
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 12px;
 }
 
 /* ressort badges */
@@ -484,7 +470,12 @@ button:active{ transform: translateY(0px) scale(.99); }
 }
 .badge strong{ font-weight:900; }
 
-/* ===== mobile ===== */
+.hr{
+  height:1px;
+  background: rgba(255,255,255,.10);
+  margin: 12px 0 0;
+}
+
 @media (max-width: 900px){
   .kpi{ grid-column: span 6; }
   .kpiBig{ grid-column: span 12; }
@@ -492,12 +483,7 @@ button:active{ transform: translateY(0px) scale(.99); }
 @media (max-width: 640px){
   body{ padding: 24px 14px; }
   h1{ font-size: 26px; }
-
-  .top{
-    flex-direction:column;
-    align-items:flex-start;
-    gap:10px;
-  }
+  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
   .authNameInline{ max-width: 150px; }
 
   .navWrap{ top: 10px; }
@@ -526,7 +512,6 @@ button:active{ transform: translateY(0px) scale(.99); }
     </div>
 
     <div class="brandRight">
-      <!-- Auth Badge (wie andere Seiten) -->
       <div class="authFloating" id="authBadge" title="Login-Status">
         <span class="dot warn" id="authDot"></span>
         <div class="authAvatar hidden" id="authAvatar">U</div>
@@ -556,34 +541,32 @@ button:active{ transform: translateY(0px) scale(.99); }
       <div class="navLeft">
         <a class="navLink active" href="index.html">
           <span class="navIcon">🏠</span>
-          <span>
-            <div class="navTitle">Dashboard</div>
-            <div class="navHint">Übersicht</div>
-          </span>
+          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
         </a>
 
         <a class="navLink" href="members.html">
           <span class="navIcon">👥</span>
-          <span>
-            <div class="navTitle">Mitglieder</div>
-            <div class="navHint">Verwalten</div>
-          </span>
+          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
         </a>
 
         <a class="navLink" href="anwaerter.html">
           <span class="navIcon">👶🏼</span>
-          <span>
-            <div class="navTitle">Anwärter</div>
-            <div class="navHint">Liste</div>
-          </span>
+          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
+        </a>
+
+        <a class="navLink" href="bewerbungen.html">
+          <span class="navIcon">📝</span>
+          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
+        </a>
+
+        <a class="navLink" href="rechnungen.html">
+          <span class="navIcon">💰</span>
+          <span><div class="navTitle">Finanzen</div><div class="navHint">Belege</div></span>
         </a>
 
         <a class="navLink" href="mitgliederbefragung.html">
           <span class="navIcon">📊</span>
-          <span>
-            <div class="navTitle">Befragung</div>
-            <div class="navHint">Auswertung</div>
-          </span>
+          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
         </a>
       </div>
 
@@ -604,13 +587,18 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ✅ Login page */
 const LOGIN_PAGE = "login.html";
 
-/* ========= Profiles ========= */
+/* ========= Tables ========= */
 const PROFILES_TABLE = "profiles";
+const MEMBERS_TABLE = "members";
+const CAND_TABLE = "anwaerter";
 
-/* ✅ Deine Ressorts (fix) */
+/* ✅ Filter: abgelehnte NICHT zählen */
+const CAND_STATUS_COL = "bewerbung_status";
+const CAND_REJECT_PATTERN = "abgelehnt%";
+
+/* ✅ Deine Ressorts */
 const RESSORTS = [
   "Externe Events",
   "Interne Events",
@@ -619,14 +607,13 @@ const RESSORTS = [
   "Sponsoring"
 ];
 
-/* Farben für Ressort-Badges */
 const RESSORT_COLORS = {
   "Externe Events": ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
   "Interne Events": ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
   "Merchandise":    ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
   "Kommunikation":  ["rgba(59,130,246,.22)", "rgba(99,102,241,.14)"],
   "Sponsoring":     ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
-  "Abgelehnt":      ["rgba(239,68,68,.18)",  "rgba(251,113,133,.12)"], // falls du intern nutzt
+  "Abgelehnt":      ["rgba(239,68,68,.18)",  "rgba(251,113,133,.12)"],
 };
 
 function pillStyle(label){
@@ -646,13 +633,12 @@ function roleLabel(role){
   return "Unbekannt";
 }
 
-/* ========= Elements ========= */
+/* ========= Auth UI elements ========= */
 const authBadge = document.getElementById("authBadge");
 const authDot = document.getElementById("authDot");
 const authState = document.getElementById("authState");
 const authMail  = document.getElementById("authMail");
 const authAvatar = document.getElementById("authAvatar");
-
 const authCompact = document.getElementById("authCompact");
 const authNameInline = document.getElementById("authNameInline");
 const authRolePill = document.getElementById("authRolePill");
@@ -660,7 +646,6 @@ const authToggle = document.getElementById("authToggle");
 const authDetails = document.getElementById("authDetails");
 
 function closeAuthDetails(){ authDetails.classList.add("hidden"); }
-
 authToggle?.addEventListener("click", (e)=>{
   e.stopPropagation();
   authDetails.classList.toggle("hidden");
@@ -725,33 +710,24 @@ function setCompactIdentity(displayName, email){
   const fallback = ((email || "").split("@")[0] || "User").trim();
   authNameInline.textContent = name || fallback;
 }
-
-/* ✅ Auth UI */
 function setAuthUI(isAuthed, email = "", doPulse = false){
   if (isAuthed){
     authDot.classList.remove("warn");
     authDot.classList.add("ok");
-
     authState.classList.add("hidden");
     authState.textContent = "";
-
     authCompact.classList.remove("hidden");
     closeAuthDetails();
-
     authMail.textContent = (email || "").trim();
     setAvatar(email);
-
     if (doPulse) pulseLogin();
   } else {
     authDot.classList.remove("ok");
     authDot.classList.add("warn");
-
     authState.classList.remove("hidden");
     authState.textContent = "nicht eingeloggt";
-
     authCompact.classList.add("hidden");
     closeAuthDetails();
-
     authMail.textContent = "";
     setAvatar("");
   }
@@ -766,7 +742,6 @@ async function requireAuthOrRedirect(){
   return data.session;
 }
 
-/* ✅ Profil laden: role + display_name + ressort */
 async function loadMyProfile(session){
   const uid = session?.user?.id;
   const email = session?.user?.email || "";
@@ -789,20 +764,36 @@ async function loadMyProfile(session){
   setRolePill(myRole || "ressortleiter");
 
   const dn = (data?.display_name || "").trim();
-  if (dn){
-    authAvatar.textContent = initialsFromText(dn);
-  }
+  if (dn) authAvatar.textContent = initialsFromText(dn);
 
   authBadge.title = `${(dn || email || "User")} • ${roleLabel(myRole || "ressortleiter")}`;
   return { role: myRole || "ressortleiter", display_name: dn, ressort: (data?.ressort || "").trim(), email };
 }
 
-/* ========= Dashboard building ========= */
+/* ========= Counting helpers ========= */
+function candBaseFilter(q){
+  return q.not(CAND_STATUS_COL, "ilike", CAND_REJECT_PATTERN);
+}
+
+async function countTable(table, filterCol=null, filterVal=null, opts = {}){
+  let q = sb.from(table).select("id", { count:"exact", head:true });
+  if (typeof opts.base === "function") q = opts.base(q);
+  if (filterCol && filterVal) q = q.eq(filterCol, filterVal);
+  const res = await q;
+  return res.count ?? 0;
+}
+
+/* ========= Dashboard UI ========= */
 const grid = document.getElementById("grid");
 
-function cardLink({href, span="kpi", title, value, sub, icon, chipText="Öffnen"}){
+function card({span="kpi", title, value, sub, icon, href, buttonText="Öffnen", primary=false}){
+  const btnClass = primary ? "btn-primary" : "btn-secondary";
+  const btn = href
+    ? `<button class="${btnClass}" type="button" onclick="go('${href}', event)">${buttonText} ↗</button>`
+    : "";
+
   return `
-    <a class="glass ${span} kpi kpiCard" href="${href}">
+    <div class="glass ${span} kpi kpiCard" onclick="${href ? `location.href='${href}'` : ""}">
       <div class="kpiTop">
         <div>
           <div class="kpiTitle">${title}</div>
@@ -811,9 +802,14 @@ function cardLink({href, span="kpi", title, value, sub, icon, chipText="Öffnen"
         </div>
         <div class="kpiIcon">${icon || "✨"}</div>
       </div>
-      <div class="kpiChip">↗ ${chipText}</div>
-    </a>
+      <div class="kpiActions">${btn}</div>
+    </div>
   `;
+}
+
+function go(href, ev){
+  ev?.stopPropagation();
+  location.href = href;
 }
 
 function cardStatic({span="kpiFull", title, sub, innerHtml=""}){
@@ -835,14 +831,6 @@ function resortBadge(name, membersCount, candCount){
   `;
 }
 
-/* count helper */
-async function countTable(table, filterCol=null, filterVal=null){
-  let q = sb.from(table).select("id", { count:"exact", head:true });
-  if (filterCol && filterVal) q = q.eq(filterCol, filterVal);
-  const res = await q;
-  return res.count ?? 0;
-}
-
 async function loadDashboard(){
   const session = await requireAuthOrRedirect();
   const email = session?.user?.email || "";
@@ -852,14 +840,13 @@ async function loadDashboard(){
   const isVorstand = normRole(me.role) === "vorstand";
   const myRessort = (me.ressort || "").trim();
 
-  // Zählungen
-  const membersAll = await countTable("members");
-  const candAll    = await countTable("anwaerter");
+  // totals
+  const membersAll = await countTable(MEMBERS_TABLE);
+  const candAll    = await countTable(CAND_TABLE, null, null, { base: candBaseFilter });
 
-  const membersMine = myRessort ? await countTable("members","ressort", myRessort) : 0;
-  const candMine    = myRessort ? await countTable("anwaerter","ressort", myRessort) : 0;
+  const membersMine = myRessort ? await countTable(MEMBERS_TABLE,"ressort", myRessort) : 0;
+  const candMine    = myRessort ? await countTable(CAND_TABLE,"ressort", myRessort, { base: candBaseFilter }) : 0;
 
-  // ===== Ressortleiter Dashboard =====
   if (!isVorstand){
     grid.innerHTML = `
       ${cardStatic({
@@ -873,61 +860,69 @@ async function loadDashboard(){
             </span>
           </div>
           <div class="small" style="margin-top:12px; line-height:1.5;">
-            Vorstand sieht alle Ressorts. Du siehst nur dein Ressort.
+            Anwärter-Zahlen zählen ohne „abgelehnt“.
           </div>
         `
       })}
 
-      ${cardLink({
+      ${card({
         href:"members.html",
         title:"Mitglieder",
         value:String(membersMine),
         sub:"Mitglieder in deinem Ressort.",
-        icon:"👥"
+        icon:"👥",
+        primary:true,
+        span:"kpiBig",
+        buttonText:"Mitglieder"
       })}
 
-      ${cardLink({
+      ${card({
         href:"anwaerter.html",
         title:"Anwärter",
         value:String(candMine),
-        sub:"Anwärter in deinem Ressort.",
-        icon:"👶🏼"
+        sub:"Anwärter in deinem Ressort (ohne abgelehnt).",
+        icon:"👶🏼",
+        primary:false,
+        span:"kpiBig",
+        buttonText:"Anwärter"
       })}
     `;
     return;
   }
 
-  // ===== Vorstand Dashboard =====
+  // Vorstand: pro Ressort
   const byR = await Promise.all(RESSORTS.map(async r => ({
     r,
-    m: await countTable("members","ressort", r),
-    a: await countTable("anwaerter","ressort", r)
+    m: await countTable(MEMBERS_TABLE,"ressort", r),
+    a: await countTable(CAND_TABLE,"ressort", r, { base: candBaseFilter })
   })));
 
   grid.innerHTML = `
-    ${cardLink({
+    ${card({
       href:"members.html",
       title:"Gesamt Mitglieder",
       value:String(membersAll),
       sub:"Alle Ressorts zusammen.",
       icon:"👥",
       span:"kpiBig",
-      chipText:"Mitglieder öffnen"
+      primary:true,
+      buttonText:"Mitglieder"
     })}
 
-    ${cardLink({
+    ${card({
       href:"anwaerter.html",
       title:"Gesamt Anwärter",
       value:String(candAll),
-      sub:"Alle Ressorts zusammen.",
+      sub:"Ohne „abgelehnt“.",
       icon:"👶🏼",
       span:"kpiBig",
-      chipText:"Anwärter öffnen"
+      primary:false,
+      buttonText:"Anwärter"
     })}
 
     ${cardStatic({
       title:"Ressort-Übersicht",
-      sub:"Mitglieder & Anwärter pro Ressort (nur Vorstand).",
+      sub:"Mitglieder & Anwärter pro Ressort (Anwärter ohne abgelehnt).",
       innerHtml: `
         <div class="ressortList">
           ${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}
@@ -954,7 +949,7 @@ async function logout(){
   }
 })();
 
-/* PWA: Service Worker (sw.js muss im Root liegen) */
+/* PWA: Service Worker (sw.js im Root) */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(console.warn);
