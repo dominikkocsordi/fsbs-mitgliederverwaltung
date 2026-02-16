@@ -17,10 +17,14 @@
 
 <style>
 :root{
-  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
-  --accent1:#f97316; --accent2:#a855f7;
+  --bg1:#120e18;
+  --bg2:#1a1424;
+  --bg3:#1f162c;
 
-  --glass: rgba(255,255,255,.10);
+  --accent1:#f97316;
+  --accent2:#a855f7;
+
+  --glass: rgba(255,255,255,.08);
   --border: rgba(255,255,255,.18);
 
   --text: rgba(255,255,255,.92);
@@ -29,11 +33,15 @@
   --shadow: 0 20px 55px rgba(0,0,0,.50);
 
   --ok: rgba(34,197,94,.95);
-  --danger1:#fb7185; --danger2:#e11d48;
+  --bad: rgba(239,68,68,.95);
+  --warn: rgba(251,146,60,.95);
+
+  --danger1: #fb7185;
+  --danger2: #e11d48;
 }
 
-*{box-sizing:border-box}
-html, body { min-height:100%; }
+*{ box-sizing:border-box; }
+html, body { min-height: 100%; }
 
 html{
   background:
@@ -52,19 +60,25 @@ body{
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding: 42px 16px;
+  padding:42px 16px;
+
+  animation: pageIn .38s ease both;
+}
+@keyframes pageIn{
+  from{ opacity:0; transform: translateY(8px); }
+  to  { opacity:1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  body{ animation:none !important; }
+}
+
+/* scroll lock for modals */
+body.locked{
+  overflow:hidden !important;
+  touch-action:none;
 }
 
 .app{ width:100%; max-width:1200px; }
-
-.glass{
-  background: var(--glass);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
 
 .top{
   display:flex;
@@ -76,23 +90,67 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-.brandLeft{ display:flex; align-items:center; gap:12px; }
+.brandLeft{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
 .brandLogo{
-  width: 60px; height: 60px; border-radius: 14px; padding: 6px;
-  display:grid; place-items:center;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  padding: 6px;
+  display:grid;
+  place-items:center;
+
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 16px 44px rgba(0,0,0,.30);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  flex:0 0 auto;
+
+  flex: 0 0 auto;
+  transition: transform .16s ease, filter .16s ease, background .16s ease;
   text-decoration:none;
+  color: rgba(255,255,255,.92);
+  font-weight: 900;
+  letter-spacing: .2px;
 }
-.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+.brandLogo:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  background: rgba(255,255,255,.12);
+}
+.brandLogo img{
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  display:block;
+}
+@media (max-width: 640px){
+  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+  .brandLogo img{ border-radius: 9px; }
+}
+
+.glass{
+  background: rgba(255,255,255,.10);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
 
 .card{ padding:18px; margin-bottom:16px; }
 
-.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
 .spacer{ flex:1; }
 
 input,select{
@@ -103,13 +161,18 @@ input,select{
   border-radius: 14px;
   outline:none;
   min-width: 210px;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
 input::placeholder{ color: rgba(255,255,255,.55); }
 input:focus, select:focus{
   border-color: rgba(249,115,22,.55);
   background: rgba(255,255,255,.16);
+  transform: translateY(-1px);
 }
-select option{ background:#1a1424; color: rgba(255,255,255,.92); }
+select option{
+  background: #1a1424;
+  color: rgba(255,255,255,.92);
+}
 
 button{
   border:none;
@@ -117,31 +180,205 @@ button{
   border-radius:14px;
   padding: 12px 16px;
   font-weight:650;
-  transition: transform .16s ease, filter .16s ease, opacity .16s ease;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
 }
 button:active{ transform: translateY(0px) scale(.99); }
-button:disabled{ cursor:not-allowed; opacity:.55; }
+button:disabled{
+  cursor: not-allowed !important;
+  opacity: .55 !important;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+button:disabled:hover{ transform:none !important; filter:none !important; }
 
 .btn-primary{
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
   color: #0f0b16;
   box-shadow: 0 12px 30px rgba(168,85,247,.25);
 }
+.btn-primary:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+  box-shadow: 0 18px 36px rgba(168,85,247,.33);
+}
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
   border: 1px solid var(--border);
+}
+.btn-secondary:hover{
+  transform: translateY(-2px);
+  background: rgba(255,255,255,.18);
 }
 .btn-danger{
   background: linear-gradient(135deg, var(--danger1), var(--danger2));
   color: #fff;
   box-shadow: 0 10px 26px rgba(225,29,72,.22);
 }
+.btn-danger:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.02);
+  box-shadow: 0 18px 36px rgba(225,29,72,.28);
+}
 
-.small{ font-size:13px; color: var(--muted); }
-.hidden{ display:none !important; }
+/* ===== Auth badge ===== */
+.authFloating{
+  position: static;
+  z-index: 1;
+  border-radius: 999px;
+  padding: 10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 18px 55px rgba(0,0,0,.40);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  user-select:none;
+  max-width: min(560px, 100%);
+}
+.dot{
+  width:10px;height:10px;border-radius:999px;
+  background: rgba(255,255,255,.35);
+  position: relative;
+  flex: 0 0 auto;
+}
+.dot.ok{ background: var(--ok); }
+.dot.warn{ background: rgba(255,255,255,.35); }
+.dot.ok{
+  box-shadow:
+    0 0 0 2px rgba(34,197,94,.20),
+    0 0 18px rgba(34,197,94,.55),
+    0 0 42px rgba(34,197,94,.30);
+}
+@keyframes pulseRing {
+  0%   { transform: scale(1); opacity: .0; }
+  10%  { opacity: .6; }
+  70%  { transform: scale(3.2); opacity: 0; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+.dot.pulsing::after{
+  content:"";
+  position:absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: rgba(34,197,94,.25);
+  animation: pulseRing 1.15s ease-out 0s 2;
+  pointer-events:none;
+}
 
-/* NAV */
+.authAvatar{
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display:grid;
+  place-items:center;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: .3px;
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+  background: rgba(255,255,255,.10);
+  flex: 0 0 auto;
+}
+.authAvatar.hidden{ display:none; }
+
+.authInfo{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+  min-width:0;
+  flex: 1 1 auto;
+}
+.authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
+.authState.hidden{ display:none; }
+.authTopLine{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-width:0;
+}
+.authCompact{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+}
+.authCompact.hidden{ display:none; }
+.authNameInline{
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:.15px;
+  color: rgba(255,255,255,.92);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width: 220px;
+}
+.authChevron{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+  width: 30px; height: 26px;
+  border-radius: 999px;
+  padding: 0;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition: transform .15s ease, background .15s ease;
+  flex: 0 0 auto;
+}
+.authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
+.authDetails{
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,.10);
+  display:flex;
+  gap:8px;
+  align-items:center;
+  min-width:0;
+}
+.authDetails.hidden{ display:none; }
+.authMail{
+  font-size:11px;
+  color: rgba(255,255,255,.58);
+  margin-top:0;
+  word-break:break-all;
+}
+
+.rolePill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  font-weight:800;
+  font-size: 11px;
+  letter-spacing: .10px;
+  line-height: 1;
+  white-space:nowrap;
+  flex: 0 0 auto;
+}
+.rolePill.vorstand{
+  border-color: rgba(56,189,248,.40);
+  background: rgba(56,189,248,.12);
+}
+.rolePill.ressortleiter{
+  border-color: rgba(251,146,60,.35);
+  background: rgba(251,146,60,.12);
+}
+
+.hidden{ display:none; }
+.small{ font-size: 13px; color: var(--muted); }
+
+/* ===== NAV ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -149,21 +386,39 @@ button:disabled{ cursor:not-allowed; opacity:.55; }
   z-index: 6;
 }
 .nav{
-  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
   padding: 10px;
 }
-.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.navLeft{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
 .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
 .navLink{
-  display:inline-flex; align-items:center; gap:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
   padding: 10px 12px;
   border-radius: 16px;
   text-decoration:none;
   color: rgba(255,255,255,.86);
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
+  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
+  user-select:none;
   white-space:nowrap;
+}
+.navLink:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.22);
 }
 .navLink.active{
   background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
@@ -171,7 +426,8 @@ button:disabled{ cursor:not-allowed; opacity:.55; }
   box-shadow: 0 12px 28px rgba(249,115,22,.25);
 }
 .navIcon{
-  width:30px; height:30px; border-radius: 12px;
+  width:30px; height:30px;
+  border-radius: 12px;
   display:grid; place-items:center;
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.12);
@@ -179,32 +435,13 @@ button:disabled{ cursor:not-allowed; opacity:.55; }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-/* ✅ Mehr Abstand zwischen Controls und Liste */
-.controlsGap{ height: 14px; }
-@media (max-width: 640px){
-  .controlsGap{ height: 10px; }
+/* ===== Pills (animated + consistent) ===== */
+@keyframes pillShimmer{
+  0%{ transform: translateX(-40%); opacity:.0; }
+  20%{ opacity:.35; }
+  60%{ opacity:.15; }
+  100%{ transform: translateX(140%); opacity:0; }
 }
-
-/* Table */
-.tableWrap{
-  overflow:auto;
-  border-radius: 18px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(255,255,255,.05);
-}
-table{ width:100%; border-collapse:collapse; margin-top: 0; min-width: 980px; }
-th,td{ padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.12); text-align:left; }
-th{ color: var(--muted); font-weight:650; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
-tbody tr:hover{ background: rgba(255,255,255,.06); }
-
-.actions{ display:flex; gap:10px; }
-.iconBtn{
-  width: 42px; height: 42px; padding: 0;
-  display:inline-flex; align-items:center; justify-content:center;
-  border-radius: 14px;
-}
-
-/* ========= ✅ Pills: einheitlich + animiert ========= */
 .pill{
   display:inline-flex;
   align-items:center;
@@ -212,95 +449,153 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   padding:6px 12px;
   border-radius:999px;
   font-size:12px;
-  font-weight:900;
+  font-weight:850;
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.92);
+  color: rgba(255,255,255,.90);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   white-space:nowrap;
-
-  /* subtle animation */
-  position: relative;
+  position:relative;
   overflow:hidden;
-  transform: translateZ(0);
 }
 .pill::after{
   content:"";
   position:absolute;
-  inset:-60% -40%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.10) 35%, transparent 70%);
-  transform: rotate(12deg) translateX(-40%);
-  animation: pillSheen 3.6s ease-in-out infinite;
+  inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+  width: 40%;
+  transform: translateX(-50%);
+  animation: pillShimmer 2.6s ease-in-out infinite;
   pointer-events:none;
-  opacity:.55;
+  opacity:.0;
 }
-@keyframes pillSheen{
-  0%   { transform: rotate(12deg) translateX(-55%); opacity:.0; }
-  18%  { opacity:.55; }
-  50%  { transform: rotate(12deg) translateX(55%); opacity:.35; }
-  100% { transform: rotate(12deg) translateX(55%); opacity:0; }
-}
-@media (prefers-reduced-motion: reduce){
-  .pill::after{ animation:none !important; }
-}
+.pill:hover::after{ opacity:.35; }
 
-/* Ressort Pills (wie Anwärter/Dashboard) */
-.pill.ressort{
-  border-color: rgba(255,255,255,.18);
-  box-shadow: 0 10px 26px rgba(0,0,0,.18);
-}
-
-/* Status Pills */
-.pill.status{
-  border-color: rgba(255,255,255,.18);
-}
 .pill-status-volle{ background: rgba(34,197,94,.20);  border-color: rgba(34,197,94,.35);  color:#bbf7d0; }
-.pill-status-anw { background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
-.pill-status-pau { background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
-.pill-status-aus { background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
+.pill-status-anw{  background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
+.pill-status-pau{  background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
+.pill-status-aus{  background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
 
-/* Rollen Pills */
-.pill.role{ background: rgba(255,255,255,.07); }
 .pill-role-vorstand{ background: rgba(56,189,248,.20); border-color: rgba(56,189,248,.35); color:#c7f9ff; }
 .pill-role-admin{ background: rgba(168,85,247,.18); border-color: rgba(168,85,247,.32); color:#e9d5ff; }
 .pill-role-leitung{ background: rgba(249,115,22,.20); border-color: rgba(249,115,22,.35); color:#fed7aa; }
 .pill-role-stv{ background: rgba(251,146,60,.16); border-color: rgba(251,146,60,.30); color:#ffedd5; }
 
-/* Inline editor */
-.editorHeader{
+/* table */
+.tableWrap{ overflow:auto; border-radius: 18px; }
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top: 14px; /* ✅ more space between controls and list */
+  min-width: 980px;
+}
+th,td{
+  padding: 14px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  text-align:left;
+  vertical-align:middle;
+}
+th{ color: var(--muted); font-weight:650; }
+tbody tr:hover{ background: rgba(255,255,255,.06); }
+
+.iconBtn{
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius: 14px;
+}
+.iconBtn:hover{ transform: translateY(-2px); }
+.actions{ display:flex; gap:10px; }
+
+/* Modal (robust + mobile bottom sheet) */
+.modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding: 18px;
+  z-index: 9999;
+}
+.modalOverlay.show{ display:flex; }
+
+.modal{
+  width: min(760px, 100%);
+  border-radius: 24px;
+  padding: 18px;
+  position: relative;
+  max-height: 86vh;
+  overflow:auto;
+  transform: translateY(6px);
+  animation: modalIn .18s ease both;
+}
+@keyframes modalIn{
+  from{ opacity:.0; transform: translateY(12px); }
+  to{ opacity:1; transform: translateY(0); }
+}
+.modalHeader{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
+  margin-bottom: 10px;
 }
-.editorTitle{ margin:0; font-size:20px; letter-spacing:.2px; }
-.editorSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
-
+.modalTitle{ margin:0; font-size: 20px; letter-spacing: .2px; }
+.modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
+.closeX{ width: 42px; height: 42px; border-radius: 14px; }
 .formGrid{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 14px;
+  margin-top: 12px;
 }
 .formGrid .full{ grid-column: 1 / -1; }
-hr.sep{ border:none; border-top:1px solid rgba(255,255,255,.12); margin: 14px 0; }
+hr.sep{
+  border: none;
+  border-top: 1px solid rgba(255,255,255,.12);
+  margin: 14px 0;
+}
 
-/* Mobile */
+/* MOBILE */
+@media (max-width: 900px){ table{ min-width: 860px; } }
 @media (max-width: 640px){
   body{ padding: 24px 14px; }
   h1{ font-size: 26px; }
-  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
-  .brandLogo img{ border-radius: 9px; }
   .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .authNameInline{ max-width: 150px; }
   input,select{ min-width: 0; width: 100%; }
   .row{ align-items:stretch; }
   .row .spacer{ display:none; }
   .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left:0; }
+  .navRight{ margin-left: 0; }
   table{ min-width: 720px; }
   th:nth-child(3), td:nth-child(3){ display:none; }
+  .iconBtn{ width: 40px; height: 40px; }
+  .actions{ gap:8px; }
   .formGrid{ grid-template-columns: 1fr; }
+
+  /* ✅ bottom-sheet modal on phone */
+  .modalOverlay{ align-items:flex-end; padding: 0; }
+  .modal{
+    width: 100%;
+    max-height: 88vh;
+    border-radius: 22px 22px 0 0;
+    padding: 16px;
+  }
+}
+@media (max-width: 420px){
+  body{ padding: 20px 12px; }
+  .card{ padding:14px; }
+  .navLink{ padding: 9px 10px; border-radius: 14px; }
+  .navIcon{ width:28px; height:28px; border-radius: 11px; }
+  table{ min-width: 660px; }
 }
 </style>
 </head>
@@ -314,72 +609,138 @@ hr.sep{ border:none; border-top:1px solid rgba(255,255,255,.12); margin: 14px 0;
         <img src="logo.png" alt="Fachschaft Logo"
              onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
       </a>
+
       <div>
         <h1>FSBS Intern</h1>
         <div class="subtitle">Mitgliederverwaltung</div>
       </div>
     </div>
 
-    <div class="glass" style="border-radius:999px; padding:10px 12px; display:flex; gap:10px; align-items:center; max-width:min(560px,100%);">
-      <span id="authDot" style="width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.35)"></span>
-      <div id="authAvatar" class="hidden" style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;font-weight:800;font-size:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);">U</div>
-      <div style="min-width:0; flex:1;">
-        <div id="authLine" style="font-weight:850;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">nicht eingeloggt</div>
-        <div id="authMail" style="font-size:11px;color:rgba(255,255,255,.58);word-break:break-all;"></div>
+    <div class="brandRight">
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+            </div>
+          </div>
+
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
       </div>
-      <span id="authRole" class="pill" style="font-size:11px; padding:4px 10px;">—</span>
     </div>
   </div>
 
-  <!-- NAV -->
+  <!-- NAV (nur eingeloggt) -->
   <div class="glass navWrap hidden" id="navWrap">
     <div class="nav">
       <div class="navLeft">
         <a class="navLink" href="index.html">
           <span class="navIcon">🏠</span>
-          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
+          <span>
+            <div class="navTitle">Dashboard</div>
+            <div class="navHint">Übersicht</div>
+          </span>
         </a>
 
-        <a class="navLink active" href="members.html">
+        <a class="navLink active" href="members.html" id="navMembers">
           <span class="navIcon">👥</span>
-          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
+          <span>
+            <div class="navTitle">Mitglieder</div>
+            <div class="navHint">Verwalten</div>
+          </span>
         </a>
 
-        <a class="navLink" href="anwaerter.html">
+        <a class="navLink" href="anwaerter.html" id="navCandidates">
           <span class="navIcon">👶🏼</span>
-          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
+          <span>
+            <div class="navTitle">Anwärter</div>
+            <div class="navHint">Liste</div>
+          </span>
         </a>
 
-        <a class="navLink" href="bewerbungen.html">
+        <a class="navLink" href="bewerbungen.html" id="navApps">
           <span class="navIcon">📝</span>
-          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
+          <span>
+            <div class="navTitle">Bewerbungen</div>
+            <div class="navHint">Google Sheet</div>
+          </span>
         </a>
 
         <a class="navLink" href="rechnungen.html" id="navFinance">
           <span class="navIcon">💰</span>
-          <span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen & Auslagen</div></span>
+          <span>
+            <div class="navTitle">Finanzen</div>
+            <div class="navHint">Rechnungen & Auslagen</div>
+          </span>
         </a>
 
-        <a class="navLink" href="mitgliederbefragung.html">
+        <a class="navLink" href="mitgliederbefragung.html" id="navSurvey">
           <span class="navIcon">📊</span>
-          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
+          <span>
+            <div class="navTitle">Befragung</div>
+            <div class="navHint">Auswertung</div>
+          </span>
         </a>
       </div>
 
       <div class="navRight">
-        <button class="btn-secondary" id="logoutBtn">Logout</button>
+        <!-- ✅ Rolle nur als Pill in Navbar -->
+        <span class="pill" id="navRolePill">—</span>
+
+        <button class="btn-secondary" id="logoutBtn" onclick="logout()">Logout</button>
       </div>
     </div>
   </div>
 
-  <!-- INLINE EDITOR -->
-  <div class="glass card hidden" id="editorCard">
-    <div class="editorHeader">
+  <!-- MAIN -->
+  <div class="glass card hidden" id="mainCard">
+    <div class="row">
+      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)" oninput="render()">
+      <button class="btn-secondary" onclick="load()">Aktualisieren</button>
+      <div class="spacer"></div>
+      <div class="small" id="countInfo"></div>
+      <button class="btn-primary" id="createBtn" onclick="openCreate()">+ Mitglied</button>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:10%">Nr.</th>
+            <th style="width:20%">Name</th>
+            <th style="width:22%">Email</th>
+            <th style="width:18%">Ressort</th>
+            <th style="width:12%">Rolle</th>
+            <th style="width:10%">Status</th>
+            <th style="width:8%">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
+  <div class="glass modal" onclick="event.stopPropagation()">
+    <div class="modalHeader">
       <div>
-        <h2 class="editorTitle" id="editorTitle">Mitglied bearbeiten</h2>
-        <div class="editorSub" id="editorSub">—</div>
+        <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
+        <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
       </div>
-      <button class="btn-secondary" id="editorCloseBtn">✕</button>
+      <button class="btn-secondary closeX" onclick="closeModal()" title="Schließen">✕</button>
     </div>
 
     <hr class="sep">
@@ -421,44 +782,11 @@ hr.sep{ border:none; border-top:1px solid rgba(255,255,255,.12); margin: 14px 0;
       </div>
 
       <div class="full row" style="justify-content:flex-end; margin-top:6px;">
-        <button class="btn-danger hidden" id="editorDeleteBtn">🗑️ Löschen</button>
-        <div class="spacer"></div>
-        <button class="btn-secondary" id="editorCancelBtn">Abbrechen</button>
-        <button class="btn-primary" id="editorSaveBtn">Speichern</button>
+        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
+        <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()">Speichern</button>
       </div>
     </div>
   </div>
-
-  <!-- MAIN -->
-  <div class="glass card hidden" id="mainCard">
-    <div class="row">
-      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)">
-      <button class="btn-secondary" id="reloadBtn">Aktualisieren</button>
-      <div class="spacer"></div>
-      <div class="small" id="countInfo"></div>
-      <button class="btn-primary" id="createBtn">+ Mitglied</button>
-    </div>
-
-    <div class="controlsGap"></div>
-
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:10%">Nr.</th>
-            <th style="width:20%">Name</th>
-            <th style="width:22%">Email</th>
-            <th style="width:18%">Ressort</th>
-            <th style="width:12%">Rolle</th>
-            <th style="width:10%">Status</th>
-            <th style="width:8%">Aktionen</th>
-          </tr>
-        </thead>
-        <tbody id="list"></tbody>
-      </table>
-    </div>
-  </div>
-
 </div>
 
 <script>
@@ -468,8 +796,21 @@ const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const LOGIN_PAGE = "login.html";
-const PROFILES_TABLE = "profiles";
 
+/* ========= Rollen/Permissions ========= */
+const PROFILES_TABLE = "profiles";
+let MY_ROLE = "";
+let CAN_EDIT = false;
+
+function normRole(v){ return (v || "").trim().toLowerCase(); }
+function roleLabel(role){
+  const r = normRole(role);
+  if (r === "vorstand") return "Vorstand";
+  if (r === "ressortleiter") return "Ressortleiter";
+  return "Unbekannt";
+}
+
+/* ========= DB mapping ========= */
 const DB = {
   table: "members",
   pk: "id",
@@ -482,38 +823,39 @@ const DB = {
   role: "rolle",
 };
 
+/* ========= State ========= */
 let members = [];
-let MY_ROLE = "";
-let CAN_EDIT = false;
 let editPk = null;
 
-/* Elements */
+/* ========= Elements ========= */
+const authBadge = document.getElementById("authBadge");
+const authDot = document.getElementById("authDot");
+const authState = document.getElementById("authState");
+const authMail  = document.getElementById("authMail");
+const authAvatar = document.getElementById("authAvatar");
+
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill = document.getElementById("authRolePill");
+const authToggle = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
+
 const navWrap = document.getElementById("navWrap");
 const navFinance = document.getElementById("navFinance");
+const navRolePill = document.getElementById("navRolePill");
+
 const mainCard = document.getElementById("mainCard");
 
-const authDot = document.getElementById("authDot");
-const authAvatar = document.getElementById("authAvatar");
-const authLine = document.getElementById("authLine");
-const authMail = document.getElementById("authMail");
-const authRole = document.getElementById("authRole");
-
-const logoutBtn = document.getElementById("logoutBtn");
-
 const searchEl = document.getElementById("search");
-const reloadBtn = document.getElementById("reloadBtn");
 const countInfo = document.getElementById("countInfo");
 const listEl = document.getElementById("list");
-const createBtn = document.getElementById("createBtn");
 
-/* Editor */
-const editorCard = document.getElementById("editorCard");
-const editorTitle = document.getElementById("editorTitle");
-const editorSub = document.getElementById("editorSub");
-const editorCloseBtn = document.getElementById("editorCloseBtn");
-const editorCancelBtn = document.getElementById("editorCancelBtn");
-const editorSaveBtn = document.getElementById("editorSaveBtn");
-const editorDeleteBtn = document.getElementById("editorDeleteBtn");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalSub = document.getElementById("modalSub");
+const modalSaveBtn = document.getElementById("modalSaveBtn");
+
+const createBtn = document.getElementById("createBtn");
 
 const mNo = document.getElementById("mNo");
 const mFirst = document.getElementById("mFirst");
@@ -523,66 +865,26 @@ const mDept = document.getElementById("mDept");
 const mRole = document.getElementById("mRole");
 const mStatus = document.getElementById("mStatus");
 
-const safe = (v)=> (v===null||v===undefined) ? "" : String(v);
-const norm = (v)=> safe(v).trim();
-const esc = (s)=> safe(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-
-function normRole(v){ return norm(v).toLowerCase(); }
-function roleLabel(role){
-  const r = normRole(role);
-  if (r === "vorstand") return "Vorstand";
-  if (r === "ressortleiter") return "Ressortleiter";
-  return "Unbekannt";
+/* ========= Helpers ========= */
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
-
-/* ✅ Einheitliche Ressort-Farben (wie Anwärter) */
-const RESSORT_COLORS = {
-  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(168,85,247,.12)"],
-  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(249,115,22,.12)"],
-  "Sponsoring":       ["rgba(56,189,248,.22)", "rgba(99,102,241,.12)"],
-  "Merchandise":      ["rgba(234,179,8,.22)",  "rgba(251,146,60,.12)"],
-  "Kommunikation":    ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
-};
-function pillRessortStyle(label){
-  const key = norm(label);
-  const pair = RESSORT_COLORS[key];
-  const a = pair?.[0] ?? "rgba(255,255,255,.10)";
-  const b = pair?.[1] ?? "rgba(255,255,255,.06)";
-  return `background: linear-gradient(135deg, ${a}, ${b});
-          border-color: rgba(255,255,255,.18);
-          color: rgba(255,255,255,.92);`;
-}
-
-/* Status -> class */
-function statusClass(status){
-  const s = norm(status).toLowerCase();
-  if (s.startsWith("voll")) return "pill-status-volle";
-  if (s.startsWith("anw"))  return "pill-status-anw";
-  if (s.startsWith("pau"))  return "pill-status-pau";
-  if (s.startsWith("aus"))  return "pill-status-aus";
-  return "";
-}
-
-/* Rolle -> class */
-function roleClass(role){
-  const r = norm(role).toLowerCase();
-  if (r.includes("vorstand")) return "pill-role-vorstand";
-  if (r.includes("admin")) return "pill-role-admin";
-  if (r.includes("leitung")) return "pill-role-leitung";
-  if (r.includes("stell")) return "pill-role-stv";
-  return "";
-}
-
+function norm(s){ return String(s ?? "").trim(); }
 function uniqSorted(arr){
   return [...new Set(arr.map(norm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
 }
 function setSelectOptions(selectEl, values, placeholder="— auswählen —"){
-  selectEl.innerHTML = [`<option value="">${esc(placeholder)}</option>`]
-    .concat(values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`))
-    .join("");
+  const opts = [`<option value="">${esc(placeholder)}</option>`]
+    .concat(values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`));
+  selectEl.innerHTML = opts.join("");
 }
 
-function getPk(m){ return m?.[DB.pk]; }
+function getPk(m){ return m?.[DB.pk] ?? null; }
 function getNo(m){ return m?.[DB.no] ?? ""; }
 function getFirst(m){ return m?.[DB.first] ?? ""; }
 function getLast(m){ return m?.[DB.last] ?? ""; }
@@ -591,86 +893,41 @@ function getDept(m){ return m?.[DB.dept] ?? ""; }
 function getStatus(m){ return m?.[DB.status] ?? ""; }
 function getRole(m){ return m?.[DB.role] ?? ""; }
 
-/* Avatar */
-function hashString(str){
-  let h = 2166136261;
-  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619); }
-  return (h>>>0);
-}
-function initialsFromEmail(email){
-  const e = norm(email).toLowerCase();
-  if (!e) return "U";
-  const local = e.split("@")[0] || "u";
-  const parts = local.split(/[.\-_]+/).filter(Boolean);
-  const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
-  const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
-  return (a+b).trim() || a;
-}
-function setAvatar(email){
-  const e = norm(email).toLowerCase();
-  if (!e){
-    authAvatar.classList.add("hidden");
-    authAvatar.textContent = "U";
-    authAvatar.style.background = "rgba(255,255,255,.10)";
-    return;
-  }
-  const h = hashString(e);
-  const hue = h % 360;
-  const hue2 = (hue + 38) % 360;
-  authAvatar.textContent = initialsFromEmail(e);
-  authAvatar.classList.remove("hidden");
-  authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
+/* ✅ Ressort color pills */
+const RESSORT_COLORS = {
+  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
+  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
+  "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
+  "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
+  "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
+};
+function pillColorStyle(label){
+  const key = (label || "").trim();
+  const pair = RESSORT_COLORS[key];
+  const a = pair?.[0] ?? "rgba(255,255,255,.10)";
+  const b = pair?.[1] ?? "rgba(255,255,255,.06)";
+  return `background: linear-gradient(135deg, ${a}, ${b});
+          border-color: rgba(255,255,255,.18);
+          color: rgba(255,255,255,.92);`;
 }
 
-async function requireAuthOrRedirect(){
-  const { data } = await sb.auth.getSession();
-  if (!data?.session){
-    window.location.replace(LOGIN_PAGE);
-    throw new Error("no_session");
-  }
-  return data.session;
+function statusClass(status){
+  const s = norm(status).toLowerCase();
+  if (s.startsWith("voll")) return "pill-status-volle";
+  if (s.startsWith("anw"))  return "pill-status-anw";
+  if (s.startsWith("pau"))  return "pill-status-pau";
+  if (s.startsWith("aus"))  return "pill-status-aus";
+  return "";
+}
+function roleClass(roleText){
+  const r = norm(roleText).toLowerCase();
+  if (r.includes("vorstand")) return "pill-role-vorstand";
+  if (r.includes("admin")) return "pill-role-admin";
+  if (r.includes("stell")) return "pill-role-stv";
+  if (r.includes("leitung")) return "pill-role-leitung";
+  return "";
 }
 
-async function loadMyProfile(session){
-  MY_ROLE = "";
-  CAN_EDIT = false;
-
-  const uid = session?.user?.id;
-  const email = session?.user?.email || "";
-
-  const { data, error } = await sb
-    .from(PROFILES_TABLE)
-    .select("role, display_name")
-    .eq("id", uid)
-    .maybeSingle();
-
-  if (!error && data){
-    MY_ROLE = normRole(data.role);
-    CAN_EDIT = (MY_ROLE === "vorstand");
-  }
-
-  authDot.style.background = "rgba(34,197,94,.95)";
-  authLine.textContent = (data?.display_name || email || "User") + " • " + roleLabel(MY_ROLE || "ressortleiter");
-  authMail.textContent = email;
-  authRole.textContent = roleLabel(MY_ROLE || "ressortleiter");
-  setAvatar(email);
-
-  navWrap.classList.remove("hidden");
-  mainCard.classList.remove("hidden");
-
-  // ✅ Finanzen nur Vorstand
-  navFinance.style.display = CAN_EDIT ? "" : "none";
-
-  createBtn.disabled = !CAN_EDIT;
-}
-
-async function logout(){
-  await sb.auth.signOut();
-  window.location.replace(LOGIN_PAGE);
-}
-logoutBtn.addEventListener("click", logout);
-
-/* Dropdowns */
 function refreshDropdowns(){
   const baseStatus = ["Vollmitglied","Anwärter","Pausiert","Ausgetreten"];
   const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !baseStatus.includes(s));
@@ -686,135 +943,307 @@ function refreshDropdowns(){
   setSelectOptions(mRole, rollen, "Rolle wählen");
 }
 
-/* Load */
+/* Avatar + badge */
+function hashString(str){
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
+function initialsFromEmail(email){
+  const e = (email || "").trim().toLowerCase();
+  if (!e) return "U";
+  const local = e.split("@")[0] || "u";
+  const parts = local.split(/[.\-_]+/).filter(Boolean);
+  const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
+  const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
+function initialsFromText(txt){
+  const t = (txt || "").trim();
+  if (!t) return "U";
+  const parts = t.split(/\s+/).filter(Boolean);
+  const a = (parts[0]?.[0] || "U").toUpperCase();
+  const b = (parts[1]?.[0] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
+function setAvatar(email){
+  const e = (email || "").trim().toLowerCase();
+  if (!e){
+    authAvatar.classList.add("hidden");
+    authAvatar.textContent = "U";
+    authAvatar.style.background = "rgba(255,255,255,.10)";
+    return;
+  }
+  const h = hashString(e);
+  const hue = h % 360;
+  const hue2 = (hue + 38) % 360;
+  authAvatar.textContent = initialsFromEmail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
+}
+function pulseLogin(){
+  authDot.classList.add("pulsing");
+  setTimeout(() => authDot.classList.remove("pulsing"), 2600);
+}
+
+/* Badge helpers */
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+function setRolePill(role){
+  const r = normRole(role);
+  authRolePill.textContent = roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if (r === "vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function setCompactIdentity(displayName, email){
+  const name = (displayName || "").trim();
+  const fallback = ((email || "").split("@")[0] || "User").trim();
+  authNameInline.textContent = name || fallback;
+}
+
+function setAuthUI(isAuthed, email = "", doPulse = false){
+  if (isAuthed){
+    authDot.classList.remove("warn");
+    authDot.classList.add("ok");
+    authState.classList.add("hidden");
+    authState.textContent = "";
+    authCompact.classList.remove("hidden");
+    closeAuthDetails();
+    authMail.textContent = (email || "").trim();
+    setAvatar(email);
+
+    mainCard.classList.remove("hidden");
+    navWrap.classList.remove("hidden");
+    applyPermissions();
+
+    if (doPulse) pulseLogin();
+  } else {
+    authDot.classList.remove("ok");
+    authDot.classList.add("warn");
+    authState.classList.remove("hidden");
+    authState.textContent = "nicht eingeloggt";
+    authCompact.classList.add("hidden");
+    closeAuthDetails();
+    authMail.textContent = "";
+    setAvatar("");
+
+    mainCard.classList.add("hidden");
+    navWrap.classList.add("hidden");
+  }
+}
+
+authToggle?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  authDetails.classList.toggle("hidden");
+});
+document.addEventListener("click", (e)=>{
+  if (!authBadge.contains(e.target)) closeAuthDetails();
+});
+
+async function requireAuthOrRedirect(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session){
+    window.location.replace(LOGIN_PAGE);
+    throw new Error("No session");
+  }
+  return data.session;
+}
+
+/* Profil laden */
+async function loadMyProfile(session){
+  MY_ROLE = "";
+  CAN_EDIT = false;
+
+  const uid = session?.user?.id;
+  const email = session?.user?.email || "";
+
+  const { data, error } = await sb
+    .from(PROFILES_TABLE)
+    .select("role, display_name")
+    .eq("id", uid)
+    .single();
+
+  if (error){
+    console.warn("Profil konnte nicht geladen werden:", error.message);
+    setCompactIdentity("", email);
+    setRolePill("ressortleiter");
+    return;
+  }
+
+  MY_ROLE = normRole(data?.role);
+  CAN_EDIT = (MY_ROLE === "vorstand");
+
+  setCompactIdentity(data?.display_name, email);
+  setRolePill(MY_ROLE || "ressortleiter");
+
+  const dn = (data?.display_name || "").trim();
+  if (dn) authAvatar.textContent = initialsFromText(dn);
+
+  authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+  /* ✅ NAV: Finanzen nur Vorstand */
+  if (navFinance){
+    navFinance.style.display = CAN_EDIT ? "" : "none";
+  }
+
+  /* ✅ NAV: Rolle nur als Pill */
+  if (navRolePill){
+    const label = roleLabel(MY_ROLE || "ressortleiter");
+    navRolePill.textContent = label;
+
+    navRolePill.classList.remove("pill-role-vorstand","pill-role-admin","pill-role-leitung","pill-role-stv");
+    const cls = roleClass(label);
+    if (cls) navRolePill.classList.add(cls);
+  }
+}
+
+function applyPermissions(){
+  if (createBtn) createBtn.disabled = !CAN_EDIT;
+}
+
+/* Logout */
+async function logout(){
+  await sb.auth.signOut();
+  window.location.replace(LOGIN_PAGE);
+}
+
+/* Data */
 async function load(){
   await requireAuthOrRedirect();
+
   const { data, error } = await sb
     .from(DB.table)
     .select("*")
-    .order(DB.no, { ascending:true, nullsFirst:true });
+    .order(DB.no, { ascending: true, nullsFirst: true });
 
   if (error) return alert("LOAD: " + error.message);
+
   members = data || [];
   refreshDropdowns();
   render();
 }
-reloadBtn.addEventListener("click", load);
 
-/* Render */
 function render(){
-  const q = norm(searchEl.value).toLowerCase();
+  const q = searchEl.value.trim().toLowerCase();
+
   const filtered = members.filter(m => {
-    const hay = [getNo(m),getFirst(m),getLast(m),getEmail(m),getDept(m),getRole(m),getStatus(m)]
-      .map(safe).join(" ").toLowerCase();
+    const hay = [
+      getNo(m),
+      getFirst(m),
+      getLast(m),
+      getEmail(m),
+      getDept(m),
+      getRole(m),
+      getStatus(m)
+    ].map(x => String(x ?? "")).join(" ").toLowerCase();
     return !q || hay.includes(q);
   });
 
   countInfo.textContent = `${filtered.length} von ${members.length} Mitgliedern`;
 
   listEl.innerHTML = filtered.map(m => {
-    const pk = String(getPk(m) ?? "");
+    const pk = getPk(m);
     const no = getNo(m);
-    const name = `${getFirst(m)||""} ${getLast(m)||""}`.trim();
-    const email = getEmail(m)||"";
-    const dept = getDept(m)||"";
-    const role = getRole(m)||"";
-    const status = getStatus(m)||"";
+    const name = `${getFirst(m) || ""} ${getLast(m) || ""}`.trim();
+    const email = getEmail(m) || "";
+    const dept = getDept(m) || "";
+    const role = getRole(m) || "";
+    const status = getStatus(m) || "";
 
     const editDisabled = !CAN_EDIT;
     const delDisabled  = !CAN_EDIT;
 
+    const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
+    const delTitle  = !CAN_EDIT ? "Nur Vorstand darf löschen" : "Löschen";
+
+    const roleCls = roleClass(role);
+    const rolePill = `<span class="pill ${roleCls}">${esc(role || "—")}</span>`;
+
     return `
       <tr>
-        <td>${esc(no||"")}</td>
-        <td>${esc(name||"—")}</td>
-        <td>${esc(email||"—")}</td>
-        <td><span class="pill ressort" style="${pillRessortStyle(dept)}">${esc(dept||"—")}</span></td>
-        <td><span class="pill role ${roleClass(role)}">${esc(role||"—")}</span></td>
-        <td><span class="pill status ${statusClass(status)}">${esc(status||"—")}</span></td>
+        <td>${esc(no || "")}</td>
+        <td>${esc(name)}</td>
+        <td>${esc(email)}</td>
+        <td><span class="pill" style="${pillColorStyle(dept)}">${esc(dept || "—")}</span></td>
+        <td>${rolePill}</td>
+        <td><span class="pill ${statusClass(status)}">${esc(status || "—")}</span></td>
         <td>
           <div class="actions">
-            <button class="btn-secondary iconBtn" ${editDisabled?"disabled":""} data-action="edit" data-id="${esc(pk)}">✏️</button>
-            <button class="btn-danger iconBtn" ${delDisabled?"disabled":""} data-action="del" data-id="${esc(pk)}">🗑️</button>
+            <button class="btn-secondary iconBtn"
+              title="${esc(editTitle)}"
+              ${editDisabled ? "disabled" : ""}
+              onclick="openEdit(${Number(pk)})">✏️</button>
+
+            <button class="btn-danger iconBtn"
+              title="${esc(delTitle)}"
+              ${delDisabled ? "disabled" : ""}
+              onclick="del(${Number(pk)})">🗑️</button>
           </div>
         </td>
       </tr>
     `;
   }).join("");
 }
-searchEl.addEventListener("input", render);
 
-/* Editor open/close */
-function clearEditor(){
-  mNo.value=""; mFirst.value=""; mLast.value=""; mEmail.value="";
-  mDept.value=""; mRole.value=""; mStatus.value="";
+/* Modal logic */
+function overlayClick(e){ if (e.target === modalOverlay) closeModal(); }
+function openModal(){
+  modalOverlay.classList.add("show");
+  document.body.classList.add("locked");
+  setTimeout(() => mFirst.focus(), 0);
 }
-function openEditorFor(pk){
-  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
-
-  const target = String(pk ?? "");
-  const m = members.find(x => String(getPk(x) ?? "") === target);
-  if (!m) return alert("Mitglied nicht gefunden. Bitte aktualisieren.");
-
-  editPk = target;
-
-  mNo.value = norm(getNo(m));
-  mFirst.value = norm(getFirst(m));
-  mLast.value  = norm(getLast(m));
-  mEmail.value = norm(getEmail(m));
-  mDept.value  = norm(getDept(m));
-  mRole.value  = norm(getRole(m));
-  mStatus.value = norm(getStatus(m)) || "Vollmitglied";
-
-  editorTitle.textContent = "Mitglied bearbeiten";
-  editorSub.textContent = `ID ${target}`;
-  editorDeleteBtn.classList.remove("hidden");
-
-  editorCard.classList.remove("hidden");
-  editorCard.scrollIntoView({ behavior:"smooth", block:"start" });
-  setTimeout(()=> mFirst.focus(), 60);
+function closeModal(){
+  modalOverlay.classList.remove("show");
+  document.body.classList.remove("locked");
+  editPk = null;
+}
+function clearModal(){
+  mNo.value = ""; mFirst.value = ""; mLast.value = ""; mEmail.value = "";
+  mDept.value = ""; mRole.value = ""; mStatus.value = "";
 }
 function openCreate(){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Mitglieder anlegen.");
   editPk = null;
-  clearEditor();
-
-  editorTitle.textContent = "Mitglied hinzufügen";
-  editorSub.textContent = "Neue Person anlegen";
+  clearModal();
+  modalTitle.textContent = "Mitglied hinzufügen";
+  modalSub.textContent = "Fülle die Daten aus und speichere.";
+  modalSaveBtn.textContent = "Anlegen";
   mStatus.value = "Vollmitglied";
-
-  editorDeleteBtn.classList.add("hidden");
-  editorCard.classList.remove("hidden");
-  editorCard.scrollIntoView({ behavior:"smooth", block:"start" });
-  setTimeout(()=> mFirst.focus(), 60);
+  openModal();
 }
-function closeEditor(){
-  editorCard.classList.add("hidden");
-  editPk = null;
-}
-createBtn.addEventListener("click", openCreate);
-editorCloseBtn.addEventListener("click", closeEditor);
-editorCancelBtn.addEventListener("click", closeEditor);
+function openEdit(pk){
+  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
+  const m = members.find(x => Number(getPk(x)) === Number(pk));
+  if (!m) return;
 
-/* Table actions */
-listEl.addEventListener("click", (e)=>{
-  const btn = e.target.closest("button[data-action]");
-  if (!btn || btn.disabled) return;
-  const id = btn.getAttribute("data-id");
-  const action = btn.getAttribute("data-action");
-  if (action === "edit") openEditorFor(id);
-  if (action === "del") delMember(id);
+  editPk = pk;
+  mNo.value = getNo(m) ?? "";
+  mFirst.value = getFirst(m) ?? "";
+  mLast.value  = getLast(m) ?? "";
+  mEmail.value = getEmail(m) ?? "";
+  mDept.value  = getDept(m) ?? "";
+  mRole.value  = getRole(m) ?? "";
+  mStatus.value = getStatus(m) || "Vollmitglied";
+
+  modalTitle.textContent = "Mitglied bearbeiten";
+  modalSub.textContent = `ID ${pk} bearbeiten.`;
+  modalSaveBtn.textContent = "Speichern";
+  openModal();
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
 });
 
-/* Save */
-editorSaveBtn.addEventListener("click", saveEditor);
-
-async function saveEditor(){
+/* CRUD */
+async function saveModal(){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
   await requireAuthOrRedirect();
 
   const payload = {};
-  payload[DB.no] = norm(mNo.value) ? Number(norm(mNo.value)) : null;
+  payload[DB.no] = mNo.value.trim() ? Number(mNo.value.trim()) : null;
   payload[DB.first] = norm(mFirst.value);
   payload[DB.last]  = norm(mLast.value);
   payload[DB.email] = norm(mEmail.value) || null;
@@ -824,59 +1253,53 @@ async function saveEditor(){
 
   if (!payload[DB.first] || !payload[DB.last]) return alert("Vorname und Nachname sind Pflicht.");
 
-  editorSaveBtn.disabled = true;
+  modalSaveBtn.disabled = true;
   try{
     let res;
-    if (editPk === null){
-      res = await sb.from(DB.table).insert(payload).select();
-    } else {
-      res = await sb.from(DB.table).update(payload).eq(DB.pk, String(editPk)).select();
-    }
+    if (editPk === null) res = await sb.from(DB.table).insert(payload).select();
+    else res = await sb.from(DB.table).update(payload).eq(DB.pk, editPk).select();
+
     if (res.error) return alert("SUPABASE: " + res.error.message);
 
-    closeEditor();
+    closeModal();
     await load();
   } finally {
-    editorSaveBtn.disabled = false;
+    modalSaveBtn.disabled = false;
   }
 }
 
-/* Delete */
-editorDeleteBtn.addEventListener("click", ()=>{
-  if (!editPk) return;
-  delMember(editPk);
-});
-
-async function delMember(pk){
+async function del(pk){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf löschen.");
   await requireAuthOrRedirect();
 
-  const target = String(pk ?? "");
-  const m = members.find(x => String(getPk(x) ?? "") === target);
-  const name = m ? `${getFirst(m)||""} ${getLast(m)||""}`.trim() : `ID ${target}`;
+  const m = members.find(x => Number(getPk(x)) === Number(pk));
+  const name = m ? `${getFirst(m) || ""} ${getLast(m) || ""}`.trim() : `ID ${pk}`;
 
   if (!confirm(`Wirklich löschen: ${name}?`)) return;
 
-  const { error } = await sb.from(DB.table).delete().eq(DB.pk, target);
+  const { error } = await sb.from(DB.table).delete().eq(DB.pk, pk);
   if (error) return alert("DELETE: " + error.message);
 
-  closeEditor();
   await load();
 }
 
 /* Init */
-(async ()=>{
+(async () => {
   const session = await requireAuthOrRedirect();
+  const mail = session?.user?.email || "";
+  setAuthUI(true, mail, false);
   await loadMyProfile(session);
+  applyPermissions();
   await load();
 })();
 
-/* PWA */
+/* PWA SW */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(console.warn);
   });
 }
 </script>
+
 </body>
 </html>
