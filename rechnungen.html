@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Finanzen</title>
-<!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
 
-<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="manifest" href="/favicon/site.webmanifest">
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -34,29 +34,50 @@
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
       --warn: rgba(251,146,60,.95);
+
+      --danger1: #fb7185;
+      --danger2: #e11d48;
     }
 
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color: var(--text);
+    html, body{ min-height:100%; }
+    html{
       background:
         radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
         radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
         radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
         linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-      min-height:100vh;
+      background-attachment: fixed;
+    }
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color: var(--text);
+      background: transparent;
       padding: 28px 16px 60px;
       display:flex;
       justify-content:center;
       align-items:flex-start;
+      animation: pageIn .38s ease both;
+    }
+    @keyframes pageIn{
+      from{ opacity:0; transform: translateY(8px); }
+      to  { opacity:1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      body{ animation:none !important; }
+    }
+
+    /* scroll lock for modal */
+    body.locked{
+      overflow:hidden !important;
+      touch-action:none;
     }
 
     .app{ width:100%; max-width:1200px; }
 
     .glass{
-      background: var(--glass);
+      background: rgba(255,255,255,.10);
       border: 1px solid var(--border);
       border-radius: 22px;
       box-shadow: var(--shadow);
@@ -64,7 +85,7 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ✅ Brand links: Logo + Titel (wie Startseite) */
+    /* ===== Brand links: Logo + Titel ===== */
     .brandLeft{
       display:flex;
       align-items:center;
@@ -107,7 +128,52 @@
       .brandLogo img{ border-radius: 9px; }
     }
 
-    /* Auth badge */
+    /* ===== Header ===== */
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 16px;
+    }
+    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    /* ===== Animated pills (consistent) ===== */
+    @keyframes pillShimmer{
+      0%{ transform: translateX(-40%); opacity:.0; }
+      20%{ opacity:.35; }
+      60%{ opacity:.15; }
+      100%{ transform: translateX(140%); opacity:0; }
+    }
+    .pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      color: rgba(255,255,255,.78);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      position:relative;
+      overflow:hidden;
+    }
+    .pill::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+      width: 40%;
+      transform: translateX(-50%);
+      animation: pillShimmer 2.6s ease-in-out infinite;
+      pointer-events:none;
+      opacity:.0;
+    }
+    .pill:hover::after{ opacity:.35; }
+
+    /* ===== Auth badge ===== */
     .authFloating{
       border-radius: 999px;
       padding: 10px 12px;
@@ -193,13 +259,13 @@
     .rolePill{
       display:inline-flex;
       align-items:center;
-      gap:5px;
-      padding: 2px 6px;
+      gap:6px;
+      padding: 3px 8px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.14);
       background: rgba(255,255,255,.08);
       color: rgba(255,255,255,.82);
-      font-weight:700;
+      font-weight:800;
       font-size: 11px;
       letter-spacing: .10px;
       line-height: 1;
@@ -211,31 +277,7 @@
 
     .hidden{ display:none; }
 
-    /* Header */
-    .top{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom: 16px;
-    }
-    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
-    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-
-    .pill{
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size: 12px;
-      color: rgba(255,255,255,.72);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-    }
-
-    /* NAV */
+    /* ===== NAV (wie Members; Dashboard Link + Finanzen active) ===== */
     .navWrap{
       position: sticky;
       top: 14px;
@@ -264,6 +306,7 @@
       background: rgba(255,255,255,.06);
       transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
       user-select:none;
+      white-space:nowrap;
     }
     .navLink:hover{
       transform: translateY(-2px);
@@ -312,11 +355,11 @@
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
     .btn-danger{
-      background: rgba(239,68,68,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(239,68,68,.28);
+      background: linear-gradient(135deg, var(--danger1), var(--danger2));
+      color: #fff;
+      box-shadow: 0 10px 26px rgba(225,29,72,.22);
     }
-    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
 
     .btn-warn{
       background: rgba(251,146,60,.16);
@@ -348,10 +391,11 @@
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
     input:focus, select:focus{
-      border-color: rgba(56,189,248,.55);
+      border-color: rgba(249,115,22,.55);
       background: rgba(255,255,255,.16);
       transform: translateY(-1px);
     }
+    select option{ background:#1a1424; color: rgba(255,255,255,.92); }
 
     /* KPIs */
     .kpiGrid{
@@ -367,7 +411,19 @@
       border-radius: 18px;
       border:1px solid rgba(255,255,255,.18);
       background: rgba(255,255,255,.06);
+      position: relative;
+      overflow:hidden;
     }
+    .kpi::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(500px 160px at 20% 10%, rgba(249,115,22,.18), transparent 60%),
+                  radial-gradient(460px 160px at 80% 20%, rgba(168,85,247,.14), transparent 60%);
+      pointer-events:none;
+      opacity:.75;
+    }
+    .kpi > *{ position:relative; z-index:1; }
     .kpi .k{ color: rgba(255,255,255,.70); font-size:12px; }
     .kpi .v{ font-size: 20px; font-weight: 900; letter-spacing:.2px; margin-top:6px; }
     .kpi .h{ color: rgba(255,255,255,.60); font-size:12px; margin-top:4px; }
@@ -472,7 +528,7 @@
 
     /* Modal */
     .modalOverlay{
-      position: fixed; inset:0; z-index:50;
+      position: fixed; inset:0; z-index:9999;
       background: rgba(0,0,0,.55);
       display:none;
       align-items:center;
@@ -480,13 +536,21 @@
       padding: 18px;
     }
     .modalOverlay.show{ display:flex; }
+
     .modal{
       width:min(920px, 100%);
       max-height: 86vh;
       overflow:auto;
       border-radius: 26px;
       padding: 16px;
+      transform: translateY(6px);
+      animation: modalIn .18s ease both;
     }
+    @keyframes modalIn{
+      from{ opacity:.0; transform: translateY(12px); }
+      to{ opacity:1; transform: translateY(0); }
+    }
+
     .modalHeader{
       display:flex;
       justify-content:space-between;
@@ -508,7 +572,6 @@
       border-radius: 18px;
       margin-top: 12px;
     }
-    @media (max-width: 760px){ .kv{grid-template-columns: 1fr;} }
     .k{ color: rgba(255,255,255,.70); font-size:12px; }
     .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
     .v a{ color: rgba(180,210,255,.95); }
@@ -524,21 +587,36 @@
     .split{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
     .split > *{ flex: 1 1 260px; }
 
+    /* MOBILE */
+    @media (max-width: 760px){
+      .kv{ grid-template-columns: 1fr; }
+    }
     @media (max-width: 640px){
-      input,select{min-width:0; width:100%;}
+      body{ padding: 24px 14px 60px; }
+
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authNameInline{ max-width: 150px; }
+
+      input,select{min-width:0; width:100%;}
+      .row .spacer{ display:none; }
+      .row{ align-items:stretch; }
+      button{ width:100%; }
 
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; flex-wrap:nowrap; }
-      .navRight button{ white-space:nowrap; }
-
-      .card .row{ gap:10px; }
-      button{ width:100%; }
-      .row .spacer{ display:none; }
+      .navRight button{ width:auto; white-space:nowrap; }
 
       .grid{ grid-template-columns: 1fr; }
+
+      /* ✅ bottom sheet modal on mobile */
+      .modalOverlay{ align-items:flex-end; padding:0; }
+      .modal{
+        width:100%;
+        max-height: 88vh;
+        border-radius: 22px 22px 0 0;
+        padding: 16px;
+      }
     }
   </style>
 </head>
@@ -546,10 +624,10 @@
 <body>
   <div class="app">
 
-    <!-- ✅ Header wie Startseite -->
+    <!-- Header -->
     <div class="top">
       <div class="brandLeft">
-        <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+        <a class="brandLogo" href="/index.html" title="FSBS Intern">
           <img src="logo.png" alt="Fachschaft Logo"
                onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
         </a>
@@ -586,11 +664,20 @@
       </div>
     </div>
 
-    <!-- NAV (NUR Vorstand sichtbar) -->
+    <!-- NAV (nur Vorstand) -->
     <div class="glass navWrap" id="navWrap" style="display:none;">
       <div class="nav">
         <div class="navLeft">
+          <!-- ✅ Dashboard wieder drin -->
           <a class="navLink" href="/index.html">
+            <span class="navIcon">🏠</span>
+            <span>
+              <div class="navTitle">Dashboard</div>
+              <div class="navHint">Übersicht</div>
+            </span>
+          </a>
+
+          <a class="navLink" href="/members.html">
             <span class="navIcon">👥</span>
             <span>
               <div class="navTitle">Mitglieder</div>
@@ -618,7 +705,7 @@
             <span class="navIcon">💰</span>
             <span>
               <div class="navTitle">Finanzen</div>
-              <div class="navHint">Rechnungen & Auslagen</div>
+              <div class="navHint">Rechnungen</div>
             </span>
           </a>
 
@@ -656,7 +743,7 @@
         </div>
         <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn-secondary" id="logoutBtn2">Logout</button>
-          <a class="pill" href="/index.html" style="text-decoration:none;">Zur Startseite</a>
+          <a class="pill" href="/index.html" style="text-decoration:none;">Zum Dashboard</a>
         </div>
       </div>
     </div>
@@ -664,9 +751,7 @@
     <!-- KPIs -->
     <div class="glass card" id="kpiCard" style="display:none;">
       <div class="row" style="align-items:flex-start;">
-        <div>
-          <div style="font-weight:900; font-size:16px;">Übersicht</div>
-        </div>
+        <div style="font-weight:900; font-size:16px;">Übersicht</div>
         <div class="spacer"></div>
         <div class="pill" id="countPill">0</div>
       </div>
@@ -711,7 +796,7 @@
         <button class="btn-primary" id="exportBtn">Export CSV</button>
 
         <div class="spacer"></div>
-        <div class="pill" style="opacity:.9;">Klick auf Karte → Details & Status</div>
+        <div class="pill" style="opacity:.9;">Klick auf Karte → Details</div>
       </div>
     </div>
 
@@ -768,7 +853,7 @@
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const LOGIN_REDIRECT = "/index.html";
+    const LOGIN_REDIRECT = "/login.html";
     const PROFILES_TABLE = "profiles";
     const REQUIRED_ROLE = "vorstand";
 
@@ -1021,7 +1106,6 @@
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
       authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
-
       return MY_ROLE;
     }
 
@@ -1038,7 +1122,7 @@
 
     async function doLogout(){
       await sb.auth.signOut();
-      window.location.href = "/index.html";
+      window.location.href = "/login.html";
     }
     logoutBtn?.addEventListener("click", doLogout);
     logoutBtn2?.addEventListener("click", doLogout);
@@ -1209,10 +1293,12 @@
       });
 
       modalOverlay.classList.add("show");
+      document.body.classList.add("locked");
     }
 
     function closeModal(){
       modalOverlay.classList.remove("show");
+      document.body.classList.remove("locked");
       ACTIVE_ROW = null;
     }
 
@@ -1285,15 +1371,13 @@
     modalOverlay?.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
 
-    /* ========= Init (wie Startseite) ========= */
+    /* ========= Init ========= */
     (async () => {
-      // default: alles zu bis Rolle sicher ist
       applyAccessUI(false);
 
       const { data } = await sb.auth.getSession();
       const session = data?.session;
       const mail = session?.user?.email || "";
-
       setAuthUI(!!session, mail);
 
       if (!session){
