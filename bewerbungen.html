@@ -392,9 +392,117 @@
     }
 
     /* =========================
+       ✅ MINI DASHBOARD (KPIs)
+       ========================= */
+
+    .dashHead{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom: 12px;
+    }
+    .dashTitle{
+      font-weight: 900;
+      letter-spacing: .2px;
+      font-size: 14px;
+      color: rgba(255,255,255,.92);
+    }
+    .dashHint{
+      font-size: 12px;
+      color: rgba(255,255,255,.60);
+      margin-top: 4px;
+    }
+
+    .kpiGrid{
+      display:grid;
+      grid-template-columns: repeat(6, minmax(0,1fr));
+      gap: 10px;
+    }
+    @media (max-width: 1020px){ .kpiGrid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 640px){ .kpiGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+
+    .kpiPill{
+      position: relative;
+      border-radius: 18px;
+      padding: 12px 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      box-shadow: 0 14px 45px rgba(0,0,0,.28);
+      overflow: hidden;
+      min-height: 66px;
+    }
+    .kpiPill::before{
+      content:"";
+      position:absolute; inset:-80px;
+      background: radial-gradient(circle at 30% 30%, rgba(249,115,22,.35), transparent 45%),
+                  radial-gradient(circle at 70% 40%, rgba(168,85,247,.28), transparent 50%),
+                  radial-gradient(circle at 55% 80%, rgba(124,58,237,.18), transparent 55%);
+      filter: blur(10px);
+      opacity: .65;
+      animation: floatGlow 7s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes floatGlow{
+      0%{ transform: translate3d(-8px, 6px, 0) scale(1.00); }
+      50%{ transform: translate3d(10px, -8px, 0) scale(1.03); }
+      100%{ transform: translate3d(-8px, 6px, 0) scale(1.00); }
+    }
+    .kpiPill::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
+      transform: translateX(-140%);
+      animation: shimmer 2.9s ease-in-out infinite;
+      opacity: .55;
+      pointer-events:none;
+    }
+    @keyframes shimmer{
+      0%{ transform: translateX(-140%); }
+      55%{ transform: translateX(140%); }
+      100%{ transform: translateX(140%); }
+    }
+
+    .kpiTop{
+      position: relative;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .kpiLabel{
+      position: relative;
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 100%;
+    }
+    .kpiValue{
+      position: relative;
+      font-weight: 950;
+      font-size: 20px;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.92);
+      margin-top: 6px;
+    }
+
+    .kpiDot{
+      width:10px; height:10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.10);
+      flex:0 0 auto;
+    }
+    .kpiDot.ok{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 2px rgba(34,197,94,.18), 0 0 18px rgba(34,197,94,.25); }
+    .kpiDot.bad{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 2px rgba(239,68,68,.16), 0 0 18px rgba(239,68,68,.20); }
+    .kpiDot.warn{ background: rgba(251,146,60,.95); box-shadow: 0 0 0 2px rgba(251,146,60,.18), 0 0 18px rgba(251,146,60,.20); }
+    .kpiDot.purple{ background: rgba(168,85,247,.95); box-shadow: 0 0 0 2px rgba(168,85,247,.18), 0 0 18px rgba(168,85,247,.22); }
+    .kpiDot.orange{ background: rgba(249,115,22,.95); box-shadow: 0 0 0 2px rgba(249,115,22,.18), 0 0 18px rgba(249,115,22,.22); }
+
+    /* =========================
        ✅ DIALOG MODAL (ROBUST)
-       Desktop: centered
-       Mobile: bottom sheet
        ========================= */
 
     dialog{
@@ -404,9 +512,7 @@
       width: min(920px, calc(100% - 36px));
       max-width: calc(100% - 36px);
     }
-    dialog::backdrop{
-      background: rgba(0,0,0,.55);
-    }
+    dialog::backdrop{ background: rgba(0,0,0,.55); }
 
     .dlgShell{
       background: rgba(255,255,255,.10);
@@ -484,22 +590,12 @@
     }
     @media (max-width: 640px){ .modalActions button{ width:100%; } }
 
-    /* Bottom-sheet look on mobile */
     @media (max-width: 640px){
-      dialog{
-        width: 100%;
-        max-width: 100%;
-        margin: 0;
-      }
-      /* Some browsers center dialog; we mimic sheet with padding inside */
-      .dlgShell{
-        border-radius: 22px 22px 0 0;
-        max-height: 92dvh;
-      }
+      dialog{ width: 100%; max-width: 100%; margin: 0; }
+      .dlgShell{ border-radius: 22px 22px 0 0; max-height: 92dvh; }
       .sheetHandle{ display:block; }
     }
 
-    /* Fallback overlay if dialog not supported */
     .fallbackOverlay{
       position: fixed; inset:0; z-index: 80;
       background: rgba(0,0,0,.55);
@@ -608,6 +704,21 @@
 
     <!-- Content -->
     <div class="glass card hidden" id="contentCard">
+
+      <!-- ✅ MINI DASHBOARD -->
+      <div class="dashHead">
+        <div>
+          <div class="dashTitle">KPI Dashboard</div>
+          <div class="dashHint" id="dashHint">–</div>
+        </div>
+        <div class="pill" id="scopePill">–</div>
+      </div>
+
+      <div class="kpiGrid" id="kpiGrid"></div>
+
+      <div style="height:14px;"></div>
+
+      <!-- Controls -->
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fR1"><option value="">Prio 1 (alle)</option></select>
@@ -650,7 +761,7 @@
     </div>
   </dialog>
 
-  <!-- ✅ Fallback (wenn dialog fehlt) -->
+  <!-- ✅ Fallback -->
   <div class="fallbackOverlay" id="fbOverlay">
     <div class="fallbackPanel" onclick="event.stopPropagation()">
       <div class="sheetHandle" aria-hidden="true" style="display:block;"></div>
@@ -685,7 +796,7 @@
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const LOGIN_REDIRECT = "/login.html"; // <- wie bei deiner Anwärter-Seite
+    const LOGIN_REDIRECT = "/login.html";
 
     const PROFILES_TABLE = "profiles";
     const CANDIDATES_TABLE = "anwaerter";
@@ -726,6 +837,11 @@
     const countPill = document.getElementById("countPill");
     const grid = document.getElementById("grid");
     const empty = document.getElementById("empty");
+
+    // Dashboard
+    const kpiGrid = document.getElementById("kpiGrid");
+    const dashHint = document.getElementById("dashHint");
+    const scopePill = document.getElementById("scopePill");
 
     // Auth UI
     const authBadge = document.getElementById("authBadge");
@@ -773,7 +889,7 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    /* ========= DEBUG: Wenn irgendwas crasht, siehst du es oben ========= */
+    /* ========= DEBUG ========= */
     window.addEventListener("error", (e)=>{
       statusPill.textContent = "JS Fehler: " + (e?.message || "unknown");
     });
@@ -875,7 +991,7 @@
       const email = session?.user?.email || "";
 
       const { data } = await sb
-        .from(PROFILES_TABLE)
+        .from("profiles")
         .select("role, display_name, ressort")
         .eq("id", uid)
         .maybeSingle();
@@ -949,14 +1065,14 @@
       if (!ids.length) return;
 
       const { data, error } = await sb
-        .from(CANDIDATES_TABLE)
-        .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
-        .in(CAND_ID_COL, ids);
+        .from("anwaerter")
+        .select(`bewerbung_id,bewerbung_status`)
+        .in("bewerbung_id", ids);
 
       if (error) return;
 
       (data || []).forEach(r => {
-        statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
+        statusMap.set(normId(r["bewerbung_id"]), String(r["bewerbung_status"] || "").toLowerCase());
       });
     }
     function getStatusForRow(row){
@@ -975,12 +1091,90 @@
       const r1 = safe(fR1.value).trim();
       const r2 = safe(fR2.value).trim();
       const sem = safe(fSem.value).trim();
+
       return ALL.filter(row =>
         matches(row, text) &&
         (!r1 || safe(row[F.r1]).trim() === r1) &&
         (!r2 || safe(row[F.r2]).trim() === r2) &&
         (!sem || safe(row[F.sem]).trim() === sem)
       );
+    }
+
+    /* ========= DASHBOARD ========= */
+    function makeKpi(label, value, dotClass){
+      const el = document.createElement("div");
+      el.className = "kpiPill";
+      el.innerHTML = `
+        <div class="kpiTop">
+          <div class="kpiLabel">${esc(label)}</div>
+          <span class="kpiDot ${esc(dotClass || "")}"></span>
+        </div>
+        <div class="kpiValue">${esc(String(value))}</div>
+      `;
+      return el;
+    }
+
+    function countByStatus(rows){
+      let offen=0, anwaerter=0, abgelehnt=0;
+      rows.forEach(r=>{
+        const st = getStatusForRow(r);
+        if (st === "anwaerter") anwaerter++;
+        else if (st === "abgelehnt") abgelehnt++;
+        else offen++;
+      });
+      return { offen, anwaerter, abgelehnt };
+    }
+
+    function renderDashboard(){
+      const rows = filtered();
+
+      // Scope-Text
+      const scope =
+        (MY_ROLE === "vorstand")
+          ? "Scope: alle Bewerbungen"
+          : (MY_RESSORT ? `Scope: ${MY_RESSORT}` : "Scope: dein Ressort");
+
+      scopePill.textContent = scope;
+
+      // Hint
+      const hint =
+        (MY_ROLE === "vorstand")
+          ? "KPIs basieren auf aktuellen Filtern (Suche/Dropdowns)."
+          : "KPIs zeigen deine Ressort-Relevanz (Prio 1 & Prio 1+2) + Status.";
+      dashHint.textContent = hint;
+
+      // Basis-KPIs
+      const { offen, anwaerter, abgelehnt } = countByStatus(rows);
+      const total = rows.length;
+
+      kpiGrid.innerHTML = "";
+      kpiGrid.appendChild(makeKpi("Gesamt", total, "purple"));
+      kpiGrid.appendChild(makeKpi("Offen", offen, "warn"));
+      kpiGrid.appendChild(makeKpi("Anwärter", anwaerter, "ok"));
+      kpiGrid.appendChild(makeKpi("Abgelehnt", abgelehnt, "bad"));
+
+      // Ressort-Relevanz
+      const my = (MY_RESSORT || "").trim();
+      if (my){
+        const prio1 = rows.filter(r => safe(r[F.r1]).trim() === my).length;
+        const prio12 = rows.filter(r => safe(r[F.r1]).trim() === my || safe(r[F.r2]).trim() === my).length;
+
+        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1", prio1, "orange"));
+        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1+2", prio12, "orange"));
+      } else {
+        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1", "–", "orange"));
+        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1+2", "–", "orange"));
+      }
+
+      // Vorstand: Ressort-Übersicht (compact)
+      if (MY_ROLE === "vorstand"){
+        RESSORTS_FIXED.forEach(r=>{
+          const p1 = rows.filter(x => safe(x[F.r1]).trim() === r).length;
+          const p12 = rows.filter(x => safe(x[F.r1]).trim() === r || safe(x[F.r2]).trim() === r).length;
+          kpiGrid.appendChild(makeKpi(`${r} (P1)`, p1, "purple"));
+          kpiGrid.appendChild(makeKpi(`${r} (P1+2)`, p12, "purple"));
+        });
+      }
     }
 
     async function fetchRows(){
@@ -1008,23 +1202,9 @@
     }
 
     /* ========= MODAL (Dialog + fallback) ========= */
-    function dialogSupported(){
-      return !!(dlg && typeof dlg.showModal === "function");
-    }
-    function openModalUI(){
-      if (dialogSupported()){
-        dlg.showModal();
-      } else {
-        fbOverlay.classList.add("show");
-      }
-    }
-    function closeModalUI(){
-      if (dialogSupported()){
-        if (dlg.open) dlg.close();
-      } else {
-        fbOverlay.classList.remove("show");
-      }
-    }
+    function dialogSupported(){ return !!(dlg && typeof dlg.showModal === "function"); }
+    function openModalUI(){ dialogSupported() ? dlg.showModal() : fbOverlay.classList.add("show"); }
+    function closeModalUI(){ dialogSupported() ? (dlg.open && dlg.close()) : fbOverlay.classList.remove("show"); }
 
     function setModalPhotoUI(photoEl, row){
       photoEl.innerHTML = "";
@@ -1068,12 +1248,10 @@
       if (safe(row[F.email]).trim()) line.push(`Mail: ${safe(row[F.email]).trim()}`);
       const sub = line.join(" · ") || "—";
 
-      // dialog
       modalTitle.textContent = title;
       modalSub.textContent = sub;
       setModalPhotoUI(modalPhoto, row);
 
-      // fallback mirrors
       fbTitle.textContent = title;
       fbSub.textContent = sub;
       setModalPhotoUI(fbPhoto, row);
@@ -1097,7 +1275,6 @@
         fbKv.appendChild(k2); fbKv.appendChild(v2);
       });
 
-      // permissions
       rejectBtn.disabled = !CAN_EDIT;
       moveToCandidateBtn.disabled = !CAN_EDIT;
       fbReject.disabled = !CAN_EDIT;
@@ -1113,7 +1290,6 @@
 
     closeModalBtn?.addEventListener("click", closeModal);
     dlg?.addEventListener("click", (e)=>{
-      // click on backdrop closes
       const rect = dlg.getBoundingClientRect();
       const inDialog = (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom);
       if (!inDialog) closeModal();
@@ -1132,6 +1308,9 @@
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       grid.innerHTML = "";
       empty.classList.toggle("hidden", rows.length !== 0);
+
+      // ✅ Dashboard immer mit aktuellen Filtern updaten
+      renderDashboard();
 
       rows.forEach(row => {
         const fn = safe(row[F.fn]).trim();
@@ -1173,7 +1352,6 @@
           </div>
         `;
 
-        // links should not open modal
         card.querySelectorAll("a").forEach(a => a.addEventListener("click", (e)=>e.stopPropagation()));
         card.addEventListener("click", ()=>openModal(row));
         grid.appendChild(card);
