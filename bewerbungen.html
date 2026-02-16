@@ -39,8 +39,6 @@
 
       --danger1:#fb7185;
       --danger2:#e11d48;
-
-      --stickyTop: 14px;
     }
 
     *{box-sizing:border-box}
@@ -61,28 +59,17 @@
       color: var(--text);
       background: transparent;
       padding: 28px 16px 60px;
-      overflow-x:hidden;
       display:flex;
       justify-content:center;
       align-items:flex-start;
+      overflow-x:hidden;
       animation: pageIn .38s ease both;
     }
     @keyframes pageIn{
       from{ opacity:0; transform: translateY(8px); }
       to  { opacity:1; transform: translateY(0); }
     }
-    @media (prefers-reduced-motion: reduce){
-      body{ animation:none !important; }
-    }
-
-    /* ✅ Robust scroll-lock (iOS/Android safe): position fixed + top set via JS */
-    body.modal-open{
-      position: fixed;
-      width: 100%;
-      overflow: hidden;
-      left: 0;
-      right: 0;
-    }
+    @media (prefers-reduced-motion: reduce){ body{ animation:none !important; } }
 
     .app{ width:100%; max-width:1200px; }
 
@@ -106,20 +93,12 @@
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-    /* Brand */
     .brandLeft{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
+      display:flex; align-items:center; gap:12px; min-width:0;
     }
     .brandLogo{
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      padding: 6px;
-      display:grid;
-      place-items:center;
+      width: 52px; height: 52px; border-radius: 14px; padding: 6px;
+      display:grid; place-items:center;
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 16px 44px rgba(0,0,0,.30);
@@ -127,26 +106,15 @@
       -webkit-backdrop-filter: blur(18px);
       flex: 0 0 auto;
       transition: transform .16s ease, filter .16s ease, background .16s ease;
-      text-decoration:none;
-      color: rgba(255,255,255,.92);
+      text-decoration:none; color: rgba(255,255,255,.92);
       font-weight: 900;
-      letter-spacing: .2px;
     }
-    .brandLogo:hover{
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-      background: rgba(255,255,255,.12);
-    }
-    .brandLogo img{
-      width: 100%;
-      height: 100%;
-      border-radius: 10px;
-      object-fit: cover;
-      display:block;
-    }
+    .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
+    .brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
     @media (max-width: 640px){
-      .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
-      .brandLogo img{ border-radius: 9px; }
+      .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
+      .brandLogo img{ border-radius:9px; }
+      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
     }
 
     .pill{
@@ -177,19 +145,14 @@
       user-select:none;
       max-width: min(560px, 100%);
     }
-    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); flex: 0 0 auto; }
-    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 2px rgba(34,197,94,.20), 0 0 18px rgba(34,197,94,.55), 0 0 42px rgba(34,197,94,.30); }
+    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); flex:0 0 auto; }
+    .dot.ok{ background: var(--ok); }
     .dot.warn{ background: rgba(255,255,255,.35); }
 
     .authAvatar{
-      width: 30px;
-      height: 30px;
-      border-radius: 999px;
-      display:grid;
-      place-items:center;
-      font-weight: 800;
-      font-size: 12px;
-      letter-spacing: .3px;
+      width:30px; height:30px; border-radius:999px;
+      display:grid; place-items:center;
+      font-weight:800; font-size:12px;
       color: rgba(255,255,255,.92);
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 12px 28px rgba(0,0,0,.25);
@@ -198,7 +161,7 @@
     }
     .authAvatar.hidden{ display:none; }
 
-    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex: 1 1 auto; }
+    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
     .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
     .authState.hidden{ display:none; }
 
@@ -207,13 +170,9 @@
     .authCompact.hidden{ display:none; }
 
     .authNameInline{
-      font-size:13px;
-      font-weight:850;
-      letter-spacing:.15px;
+      font-size:13px; font-weight:850; letter-spacing:.15px;
       color: rgba(255,255,255,.92);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       max-width: 220px;
     }
 
@@ -233,22 +192,15 @@
     .authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
 
     .authDetails{
-      margin-top: 8px;
-      padding-top: 8px;
+      margin-top:8px; padding-top:8px;
       border-top: 1px solid rgba(255,255,255,.10);
-      display:flex;
-      gap:8px;
-      align-items:center;
-      min-width:0;
+      display:flex; gap:8px; align-items:center; min-width:0;
     }
     .authDetails.hidden{ display:none; }
-
-    .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
+    .authMail{ font-size:11px; color: rgba(255,255,255,.58); word-break:break-all; }
 
     .rolePill{
-      display:inline-flex;
-      align-items:center;
-      gap:5px;
+      display:inline-flex; align-items:center; gap:5px;
       padding: 2px 6px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.14);
@@ -256,31 +208,22 @@
       color: rgba(255,255,255,.82);
       font-weight:700;
       font-size: 11px;
-      letter-spacing: .10px;
-      line-height: 1;
       white-space:nowrap;
-      flex: 0 0 auto;
+      flex:0 0 auto;
     }
     .rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
     .rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
 
     .hidden{ display:none; }
 
-    /* ===== NAV ===== */
-    .navWrap{
-      position: sticky;
-      top: var(--stickyTop);
-      z-index: 10;
-      margin-bottom: 16px;
-    }
+    /* NAV */
+    .navWrap{ position: sticky; top: 14px; z-index: 10; margin-bottom: 16px; }
     .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
     .navLink{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
+      display:inline-flex; align-items:center; gap:10px;
       padding: 10px 12px;
       border-radius: 16px;
       text-decoration:none;
@@ -312,7 +255,28 @@
     .navTitle{ font-weight:750; letter-spacing:.2px; }
     .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-    /* ===== Buttons ===== */
+    /* Controls + grid */
+    .card{ padding:16px; margin-bottom:14px; }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .spacer{ flex:1; }
+
+    input,select{
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      color: var(--text);
+      padding: 12px 14px;
+      border-radius: 14px;
+      outline:none;
+      min-width: 190px;
+    }
+    input::placeholder{ color: rgba(255,255,255,.55); }
+    input:focus, select:focus{
+      border-color: rgba(249,115,22,.55);
+      background: rgba(255,255,255,.16);
+      transform: translateY(-1px);
+    }
+    select option{ background: #1a1424; color: rgba(255,255,255,.92); }
+
     button{
       border:none;
       cursor:pointer;
@@ -322,7 +286,7 @@
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
-    button:disabled{ cursor: not-allowed !important; opacity: .55 !important; transform:none !important; }
+    button:disabled{ cursor: not-allowed !important; opacity:.55 !important; transform:none !important; }
 
     .btn-secondary{
       background: rgba(255,255,255,.14);
@@ -345,68 +309,19 @@
     }
     .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
 
-    /* ===== Content ===== */
-    .card{ padding:16px; margin-bottom:14px; }
-    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .spacer{ flex:1; }
-
-    input,select{
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.22);
-      color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      outline:none;
-      min-width: 190px;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus, select:focus{
-      border-color: rgba(249,115,22,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
-    }
-    select option{ background: #1a1424; color: rgba(255,255,255,.92); }
-
-    /* ===== Mini Dashboard ===== */
-    .miniDash{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin: 12px 0 14px;
-    }
-    .dashCard{
-      padding: 12px 14px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 12px;
-    }
-    .dashLabel{ font-size:12px; color: rgba(255,255,255,.68); }
-    .dashValue{ font-size:18px; font-weight: 900; letter-spacing:.2px; }
-    .dashHint{ font-size:11px; color: rgba(255,255,255,.55); margin-top:2px; }
-    @media (max-width: 1020px){ .miniDash{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 640px){ .miniDash{ grid-template-columns: 1fr; } }
-
-    /* ===== Grid cards ===== */
     .grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
       gap:14px;
+      margin-top: 12px;
     }
     @media (max-width: 1020px){ .grid{grid-template-columns: repeat(2, minmax(0,1fr));} }
     @media (max-width: 640px){
       .grid{grid-template-columns: 1fr;}
       input,select{min-width:0; width:100%;}
-      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-      .authNameInline{ max-width: 150px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
-      .navRight{ margin-left: 0; }
-      .navRight button{ white-space:nowrap; }
+      .navRight{ margin-left:0; }
       .row .spacer{ display:none; }
     }
 
@@ -423,9 +338,7 @@
       position: relative;
     }
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
-
     .inner{ display:flex; gap:12px; padding:14px; }
-
     .avatar{
       width:56px; height:56px; border-radius:16px;
       border:1px solid rgba(255,255,255,.16);
@@ -451,13 +364,9 @@
     .tag a{ color: rgba(249,115,22,.95); text-decoration:none; }
     .tag a:hover{ text-decoration:underline; }
 
-    /* Corner badge */
     .cornerBadge{
-      position:absolute;
-      top:10px;
-      right:10px;
-      font-size:12px;
-      font-weight:850;
+      position:absolute; top:10px; right:10px;
+      font-size:12px; font-weight:850;
       padding:7px 10px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.18);
@@ -482,38 +391,43 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* ==========================
-       ✅ MODAL SYSTEM (FINAL)
-       Desktop = centered dialog
-       Mobile  = bottom sheet
-       ========================== */
+    /* =========================
+       ✅ DIALOG MODAL (ROBUST)
+       Desktop: centered
+       Mobile: bottom sheet
+       ========================= */
 
-    .modalOverlay{
-      position: fixed;
-      inset:0;
-      z-index: 60;
-      background: rgba(0,0,0,.55);
-      display:none;
-
-      /* default desktop: center */
-      align-items:center;
-      justify-content:center;
-
-      padding: 18px;
-      overflow:auto;
-      -webkit-overflow-scrolling: touch;
+    dialog{
+      border: none;
+      padding: 0;
+      background: transparent;
+      width: min(920px, calc(100% - 36px));
+      max-width: calc(100% - 36px);
     }
-    .modalOverlay.show{ display:flex; }
+    dialog::backdrop{
+      background: rgba(0,0,0,.55);
+    }
 
-    /* modal base */
-    .modal{
-      width: min(920px, 100%);
+    .dlgShell{
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 26px;
+      box-shadow: 0 20px 55px rgba(0,0,0,.50);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: 16px;
       max-height: calc(100dvh - 36px);
       overflow:auto;
       -webkit-overflow-scrolling: touch;
+    }
 
-      border-radius: 26px;
-      padding: 16px;
+    .sheetHandle{
+      display:none;
+      width: 44px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.22);
+      margin: 6px auto 10px;
     }
 
     .modalHeader{
@@ -527,34 +441,9 @@
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
 
-    /* Bottom-sheet behavior on mobile */
-    @media (max-width: 640px){
-      .modalOverlay{
-        align-items:flex-end;
-        justify-content:stretch;
-        padding: 0;
-      }
-      .modal{
-        width: 100%;
-        max-height: 92dvh;
-        border-radius: 22px 22px 0 0;
-        padding: 14px;
-        /* little “sheet” spacing */
-        margin: 0;
-      }
-      .sheetHandle{
-        width: 44px;
-        height: 5px;
-        border-radius: 999px;
-        background: rgba(255,255,255,.22);
-        margin: 6px auto 10px;
-      }
-    }
-
     .modalPhotoWrap{ display:flex; justify-content:center; margin: 6px 0 16px; }
     .modalPhoto{
-      width: 220px;
-      height: 220px;
+      width: 220px; height: 220px;
       border-radius: 26px;
       overflow:hidden;
       background: rgba(255,255,255,.10);
@@ -566,12 +455,6 @@
       font-weight: 900;
       color: rgba(255,255,255,.80);
       cursor: pointer;
-      transition: transform .18s ease, filter .18s ease, box-shadow .18s ease;
-    }
-    .modalPhoto:hover{
-      transform: translateY(-2px) scale(1.02);
-      filter: brightness(1.06);
-      box-shadow: 0 18px 45px rgba(0,0,0,.35);
     }
     .modalPhoto img{ width:100%; height:100%; object-fit: cover; display:block; }
 
@@ -585,10 +468,8 @@
       border-radius: 18px;
       margin-top: 12px;
     }
-    @media (max-width: 760px){
-      .kv{grid-template-columns: 1fr;}
-      .modalPhoto{ width: 200px; height: 200px; }
-    }
+    @media (max-width: 760px){ .kv{grid-template-columns: 1fr;} }
+
     .k{ color: rgba(255,255,255,.70); font-size:12px; }
     .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
     .v a{ color: rgba(249,115,22,.95); text-decoration:none; }
@@ -601,12 +482,45 @@
       flex-wrap:wrap;
       margin-top: 12px;
     }
+    @media (max-width: 640px){ .modalActions button{ width:100%; } }
+
+    /* Bottom-sheet look on mobile */
     @media (max-width: 640px){
-      .modalActions button{ width:100%; }
+      dialog{
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+      }
+      /* Some browsers center dialog; we mimic sheet with padding inside */
+      .dlgShell{
+        border-radius: 22px 22px 0 0;
+        max-height: 92dvh;
+      }
+      .sheetHandle{ display:block; }
     }
 
-    /* Candidate sheet shares same system */
-    .candOverlay{ z-index: 70; }
+    /* Fallback overlay if dialog not supported */
+    .fallbackOverlay{
+      position: fixed; inset:0; z-index: 80;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:flex-end;
+      justify-content:stretch;
+    }
+    .fallbackOverlay.show{ display:flex; }
+    .fallbackPanel{
+      width: 100%;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 22px 22px 0 0;
+      box-shadow: 0 20px 55px rgba(0,0,0,.50);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      max-height: 92dvh;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px;
+    }
   </style>
 </head>
 
@@ -619,7 +533,6 @@
           <img src="logo.png" alt="Fachschaft Logo"
                onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
         </a>
-
         <div>
           <h1>Bewerbungen</h1>
           <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
@@ -658,50 +571,32 @@
         <div class="navLeft">
           <a class="navLink" href="/index.html">
             <span class="navIcon">🏠</span>
-            <span>
-              <div class="navTitle">Dashboard</div>
-              <div class="navHint">Übersicht</div>
-            </span>
+            <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
           </a>
 
           <a class="navLink" href="/members.html">
             <span class="navIcon">👥</span>
-            <span>
-              <div class="navTitle">Mitglieder</div>
-              <div class="navHint">Verwalten</div>
-            </span>
+            <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
           </a>
 
           <a class="navLink" href="/anwaerter.html">
             <span class="navIcon">👶🏼</span>
-            <span>
-              <div class="navTitle">Anwärter</div>
-              <div class="navHint">Liste</div>
-            </span>
+            <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
           </a>
 
           <a class="navLink active" href="/bewerbungen.html">
             <span class="navIcon">📝</span>
-            <span>
-              <div class="navTitle">Bewerbungen</div>
-              <div class="navHint">Google Sheet</div>
-            </span>
+            <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
           </a>
 
           <a class="navLink" href="/rechnungen.html" id="navFinance">
             <span class="navIcon">💰</span>
-            <span>
-              <div class="navTitle">Finanzen</div>
-              <div class="navHint">Rechnungen & Auslagen</div>
-            </span>
+            <span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen & Auslagen</div></span>
           </a>
 
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">
             <span class="navIcon">📊</span>
-            <span>
-              <div class="navTitle">Befragung</div>
-              <div class="navHint">Auswertung</div>
-            </span>
+            <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
           </a>
         </div>
 
@@ -711,7 +606,7 @@
       </div>
     </div>
 
-    <!-- CONTENT -->
+    <!-- Content -->
     <div class="glass card hidden" id="contentCard">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
@@ -723,50 +618,15 @@
         <div class="pill" id="countPill">0</div>
       </div>
 
-      <!-- Mini Dashboard -->
-      <div class="miniDash">
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel" id="dashScopeLabel">Bewerbungen</div>
-            <div class="dashHint" id="dashScopeHint">gesamt</div>
-          </div>
-          <div class="dashValue" id="dashTotal">0</div>
-        </div>
-
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Neu / offen</div>
-            <div class="dashHint">noch nicht entschieden</div>
-          </div>
-          <div class="dashValue" id="dashOpen">0</div>
-        </div>
-
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Als Anwärter</div>
-            <div class="dashHint">Status: anwaerter</div>
-          </div>
-          <div class="dashValue" id="dashAnw">0</div>
-        </div>
-
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Abgelehnt</div>
-            <div class="dashHint">Status: abgelehnt</div>
-          </div>
-          <div class="dashValue" id="dashRej">0</div>
-        </div>
-      </div>
-
       <div id="grid" class="grid"></div>
       <div id="empty" class="empty hidden">Keine Bewerbungen gefunden.</div>
     </div>
 
   </div>
 
-  <!-- Bewerber Modal -->
-  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="glass modal" onclick="event.stopPropagation()">
+  <!-- ✅ Native Dialog Modal -->
+  <dialog id="dlg">
+    <div class="dlgShell">
       <div class="sheetHandle" aria-hidden="true"></div>
 
       <div class="modalHeader">
@@ -788,79 +648,52 @@
         <button class="btn-primary" id="moveToCandidateBtn" type="button">Als Anwärter übernehmen</button>
       </div>
     </div>
-  </div>
+  </dialog>
 
-  <!-- Anwärter Übernahme Modal -->
-  <div class="modalOverlay candOverlay" id="candOverlay" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="glass modal" onclick="event.stopPropagation()">
-      <div class="sheetHandle" aria-hidden="true"></div>
+  <!-- ✅ Fallback (wenn dialog fehlt) -->
+  <div class="fallbackOverlay" id="fbOverlay">
+    <div class="fallbackPanel" onclick="event.stopPropagation()">
+      <div class="sheetHandle" aria-hidden="true" style="display:block;"></div>
 
       <div class="modalHeader">
         <div>
-          <h2 class="modalTitle">Als Anwärter übernehmen</h2>
-          <div class="modalSub" id="candSub">–</div>
+          <h2 class="modalTitle" id="fbTitle">Bewerbung</h2>
+          <div class="modalSub" id="fbSub">–</div>
         </div>
-        <button class="btn-secondary closeX" id="closeCandBtn" type="button">✕</button>
+        <button class="btn-secondary closeX" id="fbClose" type="button">✕</button>
       </div>
 
-      <div style="padding: 8px 2px 2px;">
-        <div style="color:rgba(255,255,255,.75); font-size:12px; margin-bottom:8px;">
-          Ressort auswählen
-        </div>
-        <select id="candRessort" style="width:100%; min-width:0;"></select>
+      <div class="modalPhotoWrap">
+        <div class="modalPhoto" id="fbPhoto"></div>
+      </div>
 
-        <div style="margin-top:12px;">
-          <div class="pill" id="candInfoPill">–</div>
-        </div>
+      <div class="kv" id="fbKv"></div>
 
-        <div class="modalActions" style="margin-top:12px;">
-          <button class="btn-secondary" id="candCancelBtn" type="button">Abbrechen</button>
-          <button class="btn-primary" id="candConfirm" type="button">Übernehmen</button>
-        </div>
+      <div class="modalActions">
+        <button class="btn-danger" id="fbReject" type="button">Ablehnen</button>
+        <button class="btn-primary" id="fbMove" type="button">Als Anwärter übernehmen</button>
       </div>
     </div>
   </div>
 
   <script>
-    // ====== Google Sheet API ======
+    /* ========= CONFIG ========= */
     const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxs-YWnkRKRJwqJdG5L2EMCfPn-XaKJVbYssnwW-iJkjdr9Z0jQT4IcOUZb5uIReYVe/exec";
     const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
 
-    // ====== Supabase Auth ======
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const LOGIN_REDIRECT = "/login.html";
 
-    // ====== Profile/Permissions ======
+    const LOGIN_REDIRECT = "/login.html"; // <- wie bei deiner Anwärter-Seite
+
     const PROFILES_TABLE = "profiles";
-    let MY_ROLE = "";
-    let MY_RESSORT = "";
-    let CAN_VIEW = false;   // Vorstand + Ressortleiter
-    let CAN_EDIT = false;   // nur Vorstand
-
-    function normRole(v){ return String(v || "").trim().toLowerCase(); }
-    function roleLabel(role){
-      const r = normRole(role);
-      if (r === "vorstand") return "Vorstand";
-      if (r === "ressortleiter") return "Ressortleiter";
-      return "Unbekannt";
-    }
-
-    // ====== Anwärter Tabelle (Status) ======
     const CANDIDATES_TABLE = "anwaerter";
     const CAND_ID_COL = "bewerbung_id";
     const CAND_STATUS_COL = "bewerbung_status";
 
-    const RESSORTS_FIXED = [
-      "Externe Events",
-      "Interne Events",
-      "Sponsoring",
-      "Merchandise",
-      "Kommunikation"
-    ];
+    const RESSORTS_FIXED = ["Externe Events","Interne Events","Sponsoring","Merchandise","Kommunikation"];
 
-    // ====== Feldnamen (exakt wie dein Sheet) ======
     const F = {
       ts: "Zeitstempel",
       fn: "Vorname",
@@ -878,13 +711,12 @@
       sem: "Semester"
     };
 
-    // ====== Elements ======
-    const navWrap = document.getElementById("navWrap");
-    const navFinance = document.getElementById("navFinance");
-    const logoutBtn = document.getElementById("logoutBtn");
-
+    /* ========= ELEMENTS ========= */
     const statusPill = document.getElementById("statusPill");
+    const navWrap = document.getElementById("navWrap");
+    const logoutBtn = document.getElementById("logoutBtn");
     const contentCard = document.getElementById("contentCard");
+    const navFinance = document.getElementById("navFinance");
 
     const q = document.getElementById("q");
     const fR1 = document.getElementById("fR1");
@@ -892,19 +724,10 @@
     const fSem = document.getElementById("fSem");
     const reloadBtn = document.getElementById("reloadBtn");
     const countPill = document.getElementById("countPill");
-
     const grid = document.getElementById("grid");
     const empty = document.getElementById("empty");
 
-    // Dashboard
-    const dashScopeLabel = document.getElementById("dashScopeLabel");
-    const dashScopeHint  = document.getElementById("dashScopeHint");
-    const dashTotal = document.getElementById("dashTotal");
-    const dashOpen  = document.getElementById("dashOpen");
-    const dashAnw   = document.getElementById("dashAnw");
-    const dashRej   = document.getElementById("dashRej");
-
-    // Auth badge
+    // Auth UI
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
@@ -916,8 +739,8 @@
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
 
-    // Modals
-    const modalOverlay = document.getElementById("modalOverlay");
+    // Dialog + fallback
+    const dlg = document.getElementById("dlg");
     const modalTitle = document.getElementById("modalTitle");
     const modalSub = document.getElementById("modalSub");
     const modalPhoto = document.getElementById("modalPhoto");
@@ -926,43 +749,46 @@
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
     const rejectBtn = document.getElementById("rejectBtn");
 
-    const candOverlay = document.getElementById("candOverlay");
-    const candSub = document.getElementById("candSub");
-    const candRessort = document.getElementById("candRessort");
-    const candConfirm = document.getElementById("candConfirm");
-    const candInfoPill = document.getElementById("candInfoPill");
-    const closeCandBtn = document.getElementById("closeCandBtn");
-    const candCancelBtn = document.getElementById("candCancelBtn");
+    const fbOverlay = document.getElementById("fbOverlay");
+    const fbTitle = document.getElementById("fbTitle");
+    const fbSub = document.getElementById("fbSub");
+    const fbPhoto = document.getElementById("fbPhoto");
+    const fbKv = document.getElementById("fbKv");
+    const fbClose = document.getElementById("fbClose");
+    const fbMove = document.getElementById("fbMove");
+    const fbReject = document.getElementById("fbReject");
 
-    // ====== State ======
+    /* ========= STATE ========= */
     let ALL = [];
     let ACTIVE_ROW = null;
     let statusMap = new Map();
+
+    let MY_ROLE = "";
+    let MY_RESSORT = "";
+    let CAN_VIEW = false; // Vorstand + RL
+    let CAN_EDIT = false; // Vorstand
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    /* ===== Scroll lock (FINAL robust) ===== */
-    let __scrollY = 0;
-    function lockBG(){
-      __scrollY = window.scrollY || 0;
-      document.body.classList.add("modal-open");
-      document.body.style.top = `-${__scrollY}px`;
-    }
-    function unlockBG(){
-      document.body.classList.remove("modal-open");
-      document.body.style.top = "";
-      window.scrollTo(0, __scrollY);
-    }
+    /* ========= DEBUG: Wenn irgendwas crasht, siehst du es oben ========= */
+    window.addEventListener("error", (e)=>{
+      statusPill.textContent = "JS Fehler: " + (e?.message || "unknown");
+    });
+    window.addEventListener("unhandledrejection", (e)=>{
+      statusPill.textContent = "Promise Fehler: " + (e?.reason?.message || String(e?.reason || "unknown"));
+    });
 
-    function setOverlayOpen(overlay, open){
-      overlay.classList.toggle("show", open);
-      overlay.setAttribute("aria-hidden", open ? "false" : "true");
+    /* ========= AUTH UI helpers ========= */
+    function normRole(v){ return String(v || "").trim().toLowerCase(); }
+    function roleLabel(role){
+      const r = normRole(role);
+      if (r === "vorstand") return "Vorstand";
+      if (r === "ressortleiter") return "Ressortleiter";
+      return "Unbekannt";
     }
-
-    /* ===== Auth helpers ===== */
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -991,7 +817,7 @@
     function setAvatar(email){
       const e = (email || "").trim().toLowerCase();
       if (!e){
-        authAvatar.classList.add("hidden");
+        authAvatar?.classList.add("hidden");
         authAvatar.textContent = "U";
         authAvatar.style.background = "rgba(255,255,255,.10)";
         return;
@@ -1000,19 +826,9 @@
       const hue = h % 360;
       const hue2 = (hue + 38) % 360;
       authAvatar.textContent = initialsFromEmail(e);
-      authAvatar.classList.remove("hidden");
+      authAvatar?.classList.remove("hidden");
       authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
     }
-
-    function closeAuthDetails(){ authDetails.classList.add("hidden"); }
-    authToggle?.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      authDetails.classList.toggle("hidden");
-    });
-    document.addEventListener("click", (e)=>{
-      if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
-    });
-
     function setRolePill(role){
       const r = normRole(role);
       authRolePill.textContent = roleLabel(r);
@@ -1025,6 +841,9 @@
       const fallback = ((email || "").split("@")[0] || "User").trim();
       authNameInline.textContent = name || fallback;
     }
+    function closeAuthDetails(){ authDetails?.classList.add("hidden"); }
+    authToggle?.addEventListener("click", (e)=>{ e.stopPropagation(); authDetails?.classList.toggle("hidden"); });
+    document.addEventListener("click", (e)=>{ if (authBadge && !authBadge.contains(e.target)) closeAuthDetails(); });
 
     function setAuthUI(isAuthed, email=""){
       if (isAuthed){
@@ -1051,28 +870,15 @@
       }
     }
 
-    async function doLogout(){
-      await sb.auth.signOut();
-      window.location.href = LOGIN_REDIRECT;
-    }
-    logoutBtn?.addEventListener("click", doLogout);
-
     async function loadMyProfile(session){
-      MY_ROLE = "";
-      MY_RESSORT = "";
-      CAN_VIEW = false;
-      CAN_EDIT = false;
-
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      const res = await sb
+      const { data } = await sb
         .from(PROFILES_TABLE)
         .select("role, display_name, ressort")
         .eq("id", uid)
         .maybeSingle();
-
-      const data = res?.data || null;
 
       MY_ROLE = normRole(data?.role);
       MY_RESSORT = safe(data?.ressort).trim();
@@ -1085,42 +891,34 @@
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
-      if (navFinance){
-        navFinance.style.display = CAN_EDIT ? "" : "none";
-      }
+      if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
     }
 
-    function applyEditPermissions(){
-      rejectBtn.disabled = !CAN_EDIT;
-      moveToCandidateBtn.disabled = !CAN_EDIT;
-      rejectBtn.title = CAN_EDIT ? "Bewerbung ablehnen" : "Nur Vorstand";
-      moveToCandidateBtn.title = CAN_EDIT ? "Als Anwärter übernehmen" : "Nur Vorstand";
-    }
+    logoutBtn?.addEventListener("click", async ()=>{
+      await sb.auth.signOut();
+      window.location.href = LOGIN_REDIRECT;
+    });
 
+    /* ========= DATA helpers ========= */
     function uniq(arr){
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
     }
-
     function fillFilters(){
       const r1 = uniq(ALL.map(r => r[F.r1]));
       const r2 = uniq(ALL.map(r => r[F.r2]));
       const sem = uniq(ALL.map(r => r[F.sem]));
-
       const fill = (sel, values, placeholder) => {
         sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
       };
-
       fill(fR1, r1, "Prio 1 (alle)");
       fill(fR2, r2, "Prio 2 (alle)");
       fill(fSem, sem, "Semester (alle)");
     }
-
     function getInitials(row){
       const a = safe(row[F.fn]).trim().slice(0,1);
       const b = safe(row[F.ln]).trim().slice(0,1);
       return (a + b).toUpperCase() || "•";
     }
-
     function getThumb(row){
       try{
         if (row?.__photo?.items?.[0]?.thumb){
@@ -1139,36 +937,12 @@
       } catch(e){}
       return "";
     }
-
-    function matches(row, text){
-      if (!text) return true;
-      const hay = [
-        row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone]
-      ].map(safe).join(" ").toLowerCase();
-      return hay.includes(text.toLowerCase());
-    }
-
-    function filtered(){
-      const text = safe(q.value).trim();
-      const r1 = safe(fR1.value).trim();
-      const r2 = safe(fR2.value).trim();
-      const sem = safe(fSem.value).trim();
-
-      return ALL.filter(row =>
-        matches(row, text) &&
-        (!r1 || safe(row[F.r1]).trim() === r1) &&
-        (!r2 || safe(row[F.r2]).trim() === r2) &&
-        (!sem || safe(row[F.sem]).trim() === sem)
-      );
-    }
-
     function normId(v){ return String(v || "").trim(); }
     function makeBewerbungId(row){
       const ts = safe(row?.[F.ts]).trim();
       const email = safe(row?.[F.email]).trim();
       return [ts, email].filter(Boolean).join(" | ") || "";
     }
-
     async function refreshStatusMapFor(rows){
       statusMap = new Map();
       const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
@@ -1179,87 +953,34 @@
         .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
         .in(CAND_ID_COL, ids);
 
-      if (error){
-        console.warn("StatusMap load failed:", error.message);
-        return;
-      }
+      if (error) return;
+
       (data || []).forEach(r => {
         statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
       });
     }
-
     function getStatusForRow(row){
       return statusMap.get(normId(makeBewerbungId(row))) || "";
     }
 
-    function isRowInMyRessort(row){
-      if (!MY_RESSORT) return false;
-      const r1 = safe(row?.[F.r1]).trim();
-      const r2 = safe(row?.[F.r2]).trim();
-      return r1 === MY_RESSORT || r2 === MY_RESSORT;
+    function matches(row, text){
+      if (!text) return true;
+      const hay = [
+        row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone]
+      ].map(safe).join(" ").toLowerCase();
+      return hay.includes(text.toLowerCase());
     }
-
-    function rowsForDashboardScope(){
-      if (CAN_EDIT) return ALL;              // Vorstand
-      return ALL.filter(isRowInMyRessort);   // RL
-    }
-
-    function updateDashboard(){
-      const scoped = rowsForDashboardScope();
-      const total = scoped.length;
-
-      let anw = 0, rej = 0, open = 0;
-      scoped.forEach(row => {
-        const st = getStatusForRow(row);
-        if (st === "anwaerter") anw++;
-        else if (st === "abgelehnt") rej++;
-        else open++;
-      });
-
-      dashTotal.textContent = String(total);
-      dashOpen.textContent  = String(open);
-      dashAnw.textContent   = String(anw);
-      dashRej.textContent   = String(rej);
-
-      if (CAN_EDIT){
-        dashScopeLabel.textContent = "Bewerbungen";
-        dashScopeHint.textContent  = "gesamt (alle Ressorts)";
-      } else {
-        dashScopeLabel.textContent = "Dein Ressort";
-        dashScopeHint.textContent  = MY_RESSORT || "–";
-      }
-    }
-
-    async function upsertApplicantStatusFromActive(status, extra = {}){
-      if (!ACTIVE_ROW) return;
-
-      const bewerbung_id = makeBewerbungId(ACTIVE_ROW);
-      if (!bewerbung_id) throw new Error("Bewerbung-ID fehlt (Zeitstempel/Mail).");
-
-      const vorname = safe(ACTIVE_ROW[F.fn]).trim();
-      const nachname = safe(ACTIVE_ROW[F.ln]).trim();
-      const email = safe(ACTIVE_ROW[F.email]).trim();
-
-      const photo_url = getPhotoUrl(ACTIVE_ROW) || null;
-      const photo_thumb = getThumb(ACTIVE_ROW) || null;
-
-      const payload = {
-        bewerbung_id,
-        bewerbung_status: status,
-        vorname: vorname || null,
-        nachname: nachname || null,
-        email: email || null,
-        photo_url,
-        photo_thumb,
-        ...extra
-      };
-
-      const { error } = await sb
-        .from(CANDIDATES_TABLE)
-        .upsert(payload, { onConflict: CAND_ID_COL });
-
-      if (error) throw error;
-      statusMap.set(normId(bewerbung_id), String(status).toLowerCase());
+    function filtered(){
+      const text = safe(q.value).trim();
+      const r1 = safe(fR1.value).trim();
+      const r2 = safe(fR2.value).trim();
+      const sem = safe(fSem.value).trim();
+      return ALL.filter(row =>
+        matches(row, text) &&
+        (!r1 || safe(row[F.r1]).trim() === r1) &&
+        (!r2 || safe(row[F.r2]).trim() === r2) &&
+        (!sem || safe(row[F.sem]).trim() === sem)
+      );
     }
 
     async function fetchRows(){
@@ -1267,44 +988,143 @@
 
       statusPill.textContent = "Lade…";
 
-      if (!SHEET_API_URL || !SHEET_API_URL.includes("/exec")){
-        statusPill.textContent = "Fehlt: SHEET_API_URL";
-        return;
-      }
-      if (!SHEET_API_KEY){
-        statusPill.textContent = "Fehlt: API_KEY";
-        return;
-      }
-
       const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
+      const res = await fetch(url);
+      const text = await res.text();
 
-      try{
-        const res = await fetch(url, { method:"GET" });
-        const text = await res.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch(e){
+        statusPill.textContent = "API liefert kein JSON";
+        return;
+      }
 
-        let json;
-        try { json = JSON.parse(text); }
-        catch(parseErr){
-          statusPill.textContent = "API liefert kein JSON";
-          return;
-        }
+      ALL = Array.isArray(json.rows) ? json.rows : [];
+      await refreshStatusMapFor(ALL);
 
-        if (!res.ok){
-          statusPill.textContent = "API Fehler";
-          return;
-        }
+      statusPill.textContent = `Geladen: ${ALL.length}`;
+      fillFilters();
+      render();
+    }
 
-        ALL = Array.isArray(json.rows) ? json.rows : [];
-        await refreshStatusMapFor(ALL);
-
-        statusPill.textContent = `Geladen: ${ALL.length}`;
-        fillFilters();
-        render();
-      } catch(err){
-        statusPill.textContent = "Fetch/CORS Fehler";
+    /* ========= MODAL (Dialog + fallback) ========= */
+    function dialogSupported(){
+      return !!(dlg && typeof dlg.showModal === "function");
+    }
+    function openModalUI(){
+      if (dialogSupported()){
+        dlg.showModal();
+      } else {
+        fbOverlay.classList.add("show");
+      }
+    }
+    function closeModalUI(){
+      if (dialogSupported()){
+        if (dlg.open) dlg.close();
+      } else {
+        fbOverlay.classList.remove("show");
       }
     }
 
+    function setModalPhotoUI(photoEl, row){
+      photoEl.innerHTML = "";
+      const thumb = getThumb(row);
+      const photoUrl = getPhotoUrl(row);
+
+      if (thumb){
+        const img = document.createElement("img");
+        img.src = thumb;
+        img.alt = "Foto";
+        img.loading = "eager";
+        img.decoding = "async";
+        img.referrerPolicy = "no-referrer";
+
+        img.onerror = () => {
+          photoEl.innerHTML = "";
+          photoEl.textContent = getInitials(row);
+          photoEl.style.cursor = "default";
+        };
+
+        photoEl.style.cursor = photoUrl ? "pointer" : "default";
+        photoEl.onclick = () => { if (photoUrl) window.open(photoUrl, "_blank", "noopener"); };
+
+        photoEl.appendChild(img);
+      } else {
+        photoEl.textContent = getInitials(row);
+        photoEl.style.cursor = "default";
+        photoEl.onclick = null;
+      }
+    }
+
+    function openModal(row){
+      ACTIVE_ROW = row;
+
+      const fn = safe(row[F.fn]).trim();
+      const ln = safe(row[F.ln]).trim();
+      const title = (fn + " " + ln).trim() || "Bewerbung";
+
+      const line = [];
+      if (safe(row[F.ts]).trim()) line.push(`Zeit: ${safe(row[F.ts]).trim()}`);
+      if (safe(row[F.email]).trim()) line.push(`Mail: ${safe(row[F.email]).trim()}`);
+      const sub = line.join(" · ") || "—";
+
+      // dialog
+      modalTitle.textContent = title;
+      modalSub.textContent = sub;
+      setModalPhotoUI(modalPhoto, row);
+
+      // fallback mirrors
+      fbTitle.textContent = title;
+      fbSub.textContent = sub;
+      setModalPhotoUI(fbPhoto, row);
+
+      const fields = [F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone, F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent];
+
+      kv.innerHTML = "";
+      fbKv.innerHTML = "";
+      fields.forEach(key => {
+        const val = safe(row[key]).trim();
+
+        const k1 = document.createElement("div"); k1.className="k"; k1.textContent = key;
+        const v1 = document.createElement("div"); v1.className="v";
+        if (val.startsWith("http://") || val.startsWith("https://") || val.includes("drive.google.com")){
+          v1.innerHTML = `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
+        } else v1.textContent = val || "—";
+        kv.appendChild(k1); kv.appendChild(v1);
+
+        const k2 = k1.cloneNode(true);
+        const v2 = v1.cloneNode(true);
+        fbKv.appendChild(k2); fbKv.appendChild(v2);
+      });
+
+      // permissions
+      rejectBtn.disabled = !CAN_EDIT;
+      moveToCandidateBtn.disabled = !CAN_EDIT;
+      fbReject.disabled = !CAN_EDIT;
+      fbMove.disabled = !CAN_EDIT;
+
+      openModalUI();
+    }
+
+    function closeModal(){
+      ACTIVE_ROW = null;
+      closeModalUI();
+    }
+
+    closeModalBtn?.addEventListener("click", closeModal);
+    dlg?.addEventListener("click", (e)=>{
+      // click on backdrop closes
+      const rect = dlg.getBoundingClientRect();
+      const inDialog = (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom);
+      if (!inDialog) closeModal();
+    });
+
+    fbOverlay?.addEventListener("click", (e)=>{ if (e.target === fbOverlay) closeModal(); });
+    fbClose?.addEventListener("click", closeModal);
+
+    document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeModal(); });
+
+    /* ========= RENDER ========= */
     function render(){
       if (!CAN_VIEW) return;
 
@@ -1320,7 +1140,6 @@
         const r2 = safe(row[F.r2]).trim();
         const sem = safe(row[F.sem]).trim();
         const mail = safe(row[F.email]).trim();
-
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
         const st = getStatusForRow(row);
@@ -1328,22 +1147,19 @@
         const card = document.createElement("div");
         card.className = "appCard";
 
-        let avatarHtml = esc(getInitials(row));
-        if (thumb){
-          avatarHtml = `<img src="${esc(thumb)}" alt="Foto" loading="lazy" decoding="async"
-            referrerpolicy="no-referrer"
-            onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`;
-        }
-
-        let badgeHtml = "";
+        let badgeHtml = `<div class="cornerBadge warn">🟠 Offen</div>`;
         if (st === "anwaerter") badgeHtml = `<div class="cornerBadge ok">🟢 Anwärter</div>`;
-        else if (st === "abgelehnt") badgeHtml = `<div class="cornerBadge bad">🔴 Abgelehnt</div>`;
-        else badgeHtml = `<div class="cornerBadge warn">🟠 Offen</div>`;
+        if (st === "abgelehnt") badgeHtml = `<div class="cornerBadge bad">🔴 Abgelehnt</div>`;
 
         card.innerHTML = `
           ${badgeHtml}
           <div class="inner">
-            <div class="avatar">${avatarHtml}</div>
+            <div class="avatar">${
+              thumb
+                ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy" decoding="async" referrerpolicy="no-referrer"
+                     onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`
+                : esc(getInitials(row))
+            }</div>
             <div style="min-width:0;">
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
@@ -1357,233 +1173,42 @@
           </div>
         `;
 
-        // ✅ Links in Card dürfen KEIN Modal triggern
-        card.querySelectorAll("a").forEach(a => {
-          a.addEventListener("click", (e) => e.stopPropagation());
-        });
-
-        card.addEventListener("click", () => openModal(row));
+        // links should not open modal
+        card.querySelectorAll("a").forEach(a => a.addEventListener("click", (e)=>e.stopPropagation()));
+        card.addEventListener("click", ()=>openModal(row));
         grid.appendChild(card);
       });
-
-      updateDashboard();
     }
 
-    function setModalPhoto(row){
-      modalPhoto.innerHTML = "";
+    /* ========= EVENTS ========= */
+    [q, fR1, fR2, fSem].forEach(el => el?.addEventListener("input", render));
+    reloadBtn?.addEventListener("click", fetchRows);
 
-      const thumb = getThumb(row);
-      const photoUrl = getPhotoUrl(row);
+    /* ========= INIT ========= */
+    (async ()=>{
+      try{
+        const { data } = await sb.auth.getSession();
+        const session = data?.session;
+        const mail = session?.user?.email || "";
 
-      if (thumb){
-        const img = document.createElement("img");
-        img.src = thumb;
-        img.alt = "Foto";
-        img.loading = "eager";
-        img.decoding = "async";
-        img.referrerPolicy = "no-referrer";
+        setAuthUI(!!session, mail);
 
-        img.onload = () => {
-          if (photoUrl && photoUrl !== thumb){
-            const hi = new Image();
-            hi.referrerPolicy = "no-referrer";
-            hi.decoding = "async";
-            hi.onload = () => { img.src = photoUrl; };
-            hi.src = photoUrl;
-          }
-        };
-
-        img.onerror = () => {
-          modalPhoto.innerHTML = "";
-          modalPhoto.textContent = getInitials(row);
-          modalPhoto.style.cursor = "default";
-        };
-
-        modalPhoto.style.cursor = photoUrl ? "pointer" : "default";
-        modalPhoto.onclick = () => { if (photoUrl) window.open(photoUrl, "_blank", "noopener"); };
-
-        modalPhoto.appendChild(img);
-      } else {
-        modalPhoto.textContent = getInitials(row);
-        modalPhoto.style.cursor = "default";
-        modalPhoto.onclick = null;
-      }
-    }
-
-    function openModal(row){
-      if (!CAN_VIEW) return;
-
-      ACTIVE_ROW = row;
-
-      const fn = safe(row[F.fn]).trim();
-      const ln = safe(row[F.ln]).trim();
-      modalTitle.textContent = (fn + " " + ln).trim() || "Bewerbung";
-
-      const line = [];
-      if (safe(row[F.ts]).trim()) line.push(`Zeit: ${safe(row[F.ts]).trim()}`);
-      if (safe(row[F.email]).trim()) line.push(`Mail: ${safe(row[F.email]).trim()}`);
-      modalSub.textContent = line.join(" · ") || "—";
-
-      setModalPhoto(row);
-
-      const fields = [
-        F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone,
-        F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent
-      ];
-
-      kv.innerHTML = "";
-      fields.forEach(key => {
-        const k = document.createElement("div");
-        k.className = "k";
-        k.textContent = key;
-
-        const v = document.createElement("div");
-        v.className = "v";
-
-        const val = safe(row[key]).trim();
-        if (val.startsWith("http://") || val.startsWith("https://") || val.includes("drive.google.com")){
-          v.innerHTML = `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
-        } else {
-          v.textContent = val || "—";
+        if (!session){
+          window.location.href = LOGIN_REDIRECT;
+          return;
         }
 
-        kv.appendChild(k);
-        kv.appendChild(v);
-      });
+        await loadMyProfile(session);
 
-      applyEditPermissions();
-      lockBG();
-      setOverlayOpen(modalOverlay, true);
-    }
+        if (!CAN_VIEW){
+          statusPill.textContent = "Kein Zugriff";
+          return;
+        }
 
-    function closeModal(){
-      setOverlayOpen(modalOverlay, false);
-      ACTIVE_ROW = null;
-      // nur unlocken, wenn candOverlay nicht offen ist
-      if (!candOverlay.classList.contains("show")) unlockBG();
-    }
-
-    function openCandModal(){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand.");
-      if (!ACTIVE_ROW) return alert("Kein Bewerber ausgewählt.");
-
-      const fn = safe(ACTIVE_ROW[F.fn]).trim();
-      const ln = safe(ACTIVE_ROW[F.ln]).trim();
-      const email = safe(ACTIVE_ROW[F.email]).trim();
-      const bid = makeBewerbungId(ACTIVE_ROW);
-
-      candSub.textContent = `${fn} ${ln}`.trim() || "—";
-
-      const photoUrl = getPhotoUrl(ACTIVE_ROW);
-      candInfoPill.textContent = `Bewerbung-ID: ${bid || "—"}${email ? " · E-Mail: "+email : ""}${photoUrl ? " · Foto: ja" : " · Foto: nein"}`;
-
-      candRessort.innerHTML = RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
-
-      const prio1 = safe(ACTIVE_ROW[F.r1]).trim();
-      const prio2 = safe(ACTIVE_ROW[F.r2]).trim();
-      if (RESSORTS_FIXED.includes(prio1)) candRessort.value = prio1;
-      else if (RESSORTS_FIXED.includes(prio2)) candRessort.value = prio2;
-      else candRessort.value = RESSORTS_FIXED[0];
-
-      // lock already active from main modal, but safe to call
-      lockBG();
-      setOverlayOpen(candOverlay, true);
-    }
-
-    function closeCandModal(){
-      setOverlayOpen(candOverlay, false);
-      // nur unlocken, wenn main modal nicht offen ist
-      if (!modalOverlay.classList.contains("show")) unlockBG();
-    }
-
-    async function insertCandidateFromActive(){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf übernehmen.");
-      if (!ACTIVE_ROW) return;
-
-      const vorname = safe(ACTIVE_ROW[F.fn]).trim();
-      const nachname = safe(ACTIVE_ROW[F.ln]).trim();
-      const email = safe(ACTIVE_ROW[F.email]).trim();
-      const ressort = safe(candRessort.value).trim();
-
-      if (!vorname || !nachname || !email) return alert("Vorname/Nachname/E-Mail fehlen in der Bewerbung.");
-      if (!ressort) return alert("Bitte ein Ressort auswählen.");
-
-      candConfirm.disabled = true;
-
-      try{
-        await upsertApplicantStatusFromActive("anwaerter", { ressort });
-        closeCandModal();
-        closeModal();
-        render();
-        alert("✅ Als Anwärter übernommen!");
+        await fetchRows();
       } catch(e){
-        alert("Konnte nicht übernehmen: " + (e?.message || e));
-      } finally {
-        candConfirm.disabled = false;
+        statusPill.textContent = "Init Fehler: " + (e?.message || String(e));
       }
-    }
-
-    async function rejectActive(){
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf ablehnen.");
-      if (!ACTIVE_ROW) return;
-      if (!confirm("Wirklich ablehnen?")) return;
-
-      rejectBtn.disabled = true;
-
-      try{
-        await upsertApplicantStatusFromActive("abgelehnt", { ressort: safe(MY_RESSORT).trim() || "—" });
-        closeModal();
-        render();
-      } catch(e){
-        alert("Konnte nicht ablehnen: " + (e?.message || e));
-      } finally {
-        rejectBtn.disabled = false;
-      }
-    }
-
-    /* ===== Modal close handlers (overlay click) ===== */
-    modalOverlay.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
-    candOverlay.addEventListener("click", (e)=>{ if (e.target === candOverlay) closeCandModal(); });
-
-    closeModalBtn.addEventListener("click", closeModal);
-    closeCandBtn.addEventListener("click", closeCandModal);
-    candCancelBtn.addEventListener("click", closeCandModal);
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && candOverlay.classList.contains("show")) closeCandModal();
-      else if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
-    });
-
-    /* ===== Controls ===== */
-    [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
-    reloadBtn.addEventListener("click", fetchRows);
-
-    moveToCandidateBtn.addEventListener("click", openCandModal);
-    rejectBtn.addEventListener("click", rejectActive);
-    candConfirm.addEventListener("click", insertCandidateFromActive);
-
-    /* ========= Init ========= */
-    (async () => {
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
-      const mail = session?.user?.email || "";
-
-      setAuthUI(!!session, mail);
-
-      if (!session){
-        window.location.href = LOGIN_REDIRECT;
-        return;
-      }
-
-      await loadMyProfile(session);
-
-      if (!CAN_VIEW){
-        statusPill.textContent = "Kein Zugriff";
-        return;
-      }
-
-      applyEditPermissions();
-      await fetchRows();
     })();
   </script>
 </body>
