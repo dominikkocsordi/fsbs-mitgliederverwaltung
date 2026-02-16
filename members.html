@@ -19,11 +19,15 @@
 :root{
   --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
   --accent1:#f97316; --accent2:#a855f7;
+
   --glass: rgba(255,255,255,.10);
   --border: rgba(255,255,255,.18);
+
   --text: rgba(255,255,255,.92);
   --muted: rgba(255,255,255,.65);
+
   --shadow: 0 20px 55px rgba(0,0,0,.50);
+
   --ok: rgba(34,197,94,.95);
   --danger1:#fb7185; --danger2:#e11d48;
 }
@@ -175,6 +179,12 @@ button:disabled{ cursor:not-allowed; opacity:.55; }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
+/* ✅ Mehr Abstand zwischen Controls und Liste */
+.controlsGap{ height: 14px; }
+@media (max-width: 640px){
+  .controlsGap{ height: 10px; }
+}
+
 /* Table */
 .tableWrap{
   overflow:auto;
@@ -182,7 +192,7 @@ button:disabled{ cursor:not-allowed; opacity:.55; }
   border:1px solid rgba(255,255,255,.12);
   background: rgba(255,255,255,.05);
 }
-table{ width:100%; border-collapse:collapse; margin-top: 8px; min-width: 980px; }
+table{ width:100%; border-collapse:collapse; margin-top: 0; min-width: 980px; }
 th,td{ padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.12); text-align:left; }
 th{ color: var(--muted); font-weight:650; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
 tbody tr:hover{ background: rgba(255,255,255,.06); }
@@ -194,15 +204,66 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   border-radius: 14px;
 }
 
+/* ========= ✅ Pills: einheitlich + animiert ========= */
 .pill{
-  display:inline-flex; align-items:center;
-  padding:6px 12px; border-radius:999px;
-  font-size:12px; font-weight:800;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.90);
+  color: rgba(255,255,255,.92);
   white-space:nowrap;
+
+  /* subtle animation */
+  position: relative;
+  overflow:hidden;
+  transform: translateZ(0);
 }
+.pill::after{
+  content:"";
+  position:absolute;
+  inset:-60% -40%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.10) 35%, transparent 70%);
+  transform: rotate(12deg) translateX(-40%);
+  animation: pillSheen 3.6s ease-in-out infinite;
+  pointer-events:none;
+  opacity:.55;
+}
+@keyframes pillSheen{
+  0%   { transform: rotate(12deg) translateX(-55%); opacity:.0; }
+  18%  { opacity:.55; }
+  50%  { transform: rotate(12deg) translateX(55%); opacity:.35; }
+  100% { transform: rotate(12deg) translateX(55%); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .pill::after{ animation:none !important; }
+}
+
+/* Ressort Pills (wie Anwärter/Dashboard) */
+.pill.ressort{
+  border-color: rgba(255,255,255,.18);
+  box-shadow: 0 10px 26px rgba(0,0,0,.18);
+}
+
+/* Status Pills */
+.pill.status{
+  border-color: rgba(255,255,255,.18);
+}
+.pill-status-volle{ background: rgba(34,197,94,.20);  border-color: rgba(34,197,94,.35);  color:#bbf7d0; }
+.pill-status-anw { background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
+.pill-status-pau { background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
+.pill-status-aus { background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
+
+/* Rollen Pills */
+.pill.role{ background: rgba(255,255,255,.07); }
+.pill-role-vorstand{ background: rgba(56,189,248,.20); border-color: rgba(56,189,248,.35); color:#c7f9ff; }
+.pill-role-admin{ background: rgba(168,85,247,.18); border-color: rgba(168,85,247,.32); color:#e9d5ff; }
+.pill-role-leitung{ background: rgba(249,115,22,.20); border-color: rgba(249,115,22,.35); color:#fed7aa; }
+.pill-role-stv{ background: rgba(251,146,60,.16); border-color: rgba(251,146,60,.30); color:#ffedd5; }
 
 /* Inline editor */
 .editorHeader{
@@ -311,7 +372,7 @@ hr.sep{ border:none; border-top:1px solid rgba(255,255,255,.12); margin: 14px 0;
     </div>
   </div>
 
-  <!-- INLINE EDITOR (statt Modal) -->
+  <!-- INLINE EDITOR -->
   <div class="glass card hidden" id="editorCard">
     <div class="editorHeader">
       <div>
@@ -377,6 +438,8 @@ hr.sep{ border:none; border-top:1px solid rgba(255,255,255,.12); margin: 14px 0;
       <div class="small" id="countInfo"></div>
       <button class="btn-primary" id="createBtn">+ Mitglied</button>
     </div>
+
+    <div class="controlsGap"></div>
 
     <div class="tableWrap">
       <table>
@@ -472,6 +535,44 @@ function roleLabel(role){
   return "Unbekannt";
 }
 
+/* ✅ Einheitliche Ressort-Farben (wie Anwärter) */
+const RESSORT_COLORS = {
+  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(168,85,247,.12)"],
+  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(249,115,22,.12)"],
+  "Sponsoring":       ["rgba(56,189,248,.22)", "rgba(99,102,241,.12)"],
+  "Merchandise":      ["rgba(234,179,8,.22)",  "rgba(251,146,60,.12)"],
+  "Kommunikation":    ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
+};
+function pillRessortStyle(label){
+  const key = norm(label);
+  const pair = RESSORT_COLORS[key];
+  const a = pair?.[0] ?? "rgba(255,255,255,.10)";
+  const b = pair?.[1] ?? "rgba(255,255,255,.06)";
+  return `background: linear-gradient(135deg, ${a}, ${b});
+          border-color: rgba(255,255,255,.18);
+          color: rgba(255,255,255,.92);`;
+}
+
+/* Status -> class */
+function statusClass(status){
+  const s = norm(status).toLowerCase();
+  if (s.startsWith("voll")) return "pill-status-volle";
+  if (s.startsWith("anw"))  return "pill-status-anw";
+  if (s.startsWith("pau"))  return "pill-status-pau";
+  if (s.startsWith("aus"))  return "pill-status-aus";
+  return "";
+}
+
+/* Rolle -> class */
+function roleClass(role){
+  const r = norm(role).toLowerCase();
+  if (r.includes("vorstand")) return "pill-role-vorstand";
+  if (r.includes("admin")) return "pill-role-admin";
+  if (r.includes("leitung")) return "pill-role-leitung";
+  if (r.includes("stell")) return "pill-role-stv";
+  return "";
+}
+
 function uniqSorted(arr){
   return [...new Set(arr.map(norm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
 }
@@ -560,7 +661,6 @@ async function loadMyProfile(session){
   // ✅ Finanzen nur Vorstand
   navFinance.style.display = CAN_EDIT ? "" : "none";
 
-  // Buttons
   createBtn.disabled = !CAN_EDIT;
 }
 
@@ -605,9 +705,8 @@ reloadBtn.addEventListener("click", load);
 function render(){
   const q = norm(searchEl.value).toLowerCase();
   const filtered = members.filter(m => {
-    const hay = [
-      getNo(m), getFirst(m), getLast(m), getEmail(m), getDept(m), getRole(m), getStatus(m)
-    ].map(safe).join(" ").toLowerCase();
+    const hay = [getNo(m),getFirst(m),getLast(m),getEmail(m),getDept(m),getRole(m),getStatus(m)]
+      .map(safe).join(" ").toLowerCase();
     return !q || hay.includes(q);
   });
 
@@ -630,9 +729,9 @@ function render(){
         <td>${esc(no||"")}</td>
         <td>${esc(name||"—")}</td>
         <td>${esc(email||"—")}</td>
-        <td><span class="pill">${esc(dept||"—")}</span></td>
-        <td><span class="pill">${esc(role||"—")}</span></td>
-        <td><span class="pill">${esc(status||"—")}</span></td>
+        <td><span class="pill ressort" style="${pillRessortStyle(dept)}">${esc(dept||"—")}</span></td>
+        <td><span class="pill role ${roleClass(role)}">${esc(role||"—")}</span></td>
+        <td><span class="pill status ${statusClass(status)}">${esc(status||"—")}</span></td>
         <td>
           <div class="actions">
             <button class="btn-secondary iconBtn" ${editDisabled?"disabled":""} data-action="edit" data-id="${esc(pk)}">✏️</button>
@@ -673,7 +772,6 @@ function openEditorFor(pk){
 
   editorCard.classList.remove("hidden");
   editorCard.scrollIntoView({ behavior:"smooth", block:"start" });
-
   setTimeout(()=> mFirst.focus(), 60);
 }
 function openCreate(){
@@ -688,7 +786,6 @@ function openCreate(){
   editorDeleteBtn.classList.add("hidden");
   editorCard.classList.remove("hidden");
   editorCard.scrollIntoView({ behavior:"smooth", block:"start" });
-
   setTimeout(()=> mFirst.focus(), 60);
 }
 function closeEditor(){
@@ -728,7 +825,6 @@ async function saveEditor(){
   if (!payload[DB.first] || !payload[DB.last]) return alert("Vorname und Nachname sind Pflicht.");
 
   editorSaveBtn.disabled = true;
-
   try{
     let res;
     if (editPk === null){
