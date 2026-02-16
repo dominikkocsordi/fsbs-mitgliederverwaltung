@@ -4,13 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bewerbungen</title>
-<!-- Favicon -->
-<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
 
-<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="manifest" href="/favicon/site.webmanifest">
+  <meta name="theme-color" content="#120e18">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -23,7 +25,7 @@
       --accent1:#f97316;
       --accent2:#a855f7;
 
-      --glass: rgba(255,255,255,.08);
+      --glass: rgba(255,255,255,.10);
       --border: rgba(255,255,255,.18);
 
       --text: rgba(255,255,255,.92);
@@ -34,29 +36,56 @@
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
       --warn: rgba(251,146,60,.95);
+
+      --danger1: #fb7185;
+      --danger2: #e11d48;
+
+      --stickyTop: 14px;
     }
 
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color: var(--text);
+    html, body { min-height:100%; }
+
+    html{
       background:
         radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
         radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
         radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
         linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-      min-height:100vh;
+      background-attachment: fixed;
+    }
+
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color: var(--text);
+      background: transparent;
       padding: 28px 16px 60px;
+      overflow-x:hidden;
       display:flex;
       justify-content:center;
       align-items:flex-start;
+
+      animation: pageIn .38s ease both;
+    }
+    @keyframes pageIn{
+      from{ opacity:0; transform: translateY(8px); }
+      to  { opacity:1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      body{ animation:none !important; }
+    }
+
+    /* ✅ Modal open => Background scroll aus */
+    body.modal-open{
+      overflow:hidden;
+      height:100vh;
     }
 
     .app{ width:100%; max-width:1200px; }
 
     .glass{
-      background: var(--glass);
+      background: rgba(255,255,255,.10);
       border: 1px solid var(--border);
       border-radius: 22px;
       box-shadow: var(--shadow);
@@ -64,7 +93,18 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ✅ Brand links: Logo + Titel (wie Finanzen) */
+    /* ===== Header ===== */
+    .top{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 16px;
+    }
+    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+    /* Brand */
     .brandLeft{
       display:flex;
       align-items:center;
@@ -107,8 +147,23 @@
       .brandLogo img{ border-radius: 9px; }
     }
 
-    /* ===== Auth badge (kompakt + Details Toggle) ===== */
+    .pill{
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+    }
+
+    /* ===== Auth badge ===== */
     .authFloating{
+      position: static;
+      z-index: 1;
       border-radius: 999px;
       padding: 10px 12px;
       display:flex;
@@ -122,9 +177,8 @@
       user-select:none;
       max-width: min(560px, 100%);
     }
-
-    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position: relative; flex: 0 0 auto; }
-    .dot.ok{ background: var(--ok); }
+    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); flex: 0 0 auto; }
+    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 2px rgba(34,197,94,.20), 0 0 18px rgba(34,197,94,.55), 0 0 42px rgba(34,197,94,.30); }
     .dot.warn{ background: rgba(255,255,255,.35); }
 
     .authAvatar{
@@ -207,45 +261,15 @@
       white-space:nowrap;
       flex: 0 0 auto;
     }
-    .rolePill.vorstand{
-      border-color: rgba(56,189,248,.40);
-      background: rgba(56,189,248,.12);
-    }
-    .rolePill.other{
-      border-color: rgba(251,146,60,.35);
-      background: rgba(251,146,60,.12);
-    }
+    .rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
+    .rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
 
     .hidden{ display:none; }
 
-    /* Header */
-    .top{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom: 16px;
-    }
-    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
-    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-
-    .pill{
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size: 12px;
-      color: rgba(255,255,255,.72);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-    }
-
-    /* NAV */
+    /* ===== NAV ===== */
     .navWrap{
       position: sticky;
-      top: 14px;
+      top: var(--stickyTop);
       z-index: 10;
       margin-bottom: 16px;
     }
@@ -271,6 +295,7 @@
       background: rgba(255,255,255,.06);
       transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
       user-select:none;
+      white-space:nowrap;
     }
     .navLink:hover{
       transform: translateY(-2px);
@@ -283,7 +308,6 @@
       border-color: rgba(249,115,22,.35);
       box-shadow: 0 12px 28px rgba(249,115,22,.25);
     }
-
     .navIcon{
       width:30px; height:30px;
       border-radius: 12px;
@@ -294,6 +318,7 @@
     .navTitle{ font-weight:750; letter-spacing:.2px; }
     .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
+    /* ===== Buttons ===== */
     button{
       border:none;
       cursor:pointer;
@@ -320,12 +345,21 @@
     .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
 
     .btn-danger{
-      background: rgba(239,68,68,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(239,68,68,.28);
+      background: linear-gradient(135deg, var(--danger1), var(--danger2));
+      color: #fff;
+      box-shadow: 0 10px 26px rgba(225,29,72,.22);
     }
-    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.04); }
+    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
 
+    .btn-done{
+      background: rgba(16,185,129,.16);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(16,185,129,.30);
+      box-shadow: 0 10px 26px rgba(16,185,129,.12);
+    }
+    .btn-done:hover{ transform: translateY(-2px); filter: brightness(1.05); }
+
+    /* ===== Content ===== */
     .card{ padding:16px; margin-bottom:14px; }
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
@@ -342,12 +376,37 @@
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
     input:focus, select:focus{
-      border-color: rgba(56,189,248,.55);
+      border-color: rgba(249,115,22,.55);
       background: rgba(255,255,255,.16);
       transform: translateY(-1px);
     }
+    /* Dropdown sichtbar */
+    select option{ background: #1a1424; color: rgba(255,255,255,.92); }
 
-    /* Grid cards */
+    /* ===== Mini Dashboard ===== */
+    .miniDash{
+      display:grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 12px 0 14px;
+    }
+    .dashCard{
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .dashLabel{ font-size:12px; color: rgba(255,255,255,.68); }
+    .dashValue{ font-size:18px; font-weight: 900; letter-spacing:.2px; }
+    .dashHint{ font-size:11px; color: rgba(255,255,255,.55); margin-top:2px; }
+    @media (max-width: 1020px){ .miniDash{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px){ .miniDash{ grid-template-columns: 1fr; } }
+
+    /* ===== Grid cards ===== */
     .grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -363,7 +422,6 @@
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
       .navRight button{ white-space:nowrap; }
-      button{ width:100%; }
       .row .spacer{ display:none; }
     }
 
@@ -405,7 +463,7 @@
       background: rgba(255,255,255,.06);
       color: rgba(255,255,255,.78);
     }
-    .tag a{ color: rgba(180,210,255,.95); text-decoration:none; }
+    .tag a{ color: rgba(249,115,22,.95); text-decoration:none; }
     .tag a:hover{ text-decoration:underline; }
 
     /* Corner badge */
@@ -436,6 +494,11 @@
       border-color: rgba(239,68,68,.35);
       color:#fecaca;
     }
+    .cornerBadge.warn{
+      background: rgba(251,146,60,.18);
+      border-color: rgba(251,146,60,.30);
+      color:#ffedd5;
+    }
 
     .empty{
       margin-top: 12px;
@@ -445,21 +508,6 @@
       background: rgba(255,255,255,.04);
       color: rgba(255,255,255,.78);
     }
-
-    /* Debug */
-    .debug{
-      display:none;
-      margin-top: 10px;
-      padding: 12px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(0,0,0,.25);
-      color: rgba(255,255,255,.84);
-      font-size: 12px;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-    .debug.show{ display:block; }
 
     /* Modal */
     .modalOverlay{
@@ -529,7 +577,8 @@
     }
     .k{ color: rgba(255,255,255,.70); font-size:12px; }
     .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
-    .v a{ color: rgba(180,210,255,.95); }
+    .v a{ color: rgba(249,115,22,.95); text-decoration:none; }
+    .v a:hover{ text-decoration:underline; }
 
     .modalActions{
       display:flex;
@@ -577,22 +626,12 @@
       flex-wrap:wrap;
       margin-top: 12px;
     }
-
-    /* ✅ Zugriff verweigert (wie Finanzen) */
-    .denyBox{
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(239,68,68,.28);
-      background: rgba(239,68,68,.10);
-      color: rgba(255,255,255,.90);
-    }
   </style>
 </head>
 
 <body>
   <div class="app">
 
-    <!-- ✅ Header wie Finanzen -->
     <div class="top">
       <div class="brandLeft">
         <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
@@ -619,8 +658,8 @@
 
               <div class="authCompact hidden" id="authCompact">
                 <span class="authNameInline" id="authNameInline">User</span>
-                <span class="rolePill other" id="authRolePill">rolle</span>
-                <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+                <span class="rolePill" id="authRolePill">Rolle</span>
+                <button class="authChevron" id="authToggle" type="button" aria-label="Details">⌄</button>
               </div>
             </div>
 
@@ -632,11 +671,19 @@
       </div>
     </div>
 
-    <!-- NAV (NUR Vorstand sichtbar) -->
-    <div class="glass navWrap" id="navWrap" style="display:none;">
+    <!-- NAV (für beide Rollen; Finanzen nur Vorstand) -->
+    <div class="glass navWrap hidden" id="navWrap">
       <div class="nav">
         <div class="navLeft">
           <a class="navLink" href="/index.html">
+            <span class="navIcon">🏠</span>
+            <span>
+              <div class="navTitle">Dashboard</div>
+              <div class="navHint">Übersicht</div>
+            </span>
+          </a>
+
+          <a class="navLink" href="/members.html">
             <span class="navIcon">👥</span>
             <span>
               <div class="navTitle">Mitglieder</div>
@@ -644,7 +691,7 @@
             </span>
           </a>
 
-          <a class="navLink" href="/anwaerter.html" id="navCandidates">
+          <a class="navLink" href="/anwaerter.html">
             <span class="navIcon">👶🏼</span>
             <span>
               <div class="navTitle">Anwärter</div>
@@ -678,41 +725,62 @@
         </div>
 
         <div class="navRight">
-          <button class="btn-secondary" id="logoutBtn">Logout</button>
+          <button class="btn-secondary hidden" id="logoutBtn" type="button">Logout</button>
         </div>
       </div>
     </div>
 
-    <!-- ✅ Kein Zugriff (wie Finanzen) -->
-    <div class="glass card" id="denyWrap" style="display:none;">
-      <div class="denyBox">
-        <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
-        <div style="margin-top:6px; color:rgba(255,255,255,.78);">
-          Diese Seite ist nur für <b>vorstand</b>.
-        </div>
-        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn-secondary" id="logoutBtn2">Logout</button>
-          <a class="pill" href="/index.html" style="text-decoration:none;">Zur Startseite</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Controls (NUR Vorstand) -->
-    <div class="glass card" id="controlsCard" style="display:none;">
+    <!-- CONTENT -->
+    <div class="glass card hidden" id="contentCard">
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fR1"><option value="">Prio 1 (alle)</option></select>
         <select id="fR2"><option value="">Prio 2 (alle)</option></select>
         <select id="fSem"><option value="">Semester (alle)</option></select>
-        <button class="btn-secondary" id="reloadBtn">Neu laden</button>
+        <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
         <div class="spacer"></div>
         <div class="pill" id="countPill">0</div>
       </div>
-      <div class="debug" id="debugBox"></div>
+
+      <!-- ✅ MINI DASHBOARD -->
+      <div class="miniDash" aria-label="Mini Dashboard">
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel" id="dashScopeLabel">Bewerbungen</div>
+            <div class="dashHint" id="dashScopeHint">gesamt</div>
+          </div>
+          <div class="dashValue" id="dashTotal">0</div>
+        </div>
+
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Neu / offen</div>
+            <div class="dashHint">noch nicht entschieden</div>
+          </div>
+          <div class="dashValue" id="dashOpen">0</div>
+        </div>
+
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Als Anwärter</div>
+            <div class="dashHint">Status: anwaerter</div>
+          </div>
+          <div class="dashValue" id="dashAnw">0</div>
+        </div>
+
+        <div class="dashCard">
+          <div>
+            <div class="dashLabel">Abgelehnt</div>
+            <div class="dashHint">Status: abgelehnt</div>
+          </div>
+          <div class="dashValue" id="dashRej">0</div>
+        </div>
+      </div>
+
+      <div id="grid" class="grid"></div>
+      <div id="empty" class="empty hidden">Keine Bewerbungen gefunden.</div>
     </div>
 
-    <div id="grid" class="grid" style="display:none;"></div>
-    <div id="empty" class="empty" style="display:none;">Keine Bewerbungen gefunden.</div>
   </div>
 
   <!-- Bewerber Modal -->
@@ -723,7 +791,7 @@
           <h2 class="modalTitle" id="modalTitle">Bewerbung</h2>
           <div class="modalSub" id="modalSub">–</div>
         </div>
-        <button class="btn-secondary closeX" id="closeModalBtn">✕</button>
+        <button class="btn-secondary closeX" id="closeModalBtn" type="button">✕</button>
       </div>
 
       <div class="modalPhotoWrap">
@@ -733,8 +801,8 @@
       <div class="kv" id="kv"></div>
 
       <div class="modalActions">
-        <button class="btn-danger" id="rejectBtn">Ablehnen</button>
-        <button class="btn-primary" id="moveToCandidateBtn">Als Anwärter übernehmen</button>
+        <button class="btn-danger" id="rejectBtn" type="button">Ablehnen</button>
+        <button class="btn-primary" id="moveToCandidateBtn" type="button">Als Anwärter übernehmen</button>
       </div>
     </div>
   </div>
@@ -747,7 +815,7 @@
           <h3 class="candTitle">Als Anwärter übernehmen</h3>
           <div class="candSub" id="candSub">–</div>
         </div>
-        <button class="btn-secondary closeX" id="closeCandBtn">✕</button>
+        <button class="btn-secondary closeX" id="closeCandBtn" type="button">✕</button>
       </div>
 
       <div class="candBody">
@@ -761,8 +829,8 @@
         </div>
 
         <div class="candFoot">
-          <button class="btn-secondary" id="candCancelBtn">Abbrechen</button>
-          <button class="btn-primary" id="candConfirm">Übernehmen</button>
+          <button class="btn-secondary" id="candCancelBtn" type="button">Abbrechen</button>
+          <button class="btn-primary" id="candConfirm" type="button">Übernehmen</button>
         </div>
       </div>
     </div>
@@ -777,23 +845,28 @@
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const LOGIN_REDIRECT = "/index.html";
+    const LOGIN_REDIRECT = "/login.html";
 
-    // ====== Permissions ======
+    // ====== Permissions/Profile ======
     const PROFILES_TABLE = "profiles";
-    const REQUIRED_ROLE = "vorstand";
     let MY_ROLE = "";
-    let CAN_VIEW = false;      // Seite komplett
-    let CAN_EDIT = false;      // Buttons
+    let MY_RESSORT = "";
+    let CAN_VIEW = false;   // Vorstand + Ressortleiter
+    let CAN_EDIT = false;   // nur Vorstand
 
     function normRole(v){ return String(v || "").trim().toLowerCase(); }
+    function roleLabel(role){
+      const r = normRole(role);
+      if (r === "vorstand") return "Vorstand";
+      if (r === "ressortleiter") return "Ressortleiter";
+      return "Unbekannt";
+    }
 
-    // ====== Anwärter Tabelle ======
+    // ====== Anwärter Tabelle (Status) ======
     const CANDIDATES_TABLE = "anwaerter";
     const CAND_ID_COL = "bewerbung_id";
     const CAND_STATUS_COL = "bewerbung_status";
 
-    // Ressorts fix
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
@@ -822,17 +895,29 @@
 
     // ====== Elements ======
     const navWrap = document.getElementById("navWrap");
+    const navFinance = document.getElementById("navFinance");
     const logoutBtn = document.getElementById("logoutBtn");
-    const logoutBtn2 = document.getElementById("logoutBtn2");
 
-    const denyWrap = document.getElementById("denyWrap");
-    const controlsCard = document.getElementById("controlsCard");
+    const statusPill = document.getElementById("statusPill");
+    const contentCard = document.getElementById("contentCard");
+
+    const q = document.getElementById("q");
+    const fR1 = document.getElementById("fR1");
+    const fR2 = document.getElementById("fR2");
+    const fSem = document.getElementById("fSem");
+    const reloadBtn = document.getElementById("reloadBtn");
+    const countPill = document.getElementById("countPill");
+
     const grid = document.getElementById("grid");
     const empty = document.getElementById("empty");
 
-    const statusPill = document.getElementById("statusPill");
-    const countPill = document.getElementById("countPill");
-    const debugBox = document.getElementById("debugBox");
+    // Dashboard
+    const dashScopeLabel = document.getElementById("dashScopeLabel");
+    const dashScopeHint  = document.getElementById("dashScopeHint");
+    const dashTotal = document.getElementById("dashTotal");
+    const dashOpen  = document.getElementById("dashOpen");
+    const dashAnw   = document.getElementById("dashAnw");
+    const dashRej   = document.getElementById("dashRej");
 
     // Auth badge
     const authBadge = document.getElementById("authBadge");
@@ -845,13 +930,6 @@
     const authRolePill = document.getElementById("authRolePill");
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
-
-    // Controls
-    const q = document.getElementById("q");
-    const fR1 = document.getElementById("fR1");
-    const fR2 = document.getElementById("fR2");
-    const fSem = document.getElementById("fSem");
-    const reloadBtn = document.getElementById("reloadBtn");
 
     // Modal
     const modalOverlay = document.getElementById("modalOverlay");
@@ -882,12 +960,7 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-    function showDebug(obj){
-      debugBox.classList.add("show");
-      debugBox.textContent = JSON.stringify(obj, null, 2);
-    }
-
-    /* ===== Badge helpers ===== */
+    /* ===== Auth helpers ===== */
     function hashString(str){
       let h = 2166136261;
       for (let i = 0; i < str.length; i++){
@@ -940,10 +1013,10 @@
 
     function setRolePill(role){
       const r = normRole(role);
-      authRolePill.textContent = r || "unbekannt";
-      authRolePill.classList.remove("vorstand","other");
+      authRolePill.textContent = roleLabel(r);
+      authRolePill.classList.remove("vorstand","ressortleiter");
       if (r === "vorstand") authRolePill.classList.add("vorstand");
-      else authRolePill.classList.add("other");
+      else authRolePill.classList.add("ressortleiter");
     }
     function setCompactIdentity(displayName, email){
       const name = (displayName || "").trim();
@@ -958,6 +1031,10 @@
         authCompact.classList.remove("hidden");
         authMail.textContent = (email || "").trim();
         setAvatar(email);
+
+        navWrap.classList.remove("hidden");
+        logoutBtn.classList.remove("hidden");
+        contentCard.classList.remove("hidden");
       } else {
         authDot.classList.remove("ok"); authDot.classList.add("warn");
         authState.classList.remove("hidden");
@@ -965,81 +1042,69 @@
         authCompact.classList.add("hidden");
         authMail.textContent = "";
         setAvatar("");
+
+        navWrap.classList.add("hidden");
+        logoutBtn.classList.add("hidden");
+        contentCard.classList.add("hidden");
       }
     }
 
-    function applyAccessUI(allowed){
-      CAN_VIEW = !!allowed;
-
-      navWrap.style.display = allowed ? "block" : "none";
-
-      denyWrap.style.display = allowed ? "none" : "block";
-      controlsCard.style.display = allowed ? "block" : "none";
-      grid.style.display = allowed ? "grid" : "none";
-
-      if (!allowed){
-        empty.style.display = "none";
-        grid.innerHTML = "";
-        ALL = [];
-        ACTIVE_ROW = null;
-        statusMap = new Map();
-      }
+    async function doLogout(){
+      await sb.auth.signOut();
+      window.location.href = LOGIN_REDIRECT;
     }
-
-    function applyEditPermissions(){
-      const can = !!CAN_EDIT;
-      rejectBtn.disabled = !can;
-      moveToCandidateBtn.disabled = !can;
-      rejectBtn.title = can ? "Bewerbung ablehnen" : "Nur Vorstand";
-      moveToCandidateBtn.title = can ? "Als Anwärter übernehmen" : "Nur Vorstand";
-    }
-
-    async function requireAuth(){
-      const { data } = await sb.auth.getSession();
-      if (!data?.session) throw new Error("not_logged_in");
-      return data.session;
-    }
+    logoutBtn?.addEventListener("click", doLogout);
 
     async function loadMyProfile(session){
       MY_ROLE = "";
+      MY_RESSORT = "";
+      CAN_VIEW = false;
       CAN_EDIT = false;
 
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      const { data, error } = await sb
+      // Session fallback für Namen
+      setCompactIdentity(session?.user?.user_metadata?.display_name || session?.user?.user_metadata?.full_name || "", email);
+
+      if (!uid){
+        setRolePill("ressortleiter");
+        return;
+      }
+
+      // Rolle + Ressort aus profiles
+      const res = await sb
         .from(PROFILES_TABLE)
-        .select("role, display_name")
+        .select("role, display_name, ressort")
         .eq("id", uid)
         .maybeSingle();
 
-      if (error || !data){
-        setCompactIdentity("", email);
-        setRolePill("");
-        return "";
-      }
+      const data = res?.data || null;
 
       MY_ROLE = normRole(data?.role);
-      CAN_EDIT = (MY_ROLE === REQUIRED_ROLE);
+      MY_RESSORT = safe(data?.ressort).trim();
+      CAN_VIEW = (MY_ROLE === "vorstand" || MY_ROLE === "ressortleiter");
+      CAN_EDIT = (MY_ROLE === "vorstand");
 
       setCompactIdentity(data?.display_name, email);
-      setRolePill(MY_ROLE);
+      setRolePill(MY_ROLE || "ressortleiter");
 
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
-      authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
-      applyEditPermissions();
-
-      return MY_ROLE;
+      // Finanzen nur Vorstand
+      if (navFinance){
+        navFinance.style.display = CAN_EDIT ? "" : "none";
+      }
     }
 
-    async function doLogout(){
-      await sb.auth.signOut();
-      window.location.href = "/index.html";
+    function applyEditPermissions(){
+      rejectBtn.disabled = !CAN_EDIT;
+      moveToCandidateBtn.disabled = !CAN_EDIT;
+
+      rejectBtn.title = CAN_EDIT ? "Bewerbung ablehnen" : "Nur Vorstand";
+      moveToCandidateBtn.title = CAN_EDIT ? "Als Anwärter übernehmen" : "Nur Vorstand";
     }
-    logoutBtn?.addEventListener("click", doLogout);
-    logoutBtn2?.addEventListener("click", doLogout);
 
     function uniq(arr){
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
@@ -1137,6 +1202,47 @@
       return statusMap.get(normId(makeBewerbungId(row))) || "";
     }
 
+    function isRowInMyRessort(row){
+      if (!MY_RESSORT) return false;
+      const r1 = safe(row?.[F.r1]).trim();
+      const r2 = safe(row?.[F.r2]).trim();
+      return r1 === MY_RESSORT || r2 === MY_RESSORT;
+    }
+
+    function rowsForDashboardScope(){
+      // Vorstand: alles
+      if (CAN_EDIT) return ALL;
+      // Ressortleiter: nur Bewerbungen mit eigenem Ressort in Prio 1 oder 2
+      return ALL.filter(isRowInMyRessort);
+    }
+
+    function updateDashboard(){
+      const scoped = rowsForDashboardScope();
+
+      const total = scoped.length;
+      let anw = 0, rej = 0, open = 0;
+
+      scoped.forEach(row => {
+        const st = getStatusForRow(row); // "anwaerter" | "abgelehnt" | ""
+        if (st === "anwaerter") anw++;
+        else if (st === "abgelehnt") rej++;
+        else open++;
+      });
+
+      dashTotal.textContent = String(total);
+      dashOpen.textContent  = String(open);
+      dashAnw.textContent   = String(anw);
+      dashRej.textContent   = String(rej);
+
+      if (CAN_EDIT){
+        dashScopeLabel.textContent = "Bewerbungen";
+        dashScopeHint.textContent  = "gesamt (alle Ressorts)";
+      } else {
+        dashScopeLabel.textContent = "Dein Ressort";
+        dashScopeHint.textContent  = MY_RESSORT || "–";
+      }
+    }
+
     async function upsertApplicantStatusFromActive(status, extra = {}){
       if (!ACTIVE_ROW) return;
 
@@ -1177,12 +1283,10 @@
 
       if (!SHEET_API_URL || !SHEET_API_URL.includes("/exec")){
         statusPill.textContent = "Fehlt: SHEET_API_URL";
-        showDebug({hint:"Trage deine Apps Script Web-App URL (…/exec) in SHEET_API_URL ein."});
         return;
       }
       if (!SHEET_API_KEY){
         statusPill.textContent = "Fehlt: API_KEY";
-        showDebug({hint:"Trage deinen API_KEY (wie im Apps Script) in SHEET_API_KEY ein."});
         return;
       }
 
@@ -1196,13 +1300,11 @@
         try { json = JSON.parse(text); }
         catch(parseErr){
           statusPill.textContent = "API liefert kein JSON";
-          showDebug({url, status: res.status, response_preview: text.slice(0, 600)});
           return;
         }
 
         if (!res.ok){
           statusPill.textContent = "API Fehler";
-          showDebug({url, status: res.status, json});
           return;
         }
 
@@ -1214,7 +1316,6 @@
         render();
       } catch(err){
         statusPill.textContent = "Fetch/CORS Fehler";
-        showDebug({url, error: String(err)});
       }
     }
 
@@ -1224,7 +1325,7 @@
       const rows = filtered();
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       grid.innerHTML = "";
-      empty.style.display = rows.length ? "none" : "block";
+      empty.classList.toggle("hidden", rows.length !== 0);
 
       rows.forEach(row => {
         const fn = safe(row[F.fn]).trim();
@@ -1237,7 +1338,7 @@
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
 
-        const st = getStatusForRow(row);
+        const st = getStatusForRow(row); // "anwaerter" | "abgelehnt" | ""
 
         const card = document.createElement("div");
         card.className = "appCard";
@@ -1249,12 +1350,10 @@
             onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`;
         }
 
-        const badgeHtml =
-          st === "anwaerter"
-            ? `<div class="cornerBadge ok">🟢 Anwärter</div>`
-            : st === "abgelehnt"
-              ? `<div class="cornerBadge bad">🔴 Abgelehnt</div>`
-              : ``;
+        let badgeHtml = "";
+        if (st === "anwaerter") badgeHtml = `<div class="cornerBadge ok">🟢 Anwärter</div>`;
+        else if (st === "abgelehnt") badgeHtml = `<div class="cornerBadge bad">🔴 Abgelehnt</div>`;
+        else badgeHtml = `<div class="cornerBadge warn">🟠 Offen</div>`;
 
         card.innerHTML = `
           ${badgeHtml}
@@ -1275,11 +1374,17 @@
         card.addEventListener("click", () => openModal(row));
         grid.appendChild(card);
       });
+
+      updateDashboard();
     }
+
+    function lockBG(){ document.body.classList.add("modal-open"); }
+    function unlockBG(){ document.body.classList.remove("modal-open"); }
 
     function closeModal(){
       modalOverlay.classList.remove("show");
       ACTIVE_ROW = null;
+      unlockBG();
     }
 
     function setModalPhoto(row){
@@ -1365,10 +1470,12 @@
       });
 
       applyEditPermissions();
+      lockBG();
       modalOverlay.classList.add("show");
     }
 
     function openCandModal(){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand.");
       if (!ACTIVE_ROW) return alert("Kein Bewerber ausgewählt.");
 
       const fn = safe(ACTIVE_ROW[F.fn]).trim();
@@ -1389,10 +1496,14 @@
       else if (RESSORTS_FIXED.includes(prio2)) candRessort.value = prio2;
       else candRessort.value = RESSORTS_FIXED[0];
 
+      lockBG();
       candOverlay.classList.add("show");
     }
 
-    function closeCandModal(){ candOverlay.classList.remove("show"); }
+    function closeCandModal(){
+      candOverlay.classList.remove("show");
+      unlockBG();
+    }
 
     async function insertCandidateFromActive(){
       if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf übernehmen.");
@@ -1429,8 +1540,8 @@
       rejectBtn.disabled = true;
 
       try{
-        // damit NOT NULL ressort nicht crasht, setzen wir "—"
-        await upsertApplicantStatusFromActive("abgelehnt", { ressort: "—" });
+        // damit NOT NULL ressort nicht crasht:
+        await upsertApplicantStatusFromActive("abgelehnt", { ressort: safe(MY_RESSORT).trim() || "—" });
         closeModal();
         render();
       } catch(e){
@@ -1456,22 +1567,16 @@
     [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
     reloadBtn.addEventListener("click", fetchRows);
 
-    moveToCandidateBtn.addEventListener("click", () => {
-      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand.");
-      openCandModal();
-    });
-
+    moveToCandidateBtn.addEventListener("click", openCandModal);
     rejectBtn.addEventListener("click", rejectActive);
     candConfirm.addEventListener("click", insertCandidateFromActive);
 
-    /* ========= Init (wie Finanzen) ========= */
+    /* ========= Init ========= */
     (async () => {
-      // default: locked
-      applyAccessUI(false);
-
       const { data } = await sb.auth.getSession();
       const session = data?.session;
       const mail = session?.user?.email || "";
+
       setAuthUI(!!session, mail);
 
       if (!session){
@@ -1479,19 +1584,15 @@
         return;
       }
 
-      const role = await loadMyProfile(session);
-      const allowed = (role === REQUIRED_ROLE);
+      await loadMyProfile(session);
 
-      if (!allowed){
+      if (!CAN_VIEW){
         statusPill.textContent = "Kein Zugriff";
-        applyAccessUI(false);
+        // Seite trotzdem sauber halten
         return;
       }
 
-      CAN_EDIT = true;
       applyEditPermissions();
-      applyAccessUI(true);
-
       await fetchRows();
     })();
   </script>
