@@ -17,31 +17,19 @@
 
 <style>
 :root{
-  --bg1:#120e18;
-  --bg2:#1a1424;
-  --bg3:#1f162c;
-
-  --accent1:#f97316;
-  --accent2:#a855f7;
-
-  --glass: rgba(255,255,255,.08);
+  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+  --accent1:#f97316; --accent2:#a855f7;
+  --glass: rgba(255,255,255,.10);
   --border: rgba(255,255,255,.18);
-
   --text: rgba(255,255,255,.92);
   --muted: rgba(255,255,255,.65);
-
   --shadow: 0 20px 55px rgba(0,0,0,.50);
-
   --ok: rgba(34,197,94,.95);
-  --bad: rgba(239,68,68,.95);
-  --warn: rgba(251,146,60,.95);
-
-  --danger1: #fb7185;
-  --danger2: #e11d48;
+  --danger1:#fb7185; --danger2:#e11d48;
 }
 
-*{ box-sizing:border-box; }
-html, body { min-height: 100%; }
+*{box-sizing:border-box}
+html, body { min-height:100%; }
 
 html{
   background:
@@ -61,21 +49,12 @@ body{
   justify-content:center;
   align-items:flex-start;
   padding: 42px 16px;
-
-  animation: pageIn .38s ease both;
-}
-@keyframes pageIn{
-  from{ opacity:0; transform: translateY(8px); }
-  to  { opacity:1; transform: translateY(0); }
-}
-@media (prefers-reduced-motion: reduce){
-  body{ animation:none !important; }
 }
 
 .app{ width:100%; max-width:1200px; }
 
 .glass{
-  background: rgba(255,255,255,.10);
+  background: var(--glass);
   border: 1px solid var(--border);
   border-radius: 22px;
   box-shadow: var(--shadow);
@@ -93,49 +72,23 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-.brandLeft{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
+.brandLeft{ display:flex; align-items:center; gap:12px; }
 .brandLogo{
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  padding: 6px;
-  display:grid;
-  place-items:center;
+  width: 60px; height: 60px; border-radius: 14px; padding: 6px;
+  display:grid; place-items:center;
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 16px 44px rgba(0,0,0,.30);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  flex: 0 0 auto;
-  transition: transform .16s ease, filter .16s ease, background .16s ease;
+  flex:0 0 auto;
   text-decoration:none;
 }
-.brandLogo:hover{
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-  background: rgba(255,255,255,.12);
-}
-.brandLogo img{
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  object-fit: cover;
-  display:block;
-}
+.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
 
 .card{ padding:18px; margin-bottom:16px; }
 
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-  align-items:center;
-}
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
 .spacer{ flex:1; }
 
 input,select{
@@ -146,20 +99,13 @@ input,select{
   border-radius: 14px;
   outline:none;
   min-width: 210px;
-  transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
 input::placeholder{ color: rgba(255,255,255,.55); }
 input:focus, select:focus{
   border-color: rgba(249,115,22,.55);
   background: rgba(255,255,255,.16);
-  transform: translateY(-1px);
 }
-
-/* Dropdown options visible */
-select option{
-  background: #1a1424;
-  color: rgba(255,255,255,.92);
-}
+select option{ background:#1a1424; color: rgba(255,255,255,.92); }
 
 button{
   border:none;
@@ -167,119 +113,31 @@ button{
   border-radius:14px;
   padding: 12px 16px;
   font-weight:650;
-  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease;
 }
 button:active{ transform: translateY(0px) scale(.99); }
-button:disabled{
-  cursor: not-allowed !important;
-  opacity: .55 !important;
-  transform: none !important;
-  filter: none !important;
-  box-shadow: none !important;
-}
+button:disabled{ cursor:not-allowed; opacity:.55; }
 
 .btn-primary{
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
   color: #0f0b16;
   box-shadow: 0 12px 30px rgba(168,85,247,.25);
 }
-.btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
   border: 1px solid var(--border);
 }
-.btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
-
 .btn-danger{
   background: linear-gradient(135deg, var(--danger1), var(--danger2));
   color: #fff;
   box-shadow: 0 10px 26px rgba(225,29,72,.22);
 }
-.btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
 
-/* ===== Auth badge ===== */
-.authFloating{
-  border-radius: 999px;
-  padding: 10px 12px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 18px 55px rgba(0,0,0,.40);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  user-select:none;
-  max-width: min(560px, 100%);
-}
-.dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position:relative; flex:0 0 auto; }
-.dot.ok{ background: var(--ok); }
-.dot.warn{ background: rgba(255,255,255,.35); }
-.authAvatar{
-  width: 30px; height: 30px; border-radius: 999px;
-  display:grid; place-items:center;
-  font-weight: 800; font-size: 12px; letter-spacing: .3px;
-  color: rgba(255,255,255,.92);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 12px 28px rgba(0,0,0,.25);
-  background: rgba(255,255,255,.10);
-  flex: 0 0 auto;
-}
-.authAvatar.hidden{ display:none; }
-.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
-.authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
-.authState.hidden{ display:none; }
-.authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
-.authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
-.authCompact.hidden{ display:none; }
-.authNameInline{
-  font-size:13px; font-weight:850; letter-spacing:.15px;
-  color: rgba(255,255,255,.92);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  max-width: 220px;
-}
-.rolePill{
-  display:inline-flex; align-items:center; gap:5px;
-  padding: 2px 6px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.82);
-  font-weight:700; font-size: 11px; letter-spacing:.10px; line-height:1;
-  white-space:nowrap; flex:0 0 auto;
-}
-.rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
-.rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
+.small{ font-size:13px; color: var(--muted); }
+.hidden{ display:none !important; }
 
-.authChevron{
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.85);
-  width: 30px; height: 26px;
-  border-radius: 999px;
-  padding: 0;
-  display:grid;
-  place-items:center;
-  cursor:pointer;
-  transition: transform .15s ease, background .15s ease;
-  flex: 0 0 auto;
-}
-.authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
-
-.authDetails{
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255,255,255,.10);
-  display:flex;
-  gap:8px;
-  align-items:center;
-  min-width:0;
-}
-.hidden{ display:none; }
-.authMail{ font-size:11px; color: rgba(255,255,255,.58); word-break:break-all; }
-
-/* ===== NAV ===== */
+/* NAV */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -287,29 +145,22 @@ button:disabled{
   z-index: 6;
 }
 .nav{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap;
   padding: 10px;
 }
 .navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
 .navLink{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
+  display:inline-flex; align-items:center; gap:10px;
   padding: 10px 12px;
   border-radius: 16px;
   text-decoration:none;
   color: rgba(255,255,255,.86);
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
-  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
-  user-select:none;
   white-space:nowrap;
 }
-.navLink:hover{ transform: translateY(-2px); filter: brightness(1.06); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.22); }
 .navLink.active{
   background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
   border-color: rgba(249,115,22,.35);
@@ -324,12 +175,18 @@ button:disabled{
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-/* ===== table ===== */
-.tableWrap{ overflow:auto; border-radius: 18px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); }
+/* Table */
+.tableWrap{
+  overflow:auto;
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+}
 table{ width:100%; border-collapse:collapse; margin-top: 8px; min-width: 980px; }
-th,td{ padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.12); text-align:left; vertical-align:middle; }
+th,td{ padding: 14px 12px; border-bottom: 1px solid rgba(255,255,255,.12); text-align:left; }
 th{ color: var(--muted); font-weight:650; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
 tbody tr:hover{ background: rgba(255,255,255,.06); }
+
 .actions{ display:flex; gap:10px; }
 .iconBtn{
   width: 42px; height: 42px; padding: 0;
@@ -338,141 +195,51 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 }
 
 .pill{
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center;
   padding:6px 12px; border-radius:999px;
   font-size:12px; font-weight:800;
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.90);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   white-space:nowrap;
 }
-.pill-status-volle{ background: rgba(34,197,94,.20);  border-color: rgba(34,197,94,.35);  color:#bbf7d0; }
-.pill-status-anw{  background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
-.pill-status-pau{  background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
-.pill-status-aus{  background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
 
-/* Ressort colors fixed */
-.ressortPill{ }
-:root{
-  --rA: rgba(255,255,255,.10);
-  --rB: rgba(255,255,255,.06);
-}
-
-/* ===== Modal overlay + bottom sheet ===== */
-.modalOverlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display:none;
-  z-index: 50;
-}
-
-/* show */
-.modalOverlay.show{ display:block; }
-
-/* Desktop modal */
-.modal{
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(760px, calc(100% - 36px));
-  max-height: min(78vh, 720px);
-  overflow:auto;
-  border-radius: 24px;
-  padding: 18px;
-}
-
-/* Modal header */
-.modalHeader{
+/* Inline editor */
+.editorHeader{
   display:flex;
   align-items:flex-start;
   justify-content:space-between;
   gap:12px;
-  margin-bottom: 10px;
 }
-.modalTitle{ margin:0; font-size: 20px; letter-spacing: .2px; }
-.modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
-.closeX{ width: 42px; height: 42px; border-radius: 14px; }
-
-hr.sep{
-  border: none;
-  border-top: 1px solid rgba(255,255,255,.12);
-  margin: 14px 0;
-}
+.editorTitle{ margin:0; font-size:20px; letter-spacing:.2px; }
+.editorSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
 
 .formGrid{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  margin-top: 14px;
 }
 .formGrid .full{ grid-column: 1 / -1; }
+hr.sep{ border:none; border-top:1px solid rgba(255,255,255,.12); margin: 14px 0; }
 
-.small{ font-size: 13px; color: var(--muted); }
-
-/* Mobile: bottom sheet */
+/* Mobile */
 @media (max-width: 640px){
   body{ padding: 24px 14px; }
   h1{ font-size: 26px; }
   .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
   .brandLogo img{ border-radius: 9px; }
   .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-  .authNameInline{ max-width: 150px; }
   input,select{ min-width: 0; width: 100%; }
   .row{ align-items:stretch; }
   .row .spacer{ display:none; }
   .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left: 0; }
+  .navRight{ margin-left:0; }
   table{ min-width: 720px; }
   th:nth-child(3), td:nth-child(3){ display:none; }
-  .actions{ gap:8px; }
   .formGrid{ grid-template-columns: 1fr; }
-
-  .modal{
-    left: 0;
-    right: 0;
-    bottom: 0;
-    top: auto;
-    transform: none;
-    width: 100%;
-    max-height: 86vh;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top-left-radius: 26px;
-    border-top-right-radius: 26px;
-    padding: 14px 14px 16px;
-  }
-}
-
-/* tiny toast for fallback info */
-.toast{
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 80;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: rgba(255,255,255,.92);
-  font-size: 12px;
-  display:none;
-  max-width: calc(100% - 26px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.toast.show{ display:block; animation: toastIn .18s ease both; }
-@keyframes toastIn{
-  from{ opacity:0; transform: translateX(-50%) translateY(8px); }
-  to{ opacity:1; transform: translateX(-50%) translateY(0); }
 }
 </style>
 </head>
@@ -486,32 +253,20 @@ hr.sep{
         <img src="logo.png" alt="Fachschaft Logo"
              onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
       </a>
-
       <div>
         <h1>FSBS Intern</h1>
         <div class="subtitle">Mitgliederverwaltung</div>
       </div>
     </div>
 
-    <div class="authFloating" id="authBadge" title="Login-Status">
-      <span class="dot warn" id="authDot"></span>
-      <div class="authAvatar hidden" id="authAvatar">U</div>
-
-      <div class="authInfo">
-        <div class="authTopLine">
-          <div class="authState" id="authState">nicht eingeloggt</div>
-
-          <div class="authCompact hidden" id="authCompact">
-            <span class="authNameInline" id="authNameInline">User</span>
-            <span class="rolePill" id="authRolePill">Rolle</span>
-            <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
-          </div>
-        </div>
-
-        <div class="authDetails hidden" id="authDetails">
-          <div class="authMail" id="authMail"></div>
-        </div>
+    <div class="glass" style="border-radius:999px; padding:10px 12px; display:flex; gap:10px; align-items:center; max-width:min(560px,100%);">
+      <span id="authDot" style="width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.35)"></span>
+      <div id="authAvatar" class="hidden" style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;font-weight:800;font-size:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.10);">U</div>
+      <div style="min-width:0; flex:1;">
+        <div id="authLine" style="font-weight:850;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">nicht eingeloggt</div>
+        <div id="authMail" style="font-size:11px;color:rgba(255,255,255,.58);word-break:break-all;"></div>
       </div>
+      <span id="authRole" class="pill" style="font-size:11px; padding:4px 10px;">—</span>
     </div>
   </div>
 
@@ -521,50 +276,32 @@ hr.sep{
       <div class="navLeft">
         <a class="navLink" href="index.html">
           <span class="navIcon">🏠</span>
-          <span>
-            <div class="navTitle">Dashboard</div>
-            <div class="navHint">Übersicht</div>
-          </span>
+          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
         </a>
 
         <a class="navLink active" href="members.html">
           <span class="navIcon">👥</span>
-          <span>
-            <div class="navTitle">Mitglieder</div>
-            <div class="navHint">Verwalten</div>
-          </span>
+          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
         </a>
 
         <a class="navLink" href="anwaerter.html">
           <span class="navIcon">👶🏼</span>
-          <span>
-            <div class="navTitle">Anwärter</div>
-            <div class="navHint">Liste</div>
-          </span>
+          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
         </a>
 
         <a class="navLink" href="bewerbungen.html">
           <span class="navIcon">📝</span>
-          <span>
-            <div class="navTitle">Bewerbungen</div>
-            <div class="navHint">Google Sheet</div>
-          </span>
+          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
         </a>
 
         <a class="navLink" href="rechnungen.html" id="navFinance">
           <span class="navIcon">💰</span>
-          <span>
-            <div class="navTitle">Finanzen</div>
-            <div class="navHint">Rechnungen & Auslagen</div>
-          </span>
+          <span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen & Auslagen</div></span>
         </a>
 
         <a class="navLink" href="mitgliederbefragung.html">
           <span class="navIcon">📊</span>
-          <span>
-            <div class="navTitle">Befragung</div>
-            <div class="navHint">Auswertung</div>
-          </span>
+          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
         </a>
       </div>
 
@@ -574,45 +311,14 @@ hr.sep{
     </div>
   </div>
 
-  <!-- MAIN -->
-  <div class="glass card hidden" id="mainCard">
-    <div class="row">
-      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)">
-      <button class="btn-secondary" id="reloadBtn">Aktualisieren</button>
-      <div class="spacer"></div>
-      <div class="small" id="countInfo"></div>
-      <button class="btn-primary" id="createBtn">+ Mitglied</button>
-    </div>
-
-    <div class="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:10%">Nr.</th>
-            <th style="width:20%">Name</th>
-            <th style="width:22%">Email</th>
-            <th style="width:18%">Ressort</th>
-            <th style="width:12%">Rolle</th>
-            <th style="width:10%">Status</th>
-            <th style="width:8%">Aktionen</th>
-          </tr>
-        </thead>
-        <tbody id="list"></tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL -->
-<div class="modalOverlay" id="modalOverlay" aria-hidden="true">
-  <div class="glass modal" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
-    <div class="modalHeader">
+  <!-- INLINE EDITOR (statt Modal) -->
+  <div class="glass card hidden" id="editorCard">
+    <div class="editorHeader">
       <div>
-        <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
-        <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
+        <h2 class="editorTitle" id="editorTitle">Mitglied bearbeiten</h2>
+        <div class="editorSub" id="editorSub">—</div>
       </div>
-      <button class="btn-secondary closeX" id="closeModalBtn" title="Schließen">✕</button>
+      <button class="btn-secondary" id="editorCloseBtn">✕</button>
     </div>
 
     <hr class="sep">
@@ -654,14 +360,43 @@ hr.sep{
       </div>
 
       <div class="full row" style="justify-content:flex-end; margin-top:6px;">
-        <button class="btn-secondary" id="modalCancelBtn">Abbrechen</button>
-        <button class="btn-primary" id="modalSaveBtn">Speichern</button>
+        <button class="btn-danger hidden" id="editorDeleteBtn">🗑️ Löschen</button>
+        <div class="spacer"></div>
+        <button class="btn-secondary" id="editorCancelBtn">Abbrechen</button>
+        <button class="btn-primary" id="editorSaveBtn">Speichern</button>
       </div>
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <!-- MAIN -->
+  <div class="glass card hidden" id="mainCard">
+    <div class="row">
+      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)">
+      <button class="btn-secondary" id="reloadBtn">Aktualisieren</button>
+      <div class="spacer"></div>
+      <div class="small" id="countInfo"></div>
+      <button class="btn-primary" id="createBtn">+ Mitglied</button>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:10%">Nr.</th>
+            <th style="width:20%">Name</th>
+            <th style="width:22%">Email</th>
+            <th style="width:18%">Ressort</th>
+            <th style="width:12%">Rolle</th>
+            <th style="width:10%">Status</th>
+            <th style="width:8%">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
 
 <script>
 /* ========= Supabase config ========= */
@@ -669,23 +404,9 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* Login page */
 const LOGIN_PAGE = "login.html";
-
-/* ========= Rollen/Permissions ========= */
 const PROFILES_TABLE = "profiles";
-let MY_ROLE = "";
-let CAN_EDIT = false;
 
-function normRole(v){ return String(v || "").trim().toLowerCase(); }
-function roleLabel(role){
-  const r = normRole(role);
-  if (r === "vorstand") return "Vorstand";
-  if (r === "ressortleiter") return "Ressortleiter";
-  return "Unbekannt";
-}
-
-/* ========= DB ========= */
 const DB = {
   table: "members",
   pk: "id",
@@ -698,41 +419,38 @@ const DB = {
   role: "rolle",
 };
 
-/* ========= State ========= */
 let members = [];
+let MY_ROLE = "";
+let CAN_EDIT = false;
 let editPk = null;
 
-/* ========= Elements ========= */
+/* Elements */
 const navWrap = document.getElementById("navWrap");
 const navFinance = document.getElementById("navFinance");
-const logoutBtn = document.getElementById("logoutBtn");
-
 const mainCard = document.getElementById("mainCard");
 
-const authBadge = document.getElementById("authBadge");
 const authDot = document.getElementById("authDot");
-const authState = document.getElementById("authState");
-const authMail  = document.getElementById("authMail");
 const authAvatar = document.getElementById("authAvatar");
-const authCompact = document.getElementById("authCompact");
-const authNameInline = document.getElementById("authNameInline");
-const authRolePill = document.getElementById("authRolePill");
-const authToggle = document.getElementById("authToggle");
-const authDetails = document.getElementById("authDetails");
+const authLine = document.getElementById("authLine");
+const authMail = document.getElementById("authMail");
+const authRole = document.getElementById("authRole");
+
+const logoutBtn = document.getElementById("logoutBtn");
 
 const searchEl = document.getElementById("search");
+const reloadBtn = document.getElementById("reloadBtn");
 const countInfo = document.getElementById("countInfo");
 const listEl = document.getElementById("list");
-const reloadBtn = document.getElementById("reloadBtn");
-
 const createBtn = document.getElementById("createBtn");
 
-const modalOverlay = document.getElementById("modalOverlay");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const modalCancelBtn = document.getElementById("modalCancelBtn");
-const modalTitle = document.getElementById("modalTitle");
-const modalSub = document.getElementById("modalSub");
-const modalSaveBtn = document.getElementById("modalSaveBtn");
+/* Editor */
+const editorCard = document.getElementById("editorCard");
+const editorTitle = document.getElementById("editorTitle");
+const editorSub = document.getElementById("editorSub");
+const editorCloseBtn = document.getElementById("editorCloseBtn");
+const editorCancelBtn = document.getElementById("editorCancelBtn");
+const editorSaveBtn = document.getElementById("editorSaveBtn");
+const editorDeleteBtn = document.getElementById("editorDeleteBtn");
 
 const mNo = document.getElementById("mNo");
 const mFirst = document.getElementById("mFirst");
@@ -742,35 +460,27 @@ const mDept = document.getElementById("mDept");
 const mRole = document.getElementById("mRole");
 const mStatus = document.getElementById("mStatus");
 
-const toast = document.getElementById("toast");
+const safe = (v)=> (v===null||v===undefined) ? "" : String(v);
+const norm = (v)=> safe(v).trim();
+const esc = (s)=> safe(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 
-/* ========= Utils ========= */
-const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-function esc(s){
-  return safe(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+function normRole(v){ return norm(v).toLowerCase(); }
+function roleLabel(role){
+  const r = normRole(role);
+  if (r === "vorstand") return "Vorstand";
+  if (r === "ressortleiter") return "Ressortleiter";
+  return "Unbekannt";
 }
-function norm(s){ return safe(s).trim(); }
+
 function uniqSorted(arr){
   return [...new Set(arr.map(norm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
 }
 function setSelectOptions(selectEl, values, placeholder="— auswählen —"){
-  const opts = [`<option value="">${esc(placeholder)}</option>`]
-    .concat(values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`));
-  selectEl.innerHTML = opts.join("");
-}
-function showToast(msg){
-  toast.textContent = msg;
-  toast.classList.add("show");
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => toast.classList.remove("show"), 2400);
+  selectEl.innerHTML = [`<option value="">${esc(placeholder)}</option>`]
+    .concat(values.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`))
+    .join("");
 }
 
-/* getters */
 function getPk(m){ return m?.[DB.pk]; }
 function getNo(m){ return m?.[DB.no] ?? ""; }
 function getFirst(m){ return m?.[DB.first] ?? ""; }
@@ -780,40 +490,11 @@ function getDept(m){ return m?.[DB.dept] ?? ""; }
 function getStatus(m){ return m?.[DB.status] ?? ""; }
 function getRole(m){ return m?.[DB.role] ?? ""; }
 
-/* Ressort pills */
-const RESSORT_COLORS = {
-  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
-  "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
-  "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
-  "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
-};
-function pillColorStyle(label){
-  const key = norm(label);
-  const pair = RESSORT_COLORS[key];
-  const a = pair?.[0] ?? "rgba(255,255,255,.10)";
-  const b = pair?.[1] ?? "rgba(255,255,255,.06)";
-  return `background: linear-gradient(135deg, ${a}, ${b});
-          border-color: rgba(255,255,255,.18);
-          color: rgba(255,255,255,.92);`;
-}
-function statusClass(status){
-  const s = norm(status).toLowerCase();
-  if (s.startsWith("voll")) return "pill-status-volle";
-  if (s.startsWith("anw"))  return "pill-status-anw";
-  if (s.startsWith("pau"))  return "pill-status-pau";
-  if (s.startsWith("aus"))  return "pill-status-aus";
-  return "";
-}
-
-/* Avatar helpers */
+/* Avatar */
 function hashString(str){
   let h = 2166136261;
-  for (let i = 0; i < str.length; i++){
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0);
+  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h,16777619); }
+  return (h>>>0);
 }
 function initialsFromEmail(email){
   const e = norm(email).toLowerCase();
@@ -822,15 +503,7 @@ function initialsFromEmail(email){
   const parts = local.split(/[.\-_]+/).filter(Boolean);
   const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
   const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
-  return (a + b).trim() || a;
-}
-function initialsFromText(txt){
-  const t = norm(txt);
-  if (!t) return "U";
-  const parts = t.split(/\s+/).filter(Boolean);
-  const a = (parts[0]?.[0] || "U").toUpperCase();
-  const b = (parts[1]?.[0] || "").toUpperCase();
-  return (a + b).trim() || a;
+  return (a+b).trim() || a;
 }
 function setAvatar(email){
   const e = norm(email).toLowerCase();
@@ -848,48 +521,6 @@ function setAvatar(email){
   authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
 }
 
-/* Badge helpers */
-function closeAuthDetails(){ authDetails.classList.add("hidden"); }
-function setRolePill(role){
-  const r = normRole(role);
-  authRolePill.textContent = roleLabel(r);
-  authRolePill.classList.remove("vorstand","ressortleiter");
-  if (r === "vorstand") authRolePill.classList.add("vorstand");
-  else authRolePill.classList.add("ressortleiter");
-}
-function setCompactIdentity(displayName, email){
-  const name = norm(displayName);
-  const fallback = (norm(email).split("@")[0] || "User").trim();
-  authNameInline.textContent = name || fallback;
-}
-function setAuthUI(isAuthed, email=""){
-  if (isAuthed){
-    authDot.classList.remove("warn"); authDot.classList.add("ok");
-    authState.classList.add("hidden");
-    authCompact.classList.remove("hidden");
-    closeAuthDetails();
-    authMail.textContent = norm(email);
-    setAvatar(email);
-
-    navWrap.classList.remove("hidden");
-    mainCard.classList.remove("hidden");
-  } else {
-    authDot.classList.remove("ok"); authDot.classList.add("warn");
-    authState.classList.remove("hidden");
-    authState.textContent = "nicht eingeloggt";
-    authCompact.classList.add("hidden");
-    closeAuthDetails();
-    authMail.textContent = "";
-    setAvatar("");
-
-    navWrap.classList.add("hidden");
-    mainCard.classList.add("hidden");
-  }
-}
-authToggle?.addEventListener("click", (e)=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
-document.addEventListener("click", (e)=>{ if (authBadge && !authBadge.contains(e.target)) closeAuthDetails(); });
-
-/* Auth */
 async function requireAuthOrRedirect(){
   const { data } = await sb.auth.getSession();
   if (!data?.session){
@@ -899,7 +530,6 @@ async function requireAuthOrRedirect(){
   return data.session;
 }
 
-/* Profile */
 async function loadMyProfile(session){
   MY_ROLE = "";
   CAN_EDIT = false;
@@ -913,30 +543,27 @@ async function loadMyProfile(session){
     .eq("id", uid)
     .maybeSingle();
 
-  if (error || !data){
-    setCompactIdentity("", email);
-    setRolePill("ressortleiter");
-    CAN_EDIT = false;
-  } else {
-    MY_ROLE = normRole(data?.role);
+  if (!error && data){
+    MY_ROLE = normRole(data.role);
     CAN_EDIT = (MY_ROLE === "vorstand");
-    setCompactIdentity(data?.display_name, email);
-    setRolePill(MY_ROLE || "ressortleiter");
-    const dn = norm(data?.display_name);
-    if (dn) authAvatar.textContent = initialsFromText(dn);
-    authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
   }
 
+  authDot.style.background = "rgba(34,197,94,.95)";
+  authLine.textContent = (data?.display_name || email || "User") + " • " + roleLabel(MY_ROLE || "ressortleiter");
+  authMail.textContent = email;
+  authRole.textContent = roleLabel(MY_ROLE || "ressortleiter");
+  setAvatar(email);
+
+  navWrap.classList.remove("hidden");
+  mainCard.classList.remove("hidden");
+
   // ✅ Finanzen nur Vorstand
-  if (navFinance){
-    navFinance.style.display = CAN_EDIT ? "" : "none";
-  }
+  navFinance.style.display = CAN_EDIT ? "" : "none";
 
   // Buttons
   createBtn.disabled = !CAN_EDIT;
 }
 
-/* Logout */
 async function logout(){
   await sb.auth.signOut();
   window.location.replace(LOGIN_PAGE);
@@ -959,155 +586,76 @@ function refreshDropdowns(){
   setSelectOptions(mRole, rollen, "Rolle wählen");
 }
 
-/* Load data */
+/* Load */
 async function load(){
   await requireAuthOrRedirect();
-
   const { data, error } = await sb
     .from(DB.table)
     .select("*")
-    .order(DB.no, { ascending: true, nullsFirst: true });
+    .order(DB.no, { ascending:true, nullsFirst:true });
 
   if (error) return alert("LOAD: " + error.message);
-
   members = data || [];
   refreshDropdowns();
   render();
 }
+reloadBtn.addEventListener("click", load);
 
 /* Render */
 function render(){
   const q = norm(searchEl.value).toLowerCase();
-
   const filtered = members.filter(m => {
     const hay = [
-      getNo(m),
-      getFirst(m),
-      getLast(m),
-      getEmail(m),
-      getDept(m),
-      getRole(m),
-      getStatus(m)
-    ].map(x => safe(x)).join(" ").toLowerCase();
+      getNo(m), getFirst(m), getLast(m), getEmail(m), getDept(m), getRole(m), getStatus(m)
+    ].map(safe).join(" ").toLowerCase();
     return !q || hay.includes(q);
   });
 
   countInfo.textContent = `${filtered.length} von ${members.length} Mitgliedern`;
+
   listEl.innerHTML = filtered.map(m => {
     const pk = String(getPk(m) ?? "");
     const no = getNo(m);
-    const name = `${getFirst(m) || ""} ${getLast(m) || ""}`.trim();
-    const email = getEmail(m) || "";
-    const dept = getDept(m) || "";
-    const role = getRole(m) || "";
-    const status = getStatus(m) || "";
+    const name = `${getFirst(m)||""} ${getLast(m)||""}`.trim();
+    const email = getEmail(m)||"";
+    const dept = getDept(m)||"";
+    const role = getRole(m)||"";
+    const status = getStatus(m)||"";
 
     const editDisabled = !CAN_EDIT;
     const delDisabled  = !CAN_EDIT;
 
-    const editTitle = !CAN_EDIT ? "Nur Vorstand darf bearbeiten" : "Bearbeiten";
-    const delTitle  = !CAN_EDIT ? "Nur Vorstand darf löschen" : "Löschen";
-
     return `
       <tr>
-        <td>${esc(no || "")}</td>
-        <td>${esc(name || "—")}</td>
-        <td>${esc(email || "—")}</td>
-        <td><span class="pill" style="${pillColorStyle(dept)}">${esc(dept || "—")}</span></td>
-        <td><span class="pill">${esc(role || "—")}</span></td>
-        <td><span class="pill ${statusClass(status)}">${esc(status || "—")}</span></td>
+        <td>${esc(no||"")}</td>
+        <td>${esc(name||"—")}</td>
+        <td>${esc(email||"—")}</td>
+        <td><span class="pill">${esc(dept||"—")}</span></td>
+        <td><span class="pill">${esc(role||"—")}</span></td>
+        <td><span class="pill">${esc(status||"—")}</span></td>
         <td>
           <div class="actions">
-            <button class="btn-secondary iconBtn"
-              title="${esc(editTitle)}"
-              ${editDisabled ? "disabled" : ""}
-              data-action="edit" data-id="${esc(pk)}">✏️</button>
-
-            <button class="btn-danger iconBtn"
-              title="${esc(delTitle)}"
-              ${delDisabled ? "disabled" : ""}
-              data-action="del" data-id="${esc(pk)}">🗑️</button>
+            <button class="btn-secondary iconBtn" ${editDisabled?"disabled":""} data-action="edit" data-id="${esc(pk)}">✏️</button>
+            <button class="btn-danger iconBtn" ${delDisabled?"disabled":""} data-action="del" data-id="${esc(pk)}">🗑️</button>
           </div>
         </td>
       </tr>
     `;
   }).join("");
 }
+searchEl.addEventListener("input", render);
 
-/* ===== Modal UX (scroll lock + reliable visibility) ===== */
-let _scrollY = 0;
-function lockScroll(){
-  _scrollY = window.scrollY || 0;
-  document.body.style.position = "fixed";
-  document.body.style.top = `-${_scrollY}px`;
-  document.body.style.left = "0";
-  document.body.style.right = "0";
-  document.body.style.width = "100%";
+/* Editor open/close */
+function clearEditor(){
+  mNo.value=""; mFirst.value=""; mLast.value=""; mEmail.value="";
+  mDept.value=""; mRole.value=""; mStatus.value="";
 }
-function unlockScroll(){
-  const top = document.body.style.top;
-  document.body.style.position = "";
-  document.body.style.top = "";
-  document.body.style.left = "";
-  document.body.style.right = "";
-  document.body.style.width = "";
-  const y = top ? Math.abs(parseInt(top, 10)) : _scrollY;
-  window.scrollTo(0, y || 0);
-}
-function openModal(){
-  modalOverlay.classList.add("show");
-  modalOverlay.setAttribute("aria-hidden","false");
-  lockScroll();
-
-  // ✅ ensure visible on iOS: slight delay then focus
-  setTimeout(() => {
-    (mFirst || mNo).focus?.();
-  }, 60);
-}
-function closeModal(){
-  modalOverlay.classList.remove("show");
-  modalOverlay.setAttribute("aria-hidden","true");
-  unlockScroll();
-  editPk = null;
-}
-modalOverlay.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
-closeModalBtn.addEventListener("click", closeModal);
-modalCancelBtn.addEventListener("click", closeModal);
-document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
-
-function clearModal(){
-  mNo.value = "";
-  mFirst.value = "";
-  mLast.value  = "";
-  mEmail.value = "";
-  mDept.value  = "";
-  mRole.value  = "";
-  mStatus.value = "";
-}
-
-/* Create/Edit */
-function openCreate(){
-  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Mitglieder anlegen.");
-  editPk = null;
-  clearModal();
-  modalTitle.textContent = "Mitglied hinzufügen";
-  modalSub.textContent = "Fülle die Daten aus und speichere.";
-  modalSaveBtn.textContent = "Anlegen";
-  mStatus.value = "Vollmitglied";
-  openModal();
-}
-
-function openEdit(pk){
+function openEditorFor(pk){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf bearbeiten.");
 
   const target = String(pk ?? "");
   const m = members.find(x => String(getPk(x) ?? "") === target);
-
-  if (!m){
-    // Alternativ-Lösung/Fallback: zeig ID & Hinweis
-    showToast("Mitglied nicht gefunden (ID mismatch). Bitte Aktualisieren.");
-    return;
-  }
+  if (!m) return alert("Mitglied nicht gefunden. Bitte aktualisieren.");
 
   editPk = target;
 
@@ -1119,15 +667,52 @@ function openEdit(pk){
   mRole.value  = norm(getRole(m));
   mStatus.value = norm(getStatus(m)) || "Vollmitglied";
 
-  modalTitle.textContent = "Mitglied bearbeiten";
-  modalSub.textContent = `ID ${target} bearbeiten.`;
-  modalSaveBtn.textContent = "Speichern";
+  editorTitle.textContent = "Mitglied bearbeiten";
+  editorSub.textContent = `ID ${target}`;
+  editorDeleteBtn.classList.remove("hidden");
 
-  openModal();
+  editorCard.classList.remove("hidden");
+  editorCard.scrollIntoView({ behavior:"smooth", block:"start" });
+
+  setTimeout(()=> mFirst.focus(), 60);
 }
+function openCreate(){
+  if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf Mitglieder anlegen.");
+  editPk = null;
+  clearEditor();
 
-/* CRUD */
-async function saveModal(){
+  editorTitle.textContent = "Mitglied hinzufügen";
+  editorSub.textContent = "Neue Person anlegen";
+  mStatus.value = "Vollmitglied";
+
+  editorDeleteBtn.classList.add("hidden");
+  editorCard.classList.remove("hidden");
+  editorCard.scrollIntoView({ behavior:"smooth", block:"start" });
+
+  setTimeout(()=> mFirst.focus(), 60);
+}
+function closeEditor(){
+  editorCard.classList.add("hidden");
+  editPk = null;
+}
+createBtn.addEventListener("click", openCreate);
+editorCloseBtn.addEventListener("click", closeEditor);
+editorCancelBtn.addEventListener("click", closeEditor);
+
+/* Table actions */
+listEl.addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-action]");
+  if (!btn || btn.disabled) return;
+  const id = btn.getAttribute("data-id");
+  const action = btn.getAttribute("data-action");
+  if (action === "edit") openEditorFor(id);
+  if (action === "del") delMember(id);
+});
+
+/* Save */
+editorSaveBtn.addEventListener("click", saveEditor);
+
+async function saveEditor(){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf speichern.");
   await requireAuthOrRedirect();
 
@@ -1142,8 +727,7 @@ async function saveModal(){
 
   if (!payload[DB.first] || !payload[DB.last]) return alert("Vorname und Nachname sind Pflicht.");
 
-  modalSaveBtn.disabled = true;
-  modalSaveBtn.style.opacity = ".75";
+  editorSaveBtn.disabled = true;
 
   try{
     let res;
@@ -1154,13 +738,18 @@ async function saveModal(){
     }
     if (res.error) return alert("SUPABASE: " + res.error.message);
 
-    closeModal();
+    closeEditor();
     await load();
   } finally {
-    modalSaveBtn.disabled = false;
-    modalSaveBtn.style.opacity = "1";
+    editorSaveBtn.disabled = false;
   }
 }
+
+/* Delete */
+editorDeleteBtn.addEventListener("click", ()=>{
+  if (!editPk) return;
+  delMember(editPk);
+});
 
 async function delMember(pk){
   if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf löschen.");
@@ -1168,37 +757,20 @@ async function delMember(pk){
 
   const target = String(pk ?? "");
   const m = members.find(x => String(getPk(x) ?? "") === target);
-  const name = m ? `${getFirst(m) || ""} ${getLast(m) || ""}`.trim() : `ID ${target}`;
+  const name = m ? `${getFirst(m)||""} ${getLast(m)||""}`.trim() : `ID ${target}`;
 
   if (!confirm(`Wirklich löschen: ${name}?`)) return;
 
   const { error } = await sb.from(DB.table).delete().eq(DB.pk, target);
   if (error) return alert("DELETE: " + error.message);
 
+  closeEditor();
   await load();
 }
 
-/* Event wiring */
-searchEl.addEventListener("input", render);
-reloadBtn.addEventListener("click", load);
-createBtn.addEventListener("click", openCreate);
-modalSaveBtn.addEventListener("click", saveModal);
-
-/* Table action delegation (no inline onclick -> safer) */
-listEl.addEventListener("click", (e)=>{
-  const btn = e.target.closest("button[data-action]");
-  if (!btn || btn.disabled) return;
-  const id = btn.getAttribute("data-id");
-  const action = btn.getAttribute("data-action");
-  if (action === "edit") openEdit(id);
-  if (action === "del") delMember(id);
-});
-
 /* Init */
-(async () => {
+(async ()=>{
   const session = await requireAuthOrRedirect();
-  const mail = session?.user?.email || "";
-  setAuthUI(true, mail);
   await loadMyProfile(session);
   await load();
 })();
@@ -1210,6 +782,5 @@ if ("serviceWorker" in navigator){
   });
 }
 </script>
-
 </body>
 </html>
