@@ -5,11 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mitgliederbefragung</title>
 
-  <!-- Favicon -->
+<!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
 <link rel="manifest" href="/favicon/site.webmanifest">
 
@@ -18,14 +17,12 @@
 
 <style>
 :root{
-  /* Matte Dark Base */
   --bg1:#120e18;
   --bg2:#1a1424;
   --bg3:#1f162c;
 
-  /* Modern Orange → Purple */
-  --accent1:#f97316;   /* warm orange */
-  --accent2:#a855f7;   /* vibrant purple */
+  --accent1:#f97316;
+  --accent2:#a855f7;
 
   --glass: rgba(255,255,255,.08);
   --border: rgba(255,255,255,.18);
@@ -38,17 +35,20 @@
   --ok: rgba(34,197,94,.95);
   --bad: rgba(239,68,68,.95);
   --warn: rgba(251,146,60,.95);
+
+  --danger1:#fb7185;
+  --danger2:#e11d48;
 }
 
 *{ box-sizing:border-box; }
-html, body { min-height: 100%; }
+html, body{ min-height:100%; }
 
 html{
   background:
-  radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-  radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-  radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
   background-attachment: fixed;
 }
 
@@ -60,43 +60,18 @@ body{
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding:42px 16px;
+  padding: 28px 16px 60px;
+  animation: pageIn .38s ease both;
+}
+@keyframes pageIn{
+  from{ opacity:0; transform: translateY(8px); }
+  to  { opacity:1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce){
+  body{ animation:none !important; }
 }
 
 .app{ width:100%; max-width:1200px; }
-
-.top{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:14px;
-}
-h1{ margin:0; font-size:32px; letter-spacing:.4px; }
-.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-
-/* ===== Brand links: Logo + Titel ===== */
-.brandLeft{ display:flex; align-items:center; gap:12px; }
-.brandLogo{
-  width: 60px; height: 60px; border-radius: 14px; padding: 6px;
-  display:grid; place-items:center;
-  background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 16px 44px rgba(0,0,0,.30);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  flex: 0 0 auto;
-  transition: transform .16s ease, filter .16s ease, background .16s ease;
-}
-.brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
-.brandLogo img{
-  width: 100%; height: 100%; border-radius: 10px;
-  object-fit: cover; display:block;
-}
-@media (max-width: 640px){
-  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
-  .brandLogo img{ border-radius: 9px; }
-}
 
 .glass{
   background: rgba(255,255,255,.10);
@@ -109,6 +84,74 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 
 .card{ padding:18px; margin-bottom:16px; }
 
+.top{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom: 14px;
+}
+h1{ margin:0; font-size:32px; letter-spacing:.4px; }
+.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+
+/* Brand */
+.brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
+.brandLogo{
+  width: 52px; height: 52px; border-radius: 14px; padding: 6px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  flex: 0 0 auto;
+  transition: transform .16s ease, filter .16s ease, background .16s ease;
+  text-decoration:none;
+  color: rgba(255,255,255,.92);
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+.brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
+.brandLogo img{ width:100%; height:100%; border-radius: 10px; object-fit:cover; display:block; }
+@media (max-width: 640px){
+  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
+  .brandLogo img{ border-radius: 9px; }
+}
+
+/* ===== Animated pills (wie Finanzen) ===== */
+@keyframes pillShimmer{
+  0%{ transform: translateX(-40%); opacity:.0; }
+  20%{ opacity:.35; }
+  60%{ opacity:.15; }
+  100%{ transform: translateX(140%); opacity:0; }
+}
+.pill{
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+  font-size: 12px;
+  color: rgba(255,255,255,.78);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+}
+.pill::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
+  width: 40%;
+  transform: translateX(-50%);
+  animation: pillShimmer 2.6s ease-in-out infinite;
+  pointer-events:none;
+  opacity:.0;
+}
+.pill:hover::after{ opacity:.35; }
+
 .row{
   display:flex;
   gap:12px;
@@ -119,7 +162,7 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 
 input,select{
   background: rgba(255,255,255,.12);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,.22);
   color: var(--text);
   padding: 12px 14px;
   border-radius: 14px;
@@ -133,49 +176,42 @@ input:focus, select:focus{
   background: rgba(255,255,255,.16);
   transform: translateY(-1px);
 }
+select option{ background:#1a1424; color: rgba(255,255,255,.92); }
 
 button{
   border:none;
   cursor:pointer;
   border-radius:14px;
   padding: 12px 16px;
-  font-weight:650;
+  font-weight:700;
   transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
 }
 button:active{ transform: translateY(0px) scale(.99); }
-button:disabled{
-  cursor:not-allowed !important;
-  opacity:.55 !important;
-  transform:none !important;
-  filter:none !important;
-  box-shadow:none !important;
-}
-button:disabled:hover{ transform:none !important; filter:none !important; }
+button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transform:none !important; }
 
 .btn-primary{
   background: linear-gradient(135deg, var(--accent1), var(--accent2));
   color: #0f0b16;
   box-shadow: 0 12px 30px rgba(168,85,247,.25);
 }
-.btn-primary:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.03);
-  box-shadow: 0 18px 36px rgba(249,115,22,.25);
-}
+.btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); box-shadow: 0 18px 36px rgba(249,115,22,.25); }
+
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,255,255,.18);
 }
-.btn-secondary:hover{
-  transform: translateY(-2px);
-  background: rgba(255,255,255,.18);
-}
+.btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
 
-/* ===== Auth badge (kompakt + Details Toggle) ===== */
+.btn-danger{
+  background: linear-gradient(135deg, var(--danger1), var(--danger2));
+  color: #fff;
+  box-shadow: 0 10px 26px rgba(225,29,72,.22);
+}
+.btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+
+/* ===== Auth badge ===== */
 .authFloating{
-  position: static;
-  z-index: 1;
   border-radius: 999px;
   padding: 10px 12px;
   display:flex;
@@ -190,7 +226,7 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
   max-width: min(560px, 100%);
 }
 
-.dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position: relative; flex:0 0 auto; }
+.dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position:relative; flex:0 0 auto; }
 .dot.ok{ background: var(--ok); }
 .dot.warn{ background: rgba(255,255,255,.35); }
 .dot.bad{ background: var(--bad); }
@@ -272,35 +308,30 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
 
 .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
 
+/* ✅ Rolle nur als Pill (einheitlich) */
 .rolePill{
   display:inline-flex;
   align-items:center;
-  gap:5px;
-  padding: 2px 6px;
+  gap:6px;
+  padding: 3px 8px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.82);
-  font-weight:700;
+  font-weight:800;
   font-size: 11px;
   letter-spacing: .10px;
   line-height: 1;
   white-space:nowrap;
   flex: 0 0 auto;
 }
-.rolePill.vorstand{
-  border-color: rgba(56,189,248,.40);
-  background: rgba(56,189,248,.12);
-}
-.rolePill.ressortleiter{
-  border-color: rgba(251,146,60,.35);
-  background: rgba(251,146,60,.12);
-}
+.rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
+.rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
 
 .hidden{ display:none; }
 .small{ font-size: 13px; color: var(--muted); }
 
-/* ===== NAV: sticky beim Scrollen ===== */
+/* ===== NAV ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -358,24 +389,30 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
   grid-template-columns: 1.1fr .9fr;
   gap: 14px;
 }
-@media (max-width: 980px){
-  .top{flex-direction:column; align-items:flex-start; gap:10px;}
-  .grid{ grid-template-columns:1fr; }
-}
 .kpis{
   display:grid;
   grid-template-columns: repeat(3, 1fr);
   gap:12px;
 }
-@media (max-width: 720px){
-  .kpis{ grid-template-columns:1fr; }
-}
 .kpi{
   padding:14px;
   border-radius: 18px;
   border:1px solid rgba(255,255,255,.14);
-  background: linear-gradient(135deg, rgba(249,115,22,.16), rgba(168,85,247,.10));
+  background: rgba(255,255,255,.06);
+  position:relative;
+  overflow:hidden;
 }
+.kpi::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(520px 180px at 20% 10%, rgba(249,115,22,.18), transparent 60%),
+    radial-gradient(520px 180px at 80% 20%, rgba(168,85,247,.14), transparent 60%);
+  pointer-events:none;
+  opacity:.75;
+}
+.kpi > *{ position:relative; z-index:1; }
 .kpi .label{ color: var(--muted); font-size:12px; }
 .kpi .value{ font-size:20px; font-weight:900; margin-top:6px; }
 .kpi .sub{ color: var(--muted); font-size:12px; margin-top:2px; }
@@ -388,17 +425,24 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
   gap:10px;
   flex-wrap:wrap;
 }
+
+/* ✅ Tabs als "Pills" (einheitlich) */
 .tabBtn{
   padding:10px 12px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color: rgba(255,255,255,.86);
+  font-weight:750;
+  letter-spacing:.15px;
+  position:relative;
+  overflow:hidden;
 }
 .tabBtn:hover{ transform: translateY(-2px); background: rgba(255,255,255,.10); }
 .tabBtn.active{
   background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(168,85,247,.12));
   border-color: rgba(249,115,22,.35);
+  box-shadow: 0 12px 28px rgba(249,115,22,.18);
 }
 
 .list{
@@ -417,6 +461,8 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
 }
 .item .a{ margin:0; font-size: 13.5px; line-height: 1.45; }
 .tagRow{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ✅ tags/pills einheitlicher */
 .tag{
   font-size:11.5px;
   padding:6px 9px;
@@ -424,7 +470,21 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
   border:1px solid rgba(249,115,22,.28);
   background: rgba(249,115,22,.10);
   color: rgba(255,255,255,.88);
+  position:relative;
+  overflow:hidden;
 }
+.tag::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  width: 42%;
+  transform: translateX(-55%);
+  animation: pillShimmer 2.9s ease-in-out infinite;
+  pointer-events:none;
+  opacity:.0;
+}
+.tag:hover::after{ opacity:.30; }
 .tag.p{ border-color: rgba(168,85,247,.28); background: rgba(168,85,247,.10); }
 
 .notice{
@@ -435,26 +495,29 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
   color: rgba(255,255,255,.88);
   line-height:1.35;
 }
-.notice.bad{
-  border-color: rgba(239,68,68,.25);
-  background: rgba(239,68,68,.10);
-}
-.notice.good{
-  border-color: rgba(34,197,94,.25);
-  background: rgba(34,197,94,.10);
-}
+.notice.bad{ border-color: rgba(239,68,68,.25); background: rgba(239,68,68,.10); }
+.notice.good{ border-color: rgba(34,197,94,.25); background: rgba(34,197,94,.10); }
 
-/* Mobile tweaks */
+/* Mobile */
+@media (max-width: 980px){
+  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .grid{ grid-template-columns:1fr; }
+}
+@media (max-width: 720px){
+  .kpis{ grid-template-columns:1fr; }
+}
 @media (max-width: 640px){
-  body{ padding: 24px 14px; }
+  body{ padding: 24px 14px 60px; }
   h1{ font-size: 26px; }
-  input,select{ min-width: 0; width:100%; }
+
+  input,select{ min-width:0; width:100%; }
   .row{ align-items:stretch; }
   .row .spacer{ display:none; }
+
   .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left: 0; }
+  .navRight{ margin-left: 0; flex-wrap:nowrap; }
   .authNameInline{ max-width: 150px; }
 }
 </style>
@@ -470,14 +533,13 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
         <img src="logo.png" alt="Fachschaft Logo"
              onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
       </a>
-      <div>
+      <div style="min-width:0;">
         <h1>Mitgliederbefragung</h1>
         <div class="subtitle">Auswertung • Nur Ressortleiter & Vorstand</div>
       </div>
     </div>
 
     <div class="brandRight">
-      <!-- Auth Badge -->
       <div class="authFloating" id="authBadge" title="Login-Status">
         <span class="dot warn" id="authDot"></span>
         <div class="authAvatar hidden" id="authAvatar">U</div>
@@ -488,7 +550,7 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
 
             <div class="authCompact hidden" id="authCompact">
               <span class="authNameInline" id="authNameInline">User</span>
-              <span class="rolePill" id="authRolePill">Rolle</span>
+              <span class="rolePill ressortleiter" id="authRolePill">Rolle</span>
               <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
             </div>
           </div>
@@ -505,11 +567,36 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
   <div class="glass navWrap hidden" id="navWrap">
     <div class="nav">
       <div class="navLeft">
-        <a class="navLink" href="/index.html"><span class="navIcon">👥</span><span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span></a>
-        <a class="navLink" href="/anwaerter.html"><span class="navIcon">👶🏼</span><span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span></a>
-        <a class="navLink" href="/bewerbungen.html"><span class="navIcon">📝</span><span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span></a>
-        <a class="navLink" href="/rechnungen.html"><span class="navIcon">💰</span><span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen & Auslagen</div></span></a>
-        <a class="navLink active" href="/mitgliederbefragung.html"><span class="navIcon">📊</span><span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span></a>
+        <!-- ✅ Dashboard Link wie bei Finanzen -->
+        <a class="navLink" href="/index.html">
+          <span class="navIcon">🏠</span>
+          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
+        </a>
+
+        <a class="navLink" href="/members.html">
+          <span class="navIcon">👥</span>
+          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
+        </a>
+
+        <a class="navLink" href="/anwaerter.html">
+          <span class="navIcon">👶🏼</span>
+          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
+        </a>
+
+        <a class="navLink" href="/bewerbungen.html">
+          <span class="navIcon">📝</span>
+          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
+        </a>
+
+        <a class="navLink" href="/rechnungen.html">
+          <span class="navIcon">💰</span>
+          <span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen</div></span>
+        </a>
+
+        <a class="navLink active" href="/mitgliederbefragung.html">
+          <span class="navIcon">📊</span>
+          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
+        </a>
       </div>
 
       <div class="navRight">
@@ -532,7 +619,7 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
 
   <!-- MAIN -->
   <div class="glass card hidden" id="mainCard">
-    <div class="row">
+    <div class="row" style="gap:14px;">
       <div class="tabs">
         <button class="tabBtn active" data-tab="overview">Überblick</button>
         <button class="tabBtn" data-tab="comm">Kommunikation</button>
@@ -675,7 +762,6 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -685,14 +771,13 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* ========= Rollen/Permissions (wie Referenz) ========= */
+/* ========= Rollen/Permissions ========= */
 const PROFILES_TABLE = "profiles";
 let MY_ROLE = ""; // "vorstand" | "ressortleiter"
 const ALLOWED = new Set(["vorstand","ressortleiter"]);
 
 /* ========= Google Sheet ========= */
 const SHEET_ID = "1PJAutXFcNr34sSFvVUiKEj1QUDh6xgQ767T8fIZ0F2M";
-/* Falls es NICHT das erste Tabellenblatt ist, trage hier die richtige gid ein (steht in der Sheet-URL als gid=...) */
 const SHEET_GID = null; // z.B. 0 oder 123456789
 const SHEET_GVIZ_URL = SHEET_GID === null
   ? `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`
@@ -870,7 +955,7 @@ authToggle?.addEventListener("click", (e)=>{
   authDetails.classList.toggle("hidden");
 });
 document.addEventListener("click", (e)=>{
-  if (!authBadge.contains(e.target)) closeAuthDetails();
+  if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
 });
 
 async function requireAuth(){
@@ -997,6 +1082,7 @@ function applyFilters(){
   const periodTxt = (dateFrom.value || dateTo.value)
     ? `Zeitraum: ${dateFrom.value || "…"} bis ${dateTo.value || "…"}`
     : "Zeitraum: alle";
+
   document.getElementById("kpiTotal").textContent = VIEW_ROWS.length;
   document.getElementById("kpiPeriod").textContent = periodTxt;
   document.getElementById("kpiEmbedding").textContent = fmtAvg(avgScore(VIEW_ROWS, H.embedding));
@@ -1031,7 +1117,7 @@ function renderBar(canvasId, pairs){
   if (charts[canvasId]) charts[canvasId].destroy();
   charts[canvasId] = new Chart(ctx, {
     type: "bar",
-    data: { labels, datasets: [{ label: "Antworten", data, borderWidth: 1, borderRadius: 10 }] },
+    data: { labels, datasets: [{ label:"Antworten", data, borderWidth: 1, borderRadius: 10 }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -1082,14 +1168,12 @@ function setLoadNote(type, msg){
 
 async function loadSurvey(force=false){
   try{
-    // Sicherstellen: eingeloggt + erlaubt
     const session = await requireAuth();
     await loadMyProfile(session);
 
     setLoadNote("good", "⏳ Lade Umfrageergebnisse…");
     ALL_ROWS = await loadSheetRows();
 
-    // sehr häufigster Grund für "keine Daten": Header passen nicht -> Check:
     const sample = ALL_ROWS[0] || {};
     if (ALL_ROWS.length && !Object.prototype.hasOwnProperty.call(sample, H.ts)){
       const got = Object.keys(sample).slice(0, 12).map(x=>`<li><code>${esc(x)}</code></li>`).join("");
@@ -1149,8 +1233,6 @@ async function login(){
     authDot.classList.add("bad");
     authErr.innerHTML = "❌ " + esc(e.message);
     authErr.classList.remove("hidden");
-    // optional: direkt wieder ausloggen
-    // await sb.auth.signOut();
     return;
   }
 
@@ -1178,7 +1260,6 @@ async function logout(){
       await loadMyProfile(session);
       await loadSurvey(false);
     }catch(e){
-      // Session da, aber keine Rolle/kein Zugriff -> zeig login card wieder
       console.warn(e);
       setAuthUI(false);
       authErr.innerHTML = "❌ " + esc(e.message);
