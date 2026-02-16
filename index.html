@@ -912,7 +912,7 @@ async function loadDashboard(){
         href:"anwaerter.html",
         title:"Anwärter",
         value:String(candMine),
-        sub:"Anwärter in deinem Ressort (ohne abgelehnt).",
+        sub:"Anwärter in deinem Ressort.",
         icon:"👶🏼",
         primary:false,
         span:"kpiBig",
@@ -953,7 +953,7 @@ async function loadDashboard(){
 
     ${cardStatic({
       title:"Ressort-Übersicht",
-      sub:"Mitglieder & Anwärter pro Ressort (Anwärter ohne abgelehnt).",
+      sub:"Mitglieder & Anwärter pro Ressort.",
       innerHtml: `
         <div class="ressortList">
           ${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}
