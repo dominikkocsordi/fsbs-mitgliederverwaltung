@@ -149,7 +149,6 @@
       100%{ transform: translateX(140%); }
     }
 
-    /* statusPill: schöner Verlauf */
     .pill.status{
       border-color: rgba(249,115,22,.22);
       background: linear-gradient(135deg, rgba(249,115,22,.18), rgba(168,85,247,.14));
@@ -378,13 +377,18 @@
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
     .inner{ display:flex; gap:12px; padding:14px; }
 
-    /* ✅ Avatar: Bild direkt (keine Initialen) */
+    /* ✅ Avatar: Bild direkt, fallback Initialen wenn kein Bild oder error */
     .avatar{
       width:56px; height:56px; border-radius:16px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.06);
       overflow:hidden; flex:0 0 auto;
       position: relative;
+      display:grid;
+      place-items:center;
+      font-weight:950;
+      color: rgba(255,255,255,.80);
+      user-select:none;
     }
     .avatar.loading::after{
       content:"";
@@ -1061,6 +1065,12 @@
         semesters.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
     }
 
+    function getInitials(row){
+      const a = safe(row[F.fn]).trim().slice(0,1);
+      const b = safe(row[F.ln]).trim().slice(0,1);
+      return (a + b).toUpperCase() || "•";
+    }
+
     function getThumb(row){
       try{
         if (row?.__photo?.items?.[0]?.thumb){
@@ -1202,13 +1212,11 @@
 
       ALL = Array.isArray(json.rows) ? json.rows : [];
 
-      // ✅ sofort rendern (StatusMap leer)
       statusMap = new Map();
       statusPill.textContent = `Geladen: ${ALL.length} · Status lädt…`;
       fillFilters();
       render();
 
-      // ✅ Status später nachladen und UI updaten
       refreshStatusMapFor(ALL).then(()=>{
         statusPill.textContent = `Geladen: ${ALL.length}`;
         render();
@@ -1226,6 +1234,7 @@
       photoEl.innerHTML = "";
       const thumb = getThumb(row);
       const photoUrl = getPhotoUrl(row);
+      const initials = getInitials(row);
 
       if (thumb){
         const img = document.createElement("img");
@@ -1237,7 +1246,7 @@
 
         img.onerror = () => {
           photoEl.innerHTML = "";
-          photoEl.textContent = "—";
+          photoEl.textContent = initials;
           photoEl.style.cursor = "default";
         };
 
@@ -1246,7 +1255,7 @@
 
         photoEl.appendChild(img);
       } else {
-        photoEl.textContent = "—";
+        photoEl.textContent = initials;
         photoEl.style.cursor = "default";
         photoEl.onclick = null;
       }
@@ -1322,6 +1331,26 @@
       return `<div class="cornerBadge warn"><span>🟠 Offen</span></div>`;
     }
 
+    function makeAvatarHtml(row){
+      const thumb = getThumb(row);
+      const initials = getInitials(row);
+
+      if (!thumb){
+        return `<div class="avatar">${esc(initials)}</div>`;
+      }
+
+      // Start: Initialen sichtbar + shimmer, Bild lädt drüber, bei error bleibt Initialen
+      return `
+        <div class="avatar loading">
+          <span style="position:relative; z-index:1;">${esc(initials)}</span>
+          <img src="${esc(thumb)}" alt="Foto"
+               loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer"
+               onload="this.parentElement.classList.remove('loading'); this.previousElementSibling.remove();"
+               onerror="this.remove(); this.parentElement.classList.remove('loading');" />
+        </div>
+      `;
+    }
+
     function makeCard(row){
       const fn = safe(row[F.fn]).trim();
       const ln = safe(row[F.ln]).trim();
@@ -1332,18 +1361,8 @@
       const r2 = safe(row[F.r2]).trim();
       const ressortTag = [r1, r2].filter(Boolean).join(" · ");
 
-      const thumb = getThumb(row);
       const photoUrl = getPhotoUrl(row);
       const st = getStatusForRow(row);
-
-      const avatarHtml = thumb
-        ? `<div class="avatar loading">
-             <img src="${esc(thumb)}" alt="Foto"
-                  loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer"
-                  onload="this.parentElement.classList.remove('loading')"
-                  onerror="this.remove(); this.parentElement.classList.remove('loading');" />
-           </div>`
-        : `<div class="avatar"></div>`;
 
       const card = document.createElement("div");
       card.className = "appCard";
@@ -1351,7 +1370,7 @@
       card.innerHTML = `
         ${badgeHtmlForStatus(st)}
         <div class="inner">
-          ${avatarHtml}
+          ${makeAvatarHtml(row)}
           <div style="min-width:0;">
             <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
             <div class="sub">${esc(mail || "—")}</div>
@@ -1381,7 +1400,6 @@
 
       grid.innerHTML = "";
 
-      // Batch rendering: verhindert UI-freeze
       const BATCH = 24;
       let i = 0;
 
