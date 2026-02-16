@@ -338,6 +338,7 @@
     }
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
     .inner{ display:flex; gap:12px; padding:14px; }
+
     .avatar{
       width:56px; height:56px; border-radius:16px;
       border:1px solid rgba(255,255,255,.16);
@@ -346,8 +347,25 @@
       display:grid; place-items:center;
       font-weight:900;
       color: rgba(255,255,255,.75);
+      position: relative;
     }
     .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    /* mini loading shimmer für thumbs */
+    .avatar[data-thumb]:not(.thumbLoaded)::after{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
+      transform: translateX(-140%);
+      animation: shimmer 2.2s ease-in-out infinite;
+      opacity: .55;
+      pointer-events:none;
+    }
+    @keyframes shimmer{
+      0%{ transform: translateX(-140%); }
+      55%{ transform: translateX(140%); }
+      100%{ transform: translateX(140%); }
+    }
 
     .title{ font-weight:850; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .sub{ color: rgba(255,255,255,.62); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -380,6 +398,7 @@
     .cornerBadge.ok{ background: rgba(34,197,94,.20); border-color: rgba(34,197,94,.35); color:#bbf7d0; }
     .cornerBadge.bad{ background: rgba(239,68,68,.20); border-color: rgba(239,68,68,.35); color:#fecaca; }
     .cornerBadge.warn{ background: rgba(251,146,60,.18); border-color: rgba(251,146,60,.30); color:#ffedd5; }
+    .cornerBadge.loading{ background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); color: rgba(255,255,255,.78); }
 
     .empty{
       margin-top: 12px;
@@ -434,11 +453,6 @@
       animation: shimmer 2.9s ease-in-out infinite;
       opacity: .55;
       pointer-events:none;
-    }
-    @keyframes shimmer{
-      0%{ transform: translateX(-140%); }
-      55%{ transform: translateX(140%); }
-      100%{ transform: translateX(140%); }
     }
 
     .kpiTop{
@@ -680,7 +694,7 @@
     <!-- Content -->
     <div class="glass card hidden" id="contentCard">
 
-      <!-- ✅ KPI Pills only (ohne Header/Scope) -->
+      <!-- ✅ KPI Pills only -->
       <div class="kpiGrid" id="kpiGrid"></div>
 
       <!-- Controls -->
@@ -844,6 +858,9 @@
     let MY_RESSORT = "";
     let CAN_VIEW = false; // Vorstand + RL
     let CAN_EDIT = false; // Vorstand
+
+    // Lazy thumb state
+    let THUMB_OBSERVER = null;
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
@@ -1017,6 +1034,8 @@
       const email = safe(row?.[F.email]).trim();
       return [ts, email].filter(Boolean).join(" | ") || "";
     }
+
+    // ✅ Status-Fetch getrennt (für “schnell rendern”)
     async function refreshStatusMapFor(rows){
       statusMap = new Map();
       const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
@@ -1078,13 +1097,16 @@
     }
 
     function countByStatus(rows){
-      let offen=0, anwaerter=0, abgelehnt=0;
+      let offen=0, anwaerter=0, abgelehnt=0, unknown=0;
       rows.forEach(r=>{
         const st = getStatusForRow(r);
-        if (st === "anwaerter") anwaerter++;
+        if (!st) unknown++;
+        else if (st === "anwaerter") anwaerter++;
         else if (st === "abgelehnt") abgelehnt++;
         else offen++;
       });
+      // unknown zählt im UI wie “offen” – aber getrennt beim Laden
+      offen += unknown;
       return { offen, anwaerter, abgelehnt };
     }
 
@@ -1099,14 +1121,12 @@
       kpiGrid.appendChild(makeKpi("Anwärter", anwaerter, "ok"));
       kpiGrid.appendChild(makeKpi("Abgelehnt", abgelehnt, "bad"));
 
-      // ✅ nur 1 Pill für Ressort-Relevanz (Prio1 ODER Prio2)
       const my = (MY_RESSORT || "").trim();
       if (my){
         const prio12 = rows.filter(r => safe(r[F.r1]).trim() === my || safe(r[F.r2]).trim() === my).length;
         kpiGrid.appendChild(makeKpi("Dein Ressort (Prio 1+2)", prio12, "orange"));
       }
 
-      // ✅ Vorstand: pro Ressort nur 1 Pill (Prio1+2)
       if (MY_ROLE === "vorstand"){
         RESSORTS_FIXED.forEach(r=>{
           const p12 = rows.filter(x => safe(x[F.r1]).trim() === r || safe(x[F.r2]).trim() === r).length;
@@ -1115,13 +1135,15 @@
       }
     }
 
+    /* ========= FAST LOAD (erst ohne Bilder + Status, danach nachladen) ========= */
     async function fetchRows(){
       if (!CAN_VIEW) return;
 
       statusPill.textContent = "Lade…";
 
+      // 1) Google Sheet holen
       const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       const text = await res.text();
 
       let json;
@@ -1132,11 +1154,20 @@
       }
 
       ALL = Array.isArray(json.rows) ? json.rows : [];
-      await refreshStatusMapFor(ALL);
 
-      statusPill.textContent = `Geladen: ${ALL.length}`;
+      // 2) SOFORT UI füllen/rendern (StatusMap leer => Badge “…” bzw. Offen)
+      statusMap = new Map();                 // wichtig: leer => schnell
+      statusPill.textContent = `Geladen: ${ALL.length} (Bilder & Status laden…)`;
       fillFilters();
-      render();
+      render();                              // rendert ohne Bilder (nur Initials), Status “…”
+
+      // 3) Status im Hintergrund nachladen, danach UI aktualisieren
+      refreshStatusMapFor(ALL).then(()=>{
+        statusPill.textContent = `Geladen: ${ALL.length}`;
+        render();                            // Badge/KPI aktualisieren
+      }).catch(()=>{
+        statusPill.textContent = `Geladen: ${ALL.length} (Status nicht verfügbar)`;
+      });
     }
 
     /* ========= MODAL (Dialog + fallback) ========= */
@@ -1153,7 +1184,7 @@
         const img = document.createElement("img");
         img.src = thumb;
         img.alt = "Foto";
-        img.loading = "eager";
+        img.loading = "lazy";          // ✅ vorher eager -> lazy
         img.decoding = "async";
         img.referrerPolicy = "no-referrer";
 
@@ -1238,6 +1269,70 @@
 
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeModal(); });
 
+    /* ========= THUMB LAZY LOADING (Viewport only) ========= */
+    function destroyThumbObserver(){
+      try{ THUMB_OBSERVER?.disconnect(); }catch(e){}
+      THUMB_OBSERVER = null;
+    }
+
+    function loadThumbIntoAvatar(el){
+      if (!el || el.classList.contains("thumbLoaded")) return;
+      const thumb = el.getAttribute("data-thumb");
+      const initials = el.getAttribute("data-initials") || "•";
+      if (!thumb) return;
+
+      const img = document.createElement("img");
+      img.alt = "Foto";
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.referrerPolicy = "no-referrer";
+
+      img.onload = () => {
+        el.innerHTML = "";
+        el.appendChild(img);
+        el.classList.add("thumbLoaded");
+      };
+      img.onerror = () => {
+        el.innerHTML = esc(initials);
+        el.classList.remove("thumbLoaded");
+        el.removeAttribute("data-thumb"); // stop retry
+      };
+
+      // set src LAST
+      img.src = thumb;
+    }
+
+    function setupThumbObserver(){
+      destroyThumbObserver();
+
+      const targets = [...grid.querySelectorAll(".avatar[data-thumb]")];
+      if (!targets.length) return;
+
+      if (!("IntersectionObserver" in window)){
+        // fallback: idle load in chunks
+        let i = 0;
+        const step = () => {
+          const batch = targets.slice(i, i+12);
+          batch.forEach(loadThumbIntoAvatar);
+          i += 12;
+          if (i < targets.length) setTimeout(step, 120);
+        };
+        setTimeout(step, 50);
+        return;
+      }
+
+      THUMB_OBSERVER = new IntersectionObserver((entries)=>{
+        entries.forEach(ent=>{
+          if (!ent.isIntersecting) return;
+          const el = ent.target;
+          THUMB_OBSERVER.unobserve(el);
+          loadThumbIntoAvatar(el);
+        });
+      }, { root: null, rootMargin: "220px 0px", threshold: 0.01 });
+
+      targets.forEach(t => THUMB_OBSERVER.observe(t));
+    }
+
     /* ========= RENDER ========= */
     function render(){
       if (!CAN_VIEW) return;
@@ -1259,26 +1354,25 @@
         const r2 = safe(row[F.r2]).trim();
         const ressortTag = [r1, r2].filter(Boolean).join(" · ");
 
-        const thumb = getThumb(row);
+        const initials = getInitials(row);
+        const thumb = getThumb(row);             // ✅ wir rendern erst Initials, thumb später
         const photoUrl = getPhotoUrl(row);
         const st = getStatusForRow(row);
 
         const card = document.createElement("div");
         card.className = "appCard";
 
-        let badgeHtml = `<div class="cornerBadge warn">🟠 Offen</div>`;
+        let badgeHtml = `<div class="cornerBadge loading">⏳ Status…</div>`;
+        if (!st) badgeHtml = `<div class="cornerBadge warn">🟠 Offen</div>`; // ohne Map erstmal “offen”
         if (st === "anwaerter") badgeHtml = `<div class="cornerBadge ok">🟢 Anwärter</div>`;
         if (st === "abgelehnt") badgeHtml = `<div class="cornerBadge bad">🔴 Abgelehnt</div>`;
 
+        // ✅ Avatar: immer Initials, thumb wird per Observer nachgeladen
+        const avatarData = thumb ? `data-thumb="${esc(thumb)}"` : "";
         card.innerHTML = `
           ${badgeHtml}
           <div class="inner">
-            <div class="avatar">${
-              thumb
-                ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy" decoding="async" referrerpolicy="no-referrer"
-                     onerror="this.remove(); this.parentElement.textContent='${esc(getInitials(row))}';" />`
-                : esc(getInitials(row))
-            }</div>
+            <div class="avatar" ${avatarData} data-initials="${esc(initials)}">${esc(initials)}</div>
             <div style="min-width:0;">
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
@@ -1295,6 +1389,14 @@
         card.addEventListener("click", ()=>openModal(row));
         grid.appendChild(card);
       });
+
+      // ✅ jetzt erst thumbs laden (Viewport)
+      // requestIdleCallback -> wenn verfügbar, sonst setTimeout
+      const schedule = (fn) => ("requestIdleCallback" in window)
+        ? requestIdleCallback(fn, { timeout: 800 })
+        : setTimeout(fn, 60);
+
+      schedule(setupThumbObserver);
     }
 
     /* ========= INIT ========= */
