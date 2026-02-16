@@ -860,7 +860,10 @@
       whyR: "Warum hast du dich für diese beiden Ressorts als Priorität 1 und 2 entschieden?\n\nWas reizt dich an diesen Bereichen besonders und welchen Mehrwert kannst du deiner Meinung nach dort einbringen?",
       photo: "Lade bitte ein Foto von dir hoch",
       consent: "Einwilligung in die Datenverarbeitung gemäß Datenschutzerklärung",
-      sem: "Semester"
+      sem: "Semester",
+
+      // ✅ NEU: Studiengang
+      degree: "Studiengang (Bachelor/Master)"
     };
 
     /* ========= ELEMENTS ========= */
@@ -1071,6 +1074,27 @@
       return (a + b).toUpperCase() || "•";
     }
 
+    function normalizeDegree(v){
+      const s = safe(v).trim().toLowerCase();
+      if (!s) return "";
+      if (s.includes("master")) return "Master";
+      if (s.includes("bachelor")) return "Bachelor";
+      // fallback: original (z.B. "BSc", "MSc")
+      return safe(v).trim();
+    }
+
+    function getDegree(row){
+      // ✅ robust: unterstützt deinen neuen Spaltennamen + mögliche Alternativen
+      const raw =
+        row?.[F.degree] ??
+        row?.["Studiengang"] ??
+        row?.["Abschluss"] ??
+        row?.["Bachelor/Master"] ??
+        row?.["Studium"] ??
+        "";
+      return normalizeDegree(raw);
+    }
+
     function getThumb(row){
       try{
         if (row?.__photo?.items?.[0]?.thumb){
@@ -1120,7 +1144,8 @@
     function matches(row, text){
       if (!text) return true;
       const hay = [
-        row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone]
+        row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone],
+        getDegree(row) // ✅ neu auch suchbar
       ].map(safe).join(" ").toLowerCase();
       return hay.includes(text.toLowerCase());
     }
@@ -1281,16 +1306,23 @@
       fbSub.textContent = sub;
       setModalPhotoUI(fbPhoto, row);
 
-      const fields = [F.ts, F.fn, F.ln, F.age, F.sem, F.email, F.phone, F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent];
+      // ✅ NEU: degree ist in Details sichtbar
+      const fields = [
+        F.ts, F.fn, F.ln,
+        F.degree,              // <--- hier rein
+        F.age, F.sem, F.email, F.phone,
+        F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent
+      ];
 
       kv.innerHTML = "";
       fbKv.innerHTML = "";
       fields.forEach(key => {
-        const val = safe(row[key]).trim();
+        // degree robust lesen
+        const val = (key === F.degree) ? getDegree(row) : safe(row[key]).trim();
 
         const k1 = document.createElement("div"); k1.className="k"; k1.textContent = key;
         const v1 = document.createElement("div"); v1.className="v";
-        if (val.startsWith("http://") || val.startsWith("https://") || val.includes("drive.google.com")){
+        if (String(val).startsWith("http://") || String(val).startsWith("https://") || String(val).includes("drive.google.com")){
           v1.innerHTML = `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
         } else v1.textContent = val || "—";
         kv.appendChild(k1); kv.appendChild(v1);
@@ -1339,7 +1371,6 @@
         return `<div class="avatar">${esc(initials)}</div>`;
       }
 
-      // Start: Initialen sichtbar + shimmer, Bild lädt drüber, bei error bleibt Initialen
       return `
         <div class="avatar loading">
           <span style="position:relative; z-index:1;">${esc(initials)}</span>
@@ -1361,6 +1392,7 @@
       const r2 = safe(row[F.r2]).trim();
       const ressortTag = [r1, r2].filter(Boolean).join(" · ");
 
+      const degree = getDegree(row); // ✅ neu
       const photoUrl = getPhotoUrl(row);
       const st = getStatusForRow(row);
 
@@ -1376,6 +1408,7 @@
             <div class="sub">${esc(mail || "—")}</div>
             <div class="tags">
               ${ressortTag ? `<span class="tag">Ressorts: ${esc(ressortTag)}</span>` : ``}
+              ${degree ? `<span class="tag">🎓 ${esc(degree)}</span>` : ``}
               ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
               ${photoUrl ? `<span class="tag">📷 <a href="${esc(photoUrl)}" target="_blank" rel="noopener">Foto öffnen</a></span>` : ``}
             </div>
