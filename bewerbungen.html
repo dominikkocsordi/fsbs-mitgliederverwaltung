@@ -37,8 +37,8 @@
       --bad: rgba(239,68,68,.95);
       --warn: rgba(251,146,60,.95);
 
-      --danger1: #fb7185;
-      --danger2: #e11d48;
+      --danger1:#fb7185;
+      --danger2:#e11d48;
 
       --stickyTop: 14px;
     }
@@ -65,7 +65,6 @@
       display:flex;
       justify-content:center;
       align-items:flex-start;
-
       animation: pageIn .38s ease both;
     }
     @keyframes pageIn{
@@ -76,10 +75,13 @@
       body{ animation:none !important; }
     }
 
-    /* ✅ Modal open => Background scroll aus */
+    /* ✅ Robust scroll-lock (iOS/Android safe): position fixed + top set via JS */
     body.modal-open{
-      overflow:hidden;
-      height:100vh;
+      position: fixed;
+      width: 100%;
+      overflow: hidden;
+      left: 0;
+      right: 0;
     }
 
     .app{ width:100%; max-width:1200px; }
@@ -162,8 +164,6 @@
 
     /* ===== Auth badge ===== */
     .authFloating{
-      position: static;
-      z-index: 1;
       border-radius: 999px;
       padding: 10px 12px;
       display:flex;
@@ -273,13 +273,7 @@
       z-index: 10;
       margin-bottom: 16px;
     }
-    .nav{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      flex-wrap:wrap;
-      padding: 10px;
-    }
+    .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
@@ -351,14 +345,6 @@
     }
     .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
 
-    .btn-done{
-      background: rgba(16,185,129,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(16,185,129,.30);
-      box-shadow: 0 10px 26px rgba(16,185,129,.12);
-    }
-    .btn-done:hover{ transform: translateY(-2px); filter: brightness(1.05); }
-
     /* ===== Content ===== */
     .card{ padding:16px; margin-bottom:14px; }
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
@@ -380,7 +366,6 @@
       background: rgba(255,255,255,.16);
       transform: translateY(-1px);
     }
-    /* Dropdown sichtbar */
     select option{ background: #1a1424; color: rgba(255,255,255,.92); }
 
     /* ===== Mini Dashboard ===== */
@@ -484,21 +469,9 @@
       align-items:center;
       gap:8px;
     }
-    .cornerBadge.ok{
-      background: rgba(34,197,94,.20);
-      border-color: rgba(34,197,94,.35);
-      color:#bbf7d0;
-    }
-    .cornerBadge.bad{
-      background: rgba(239,68,68,.20);
-      border-color: rgba(239,68,68,.35);
-      color:#fecaca;
-    }
-    .cornerBadge.warn{
-      background: rgba(251,146,60,.18);
-      border-color: rgba(251,146,60,.30);
-      color:#ffedd5;
-    }
+    .cornerBadge.ok{ background: rgba(34,197,94,.20); border-color: rgba(34,197,94,.35); color:#bbf7d0; }
+    .cornerBadge.bad{ background: rgba(239,68,68,.20); border-color: rgba(239,68,68,.35); color:#fecaca; }
+    .cornerBadge.warn{ background: rgba(251,146,60,.18); border-color: rgba(251,146,60,.30); color:#ffedd5; }
 
     .empty{
       margin-top: 12px;
@@ -509,23 +482,40 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* Modal */
+    /* ==========================
+       ✅ MODAL SYSTEM (FINAL)
+       Desktop = centered dialog
+       Mobile  = bottom sheet
+       ========================== */
+
     .modalOverlay{
-      position: fixed; inset:0; z-index:50;
+      position: fixed;
+      inset:0;
+      z-index: 60;
       background: rgba(0,0,0,.55);
       display:none;
+
+      /* default desktop: center */
       align-items:center;
       justify-content:center;
+
       padding: 18px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
     }
     .modalOverlay.show{ display:flex; }
+
+    /* modal base */
     .modal{
-      width:min(920px, 100%);
-      max-height: 86vh;
+      width: min(920px, 100%);
+      max-height: calc(100dvh - 36px);
       overflow:auto;
+      -webkit-overflow-scrolling: touch;
+
       border-radius: 26px;
       padding: 16px;
     }
+
     .modalHeader{
       display:flex;
       justify-content:space-between;
@@ -536,6 +526,30 @@
     .modalTitle{ margin:0; font-size: 20px; letter-spacing:.2px; }
     .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
     .closeX{ width:42px; height:42px; border-radius:14px; }
+
+    /* Bottom-sheet behavior on mobile */
+    @media (max-width: 640px){
+      .modalOverlay{
+        align-items:flex-end;
+        justify-content:stretch;
+        padding: 0;
+      }
+      .modal{
+        width: 100%;
+        max-height: 92dvh;
+        border-radius: 22px 22px 0 0;
+        padding: 14px;
+        /* little “sheet” spacing */
+        margin: 0;
+      }
+      .sheetHandle{
+        width: 44px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(255,255,255,.22);
+        margin: 6px auto 10px;
+      }
+    }
 
     .modalPhotoWrap{ display:flex; justify-content:center; margin: 6px 0 16px; }
     .modalPhoto{
@@ -587,45 +601,12 @@
       flex-wrap:wrap;
       margin-top: 12px;
     }
+    @media (max-width: 640px){
+      .modalActions button{ width:100%; }
+    }
 
-    /* Anwärter Übernahme Modal */
-    .candOverlay{
-      position: fixed; inset:0; z-index:70;
-      background: rgba(0,0,0,.58);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-    }
-    .candOverlay.show{ display:flex; }
-    .candModal{
-      width:min(560px, 100%);
-      border-radius: 26px;
-      padding: 16px;
-    }
-    .candHead{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom: 10px;
-    }
-    .candTitle{ margin:0; font-size: 18px; letter-spacing:.2px; }
-    .candSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
-    .candBody{
-      margin-top: 10px;
-      padding: 12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      border-radius: 18px;
-    }
-    .candFoot{
-      display:flex;
-      gap:10px;
-      justify-content:flex-end;
-      flex-wrap:wrap;
-      margin-top: 12px;
-    }
+    /* Candidate sheet shares same system */
+    .candOverlay{ z-index: 70; }
   </style>
 </head>
 
@@ -671,7 +652,7 @@
       </div>
     </div>
 
-    <!-- NAV (für beide Rollen; Finanzen nur Vorstand) -->
+    <!-- NAV -->
     <div class="glass navWrap hidden" id="navWrap">
       <div class="nav">
         <div class="navLeft">
@@ -742,8 +723,8 @@
         <div class="pill" id="countPill">0</div>
       </div>
 
-      <!-- ✅ MINI DASHBOARD -->
-      <div class="miniDash" aria-label="Mini Dashboard">
+      <!-- Mini Dashboard -->
+      <div class="miniDash">
         <div class="dashCard">
           <div>
             <div class="dashLabel" id="dashScopeLabel">Bewerbungen</div>
@@ -784,8 +765,10 @@
   </div>
 
   <!-- Bewerber Modal -->
-  <div class="modalOverlay" id="modalOverlay">
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="glass modal" onclick="event.stopPropagation()">
+      <div class="sheetHandle" aria-hidden="true"></div>
+
       <div class="modalHeader">
         <div>
           <h2 class="modalTitle" id="modalTitle">Bewerbung</h2>
@@ -808,17 +791,19 @@
   </div>
 
   <!-- Anwärter Übernahme Modal -->
-  <div class="candOverlay" id="candOverlay">
-    <div class="glass candModal" onclick="event.stopPropagation()">
-      <div class="candHead">
+  <div class="modalOverlay candOverlay" id="candOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="glass modal" onclick="event.stopPropagation()">
+      <div class="sheetHandle" aria-hidden="true"></div>
+
+      <div class="modalHeader">
         <div>
-          <h3 class="candTitle">Als Anwärter übernehmen</h3>
-          <div class="candSub" id="candSub">–</div>
+          <h2 class="modalTitle">Als Anwärter übernehmen</h2>
+          <div class="modalSub" id="candSub">–</div>
         </div>
         <button class="btn-secondary closeX" id="closeCandBtn" type="button">✕</button>
       </div>
 
-      <div class="candBody">
+      <div style="padding: 8px 2px 2px;">
         <div style="color:rgba(255,255,255,.75); font-size:12px; margin-bottom:8px;">
           Ressort auswählen
         </div>
@@ -828,7 +813,7 @@
           <div class="pill" id="candInfoPill">–</div>
         </div>
 
-        <div class="candFoot">
+        <div class="modalActions" style="margin-top:12px;">
           <button class="btn-secondary" id="candCancelBtn" type="button">Abbrechen</button>
           <button class="btn-primary" id="candConfirm" type="button">Übernehmen</button>
         </div>
@@ -847,7 +832,7 @@
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const LOGIN_REDIRECT = "/login.html";
 
-    // ====== Permissions/Profile ======
+    // ====== Profile/Permissions ======
     const PROFILES_TABLE = "profiles";
     let MY_ROLE = "";
     let MY_RESSORT = "";
@@ -931,7 +916,7 @@
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
 
-    // Modal
+    // Modals
     const modalOverlay = document.getElementById("modalOverlay");
     const modalTitle = document.getElementById("modalTitle");
     const modalSub = document.getElementById("modalSub");
@@ -941,7 +926,6 @@
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
     const rejectBtn = document.getElementById("rejectBtn");
 
-    // Candidate modal
     const candOverlay = document.getElementById("candOverlay");
     const candSub = document.getElementById("candSub");
     const candRessort = document.getElementById("candRessort");
@@ -959,6 +943,24 @@
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
+    /* ===== Scroll lock (FINAL robust) ===== */
+    let __scrollY = 0;
+    function lockBG(){
+      __scrollY = window.scrollY || 0;
+      document.body.classList.add("modal-open");
+      document.body.style.top = `-${__scrollY}px`;
+    }
+    function unlockBG(){
+      document.body.classList.remove("modal-open");
+      document.body.style.top = "";
+      window.scrollTo(0, __scrollY);
+    }
+
+    function setOverlayOpen(overlay, open){
+      overlay.classList.toggle("show", open);
+      overlay.setAttribute("aria-hidden", open ? "false" : "true");
+    }
 
     /* ===== Auth helpers ===== */
     function hashString(str){
@@ -1064,15 +1066,6 @@
       const uid = session?.user?.id;
       const email = session?.user?.email || "";
 
-      // Session fallback für Namen
-      setCompactIdentity(session?.user?.user_metadata?.display_name || session?.user?.user_metadata?.full_name || "", email);
-
-      if (!uid){
-        setRolePill("ressortleiter");
-        return;
-      }
-
-      // Rolle + Ressort aus profiles
       const res = await sb
         .from(PROFILES_TABLE)
         .select("role, display_name, ressort")
@@ -1092,7 +1085,6 @@
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
-      // Finanzen nur Vorstand
       if (navFinance){
         navFinance.style.display = CAN_EDIT ? "" : "none";
       }
@@ -1101,7 +1093,6 @@
     function applyEditPermissions(){
       rejectBtn.disabled = !CAN_EDIT;
       moveToCandidateBtn.disabled = !CAN_EDIT;
-
       rejectBtn.title = CAN_EDIT ? "Bewerbung ablehnen" : "Nur Vorstand";
       moveToCandidateBtn.title = CAN_EDIT ? "Als Anwärter übernehmen" : "Nur Vorstand";
     }
@@ -1192,7 +1183,6 @@
         console.warn("StatusMap load failed:", error.message);
         return;
       }
-
       (data || []).forEach(r => {
         statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
       });
@@ -1210,20 +1200,17 @@
     }
 
     function rowsForDashboardScope(){
-      // Vorstand: alles
-      if (CAN_EDIT) return ALL;
-      // Ressortleiter: nur Bewerbungen mit eigenem Ressort in Prio 1 oder 2
-      return ALL.filter(isRowInMyRessort);
+      if (CAN_EDIT) return ALL;              // Vorstand
+      return ALL.filter(isRowInMyRessort);   // RL
     }
 
     function updateDashboard(){
       const scoped = rowsForDashboardScope();
-
       const total = scoped.length;
-      let anw = 0, rej = 0, open = 0;
 
+      let anw = 0, rej = 0, open = 0;
       scoped.forEach(row => {
-        const st = getStatusForRow(row); // "anwaerter" | "abgelehnt" | ""
+        const st = getStatusForRow(row);
         if (st === "anwaerter") anw++;
         else if (st === "abgelehnt") rej++;
         else open++;
@@ -1272,7 +1259,6 @@
         .upsert(payload, { onConflict: CAND_ID_COL });
 
       if (error) throw error;
-
       statusMap.set(normId(bewerbung_id), String(status).toLowerCase());
     }
 
@@ -1337,8 +1323,7 @@
 
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
-
-        const st = getStatusForRow(row); // "anwaerter" | "abgelehnt" | ""
+        const st = getStatusForRow(row);
 
         const card = document.createElement("div");
         card.className = "appCard";
@@ -1371,20 +1356,17 @@
             </div>
           </div>
         `;
+
+        // ✅ Links in Card dürfen KEIN Modal triggern
+        card.querySelectorAll("a").forEach(a => {
+          a.addEventListener("click", (e) => e.stopPropagation());
+        });
+
         card.addEventListener("click", () => openModal(row));
         grid.appendChild(card);
       });
 
       updateDashboard();
-    }
-
-    function lockBG(){ document.body.classList.add("modal-open"); }
-    function unlockBG(){ document.body.classList.remove("modal-open"); }
-
-    function closeModal(){
-      modalOverlay.classList.remove("show");
-      ACTIVE_ROW = null;
-      unlockBG();
     }
 
     function setModalPhoto(row){
@@ -1471,7 +1453,14 @@
 
       applyEditPermissions();
       lockBG();
-      modalOverlay.classList.add("show");
+      setOverlayOpen(modalOverlay, true);
+    }
+
+    function closeModal(){
+      setOverlayOpen(modalOverlay, false);
+      ACTIVE_ROW = null;
+      // nur unlocken, wenn candOverlay nicht offen ist
+      if (!candOverlay.classList.contains("show")) unlockBG();
     }
 
     function openCandModal(){
@@ -1496,13 +1485,15 @@
       else if (RESSORTS_FIXED.includes(prio2)) candRessort.value = prio2;
       else candRessort.value = RESSORTS_FIXED[0];
 
+      // lock already active from main modal, but safe to call
       lockBG();
-      candOverlay.classList.add("show");
+      setOverlayOpen(candOverlay, true);
     }
 
     function closeCandModal(){
-      candOverlay.classList.remove("show");
-      unlockBG();
+      setOverlayOpen(candOverlay, false);
+      // nur unlocken, wenn main modal nicht offen ist
+      if (!modalOverlay.classList.contains("show")) unlockBG();
     }
 
     async function insertCandidateFromActive(){
@@ -1540,7 +1531,6 @@
       rejectBtn.disabled = true;
 
       try{
-        // damit NOT NULL ressort nicht crasht:
         await upsertApplicantStatusFromActive("abgelehnt", { ressort: safe(MY_RESSORT).trim() || "—" });
         closeModal();
         render();
@@ -1551,19 +1541,20 @@
       }
     }
 
-    // Overlay close
-    closeModalBtn.addEventListener("click", closeModal);
+    /* ===== Modal close handlers (overlay click) ===== */
     modalOverlay.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
-
     candOverlay.addEventListener("click", (e)=>{ if (e.target === candOverlay) closeCandModal(); });
+
+    closeModalBtn.addEventListener("click", closeModal);
     closeCandBtn.addEventListener("click", closeCandModal);
     candCancelBtn.addEventListener("click", closeCandModal);
 
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
       if (e.key === "Escape" && candOverlay.classList.contains("show")) closeCandModal();
+      else if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
     });
 
+    /* ===== Controls ===== */
     [q, fR1, fR2, fSem].forEach(x => x.addEventListener("input", render));
     reloadBtn.addEventListener("click", fetchRows);
 
@@ -1588,7 +1579,6 @@
 
       if (!CAN_VIEW){
         statusPill.textContent = "Kein Zugriff";
-        // Seite trotzdem sauber halten
         return;
       }
 
