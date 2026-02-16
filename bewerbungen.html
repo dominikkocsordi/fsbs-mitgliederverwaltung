@@ -93,9 +93,7 @@
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-    .brandLeft{
-      display:flex; align-items:center; gap:12px; min-width:0;
-    }
+    .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
     .brandLogo{
       width: 52px; height: 52px; border-radius: 14px; padding: 6px;
       display:grid; place-items:center;
@@ -111,6 +109,7 @@
     }
     .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
     .brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+
     @media (max-width: 640px){
       .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
       .brandLogo img{ border-radius:9px; }
@@ -391,33 +390,12 @@
       color: rgba(255,255,255,.78);
     }
 
-    /* =========================
-       ✅ MINI DASHBOARD (KPIs)
-       ========================= */
-
-    .dashHead{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom: 12px;
-    }
-    .dashTitle{
-      font-weight: 900;
-      letter-spacing: .2px;
-      font-size: 14px;
-      color: rgba(255,255,255,.92);
-    }
-    .dashHint{
-      font-size: 12px;
-      color: rgba(255,255,255,.60);
-      margin-top: 4px;
-    }
-
+    /* ✅ KPI Pills */
     .kpiGrid{
       display:grid;
       grid-template-columns: repeat(6, minmax(0,1fr));
       gap: 10px;
+      margin-bottom: 14px;
     }
     @media (max-width: 1020px){ .kpiGrid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
     @media (max-width: 640px){ .kpiGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
@@ -501,10 +479,7 @@
     .kpiDot.purple{ background: rgba(168,85,247,.95); box-shadow: 0 0 0 2px rgba(168,85,247,.18), 0 0 18px rgba(168,85,247,.22); }
     .kpiDot.orange{ background: rgba(249,115,22,.95); box-shadow: 0 0 0 2px rgba(249,115,22,.18), 0 0 18px rgba(249,115,22,.22); }
 
-    /* =========================
-       ✅ DIALOG MODAL (ROBUST)
-       ========================= */
-
+    /* ✅ Dialog Modal */
     dialog{
       border: none;
       padding: 0;
@@ -705,24 +680,13 @@
     <!-- Content -->
     <div class="glass card hidden" id="contentCard">
 
-      <!-- ✅ MINI DASHBOARD -->
-      <div class="dashHead">
-        <div>
-          <div class="dashTitle">KPI Dashboard</div>
-          <div class="dashHint" id="dashHint">–</div>
-        </div>
-        <div class="pill" id="scopePill">–</div>
-      </div>
-
+      <!-- ✅ KPI Pills only (ohne Header/Scope) -->
       <div class="kpiGrid" id="kpiGrid"></div>
-
-      <div style="height:14px;"></div>
 
       <!-- Controls -->
       <div class="row">
         <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
-        <select id="fR1"><option value="">Prio 1 (alle)</option></select>
-        <select id="fR2"><option value="">Prio 2 (alle)</option></select>
+        <select id="fRes"><option value="">Ressort (alle)</option></select>
         <select id="fSem"><option value="">Semester (alle)</option></select>
         <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
         <div class="spacer"></div>
@@ -830,8 +794,7 @@
     const navFinance = document.getElementById("navFinance");
 
     const q = document.getElementById("q");
-    const fR1 = document.getElementById("fR1");
-    const fR2 = document.getElementById("fR2");
+    const fRes = document.getElementById("fRes");
     const fSem = document.getElementById("fSem");
     const reloadBtn = document.getElementById("reloadBtn");
     const countPill = document.getElementById("countPill");
@@ -840,8 +803,6 @@
 
     // Dashboard
     const kpiGrid = document.getElementById("kpiGrid");
-    const dashHint = document.getElementById("dashHint");
-    const scopePill = document.getElementById("scopePill");
 
     // Auth UI
     const authBadge = document.getElementById("authBadge");
@@ -888,14 +849,6 @@
     const esc = (s) => String(s)
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-
-    /* ========= DEBUG ========= */
-    window.addEventListener("error", (e)=>{
-      statusPill.textContent = "JS Fehler: " + (e?.message || "unknown");
-    });
-    window.addEventListener("unhandledrejection", (e)=>{
-      statusPill.textContent = "Promise Fehler: " + (e?.reason?.message || String(e?.reason || "unknown"));
-    });
 
     /* ========= AUTH UI helpers ========= */
     function normRole(v){ return String(v || "").trim().toLowerCase(); }
@@ -991,7 +944,7 @@
       const email = session?.user?.email || "";
 
       const { data } = await sb
-        .from("profiles")
+        .from(PROFILES_TABLE)
         .select("role, display_name, ressort")
         .eq("id", uid)
         .maybeSingle();
@@ -1019,17 +972,22 @@
     function uniq(arr){
       return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
     }
+
     function fillFilters(){
-      const r1 = uniq(ALL.map(r => r[F.r1]));
-      const r2 = uniq(ALL.map(r => r[F.r2]));
-      const sem = uniq(ALL.map(r => r[F.sem]));
-      const fill = (sel, values, placeholder) => {
-        sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
-      };
-      fill(fR1, r1, "Prio 1 (alle)");
-      fill(fR2, r2, "Prio 2 (alle)");
-      fill(fSem, sem, "Semester (alle)");
+      const ressorts = uniq([
+        ...ALL.map(r => r[F.r1]),
+        ...ALL.map(r => r[F.r2])
+      ]);
+
+      const semesters = uniq(ALL.map(r => r[F.sem]));
+
+      fRes.innerHTML = `<option value="">Ressort (alle)</option>` +
+        ressorts.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+
+      fSem.innerHTML = `<option value="">Semester (alle)</option>` +
+        semesters.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
     }
+
     function getInitials(row){
       const a = safe(row[F.fn]).trim().slice(0,1);
       const b = safe(row[F.ln]).trim().slice(0,1);
@@ -1065,14 +1023,14 @@
       if (!ids.length) return;
 
       const { data, error } = await sb
-        .from("anwaerter")
-        .select(`bewerbung_id,bewerbung_status`)
-        .in("bewerbung_id", ids);
+        .from(CANDIDATES_TABLE)
+        .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
+        .in(CAND_ID_COL, ids);
 
       if (error) return;
 
       (data || []).forEach(r => {
-        statusMap.set(normId(r["bewerbung_id"]), String(r["bewerbung_status"] || "").toLowerCase());
+        statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
       });
     }
     function getStatusForRow(row){
@@ -1086,18 +1044,23 @@
       ].map(safe).join(" ").toLowerCase();
       return hay.includes(text.toLowerCase());
     }
+
     function filtered(){
       const text = safe(q.value).trim();
-      const r1 = safe(fR1.value).trim();
-      const r2 = safe(fR2.value).trim();
+      const res = safe(fRes.value).trim();
       const sem = safe(fSem.value).trim();
 
-      return ALL.filter(row =>
-        matches(row, text) &&
-        (!r1 || safe(row[F.r1]).trim() === r1) &&
-        (!r2 || safe(row[F.r2]).trim() === r2) &&
-        (!sem || safe(row[F.sem]).trim() === sem)
-      );
+      return ALL.filter(row => {
+        if (!matches(row, text)) return false;
+        if (sem && safe(row[F.sem]).trim() !== sem) return false;
+
+        if (res){
+          const r1 = safe(row[F.r1]).trim();
+          const r2 = safe(row[F.r2]).trim();
+          if (r1 !== res && r2 !== res) return false;
+        }
+        return true;
+      });
     }
 
     /* ========= DASHBOARD ========= */
@@ -1127,23 +1090,6 @@
 
     function renderDashboard(){
       const rows = filtered();
-
-      // Scope-Text
-      const scope =
-        (MY_ROLE === "vorstand")
-          ? "Scope: alle Bewerbungen"
-          : (MY_RESSORT ? `Scope: ${MY_RESSORT}` : "Scope: dein Ressort");
-
-      scopePill.textContent = scope;
-
-      // Hint
-      const hint =
-        (MY_ROLE === "vorstand")
-          ? "KPIs basieren auf aktuellen Filtern (Suche/Dropdowns)."
-          : "KPIs zeigen deine Ressort-Relevanz (Prio 1 & Prio 1+2) + Status.";
-      dashHint.textContent = hint;
-
-      // Basis-KPIs
       const { offen, anwaerter, abgelehnt } = countByStatus(rows);
       const total = rows.length;
 
@@ -1153,25 +1099,17 @@
       kpiGrid.appendChild(makeKpi("Anwärter", anwaerter, "ok"));
       kpiGrid.appendChild(makeKpi("Abgelehnt", abgelehnt, "bad"));
 
-      // Ressort-Relevanz
+      // ✅ nur 1 Pill für Ressort-Relevanz (Prio1 ODER Prio2)
       const my = (MY_RESSORT || "").trim();
       if (my){
-        const prio1 = rows.filter(r => safe(r[F.r1]).trim() === my).length;
         const prio12 = rows.filter(r => safe(r[F.r1]).trim() === my || safe(r[F.r2]).trim() === my).length;
-
-        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1", prio1, "orange"));
-        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1+2", prio12, "orange"));
-      } else {
-        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1", "–", "orange"));
-        kpiGrid.appendChild(makeKpi("Dein Ressort Prio 1+2", "–", "orange"));
+        kpiGrid.appendChild(makeKpi("Dein Ressort (Prio 1+2)", prio12, "orange"));
       }
 
-      // Vorstand: Ressort-Übersicht (compact)
+      // ✅ Vorstand: pro Ressort nur 1 Pill (Prio1+2)
       if (MY_ROLE === "vorstand"){
         RESSORTS_FIXED.forEach(r=>{
-          const p1 = rows.filter(x => safe(x[F.r1]).trim() === r).length;
           const p12 = rows.filter(x => safe(x[F.r1]).trim() === r || safe(x[F.r2]).trim() === r).length;
-          kpiGrid.appendChild(makeKpi(`${r} (P1)`, p1, "purple"));
           kpiGrid.appendChild(makeKpi(`${r} (P1+2)`, p12, "purple"));
         });
       }
@@ -1309,16 +1247,18 @@
       grid.innerHTML = "";
       empty.classList.toggle("hidden", rows.length !== 0);
 
-      // ✅ Dashboard immer mit aktuellen Filtern updaten
       renderDashboard();
 
       rows.forEach(row => {
         const fn = safe(row[F.fn]).trim();
         const ln = safe(row[F.ln]).trim();
-        const r1 = safe(row[F.r1]).trim();
-        const r2 = safe(row[F.r2]).trim();
         const sem = safe(row[F.sem]).trim();
         const mail = safe(row[F.email]).trim();
+
+        const r1 = safe(row[F.r1]).trim();
+        const r2 = safe(row[F.r2]).trim();
+        const ressortTag = [r1, r2].filter(Boolean).join(" · ");
+
         const thumb = getThumb(row);
         const photoUrl = getPhotoUrl(row);
         const st = getStatusForRow(row);
@@ -1343,8 +1283,7 @@
               <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
               <div class="sub">${esc(mail || "—")}</div>
               <div class="tags">
-                ${r1 ? `<span class="tag">Prio 1: ${esc(r1)}</span>` : ``}
-                ${r2 ? `<span class="tag">Prio 2: ${esc(r2)}</span>` : ``}
+                ${ressortTag ? `<span class="tag">Ressorts: ${esc(ressortTag)}</span>` : ``}
                 ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
                 ${photoUrl ? `<span class="tag">📷 <a href="${esc(photoUrl)}" target="_blank" rel="noopener">Foto öffnen</a></span>` : ``}
               </div>
@@ -1358,36 +1297,32 @@
       });
     }
 
-    /* ========= EVENTS ========= */
-    [q, fR1, fR2, fSem].forEach(el => el?.addEventListener("input", render));
-    reloadBtn?.addEventListener("click", fetchRows);
-
     /* ========= INIT ========= */
     (async ()=>{
-      try{
-        const { data } = await sb.auth.getSession();
-        const session = data?.session;
-        const mail = session?.user?.email || "";
+      const { data } = await sb.auth.getSession();
+      const session = data?.session;
+      const mail = session?.user?.email || "";
 
-        setAuthUI(!!session, mail);
+      setAuthUI(!!session, mail);
 
-        if (!session){
-          window.location.href = LOGIN_REDIRECT;
-          return;
-        }
-
-        await loadMyProfile(session);
-
-        if (!CAN_VIEW){
-          statusPill.textContent = "Kein Zugriff";
-          return;
-        }
-
-        await fetchRows();
-      } catch(e){
-        statusPill.textContent = "Init Fehler: " + (e?.message || String(e));
+      if (!session){
+        window.location.href = LOGIN_REDIRECT;
+        return;
       }
+
+      await loadMyProfile(session);
+
+      if (!CAN_VIEW){
+        statusPill.textContent = "Kein Zugriff";
+        return;
+      }
+
+      await fetchRows();
     })();
+
+    /* ========= EVENTS ========= */
+    [q, fRes, fSem].forEach(el => el?.addEventListener("input", render));
+    reloadBtn?.addEventListener("click", fetchRows);
   </script>
 </body>
 </html>
