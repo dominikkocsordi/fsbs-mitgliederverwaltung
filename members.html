@@ -34,13 +34,14 @@
 
   --ok: rgba(34,197,94,.95);
   --bad: rgba(239,68,68,.95);
+  --warn: rgba(251,146,60,.95);
 
-  --danger1: #fb7185;
-  --danger2: #e11d48;
+  --danger1:#fb7185;
+  --danger2:#e11d48;
 }
 
-*{ box-sizing:border-box; }
-html, body{ min-height:100%; }
+*{box-sizing:border-box}
+html,body{min-height:100%}
 
 html{
   background:
@@ -54,133 +55,121 @@ html{
 body{
   margin:0;
   font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color: var(--text);
-  background: transparent;
+  color:var(--text);
+  background:transparent;
   display:flex;
   justify-content:center;
   align-items:flex-start;
-  padding:42px 16px;
-  overflow-x:hidden;
+  padding: 28px 16px 60px;
   animation: pageIn .38s ease both;
 }
-@keyframes pageIn{
-  from{ opacity:0; transform: translateY(8px); }
-  to  { opacity:1; transform: translateY(0); }
-}
-@media (prefers-reduced-motion: reduce){ body{ animation:none !important; } }
+@keyframes pageIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)} }
+@media (prefers-reduced-motion: reduce){ body{animation:none !important;} }
 
 .app{ width:100%; max-width:1200px; }
 
 .glass{
   background: rgba(255,255,255,.10);
-  border: 1px solid var(--border);
-  border-radius: 22px;
+  border:1px solid var(--border);
+  border-radius:22px;
   box-shadow: var(--shadow);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
 }
+
+.card{ padding:16px; margin-bottom:14px; }
 
 .top{
   display:flex;
   align-items:flex-end;
   justify-content:space-between;
   gap:16px;
-  margin-bottom:14px;
+  margin-bottom: 16px;
 }
-h1{ margin:0; font-size:32px; letter-spacing:.4px; }
+h1{ margin:0; font-size:28px; letter-spacing:.3px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-.brandLeft{ display:flex; align-items:center; gap:12px; }
+/* Brand */
+.brandLeft{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
 .brandLogo{
-  width:60px; height:60px; border-radius:14px; padding:6px;
-  display:grid; place-items:center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  padding: 6px;
+  display:grid;
+  place-items:center;
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  flex:0 0 auto;
   transition: transform .16s ease, filter .16s ease, background .16s ease;
-  flex: 0 0 auto;
   text-decoration:none;
+  color: rgba(255,255,255,.92);
+  font-weight:900;
+  letter-spacing:.2px;
 }
 .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
-.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+.brandLogo img{
+  width:100%;
+  height:100%;
+  border-radius:10px;
+  object-fit:cover;
+  display:block;
+}
 @media (max-width:640px){
-  .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
+  .brandLogo{ width: 32px; height:32px; border-radius:12px; padding:5px; }
   .brandLogo img{ border-radius:9px; }
 }
 
-.card{ padding:18px; margin-bottom:16px; }
+/* Pill */
+.pill{
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+  font-size: 12px;
+  color: rgba(255,255,255,.72);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
 
-.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-.spacer{ flex:1; }
-
-input,select{
-  background: rgba(255,255,255,.12);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 12px 14px;
-  border-radius: 14px;
-  outline:none;
-  min-width: 210px;
-  transition: transform .15s ease, background .15s ease, border-color .15s ease;
-}
-input::placeholder{ color: rgba(255,255,255,.55); }
-input:focus, select:focus{
-  border-color: rgba(249,115,22,.55);
-  background: rgba(255,255,255,.16);
-  transform: translateY(-1px);
-}
-select option{ background:#1a1424; color:rgba(255,255,255,.92); }
-
-button{
-  border:none;
-  cursor:pointer;
-  border-radius:14px;
-  padding: 12px 16px;
-  font-weight:650;
-  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
-}
-button:active{ transform: translateY(0px) scale(.99); }
-button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transform:none !important; filter:none !important; box-shadow:none !important; }
-
-.btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color:#0f0b16;
-  box-shadow: 0 12px 30px rgba(168,85,247,.25);
-}
-.btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-.btn-secondary{
-  background: rgba(255,255,255,.14);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
-.btn-danger{
-  background: linear-gradient(135deg, var(--danger1), var(--danger2));
-  color:#fff;
-  box-shadow: 0 10px 26px rgba(225,29,72,.22);
-}
-.btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
-
-/* Auth badge (wie bei Bewerbungen) */
+/* Auth badge */
 .authFloating{
-  border-radius:999px;
+  border-radius: 999px;
   padding: 10px 12px;
-  display:flex; align-items:center; gap:10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 18px 55px rgba(0,0,0,.40);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   user-select:none;
   max-width: min(560px, 100%);
 }
-.dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); flex:0 0 auto; position:relative; }
+.dot{ width:10px; height:10px; border-radius:999px; background: rgba(255,255,255,.35); position:relative; flex:0 0 auto; }
 .dot.ok{ background: var(--ok); }
 .dot.warn{ background: rgba(255,255,255,.35); }
-
-@keyframes pulseRing {
-  0%   { transform: scale(1); opacity: .0; }
-  10%  { opacity: .6; }
-  70%  { transform: scale(3.2); opacity: 0; }
-  100% { transform: scale(3.2); opacity: 0; }
+.dot.ok{
+  box-shadow: 0 0 0 2px rgba(34,197,94,.20),
+              0 0 18px rgba(34,197,94,.55),
+              0 0 42px rgba(34,197,94,.30);
+}
+@keyframes pulseRing{
+  0%{transform:scale(1); opacity:0}
+  10%{opacity:.6}
+  70%{transform:scale(3.2); opacity:0}
+  100%{transform:scale(3.2); opacity:0}
 }
 .dot.pulsing::after{
   content:"";
@@ -191,136 +180,232 @@ button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transfor
   animation: pulseRing 1.15s ease-out 0s 2;
   pointer-events:none;
 }
-
 .authAvatar{
-  width:30px;height:30px;border-radius:999px;
-  display:grid;place-items:center;
-  font-weight:800;font-size:12px;
+  width: 30px; height: 30px;
+  border-radius: 999px;
+  display:grid;
+  place-items:center;
+  font-weight:800;
+  font-size:12px;
+  letter-spacing:.3px;
   color: rgba(255,255,255,.92);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 12px 28px rgba(0,0,0,.25);
   background: rgba(255,255,255,.10);
+  flex:0 0 auto;
 }
 .authAvatar.hidden{ display:none; }
-
-.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex: 1 1 auto; }
+.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
 .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
 .authState.hidden{ display:none; }
-
 .authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
 .authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
 .authCompact.hidden{ display:none; }
-
 .authNameInline{
-  font-size:13px; font-weight:850;
+  font-size:13px; font-weight:850; letter-spacing:.15px;
   color: rgba(255,255,255,.92);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   max-width: 220px;
 }
+.authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
+.rolePill{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding: 2px 6px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.82);
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:.10px;
+  line-height:1;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+.rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
+.rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
 .authChevron{
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color: rgba(255,255,255,.85);
   width:30px; height:26px;
   border-radius:999px;
-  display:grid; place-items:center;
+  padding:0;
+  display:grid;
+  place-items:center;
   cursor:pointer;
+  transition: transform .15s ease, background .15s ease;
+  flex:0 0 auto;
 }
+.authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
 .authDetails{
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid rgba(255,255,255,.10);
-  display:flex; gap:8px; align-items:center;
-}
-.authDetails.hidden{ display:none; }
-.authMail{ font-size:11px; color: rgba(255,255,255,.58); word-break:break-all; }
-
-.rolePill{
-  display:inline-flex;
+  display:flex;
+  gap:8px;
   align-items:center;
-  gap:5px;
-  padding: 2px 6px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.82);
-  font-weight:700;
-  font-size: 11px;
-  line-height: 1;
-  white-space:nowrap;
+  min-width:0;
 }
-.rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
-.rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
-
 .hidden{ display:none; }
-.small{ font-size:13px; color: var(--muted); }
 
 /* NAV */
-.navWrap{
-  margin-bottom:16px;
-  position: sticky;
-  top: 14px;
-  z-index: 6;
-}
+.navWrap{ position: sticky; top: 14px; z-index: 10; margin-bottom: 16px; }
 .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px; }
-.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
 .navLink{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:16px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 12px;
+  border-radius:16px;
   text-decoration:none;
   color: rgba(255,255,255,.86);
-  border: 1px solid rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
-  transition: transform .16s ease, background .16s ease, border-color .16s ease;
+  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
   user-select:none;
   white-space:nowrap;
 }
-.navLink:hover{ transform: translateY(-2px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.22); }
+.navLink:hover{
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.22);
+}
 .navLink.active{
   background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
   border-color: rgba(249,115,22,.35);
   box-shadow: 0 12px 28px rgba(249,115,22,.25);
 }
 .navIcon{
-  width:30px;height:30px;border-radius:12px;
+  width:30px; height:30px;
+  border-radius:12px;
   display:grid; place-items:center;
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.12);
 }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
-.navHint{ font-size:12px; color: rgba(255,255,255,.60); }
+.navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
+
+/* Buttons */
+button{
+  border:none;
+  cursor:pointer;
+  border-radius:14px;
+  padding: 10px 14px;
+  font-weight:700;
+  transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+}
+button:active{ transform: translateY(0px) scale(.99); }
+button:disabled{
+  cursor:not-allowed !important;
+  opacity:.55 !important;
+  transform:none !important;
+  filter:none !important;
+  box-shadow:none !important;
+}
+.btn-secondary{
+  background: rgba(255,255,255,.14);
+  color: var(--text);
+  border:1px solid var(--border);
+}
+.btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+.btn-primary{
+  background: linear-gradient(135deg, var(--accent1), var(--accent2));
+  color:#0f0b16;
+  box-shadow: 0 12px 30px rgba(168,85,247,.25);
+}
+.btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+
+.btn-danger{
+  background: linear-gradient(135deg, var(--danger1), var(--danger2));
+  color:#fff;
+  box-shadow: 0 10px 26px rgba(225,29,72,.22);
+}
+.btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
+
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.spacer{ flex:1; }
+
+input,select{
+  background: rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);
+  color: var(--text);
+  padding: 12px 14px;
+  border-radius:14px;
+  outline:none;
+  min-width: 210px;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+input::placeholder{ color: rgba(255,255,255,.55); }
+input:focus, select:focus{
+  border-color: rgba(249,115,22,.55);
+  background: rgba(255,255,255,.16);
+  transform: translateY(-1px);
+}
+select option{ background:#1a1424; color: rgba(255,255,255,.92); }
 
 /* Table */
-.tableWrap{ overflow:auto; border-radius:18px; }
-table{ width:100%; border-collapse:collapse; margin-top:8px; min-width:980px; }
-th,td{ padding:14px 12px; border-bottom: 1px solid rgba(255,255,255,.12); text-align:left; vertical-align:middle; }
-th{ color: var(--muted); font-weight:650; }
-tbody tr:hover{ background: rgba(255,255,255,.06); }
+.tableWrap{
+  overflow:auto;
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+}
+table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 980px; }
+th,td{ padding:12px 14px; text-align:left; font-size:14px; vertical-align:middle; }
+th{
+  font-size:12px;
+  color: rgba(255,255,255,.75);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  background: rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+tr + tr td{ border-top:1px solid rgba(255,255,255,.08); }
 
-.iconBtn{ width:42px;height:42px;padding:0; border-radius:14px; display:inline-flex; align-items:center; justify-content:center; }
-.iconBtn:hover{ transform: translateY(-2px); }
-.actions{ display:flex; gap:10px; }
+.actions{ display:flex; gap:10px; flex-wrap:wrap; }
+.iconBtn{
+  width:42px; height:42px;
+  padding:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+}
 
 /* Pills */
-.pill{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:6px 12px; border-radius:999px;
-  font-size:12px; font-weight:800;
+.pillTag{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.90);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space:nowrap;
 }
-.pill-status-volle{ background: rgba(34,197,94,.20);  border-color: rgba(34,197,94,.35);  color:#bbf7d0; }
-.pill-status-anw{  background: rgba(56,189,248,.20);  border-color: rgba(56,189,248,.35);  color:#c7f9ff; }
-.pill-status-pau{  background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
-.pill-status-aus{  background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
+.pill-status-volle{ background: rgba(34,197,94,.20); border-color: rgba(34,197,94,.35); color:#bbf7d0; }
+.pill-status-anw { background: rgba(56,189,248,.20); border-color: rgba(56,189,248,.35); color:#c7f9ff; }
+.pill-status-pau { background: rgba(234,179,8,.20);  border-color: rgba(234,179,8,.35);  color:#fde68a; }
+.pill-status-aus { background: rgba(239,68,68,.20);  border-color: rgba(239,68,68,.35);  color:#fecaca; }
 
-/* ✅ Modal EXACT wie Bewerbungen */
+/* ✅ Modal bulletproof (fix "nur dunkel") */
 .modalOverlay{
-  position: fixed; inset:0; z-index:50;
+  position: fixed;
+  inset:0;
+  z-index: 99999;
   background: rgba(0,0,0,.55);
   display:none;
   align-items:center;
@@ -328,15 +413,21 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   padding: 18px;
 }
 .modalOverlay.show{ display:flex; }
+
 .modal{
-  width: min(760px, 100%);
+  width:min(760px, 100%);
   max-height: 86vh;
   overflow:auto;
-  border-radius: 26px;
-  padding: 16px;
+  border-radius:26px;
+  padding:16px;
   -webkit-overflow-scrolling: touch;
-}
 
+  background: rgba(20, 14, 28, .72);
+  border: 1px solid rgba(255,255,255,.20);
+  box-shadow: 0 30px 90px rgba(0,0,0,.60);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
 .modalHeader{
   display:flex;
   justify-content:space-between;
@@ -344,61 +435,43 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   gap:12px;
   margin-bottom: 10px;
 }
-.modalTitle{ margin:0; font-size: 20px; letter-spacing:.2px; }
-.modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
+.modalTitle{ margin:0; font-size:20px; letter-spacing:.2px; }
+.modalSub{ margin-top:6px; color: var(--muted); font-size:13px; }
 .closeX{ width:42px; height:42px; border-radius:14px; }
 
 .formGrid{
   display:grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap:12px;
   margin-top: 12px;
 }
 .formGrid .full{ grid-column: 1 / -1; }
-hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0; }
 
-/* Mobile wie Bewerbungen = bottom sheet */
-@media (max-width: 900px){ table{ min-width: 860px; } }
+hr.sep{
+  border:none;
+  border-top:1px solid rgba(255,255,255,.12);
+  margin: 14px 0;
+}
+
 @media (max-width: 640px){
-  body{ padding: 24px 14px; }
-  h1{ font-size: 26px; }
   .top{ flex-direction:column; align-items:flex-start; gap:10px; }
   .authNameInline{ max-width: 150px; }
-  input,select{ min-width:0; width:100%; }
-  .row{ align-items:stretch; }
-  .row .spacer{ display:none; }
-  .navWrap{ top: 10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
   .navRight{ margin-left:0; }
+  input,select{ min-width:0; width:100%; }
   table{ min-width: 720px; }
-  th:nth-child(3), td:nth-child(3){ display:none; }
-  .iconBtn{ width:40px;height:40px; }
-  .actions{ gap:8px; }
-  .formGrid{ grid-template-columns: 1fr; }
 
-  .modalOverlay{
-    align-items:flex-end;
-    padding: 12px;
-  }
-  .modal{
-    width: 100%;
-    max-height: 92vh;
-    border-radius: 22px 22px 0 0;
-  }
-}
-@media (max-width: 420px){
-  body{ padding: 20px 12px; }
-  .card{ padding:14px; }
-  .navLink{ padding: 9px 10px; border-radius: 14px; }
-  .navIcon{ width:28px;height:28px;border-radius: 11px; }
-  table{ min-width: 660px; }
+  .modalOverlay{ align-items:flex-end; padding: 12px; }
+  .modal{ width:100%; max-height: 92vh; border-radius: 22px 22px 0 0; }
+  .formGrid{ grid-template-columns: 1fr; }
 }
 </style>
 </head>
 
 <body>
 <div class="app">
+
   <div class="top">
     <div class="brandLeft">
       <a class="brandLogo" href="index.html" title="FSBS Intern">
@@ -406,12 +479,14 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
              onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
       </a>
       <div>
-        <h1>FSBS Intern</h1>
+        <h1>Mitglieder</h1>
         <div class="subtitle">Mitgliederverwaltung</div>
       </div>
     </div>
 
-    <div class="brandRight">
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="pill" id="statusPill">–</div>
+
       <div class="authFloating" id="authBadge" title="Login-Status">
         <span class="dot warn" id="authDot"></span>
         <div class="authAvatar hidden" id="authAvatar">U</div>
@@ -423,7 +498,7 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
             <div class="authCompact hidden" id="authCompact">
               <span class="authNameInline" id="authNameInline">User</span>
               <span class="rolePill" id="authRolePill">Rolle</span>
-              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+              <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
             </div>
           </div>
 
@@ -471,7 +546,6 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
           </span>
         </a>
 
-        <!-- ✅ wird via JS für Ressortleiter versteckt -->
         <a class="navLink" href="rechnungen.html" id="navFinance">
           <span class="navIcon">💰</span>
           <span>
@@ -490,7 +564,7 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
       </div>
 
       <div class="navRight">
-        <button class="btn-secondary" id="logoutBtn" onclick="logout()" type="button">Logout</button>
+        <button class="btn-secondary" id="logoutBtn">Logout</button>
       </div>
     </div>
   </div>
@@ -498,12 +572,14 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
   <!-- MAIN -->
   <div class="glass card hidden" id="mainCard">
     <div class="row">
-      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)" oninput="render()">
-      <button class="btn-secondary" onclick="load()" type="button">Aktualisieren</button>
+      <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)">
+      <button class="btn-secondary" id="reloadBtn">Aktualisieren</button>
       <div class="spacer"></div>
-      <div class="small" id="countInfo"></div>
-      <button class="btn-primary" id="createBtn" onclick="openCreate()" type="button">+ Mitglied</button>
+      <div style="color:rgba(255,255,255,.70); font-size:13px;" id="countInfo"></div>
+      <button class="btn-primary" id="createBtn">+ Mitglied</button>
     </div>
+
+    <div style="height:10px;"></div>
 
     <div class="tableWrap">
       <table>
@@ -522,6 +598,7 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
       </table>
     </div>
   </div>
+
 </div>
 
 <!-- MODAL -->
@@ -532,50 +609,50 @@ hr.sep{ border:none; border-top: 1px solid rgba(255,255,255,.12); margin: 14px 0
         <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
         <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
       </div>
-      <button class="btn-secondary closeX" id="closeModalBtn" title="Schließen" type="button">✕</button>
+      <button class="btn-secondary closeX" id="closeModalBtn" title="Schließen">✕</button>
     </div>
 
     <hr class="sep">
 
     <div class="formGrid">
       <div>
-        <div class="small">Mitgliedsnummer</div>
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Mitgliedsnummer</div>
         <input id="mNo" placeholder="z.B. 12" inputmode="numeric">
       </div>
 
       <div>
-        <div class="small">Status</div>
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Status</div>
         <select id="mStatus"></select>
       </div>
 
       <div>
-        <div class="small">Vorname *</div>
-        <input id="mFirst" placeholder="z.B. Domi">
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Vorname *</div>
+        <input id="mFirst" placeholder="z.B. Max">
       </div>
 
       <div>
-        <div class="small">Nachname *</div>
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Nachname *</div>
         <input id="mLast" placeholder="z.B. Mustermann">
       </div>
 
       <div class="full">
-        <div class="small">Email</div>
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Email</div>
         <input id="mEmail" placeholder="name@domain.de">
       </div>
 
       <div>
-        <div class="small">Ressort</div>
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Ressort</div>
         <select id="mDept"></select>
       </div>
 
       <div>
-        <div class="small">Rolle</div>
+        <div style="color:rgba(255,255,255,.70); font-size:12px; margin-bottom:8px;">Rolle</div>
         <select id="mRole"></select>
       </div>
 
       <div class="full row" style="justify-content:flex-end; margin-top:6px;">
-        <button class="btn-secondary" id="cancelModalBtn" type="button">Abbrechen</button>
-        <button class="btn-primary" id="modalSaveBtn" type="button">Speichern</button>
+        <button class="btn-secondary" id="cancelBtn">Abbrechen</button>
+        <button class="btn-primary" id="modalSaveBtn">Speichern</button>
       </div>
     </div>
   </div>
@@ -594,7 +671,7 @@ const PROFILES_TABLE = "profiles";
 let MY_ROLE = "";
 let CAN_EDIT = false;
 
-function normRole(v){ return (v || "").trim().toLowerCase(); }
+function normRole(v){ return String(v || "").trim().toLowerCase(); }
 function roleLabel(role){
   const r = normRole(role);
   if (r === "vorstand") return "Vorstand";
@@ -615,10 +692,25 @@ const DB = {
   role: "rolle",
 };
 
-let members = [];
-let editPk = null;
+/* ========= Ressorts / Styles ========= */
+const RESSORT_COLORS = {
+  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
+  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
+  "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
+  "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
+  "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
+};
+const BASE_RESSORTS = ["Externe Events","Interne Events","Sponsoring","Merchandise","Kommunikation"];
+const BASE_ROLLEN = ["Mitglied","Leitung","Stellvertretung","Vorstand","Admin"];
+const BASE_STATUS = ["Vollmitglied","Anwärter","Pausiert","Ausgetreten"];
 
 /* ========= Elements ========= */
+const navWrap = document.getElementById("navWrap");
+const navFinance = document.getElementById("navFinance");
+const logoutBtn = document.getElementById("logoutBtn");
+
+const statusPill = document.getElementById("statusPill");
+
 const authBadge = document.getElementById("authBadge");
 const authDot = document.getElementById("authDot");
 const authState = document.getElementById("authState");
@@ -631,19 +723,18 @@ const authToggle = document.getElementById("authToggle");
 const authDetails = document.getElementById("authDetails");
 
 const mainCard = document.getElementById("mainCard");
-const navWrap = document.getElementById("navWrap");
-const navFinance = document.getElementById("navFinance");
-
 const searchEl = document.getElementById("search");
+const reloadBtn = document.getElementById("reloadBtn");
 const countInfo = document.getElementById("countInfo");
 const listEl = document.getElementById("list");
 const createBtn = document.getElementById("createBtn");
 
+/* Modal */
 const modalOverlay = document.getElementById("modalOverlay");
-const closeModalBtn = document.getElementById("closeModalBtn");
-const cancelModalBtn = document.getElementById("cancelModalBtn");
 const modalTitle = document.getElementById("modalTitle");
 const modalSub = document.getElementById("modalSub");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const cancelBtn = document.getElementById("cancelBtn");
 const modalSaveBtn = document.getElementById("modalSaveBtn");
 
 const mNo = document.getElementById("mNo");
@@ -654,13 +745,21 @@ const mDept = document.getElementById("mDept");
 const mRole = document.getElementById("mRole");
 const mStatus = document.getElementById("mStatus");
 
-/* ========= Helpers ========= */
-const esc = (s)=>String(s ?? "")
-  .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-  .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+/* ========= State ========= */
+let members = [];
+let editPk = null;
 
-const norm = (s)=>String(s ?? "").trim();
-
+/* ========= Utils ========= */
+const safe = (v) => (v === null || v === undefined) ? "" : String(v);
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function norm(s){ return String(s ?? "").trim(); }
 function uniqSorted(arr){
   return [...new Set(arr.map(norm).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
 }
@@ -679,14 +778,6 @@ function getDept(m){ return m?.[DB.dept] ?? ""; }
 function getStatus(m){ return m?.[DB.status] ?? ""; }
 function getRole(m){ return m?.[DB.role] ?? ""; }
 
-/* Ressort Farben */
-const RESSORT_COLORS = {
-  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
-  "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
-  "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
-  "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
-};
 function pillColorStyle(label){
   const key = (label || "").trim();
   const pair = RESSORT_COLORS[key];
@@ -705,7 +796,7 @@ function statusClass(status){
   return "";
 }
 
-/* ===== Auth badge helpers ===== */
+/* ========= Badge helpers ========= */
 function hashString(str){
   let h = 2166136261;
   for (let i = 0; i < str.length; i++){
@@ -746,6 +837,10 @@ function setAvatar(email){
   authAvatar.classList.remove("hidden");
   authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
 }
+function pulseLogin(){
+  authDot.classList.add("pulsing");
+  setTimeout(() => authDot.classList.remove("pulsing"), 2600);
+}
 function closeAuthDetails(){ authDetails.classList.add("hidden"); }
 function setRolePill(role){
   const r = normRole(role);
@@ -759,40 +854,56 @@ function setCompactIdentity(displayName, email){
   const fallback = ((email || "").split("@")[0] || "User").trim();
   authNameInline.textContent = name || fallback;
 }
-function setAuthUI(isAuthed, email=""){
+
+function setAuthUI(isAuthed, email = "", doPulse = false){
   if (isAuthed){
-    authDot.classList.remove("warn"); authDot.classList.add("ok");
+    authDot.classList.remove("warn");
+    authDot.classList.add("ok");
     authState.classList.add("hidden");
+    authState.textContent = "";
     authCompact.classList.remove("hidden");
+    closeAuthDetails();
     authMail.textContent = (email || "").trim();
     setAvatar(email);
-    mainCard.classList.remove("hidden");
     navWrap.classList.remove("hidden");
+    mainCard.classList.remove("hidden");
+    if (doPulse) pulseLogin();
   } else {
-    authDot.classList.remove("ok"); authDot.classList.add("warn");
+    authDot.classList.remove("ok");
+    authDot.classList.add("warn");
     authState.classList.remove("hidden");
     authState.textContent = "nicht eingeloggt";
     authCompact.classList.add("hidden");
+    closeAuthDetails();
     authMail.textContent = "";
     setAvatar("");
-    mainCard.classList.add("hidden");
     navWrap.classList.add("hidden");
+    mainCard.classList.add("hidden");
   }
 }
-authToggle?.addEventListener("click", (e)=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
-document.addEventListener("click", (e)=>{ if (!authBadge.contains(e.target)) closeAuthDetails(); });
 
+authToggle?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  authDetails.classList.toggle("hidden");
+});
+document.addEventListener("click", (e)=>{
+  if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
+});
+
+/* ========= Auth / Profile ========= */
 async function requireAuthOrRedirect(){
   const { data } = await sb.auth.getSession();
-  if (!data.session){
+  if (!data?.session){
     window.location.replace(LOGIN_PAGE);
     throw new Error("No session");
   }
   return data.session;
 }
 
-/* Profil laden + Finanzen verstecken */
 async function loadMyProfile(session){
+  MY_ROLE = "";
+  CAN_EDIT = false;
+
   const uid = session?.user?.id;
   const email = session?.user?.email || "";
 
@@ -802,12 +913,10 @@ async function loadMyProfile(session){
     .eq("id", uid)
     .single();
 
-  if (error || !data){
-    MY_ROLE = "ressortleiter";
-    CAN_EDIT = false;
+  if (error){
+    console.warn("Profil konnte nicht geladen werden:", error.message);
     setCompactIdentity("", email);
-    setRolePill(MY_ROLE);
-    if (navFinance) navFinance.style.display = "none";
+    setRolePill("ressortleiter");
     return;
   }
 
@@ -815,12 +924,19 @@ async function loadMyProfile(session){
   CAN_EDIT = (MY_ROLE === "vorstand");
 
   setCompactIdentity(data?.display_name, email);
-  setRolePill(MY_ROLE);
+  setRolePill(MY_ROLE || "ressortleiter");
 
   const dn = (data?.display_name || "").trim();
   if (dn) authAvatar.textContent = initialsFromText(dn);
 
-  if (navFinance) navFinance.style.display = (MY_ROLE === "vorstand") ? "" : "none";
+  authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+  // ✅ NAV Finanzen nur Vorstand
+  if (navFinance){
+    navFinance.style.display = CAN_EDIT ? "" : "none";
+  }
+
+  applyPermissions();
 }
 
 function applyPermissions(){
@@ -828,26 +944,25 @@ function applyPermissions(){
 }
 
 /* Logout */
-async function logout(){
+logoutBtn?.addEventListener("click", async ()=>{
   await sb.auth.signOut();
   window.location.replace(LOGIN_PAGE);
-}
+});
 
-/* Dropdowns */
+/* ========= Data ========= */
 function refreshDropdowns(){
-  const baseStatus = ["Vollmitglied","Anwärter","Pausiert","Ausgetreten"];
-  const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !baseStatus.includes(s));
-  setSelectOptions(mStatus, baseStatus.concat(moreStatus), "Status wählen");
+  const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !BASE_STATUS.includes(s));
+  setSelectOptions(mStatus, BASE_STATUS.concat(moreStatus), "Status wählen");
 
-  const baseRessort = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
-  const baseRolle   = ["Mitglied","Leitung","Stellvertretung","Vorstand","Admin"];
+  const ressort = uniqSorted(BASE_RESSORTS.concat(members.map(m => getDept(m))));
+  const rollen  = uniqSorted(BASE_ROLLEN.concat(members.map(m => getRole(m))));
 
-  setSelectOptions(mDept, uniqSorted(baseRessort.concat(members.map(m => getDept(m)))), "Ressort wählen");
-  setSelectOptions(mRole, uniqSorted(baseRolle.concat(members.map(m => getRole(m)))), "Rolle wählen");
+  setSelectOptions(mDept, ressort, "Ressort wählen");
+  setSelectOptions(mRole, rollen, "Rolle wählen");
 }
 
-/* Data */
 async function load(){
+  statusPill.textContent = "Lade…";
   await requireAuthOrRedirect();
 
   const { data, error } = await sb
@@ -855,21 +970,31 @@ async function load(){
     .select("*")
     .order(DB.no, { ascending: true, nullsFirst: true });
 
-  if (error) return alert("LOAD: " + error.message);
+  if (error){
+    statusPill.textContent = "Fehler";
+    alert("LOAD: " + error.message);
+    return;
+  }
 
   members = data || [];
   refreshDropdowns();
   render();
+  statusPill.textContent = `Geladen: ${members.length}`;
 }
 
 function render(){
-  const q = searchEl.value.trim().toLowerCase();
+  const q = safe(searchEl.value).trim().toLowerCase();
 
   const filtered = members.filter(m => {
     const hay = [
-      getNo(m), getFirst(m), getLast(m), getEmail(m),
-      getDept(m), getRole(m), getStatus(m)
-    ].map(x => String(x ?? "")).join(" ").toLowerCase();
+      getNo(m),
+      getFirst(m),
+      getLast(m),
+      getEmail(m),
+      getDept(m),
+      getRole(m),
+      getStatus(m)
+    ].map(x => safe(x)).join(" ").toLowerCase();
     return !q || hay.includes(q);
   });
 
@@ -877,7 +1002,12 @@ function render(){
 
   listEl.innerHTML = filtered.map(m => {
     const pk = getPk(m);
+    const no = getNo(m);
     const name = `${getFirst(m) || ""} ${getLast(m) || ""}`.trim();
+    const email = getEmail(m) || "";
+    const dept = getDept(m) || "";
+    const role = getRole(m) || "";
+    const status = getStatus(m) || "";
 
     const editDisabled = !CAN_EDIT;
     const delDisabled  = !CAN_EDIT;
@@ -887,23 +1017,16 @@ function render(){
 
     return `
       <tr>
-        <td>${esc(getNo(m) || "")}</td>
+        <td>${esc(no || "")}</td>
         <td>${esc(name)}</td>
-        <td>${esc(getEmail(m) || "")}</td>
-        <td><span class="pill" style="${pillColorStyle(getDept(m))}">${esc(getDept(m) || "—")}</span></td>
-        <td><span class="pill">${esc(getRole(m) || "—")}</span></td>
-        <td><span class="pill ${statusClass(getStatus(m))}">${esc(getStatus(m) || "—")}</span></td>
+        <td>${esc(email)}</td>
+        <td><span class="pillTag" style="${pillColorStyle(dept)}">${esc(dept || "—")}</span></td>
+        <td><span class="pillTag">${esc(role || "—")}</span></td>
+        <td><span class="pillTag ${statusClass(status)}">${esc(status || "—")}</span></td>
         <td>
           <div class="actions">
-            <button class="btn-secondary iconBtn"
-              title="${esc(editTitle)}"
-              ${editDisabled ? "disabled" : ""}
-              onclick="openEdit(${Number(pk)})" type="button">✏️</button>
-
-            <button class="btn-danger iconBtn"
-              title="${esc(delTitle)}"
-              ${delDisabled ? "disabled" : ""}
-              onclick="del(${Number(pk)})" type="button">🗑️</button>
+            <button class="btn-secondary iconBtn" title="${esc(editTitle)}" ${editDisabled ? "disabled" : ""} data-action="edit" data-id="${esc(pk)}">✏️</button>
+            <button class="btn-danger iconBtn" title="${esc(delTitle)}" ${delDisabled ? "disabled" : ""} data-action="del" data-id="${esc(pk)}">🗑️</button>
           </div>
         </td>
       </tr>
@@ -911,45 +1034,58 @@ function render(){
   }).join("");
 }
 
-/* ✅ Modal EXACT wie Bewerbungen inkl. richtiger Scroll-Lock */
+/* ========= Modal (Fix: "nur dunkel") ========= */
 let __scrollY = 0;
 function lockPageScroll(){
   __scrollY = window.scrollY || 0;
-  document.body.style.position = "fixed";
-  document.body.style.top = `-${__scrollY}px`;
-  document.body.style.left = "0";
-  document.body.style.right = "0";
-  document.body.style.width = "100%";
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
 }
 function unlockPageScroll(){
-  document.body.style.position = "";
-  document.body.style.top = "";
-  document.body.style.left = "";
-  document.body.style.right = "";
-  document.body.style.width = "";
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
   window.scrollTo(0, __scrollY || 0);
 }
 
-function openModal(){
-  lockPageScroll();
-  modalOverlay.classList.add("show");
+function overlayClick(e){
+  if (e.target === modalOverlay) closeModal();
+}
 
-  // immer sauber oben starten
+function openModal(){
+  // erst show, dann lock => verhindert "nur dunkel" bei mobile
+  modalOverlay.classList.add("show");
   const modal = modalOverlay.querySelector(".modal");
   if (modal) modal.scrollTop = 0;
+  lockPageScroll();
 
-  // focus ohne "jump"
-  setTimeout(() => { try { mFirst.focus({ preventScroll:true }); } catch(_) { mFirst.focus(); } }, 0);
+  setTimeout(() => {
+    try{ mFirst.focus({ preventScroll:true }); }
+    catch(_){ mFirst.focus(); }
+  }, 0);
 }
+
 function closeModal(){
   modalOverlay.classList.remove("show");
   unlockPageScroll();
   editPk = null;
 }
 
+closeModalBtn.addEventListener("click", closeModal);
+cancelBtn.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", overlayClick);
+
+document.addEventListener("keydown", (e)=>{
+  if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
+});
+
 function clearModal(){
-  mNo.value = ""; mFirst.value = ""; mLast.value = ""; mEmail.value = "";
-  mDept.value = ""; mRole.value = ""; mStatus.value = "";
+  mNo.value = "";
+  mFirst.value = "";
+  mLast.value = "";
+  mEmail.value = "";
+  mDept.value = "";
+  mRole.value = "";
+  mStatus.value = "";
 }
 
 function openCreate(){
@@ -969,13 +1105,13 @@ function openEdit(pk){
   if (!m) return;
 
   editPk = pk;
-  mNo.value = getNo(m) ?? "";
-  mFirst.value = getFirst(m) ?? "";
-  mLast.value  = getLast(m) ?? "";
-  mEmail.value = getEmail(m) ?? "";
-  mDept.value  = getDept(m) ?? "";
-  mRole.value  = getRole(m) ?? "";
-  mStatus.value = getStatus(m) || "Vollmitglied";
+  mNo.value = safe(getNo(m)).trim();
+  mFirst.value = safe(getFirst(m)).trim();
+  mLast.value  = safe(getLast(m)).trim();
+  mEmail.value = safe(getEmail(m)).trim();
+  mDept.value  = safe(getDept(m)).trim();
+  mRole.value  = safe(getRole(m)).trim();
+  mStatus.value = safe(getStatus(m)).trim() || "Vollmitglied";
 
   modalTitle.textContent = "Mitglied bearbeiten";
   modalSub.textContent = `ID ${pk} bearbeiten.`;
@@ -983,15 +1119,20 @@ function openEdit(pk){
   openModal();
 }
 
-function overlayClick(e){
-  if (e.target === modalOverlay) closeModal();
-}
-modalOverlay.addEventListener("click", overlayClick);
-closeModalBtn.addEventListener("click", closeModal);
-cancelModalBtn.addEventListener("click", closeModal);
+/* Buttons / Table events */
+createBtn.addEventListener("click", openCreate);
+reloadBtn.addEventListener("click", load);
+searchEl.addEventListener("input", render);
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
+listEl.addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-action]");
+  if (!btn || btn.disabled) return;
+
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+
+  if (action === "edit") openEdit(id);
+  if (action === "del") del(id);
 });
 
 /* CRUD */
@@ -1010,14 +1151,25 @@ async function saveModal(){
 
   if (!payload[DB.first] || !payload[DB.last]) return alert("Vorname und Nachname sind Pflicht.");
 
+  modalSaveBtn.disabled = true;
+
   let res;
-  if (editPk === null) res = await sb.from(DB.table).insert(payload).select();
-  else res = await sb.from(DB.table).update(payload).eq(DB.pk, editPk).select();
+  try{
+    if (editPk === null){
+      res = await sb.from(DB.table).insert(payload).select();
+    } else {
+      res = await sb.from(DB.table).update(payload).eq(DB.pk, editPk).select();
+    }
 
-  if (res.error) return alert("SUPABASE: " + res.error.message);
+    if (res.error) throw res.error;
 
-  closeModal();
-  await load();
+    closeModal();
+    await load();
+  } catch(err){
+    alert("SUPABASE: " + (err?.message || err));
+  } finally {
+    modalSaveBtn.disabled = false;
+  }
 }
 modalSaveBtn.addEventListener("click", saveModal);
 
@@ -1036,17 +1188,16 @@ async function del(pk){
   await load();
 }
 
-/* Init */
-(async () => {
+/* ========= Init ========= */
+(async ()=>{
   const session = await requireAuthOrRedirect();
   const mail = session?.user?.email || "";
-  setAuthUI(true, mail);
+  setAuthUI(true, mail, false);
   await loadMyProfile(session);
-  applyPermissions();
   await load();
 })();
 
-/* PWA SW */
+/* ✅ PWA: Service Worker registrieren */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(console.warn);
