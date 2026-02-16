@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mitglieder</title>
 
-<!-- PWA / Theme -->
 <meta name="theme-color" content="#120e18">
 
-<!-- Favicon (liegt im /favicon Ordner) -->
 <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -19,14 +17,12 @@
 
 <style>
 :root{
-  /* Matte Dark Base */
   --bg1:#120e18;
   --bg2:#1a1424;
   --bg3:#1f162c;
 
-  /* Modern Orange → Purple */
-  --accent1:#f97316;   /* warm orange */
-  --accent2:#a855f7;   /* vibrant purple */
+  --accent1:#f97316;
+  --accent2:#a855f7;
 
   --glass: rgba(255,255,255,.08);
   --border: rgba(255,255,255,.18);
@@ -40,20 +36,18 @@
   --bad: rgba(239,68,68,.95);
   --warn: rgba(251,146,60,.95);
 
-  /* danger vars */
   --danger1: #fb7185;
   --danger2: #e11d48;
 }
 
 *{ box-sizing:border-box; }
 html, body { min-height: 100%; }
-
 html{
   background:
-  radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-  radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-  radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
   background-attachment: fixed;
 }
 
@@ -66,8 +60,8 @@ body{
   justify-content:center;
   align-items:flex-start;
   padding:42px 16px;
+  overflow-x:hidden;
 
-  /* ✅ Page transition */
   animation: pageIn .38s ease both;
 }
 @keyframes pageIn{
@@ -76,6 +70,12 @@ body{
 }
 @media (prefers-reduced-motion: reduce){
   body{ animation:none !important; }
+}
+
+/* ✅ Scroll-lock wenn Modal offen */
+body.modalOpen{
+  overflow: hidden !important;
+  touch-action: none;
 }
 
 .app{ width:100%; max-width:1200px; }
@@ -90,7 +90,6 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-/* ===== Brand links: Logo + Titel ===== */
 .brandLeft{
   display:flex;
   align-items:center;
@@ -104,23 +103,19 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   padding: 6px;
   display:grid;
   place-items:center;
-
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 16px 44px rgba(0,0,0,.30);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-
   flex: 0 0 auto;
   transition: transform .16s ease, filter .16s ease, background .16s ease;
 }
-
 .brandLogo:hover{
   transform: translateY(-1px);
   filter: brightness(1.05);
   background: rgba(255,255,255,.12);
 }
-
 .brandLogo img{
   width: 100%;
   height: 100%;
@@ -128,8 +123,6 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   object-fit: cover;
   display:block;
 }
-
-/* Mobile: noch kleiner */
 @media (max-width: 640px){
   .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
   .brandLogo img{ border-radius: 9px; }
@@ -166,11 +159,16 @@ input,select{
 }
 input::placeholder{ color: rgba(255,255,255,.55); }
 
-/* ✅ Fokus nicht blau -> orange */
 input:focus, select:focus{
   border-color: rgba(249,115,22,.55);
   background: rgba(255,255,255,.16);
   transform: translateY(-1px);
+}
+
+/* ✅ Damit Dropdown Optionen sichtbar sind */
+select option{
+  background: #1a1424;
+  color: rgba(255,255,255,.92);
 }
 
 button{
@@ -225,10 +223,8 @@ button:disabled:hover{
   box-shadow: 0 18px 36px rgba(225,29,72,.28);
 }
 
-/* ===== Auth badge (kompakt + Details Toggle) ===== */
+/* ===== Auth badge ===== */
 .authFloating{
-  position: static;
-  z-index: 1;
   border-radius: 999px;
   padding: 10px 12px;
   display:flex;
@@ -390,7 +386,7 @@ button:disabled:hover{
 .hidden{ display:none; }
 .small{ font-size: 13px; color: var(--muted); }
 
-/* ===== NAV: sticky beim Scrollen ===== */
+/* ===== NAV ===== */
 .navWrap{
   margin-bottom: 16px;
   position: sticky;
@@ -498,7 +494,7 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 .pill-status-pau{  background: rgba(234,179,8,.20);   border-color: rgba(234,179,8,.35);   color:#fde68a; }
 .pill-status-aus{  background: rgba(239,68,68,.20);   border-color: rgba(239,68,68,.35);   color:#fecaca; }
 
-/* Modal */
+/* ===== Modal (FIX) ===== */
 .modalOverlay{
   position: fixed;
   inset: 0;
@@ -510,12 +506,28 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
   z-index: 50;
 }
 .modalOverlay.show{ display:flex; }
+
 .modal{
   width: min(760px, 100%);
   border-radius: 24px;
   padding: 18px;
   position: relative;
+
+  /* ✅ wichtig: damit Maske nicht abgeschnitten ist */
+  max-height: min(86vh, calc(100dvh - 36px));
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+.sheetHandle{
+  display:none;
+  width: 46px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.22);
+  margin: 4px auto 12px;
+}
+
 .modalHeader{
   display:flex;
   align-items:flex-start;
@@ -558,6 +570,16 @@ hr.sep{
   .iconBtn{ width: 40px; height: 40px; }
   .actions{ gap:8px; }
   .formGrid{ grid-template-columns: 1fr; }
+
+  /* ✅ Bottom-Sheet Verhalten */
+  .modalOverlay{ align-items:flex-end; padding: 12px; }
+  .modal{
+    width: 100%;
+    border-radius: 22px 22px 0 0;
+    max-height: 92dvh;
+    padding-bottom: 18px;
+  }
+  .sheetHandle{ display:block; }
 }
 @media (max-width: 420px){
   body{ padding: 20px 12px; }
@@ -597,7 +619,7 @@ hr.sep{
             <div class="authCompact hidden" id="authCompact">
               <span class="authNameInline" id="authNameInline">User</span>
               <span class="rolePill" id="authRolePill">Rolle</span>
-              <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
             </div>
           </div>
 
@@ -609,7 +631,7 @@ hr.sep{
     </div>
   </div>
 
-  <!-- NAV (nur eingeloggt) -->
+  <!-- NAV -->
   <div class="glass navWrap hidden" id="navWrap">
     <div class="nav">
       <div class="navLeft">
@@ -645,6 +667,7 @@ hr.sep{
           </span>
         </a>
 
+        <!-- ✅ wird via JS für Ressortleiter ausgeblendet -->
         <a class="navLink" href="rechnungen.html" id="navFinance">
           <span class="navIcon">💰</span>
           <span>
@@ -663,7 +686,7 @@ hr.sep{
       </div>
 
       <div class="navRight">
-        <button class="btn-secondary" id="logoutBtn" onclick="logout()">Logout</button>
+        <button class="btn-secondary" id="logoutBtn" onclick="logout()" type="button">Logout</button>
       </div>
     </div>
   </div>
@@ -672,10 +695,10 @@ hr.sep{
   <div class="glass card hidden" id="mainCard">
     <div class="row">
       <input id="search" placeholder="Suche (Nr/Name/Email/Ressort/Status/Rolle)" oninput="render()">
-      <button class="btn-secondary" onclick="load()">Aktualisieren</button>
+      <button class="btn-secondary" onclick="load()" type="button">Aktualisieren</button>
       <div class="spacer"></div>
       <div class="small" id="countInfo"></div>
-      <button class="btn-primary" id="createBtn" onclick="openCreate()">+ Mitglied</button>
+      <button class="btn-primary" id="createBtn" onclick="openCreate()" type="button">+ Mitglied</button>
     </div>
 
     <div class="tableWrap">
@@ -701,12 +724,14 @@ hr.sep{
 <!-- MODAL -->
 <div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
   <div class="glass modal" onclick="event.stopPropagation()">
+    <div class="sheetHandle" aria-hidden="true"></div>
+
     <div class="modalHeader">
       <div>
         <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
         <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
       </div>
-      <button class="btn-secondary closeX" onclick="closeModal()" title="Schließen">✕</button>
+      <button class="btn-secondary closeX" onclick="closeModal()" title="Schließen" type="button">✕</button>
     </div>
 
     <hr class="sep">
@@ -748,8 +773,8 @@ hr.sep{
       </div>
 
       <div class="full row" style="justify-content:flex-end; margin-top:6px;">
-        <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-        <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()">Speichern</button>
+        <button class="btn-secondary" onclick="closeModal()" type="button">Abbrechen</button>
+        <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()" type="button">Speichern</button>
       </div>
     </div>
   </div>
@@ -761,10 +786,9 @@ const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* Login page */
 const LOGIN_PAGE = "login.html";
 
-/* ========= Rollen/Permissions (aus public.profiles) ========= */
+/* ========= Rollen/Permissions ========= */
 const PROFILES_TABLE = "profiles";
 let MY_ROLE = "";
 let CAN_EDIT = false;
@@ -777,7 +801,7 @@ function roleLabel(role){
   return "Unbekannt";
 }
 
-/* ========= Spalten (neue Struktur) ========= */
+/* ========= Spalten ========= */
 const DB = {
   table: "members",
   pk: "id",
@@ -809,6 +833,7 @@ const authDetails = document.getElementById("authDetails");
 
 const mainCard = document.getElementById("mainCard");
 const navWrap = document.getElementById("navWrap");
+const navFinance = document.getElementById("navFinance"); // ✅
 
 const searchEl = document.getElementById("search");
 const countInfo = document.getElementById("countInfo");
@@ -857,7 +882,7 @@ function getDept(m){ return m?.[DB.dept] ?? ""; }
 function getStatus(m){ return m?.[DB.status] ?? ""; }
 function getRole(m){ return m?.[DB.role] ?? ""; }
 
-/* ✅ FIX: feste Ressort-Farben (nicht random) */
+/* feste Ressort-Farben */
 const RESSORT_COLORS = {
   "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
   "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
@@ -865,8 +890,6 @@ const RESSORT_COLORS = {
   "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
   "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
 };
-
-
 function pillColorStyle(label){
   const key = (label || "").trim();
   const pair = RESSORT_COLORS[key];
@@ -876,7 +899,6 @@ function pillColorStyle(label){
           border-color: rgba(255,255,255,.18);
           color: rgba(255,255,255,.92);`;
 }
-
 function statusClass(status){
   const s = norm(status).toLowerCase();
   if (s.startsWith("voll")) return "pill-status-volle";
@@ -891,14 +913,7 @@ function refreshDropdowns(){
   const moreStatus = uniqSorted(members.map(m => getStatus(m))).filter(s => !baseStatus.includes(s));
   setSelectOptions(mStatus, baseStatus.concat(moreStatus), "Status wählen");
 
-  const baseRessort = [
-  "Externe Events",
-  "Interne Events",
-  "Merchandise",
-  "Kommunikation",
-  "Sponsoring"
-];
-
+  const baseRessort = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
   const baseRolle   = ["Mitglied","Leitung","Stellvertretung","Vorstand","Admin"];
 
   const ressort = uniqSorted(baseRessort.concat(members.map(m => getDept(m))));
@@ -1045,6 +1060,9 @@ async function loadMyProfile(session){
   if (dn) authAvatar.textContent = initialsFromText(dn);
 
   authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+  /* ✅ NAV: Finanzen nur Vorstand */
+  if (navFinance) navFinance.style.display = (MY_ROLE === "vorstand") ? "" : "none";
 }
 
 function applyPermissions(){
@@ -1119,12 +1137,12 @@ function render(){
             <button class="btn-secondary iconBtn"
               title="${esc(editTitle)}"
               ${editDisabled ? "disabled" : ""}
-              onclick="openEdit(${Number(pk)})">✏️</button>
+              onclick="openEdit(${Number(pk)})" type="button">✏️</button>
 
             <button class="btn-danger iconBtn"
               title="${esc(delTitle)}"
               ${delDisabled ? "disabled" : ""}
-              onclick="del(${Number(pk)})">🗑️</button>
+              onclick="del(${Number(pk)})" type="button">🗑️</button>
           </div>
         </td>
       </tr>
@@ -1132,10 +1150,26 @@ function render(){
   }).join("");
 }
 
-/* Modal logic */
+/* ===== Modal logic (FIX) ===== */
 function overlayClick(e){ if (e.target === modalOverlay) closeModal(); }
-function openModal(){ modalOverlay.classList.add("show"); setTimeout(() => mFirst.focus(), 0); }
-function closeModal(){ modalOverlay.classList.remove("show"); editPk = null; }
+
+function lockScroll(){ document.body.classList.add("modalOpen"); }
+function unlockScroll(){ document.body.classList.remove("modalOpen"); }
+
+function openModal(){
+  lockScroll();
+  modalOverlay.classList.add("show");
+  // ✅ immer oben starten, kein “Hälfte sichtbar”
+  const modal = modalOverlay.querySelector(".modal");
+  if (modal) modal.scrollTop = 0;
+  // ✅ focus ohne page-jump
+  setTimeout(() => { try { mFirst.focus({ preventScroll:true }); } catch(_) { mFirst.focus(); } }, 0);
+}
+function closeModal(){
+  modalOverlay.classList.remove("show");
+  unlockScroll();
+  editPk = null;
+}
 function clearModal(){
   mNo.value = ""; mFirst.value = ""; mLast.value = ""; mEmail.value = "";
   mDept.value = ""; mRole.value = ""; mStatus.value = "";
@@ -1219,12 +1253,12 @@ async function del(pk){
   const session = await requireAuthOrRedirect();
   const mail = session?.user?.email || "";
   setAuthUI(true, mail, false);
-  await loadMyProfile(session);
+  await loadMyProfile(session);        // ✅ setzt Rolle & NAV-Finanzen
   applyPermissions();
   await load();
 })();
 
-/* ✅ PWA: Service Worker registrieren (sw.js muss im Root liegen) */
+/* PWA SW */
 if ("serviceWorker" in navigator){
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(console.warn);
