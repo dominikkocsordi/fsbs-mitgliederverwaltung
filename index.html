@@ -38,6 +38,22 @@
 
   --danger1: #fb7185;
   --danger2: #e11d48;
+
+  /* ✅ Pill-Palette (einheitlich, orange/purple + passende Zusatzfarben) */
+  --pill-o1: rgba(249,115,22,.24);
+  --pill-o2: rgba(251,146,60,.14);
+
+  --pill-p1: rgba(168,85,247,.24);
+  --pill-p2: rgba(124,58,237,.14);
+
+  --pill-g1: rgba(34,197,94,.22);
+  --pill-g2: rgba(16,185,129,.12);
+
+  --pill-b1: rgba(56,189,248,.20);
+  --pill-b2: rgba(14,165,233,.12);
+
+  --pill-r1: rgba(239,68,68,.18);
+  --pill-r2: rgba(251,113,133,.12);
 }
 
 *{ box-sizing:border-box; }
@@ -303,16 +319,17 @@ button:active{ transform: translateY(0px) scale(.99); }
   word-break:break-all;
 }
 
+/* ✅ Role pill: gleiche Farblogik wie Dashboard-Pills */
 .rolePill{
   display:inline-flex;
   align-items:center;
-  gap:5px;
-  padding: 2px 6px;
+  gap:6px;
+  padding: 3px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.16);
   background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.82);
-  font-weight:700;
+  color: rgba(255,255,255,.88);
+  font-weight:850;
   font-size: 11px;
   letter-spacing: .10px;
   line-height: 1;
@@ -320,12 +337,12 @@ button:active{ transform: translateY(0px) scale(.99); }
   flex: 0 0 auto;
 }
 .rolePill.vorstand{
-  border-color: rgba(56,189,248,.40);
-  background: rgba(56,189,248,.12);
+  border-color: rgba(56,189,248,.42);
+  background: linear-gradient(135deg, var(--pill-b1), var(--pill-b2));
 }
 .rolePill.ressortleiter{
-  border-color: rgba(251,146,60,.35);
-  background: rgba(251,146,60,.12);
+  border-color: rgba(249,115,22,.40);
+  background: linear-gradient(135deg, var(--pill-o1), var(--pill-o2));
 }
 
 .hidden{ display:none; }
@@ -456,7 +473,7 @@ button:active{ transform: translateY(0px) scale(.99); }
   font-size: 12px;
 }
 
-/* ressort badges */
+/* ✅ ressort badges (Pills) */
 .ressortList{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
 .badge{
   display:inline-flex;
@@ -467,11 +484,33 @@ button:active{ transform: translateY(0px) scale(.99); }
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.92);
-  font-weight:800;
+  font-weight:900;
   font-size:12px;
   white-space:nowrap;
+  position:relative;
+  overflow:hidden;
 }
 .badge strong{ font-weight:900; }
+
+/* ✅ Shimmer wie andere Seiten */
+@keyframes pillShimmer{
+  0%{ transform: translateX(-55%); opacity:.0; }
+  20%{ opacity:.35; }
+  60%{ opacity:.15; }
+  100%{ transform: translateX(140%); opacity:0; }
+}
+.badge::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  width: 42%;
+  transform: translateX(-55%);
+  animation: pillShimmer 2.9s ease-in-out infinite;
+  pointer-events:none;
+  opacity:.0;
+}
+.badge:hover::after{ opacity:.30; }
 
 .hr{
   height:1px;
@@ -610,22 +649,35 @@ const RESSORTS = [
   "Sponsoring"
 ];
 
+/* ✅ RICHTIGE Pill-Farben (orange/purple lead, passende Akzente) */
 const RESSORT_COLORS = {
-  "Externe Events": ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-  "Interne Events": ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
-  "Merchandise":    ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
-  "Kommunikation":  ["rgba(59,130,246,.22)", "rgba(99,102,241,.14)"],
-  "Sponsoring":     ["rgba(244,63,94,.18)",  "rgba(168,85,247,.12)"],
-  "Abgelehnt":      ["rgba(239,68,68,.18)",  "rgba(251,113,133,.12)"],
+  "Externe Events":   ["var(--pill-o1)", "var(--pill-o2)"],     // orange
+  "Interne Events":   ["var(--pill-p1)", "var(--pill-p2)"],     // purple
+  "Merchandise":      ["var(--pill-g1)", "var(--pill-g2)"],     // green (ok)
+  "Kommunikation":    ["var(--pill-b1)", "var(--pill-b2)"],     // blue (vorstand-style)
+  "Sponsoring":       ["rgba(244,63,94,.18)", "rgba(168,85,247,.12)"], // pink→purple
+  "Abgelehnt":        ["var(--pill-r1)", "var(--pill-r2)"],     // red
 };
 
+/* ✅ Pill Style helper */
 function pillStyle(label){
   const key = (label || "").trim();
   const pair = RESSORT_COLORS[key];
   const a = pair?.[0] ?? "rgba(255,255,255,.10)";
   const b = pair?.[1] ?? "rgba(255,255,255,.06)";
+
+  // border farblich leicht passend statt immer weiß
+  const border =
+    key === "Interne Events" ? "rgba(168,85,247,.32)" :
+    key === "Externe Events" ? "rgba(249,115,22,.32)" :
+    key === "Merchandise"    ? "rgba(34,197,94,.28)"  :
+    key === "Kommunikation"  ? "rgba(56,189,248,.30)" :
+    key === "Sponsoring"     ? "rgba(244,63,94,.28)"  :
+    key === "Abgelehnt"      ? "rgba(239,68,68,.28)"  :
+                               "rgba(255,255,255,.18)";
+
   return `background: linear-gradient(135deg, ${a}, ${b});
-          border-color: rgba(255,255,255,.18);`;
+          border-color: ${border};`;
 }
 
 function normRole(v){ return (v || "").trim().toLowerCase(); }
