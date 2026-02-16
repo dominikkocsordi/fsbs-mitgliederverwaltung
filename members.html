@@ -487,7 +487,7 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
 table{
   width:100%;
   border-collapse:collapse;
-  margin-top: 14px; /* ✅ more space between controls and list */
+  margin-top: 14px;
   min-width: 980px;
 }
 th,td{
@@ -511,7 +511,7 @@ tbody tr:hover{ background: rgba(255,255,255,.06); }
 .iconBtn:hover{ transform: translateY(-2px); }
 .actions{ display:flex; gap:10px; }
 
-/* Modal (robust + mobile bottom sheet) */
+/* Modal */
 .modalOverlay{
   position: fixed;
   inset: 0;
@@ -581,7 +581,6 @@ hr.sep{
   .actions{ gap:8px; }
   .formGrid{ grid-template-columns: 1fr; }
 
-  /* ✅ bottom-sheet modal on phone */
   .modalOverlay{ align-items:flex-end; padding: 0; }
   .modal{
     width: 100%;
@@ -694,9 +693,6 @@ hr.sep{
       </div>
 
       <div class="navRight">
-        <!-- ✅ Rolle nur als Pill in Navbar -->
-        <span class="pill" id="navRolePill">—</span>
-
         <button class="btn-secondary" id="logoutBtn" onclick="logout()">Logout</button>
       </div>
     </div>
@@ -842,7 +838,6 @@ const authDetails = document.getElementById("authDetails");
 
 const navWrap = document.getElementById("navWrap");
 const navFinance = document.getElementById("navFinance");
-const navRolePill = document.getElementById("navRolePill");
 
 const mainCard = document.getElementById("mainCard");
 
@@ -1087,16 +1082,6 @@ async function loadMyProfile(session){
   /* ✅ NAV: Finanzen nur Vorstand */
   if (navFinance){
     navFinance.style.display = CAN_EDIT ? "" : "none";
-  }
-
-  /* ✅ NAV: Rolle nur als Pill */
-  if (navRolePill){
-    const label = roleLabel(MY_ROLE || "ressortleiter");
-    navRolePill.textContent = label;
-
-    navRolePill.classList.remove("pill-role-vorstand","pill-role-admin","pill-role-leitung","pill-role-stv");
-    const cls = roleClass(label);
-    if (cls) navRolePill.classList.add(cls);
   }
 }
 
