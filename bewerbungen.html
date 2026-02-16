@@ -378,29 +378,29 @@
     .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
     .inner{ display:flex; gap:12px; padding:14px; }
 
+    /* ✅ Avatar: Bild direkt (keine Initialen) */
     .avatar{
       width:56px; height:56px; border-radius:16px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.06);
       overflow:hidden; flex:0 0 auto;
-      display:grid; place-items:center;
-      font-weight:950;
-      color: rgba(255,255,255,.78);
       position: relative;
-      user-select:none;
     }
-    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
-
-    /* Avatar shimmer solange Thumb noch nicht geladen */
-    .avatar[data-thumb]:not(.thumbLoaded)::after{
+    .avatar.loading::after{
       content:"";
       position:absolute; inset:0;
-      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
+      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.12) 40%, transparent 70%);
       transform: translateX(-140%);
-      animation: shimmer 2.2s ease-in-out infinite;
-      opacity: .55;
+      animation: shimmerFast 2.2s ease-in-out infinite;
+      opacity: .60;
       pointer-events:none;
     }
+    @keyframes shimmerFast{
+      0%{ transform: translateX(-140%); }
+      55%{ transform: translateX(140%); }
+      100%{ transform: translateX(140%); }
+    }
+    .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
 
     .title{ font-weight:900; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .sub{ color: rgba(255,255,255,.62); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -432,7 +432,6 @@
       gap:8px;
       box-shadow: 0 14px 34px rgba(0,0,0,.22);
       overflow:hidden;
-      position: absolute;
     }
     .cornerBadge::before{
       content:"";
@@ -471,16 +470,6 @@
     .cornerBadge.bad::before{
       background: radial-gradient(circle at 30% 30%, rgba(239,68,68,.45), transparent 60%),
                   radial-gradient(circle at 70% 70%, rgba(225,29,72,.25), transparent 60%);
-    }
-
-    .cornerBadge.loading{
-      border-color: rgba(255,255,255,.18);
-      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
-      color: rgba(255,255,255,.80);
-    }
-    .cornerBadge.loading::before{
-      background: radial-gradient(circle at 30% 30%, rgba(249,115,22,.20), transparent 60%),
-                  radial-gradient(circle at 70% 60%, rgba(168,85,247,.16), transparent 60%);
     }
 
     .empty{
@@ -887,6 +876,7 @@
 
     const kpiGrid = document.getElementById("kpiGrid");
 
+    // Auth UI
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
     const authState = document.getElementById("authState");
@@ -898,6 +888,7 @@
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
 
+    // Dialog + fallback
     const dlg = document.getElementById("dlg");
     const modalTitle = document.getElementById("modalTitle");
     const modalSub = document.getElementById("modalSub");
@@ -926,10 +917,6 @@
     let CAN_VIEW = false;
     let CAN_EDIT = false;
 
-    // Lazy thumb state
-    let THUMB_OBSERVER = null;
-
-    // Render batching
     let RENDER_TOKEN = 0;
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -1074,11 +1061,6 @@
         semesters.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
     }
 
-    function getInitials(row){
-      const a = safe(row[F.fn]).trim().slice(0,1);
-      const b = safe(row[F.ln]).trim().slice(0,1);
-      return (a + b).toUpperCase() || "•";
-    }
     function getThumb(row){
       try{
         if (row?.__photo?.items?.[0]?.thumb){
@@ -1205,7 +1187,6 @@
       if (!CAN_VIEW) return;
 
       statusPill.textContent = "Lade…";
-      // damit der Browser sofort “Lade…” zeichnet (kein Freeze)
       await new Promise(r => requestAnimationFrame(r));
 
       const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
@@ -1256,7 +1237,7 @@
 
         img.onerror = () => {
           photoEl.innerHTML = "";
-          photoEl.textContent = getInitials(row);
+          photoEl.textContent = "—";
           photoEl.style.cursor = "default";
         };
 
@@ -1265,7 +1246,7 @@
 
         photoEl.appendChild(img);
       } else {
-        photoEl.textContent = getInitials(row);
+        photoEl.textContent = "—";
         photoEl.style.cursor = "default";
         photoEl.onclick = null;
       }
@@ -1334,69 +1315,7 @@
     fbClose?.addEventListener("click", closeModal);
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeModal(); });
 
-    /* ========= THUMB LAZY LOADING ========= */
-    function destroyThumbObserver(){
-      try{ THUMB_OBSERVER?.disconnect(); }catch(e){}
-      THUMB_OBSERVER = null;
-    }
-
-    function loadThumbIntoAvatar(el){
-      if (!el || el.classList.contains("thumbLoaded")) return;
-      const thumb = el.getAttribute("data-thumb");
-      const initials = el.getAttribute("data-initials") || "•";
-      if (!thumb) return;
-
-      const img = document.createElement("img");
-      img.alt = "Foto";
-      img.loading = "lazy";
-      img.decoding = "async";
-      img.referrerPolicy = "no-referrer";
-
-      img.onload = () => {
-        el.innerHTML = "";
-        el.appendChild(img);
-        el.classList.add("thumbLoaded");
-      };
-      img.onerror = () => {
-        el.textContent = initials;
-        el.removeAttribute("data-thumb");
-      };
-
-      img.src = thumb;
-    }
-
-    function setupThumbObserver(){
-      destroyThumbObserver();
-
-      const targets = [...grid.querySelectorAll(".avatar[data-thumb]")];
-      if (!targets.length) return;
-
-      if (!("IntersectionObserver" in window)){
-        // fallback: chunked idle load
-        let i = 0;
-        const step = () => {
-          const batch = targets.slice(i, i+12);
-          batch.forEach(loadThumbIntoAvatar);
-          i += 12;
-          if (i < targets.length) setTimeout(step, 120);
-        };
-        setTimeout(step, 80);
-        return;
-      }
-
-      THUMB_OBSERVER = new IntersectionObserver((entries)=>{
-        entries.forEach(ent=>{
-          if (!ent.isIntersecting) return;
-          const el = ent.target;
-          THUMB_OBSERVER.unobserve(el);
-          loadThumbIntoAvatar(el);
-        });
-      }, { root: null, rootMargin: "260px 0px", threshold: 0.01 });
-
-      targets.forEach(t => THUMB_OBSERVER.observe(t));
-    }
-
-    /* ========= RENDER (super smooth, batched) ========= */
+    /* ========= RENDER ========= */
     function badgeHtmlForStatus(st){
       if (st === "anwaerter") return `<div class="cornerBadge ok"><span>🟢 Anwärter</span></div>`;
       if (st === "abgelehnt") return `<div class="cornerBadge bad"><span>🔴 Abgelehnt</span></div>`;
@@ -1413,10 +1332,18 @@
       const r2 = safe(row[F.r2]).trim();
       const ressortTag = [r1, r2].filter(Boolean).join(" · ");
 
-      const initials = getInitials(row);
-      const thumb = getThumb(row); // wird NICHT sofort geladen
+      const thumb = getThumb(row);
       const photoUrl = getPhotoUrl(row);
       const st = getStatusForRow(row);
+
+      const avatarHtml = thumb
+        ? `<div class="avatar loading">
+             <img src="${esc(thumb)}" alt="Foto"
+                  loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer"
+                  onload="this.parentElement.classList.remove('loading')"
+                  onerror="this.remove(); this.parentElement.classList.remove('loading');" />
+           </div>`
+        : `<div class="avatar"></div>`;
 
       const card = document.createElement("div");
       card.className = "appCard";
@@ -1424,7 +1351,7 @@
       card.innerHTML = `
         ${badgeHtmlForStatus(st)}
         <div class="inner">
-          <div class="avatar" ${thumb ? `data-thumb="${esc(thumb)}"` : ""} data-initials="${esc(initials)}">${esc(initials)}</div>
+          ${avatarHtml}
           <div style="min-width:0;">
             <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
             <div class="sub">${esc(mail || "—")}</div>
@@ -1445,7 +1372,7 @@
     function render(){
       if (!CAN_VIEW) return;
 
-      const token = ++RENDER_TOKEN; // kill-switch bei schnellem Tippen/Filterwechsel
+      const token = ++RENDER_TOKEN;
       const rows = filtered();
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       empty.classList.toggle("hidden", rows.length !== 0);
@@ -1453,14 +1380,13 @@
       renderDashboard();
 
       grid.innerHTML = "";
-      destroyThumbObserver();
 
       // Batch rendering: verhindert UI-freeze
       const BATCH = 24;
       let i = 0;
 
       const pump = () => {
-        if (token !== RENDER_TOKEN) return; // Render wurde abgebrochen
+        if (token !== RENDER_TOKEN) return;
 
         const frag = document.createDocumentFragment();
         const end = Math.min(i + BATCH, rows.length);
@@ -1469,15 +1395,7 @@
         }
         grid.appendChild(frag);
 
-        if (i < rows.length){
-          requestAnimationFrame(pump);
-        } else {
-          // thumbs erst NACH dem ersten vollständigen Paint/Idle
-          const schedule = (fn) => ("requestIdleCallback" in window)
-            ? requestIdleCallback(fn, { timeout: 900 })
-            : setTimeout(fn, 120);
-          schedule(setupThumbObserver);
-        }
+        if (i < rows.length) requestAnimationFrame(pump);
       };
 
       requestAnimationFrame(pump);
