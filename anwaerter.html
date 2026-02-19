@@ -382,7 +382,7 @@
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.05);
     }
-    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 860px; }
+    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 940px; }
     th, td{ padding:12px 14px; text-align:left; font-size:14px; vertical-align:middle; }
     th{
       font-size:12px;
@@ -435,6 +435,27 @@
       font-size: 12px;
       font-weight: 850;
       white-space:nowrap;
+    }
+
+    /* ✅ Status pill */
+    .statusPill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.90);
+      font-size: 12px;
+      font-weight: 850;
+      white-space:nowrap;
+    }
+    .statusDot{
+      width:8px; height:8px; border-radius:999px;
+      background: rgba(255,255,255,.35);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.10);
+      flex: 0 0 auto;
     }
 
     /* ===== Modal ===== */
@@ -492,8 +513,8 @@
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
-      table{ min-width: 720px; }
-      th:nth-child(3), td:nth-child(3){ display:none; }
+      table{ min-width: 860px; }
+      th:nth-child(3), td:nth-child(3){ display:none; } /* Email ausblenden auf Mobile */
     }
   </style>
 </head>
@@ -603,7 +624,7 @@
     <!-- CONTENT -->
     <div class="glass card hidden" id="contentCard">
       <div class="row">
-        <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
+        <input id="q" placeholder="Suche (Name, Mail, Ressort, Status…)" />
         <select id="fRessort"></select>
         <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
         <div class="spacer"></div>
@@ -636,6 +657,7 @@
               <th>Name</th>
               <th>Ressort</th>
               <th>Email</th>
+              <th>Status</th>
               <th style="width:340px;">Aktionen</th>
             </tr>
           </thead>
@@ -777,6 +799,40 @@
     }
     function isVollmitglied(statusRaw){ return normalizeStatus(statusRaw) === "vollmitglied"; }
 
+    /* ✅ Status UI helper (NEU) */
+    function statusMeta(statusRaw){
+      if (isVollmitglied(statusRaw)) {
+        return {
+          label: "Übernommen",
+          dot: "rgba(34,197,94,.95)",
+          bgA: "rgba(34,197,94,.22)",
+          bgB: "rgba(16,185,129,.10)",
+          border: "rgba(34,197,94,.35)"
+        };
+      }
+      if (isAnwaerterAbgelehnt(statusRaw)) {
+        return {
+          label: "Abgelehnt",
+          dot: "rgba(239,68,68,.95)",
+          bgA: "rgba(239,68,68,.22)",
+          bgB: "rgba(225,29,72,.10)",
+          border: "rgba(239,68,68,.35)"
+        };
+      }
+      return {
+        label: "Offen",
+        dot: "rgba(255,255,255,.45)",
+        bgA: "rgba(255,255,255,.10)",
+        bgB: "rgba(255,255,255,.05)",
+        border: "rgba(255,255,255,.18)"
+      };
+    }
+    function statusPillStyle(meta){
+      return `background: linear-gradient(135deg, ${meta.bgA}, ${meta.bgB});
+              border-color: ${meta.border};
+              color: rgba(255,255,255,.92);`;
+    }
+
     /* ========= Ressort Pill Style ========= */
     const RESSORT_COLORS = {
       "Externe Events":   ["rgba(249,115,22,.22)", "rgba(168,85,247,.12)"],
@@ -804,14 +860,6 @@
         h = Math.imul(h, 16777619);
       }
       return (h >>> 0);
-    }
-    function initialsFromText(txt){
-      const t = (txt || "").trim();
-      if (!t) return "U";
-      const parts = t.split(/\s+/).filter(Boolean);
-      const a = (parts[0]?.[0] || "U").toUpperCase();
-      const b = (parts[1]?.[0] || "").toUpperCase();
-      return (a + b).trim() || a;
     }
     function initialsFromEmail(email){
       const e = (email || "").trim().toLowerCase();
@@ -921,7 +969,7 @@
 
       if (uid){
         const res = await sb
-          .from(PROFILES_TABLE)
+          .from("profiles")
           .select("role, display_name, ressort")
           .eq("id", uid)
           .maybeSingle();
@@ -1011,6 +1059,8 @@
         const rejectDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
         const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
 
+        const meta = statusMeta(stRaw);
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>
@@ -1045,6 +1095,13 @@
           <td>${esc(safe(r.email) || "—")}</td>
 
           <td>
+            <span class="statusPill" style="${statusPillStyle(meta)}">
+              <span class="statusDot" style="background:${meta.dot}; box-shadow: 0 0 0 2px rgba(255,255,255,.10), 0 0 16px ${meta.dot.replace(',.95',',.35')};"></span>
+              ${esc(meta.label)}
+            </span>
+          </td>
+
+          <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button class="btn-secondary" data-action="edit" data-id="${r.id}"
                 ${editDisabled ? "disabled" : ""} type="button">Bearbeiten</button>
@@ -1077,8 +1134,8 @@
         return;
       }
 
-      ALL = (Array.isArray(data) ? data : [])
-        .filter(r => normalizeStatus(r[BEWERBUNG_STATUS_COL]) !== "abgelehnt");
+      // ✅ WICHTIG: NICHT mehr rausfiltern – wir wollen ja "Übernommen/Abgelehnt" anzeigen
+      ALL = (Array.isArray(data) ? data : []);
 
       statusPill.textContent = `Geladen: ${ALL.length}`;
       render();
