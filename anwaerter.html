@@ -39,6 +39,8 @@
       --danger2: #e11d48;
 
       --stickyTop: 14px;
+
+      --tap: 42px;
     }
 
     *{box-sizing:border-box}
@@ -69,7 +71,6 @@
     @media (prefers-reduced-motion: reduce){
       body{ animation:none !important; }
     }
-
     body.modal-open{ overflow:hidden; height:100vh; }
 
     .app{ width:100%; max-width:1200px; margin:0 auto; }
@@ -83,6 +84,7 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
+    /* ===== Header ===== */
     .top{
       display:flex;
       align-items:flex-end;
@@ -284,6 +286,7 @@
       padding: 10px 14px;
       font-weight:700;
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+      min-height: var(--tap);
     }
     button:active{ transform: translateY(0px) scale(.99); }
     button:disabled{
@@ -336,6 +339,7 @@
       outline:none;
       min-width: 170px;
       transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      min-height: var(--tap);
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
     input:focus, select:focus{
@@ -344,6 +348,21 @@
       transform: translateY(-1px);
     }
     select option{ background: #1a1424; color: rgba(255,255,255,.92); }
+
+    /* ✅ Filter row: nicer wrap + compact on mobile */
+    .filters{
+      display:grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      align-items:center;
+    }
+    @media (max-width: 980px){
+      .filters{
+        grid-template-columns: 1fr 1fr;
+      }
+      .filters .wide{ grid-column: 1 / -1; }
+      .filters .right{ grid-column: 1 / -1; display:flex; gap:10px; justify-content:space-between; align-items:center; }
+    }
 
     .miniDash{
       display:grid;
@@ -360,6 +379,7 @@
       align-items:center;
       justify-content:space-between;
       gap: 12px;
+      min-height: 72px;
     }
     .dashLabel{ font-size:12px; color: rgba(255,255,255,.68); }
     .dashValue{ font-size:18px; font-weight: 900; letter-spacing:.2px; }
@@ -371,7 +391,7 @@
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.05);
     }
-    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 1060px; }
+    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 980px; }
     th, td{ padding:12px 14px; text-align:left; font-size:14px; vertical-align:middle; }
     th{
       font-size:12px;
@@ -446,28 +466,106 @@
       flex: 0 0 auto;
     }
 
-    /* ✅ Mail checkbox "glass" */
-    .chkWrap{
+    /* ✅ Actions compact */
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .btn-mini{
+      padding: 9px 12px;
+      border-radius: 14px;
+    }
+
+    /* ✅ NEW: Mail toggle (compact, pretty, mobile-friendly) */
+    .mailToggle{
+      width: 44px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.06);
+      position: relative;
+      box-shadow: 0 10px 22px rgba(0,0,0,.18);
+      transition: transform .14s ease, filter .14s ease, background .14s ease, border-color .14s ease;
       display:inline-flex;
       align-items:center;
-      gap:10px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
+      justify-content:center;
       user-select:none;
     }
-    .chkWrap input[type="checkbox"]{
-      width: 18px; height: 18px;
-      accent-color: #f97316;
-      cursor: pointer;
-    }
-    .chkWrap.disabled{
+    .mailToggle:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+    .mailToggle.disabled{
       opacity:.55;
-      filter: saturate(.85);
+      filter:saturate(.85);
+      pointer-events:none;
     }
-    .chkText{ font-size:12px; color: rgba(255,255,255,.78); font-weight: 800; letter-spacing:.15px; }
-    .chkHint{ font-size:11px; color: rgba(255,255,255,.55); }
+    .mailKnob{
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      position:absolute;
+      left: 3px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,.75);
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      transition: left .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+    .mailToggle.on{
+      background: linear-gradient(135deg, rgba(249,115,22,.22), rgba(168,85,247,.16));
+      border-color: rgba(249,115,22,.35);
+      box-shadow: 0 12px 28px rgba(249,115,22,.18);
+    }
+    .mailToggle.on .mailKnob{
+      left: 19px;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 10px 22px rgba(249,115,22,.18);
+    }
+    .mailToggleIcon{
+      font-size: 12px;
+      opacity: .9;
+      position:absolute;
+      left: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events:none;
+    }
+    .mailToggle.on .mailToggleIcon{ left:auto; right: 6px; }
+
+    /* ✅ Mobile: switch to card list (no ugly wide table) */
+    @media (max-width: 720px){
+      .tableWrap{ background: transparent; border: none; }
+      table{ min-width: 0; width:100%; border-spacing: 0 10px; border-collapse: separate; }
+      thead{ display:none; }
+
+      tbody tr{
+        display:block;
+        margin-bottom: 12px;
+        border-radius: 18px;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.12);
+        overflow:hidden;
+      }
+      tbody td{
+        display:block;
+        border: none !important;
+        padding: 12px 12px;
+      }
+      tbody td + td{ border-top: 1px solid rgba(255,255,255,.08) !important; }
+
+      .nameCell{ min-width: 0; }
+      .nameMeta strong{ max-width: 240px; }
+      .mobileRow{
+        display:flex;
+        justify-content:space-between;
+        gap:10px;
+        align-items:center;
+        flex-wrap:wrap;
+      }
+      .actions{ gap:8px; }
+      .btn-mini{ width: 100%; justify-content:center; }
+      .actions button{ width: 100%; }
+    }
 
     /* ===== Modal ===== */
     .modalOverlay{
@@ -518,14 +616,11 @@
     .photoPreview img{ width:100%; height:100%; object-fit:cover; display:block; }
 
     @media (max-width: 640px){
-      input,select{min-width:0; width:100%;}
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authNameInline{ max-width: 140px; }
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
-      table{ min-width: 1020px; }
-      th:nth-child(3), td:nth-child(3){ display:none; } /* Email ausblenden auf Mobile */
     }
   </style>
 </head>
@@ -634,19 +729,18 @@
 
     <!-- CONTENT -->
     <div class="glass card hidden" id="contentCard">
-      <div class="row">
-        <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
+
+      <!-- ✅ nicer filters layout -->
+      <div class="filters">
+        <input class="wide" id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fRessort"></select>
-
-        <!-- ✅ NEU: Status Filter -->
         <select id="fStatus"></select>
-
-        <!-- ✅ NEU: Sort -->
         <select id="sortBy"></select>
-
         <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
-        <div class="spacer"></div>
-        <div class="pill" id="countPill">0</div>
+
+        <div class="right wide" style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+          <div class="pill" id="countPill">0</div>
+        </div>
       </div>
 
       <div class="miniDash" aria-label="Mini Dashboard">
@@ -751,8 +845,7 @@
     const MEMBERS_TABLE = "members";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
-    // ✅ Deine neue Spalte (bool) in Supabase:
-    // Falls sie bei dir anders heißt: hier anpassen.
+    // ✅ deine bool-spalte in Supabase (falls anders -> hier ändern)
     const MAIL_BOOL_COL = "mail";
 
     const RESSORTS_FIXED = [
@@ -825,17 +918,10 @@
     }
     function normalizeRessort(v){ return safe(v).trim().toLowerCase(); }
 
-    /* ✅ Status key/label (für Filter/Sort) */
     function statusKey(statusRaw){
       if (isVollmitglied(statusRaw)) return "full";
       if (isAnwaerterAbgelehnt(statusRaw)) return "rejected";
       return "open";
-    }
-    function statusLabel(statusRaw){
-      const k = statusKey(statusRaw);
-      if (k === "full") return "Übernommen";
-      if (k === "rejected") return "Abgelehnt";
-      return "Offen";
     }
 
     function statusMeta(statusRaw){
@@ -1044,8 +1130,6 @@
         `<option value="">Ressort (alle)</option>` +
         RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
     }
-
-    /* ✅ NEU: Status Filter füllen */
     function fillStatusFilter(){
       fStatus.innerHTML = `
         <option value="">Status (alle)</option>
@@ -1053,8 +1137,6 @@
         <option value="rejected">Abgelehnt</option>
       `;
     }
-
-    /* ✅ NEU: Sort Optionen */
     function fillSort(){
       sortBy.innerHTML = `
         <option value="created_desc">Sort: Neueste zuerst</option>
@@ -1094,7 +1176,6 @@
     function compareStrings(a,b){
       return a.localeCompare(b, "de", { sensitivity: "base" });
     }
-
     function getCreatedAt(row){
       const v = row?.created_at;
       const t = Date.parse(v);
@@ -1104,19 +1185,17 @@
     function render(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
-      const sf = safe(fStatus.value).trim();    // "" | "full" | "rejected"
+      const sf = safe(fStatus.value).trim();
       const so = safe(sortBy.value).trim();
 
       let rows = ALL.filter(r => {
         if (rf && safe(r.ressort).trim() !== rf) return false;
         if (sf && statusKey(r?.[BEWERBUNG_STATUS_COL]) !== sf) return false;
-
         if (!text) return true;
-        const hay = [r.vorname, r.nachname, r.email, r.ressort, statusLabel(r?.[BEWERBUNG_STATUS_COL])].map(safe).join(" ").toLowerCase();
+        const hay = [r.vorname, r.nachname, r.email, r.ressort].map(safe).join(" ").toLowerCase();
         return hay.includes(text);
       });
 
-      // ✅ Sort
       rows.sort((a,b)=>{
         if (so === "created_desc") return getCreatedAt(b) - getCreatedAt(a);
         if (so === "created_asc")  return getCreatedAt(a) - getCreatedAt(b);
@@ -1136,7 +1215,6 @@
         }
 
         if (so === "mail_first"){
-          // unchecked zuerst (false/NULL), dann true
           const ma = !!a?.[MAIL_BOOL_COL];
           const mb = !!b?.[MAIL_BOOL_COL];
           if (ma !== mb) return (ma ? 1 : 0) - (mb ? 1 : 0);
@@ -1164,7 +1242,7 @@
 
         const meta = statusMeta(stRaw);
 
-        // ✅ Checkbox nur "verfügbar", wenn Status = Vollmitglied ODER abgelehnt
+        // ✅ mail toggle only when eligible + CAN_EDIT
         const mailEligible = (fullAlready || rejectedAlready);
         const mailCanToggle = CAN_EDIT && mailEligible;
 
@@ -1211,29 +1289,30 @@
           </td>
 
           <td>
-            <span class="chkWrap ${mailCanToggle ? "" : "disabled"}" title="${mailCanToggle ? "Mail-Status setzen" : "Erst nach Übernehmen/Ablehnen verfügbar (und nur Vorstand)"}">
-              <input type="checkbox"
-                data-action="mail"
-                data-id="${r.id}"
-                ${mailChecked ? "checked" : ""}
-                ${mailCanToggle ? "" : "disabled"}
-              />
-              <span>
-                <div class="chkText">Mail</div>
-                <div class="chkHint">${mailChecked ? "gesendet" : "offen"}</div>
-              </span>
-            </span>
+            <div
+              class="mailToggle ${mailChecked ? "on" : ""} ${mailCanToggle ? "" : "disabled"}"
+              role="switch"
+              aria-checked="${mailChecked ? "true" : "false"}"
+              tabindex="${mailCanToggle ? "0" : "-1"}"
+              title="${mailCanToggle ? (mailChecked ? "Mail: gesendet" : "Mail: offen") : "Erst nach Übernehmen/Ablehnen verfügbar (und nur Vorstand)"}"
+              data-action="mail"
+              data-id="${r.id}"
+              data-checked="${mailChecked ? "1" : "0"}"
+            >
+              <span class="mailToggleIcon">✉️</span>
+              <span class="mailKnob"></span>
+            </div>
           </td>
 
           <td>
-            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-              <button class="btn-secondary" data-action="edit" data-id="${r.id}"
+            <div class="actions">
+              <button class="btn-secondary btn-mini" data-action="edit" data-id="${r.id}"
                 ${editDisabled ? "disabled" : ""} type="button">Bearbeiten</button>
 
-              <button class="btn-done" data-action="full" data-id="${r.id}"
+              <button class="btn-done btn-mini" data-action="full" data-id="${r.id}"
                 ${fullDisabled ? "disabled" : ""} type="button">Vollmitglied</button>
 
-              <button class="btn-danger" data-action="reject" data-id="${r.id}"
+              <button class="btn-danger btn-mini" data-action="reject" data-id="${r.id}"
                 ${rejectDisabled ? "disabled" : ""} type="button">Ablehnen</button>
             </div>
           </td>
@@ -1258,7 +1337,7 @@
         return;
       }
 
-      // ✅ Wie gewünscht: "Offen" komplett ausblenden + Ressort=="abgelehnt" ausblenden
+      // ✅ Offen komplett ausblenden + Ressort=="abgelehnt" ausblenden
       ALL = (Array.isArray(data) ? data : []).filter(r => {
         const statusRaw = r?.[BEWERBUNG_STATUS_COL];
         const ressort = normalizeRessort(r?.ressort);
@@ -1357,7 +1436,6 @@
       const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt.");
       if (!ok) return;
 
-      // ✅ optional: Mail-Checkbox initial auf false setzen (damit "offen" ist)
       const { error } = await sb
         .from(CANDIDATES_TABLE)
         .update({ [BEWERBUNG_STATUS_COL]: "Anwärter abgelehnt", [MAIL_BOOL_COL]: false })
@@ -1418,7 +1496,6 @@
         return;
       }
 
-      // ✅ Mail-Checkbox initial auf false setzen (damit "offen" ist)
       const { error: upErr } = await sb
         .from(CANDIDATES_TABLE)
         .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied", [MAIL_BOOL_COL]: false })
@@ -1432,11 +1509,9 @@
       await fetchCandidates();
     }
 
-    /* ✅ NEU: Mail checkbox togglen */
     async function toggleMail(id, checked){
       if (!CAN_EDIT) return;
 
-      // local optimistic
       const row = ALL.find(x => Number(x.id) === Number(id));
       if (row) row[MAIL_BOOL_COL] = !!checked;
       render();
@@ -1447,14 +1522,26 @@
         .eq("id", id);
 
       if (error){
-        // rollback
         if (row) row[MAIL_BOOL_COL] = !checked;
         render();
         alert("Fehler beim Setzen des Mail-Status: " + error.message);
       }
     }
 
-    // Events
+    /* ✅ Event handler for mail toggle div */
+    function handleMailToggleEl(el){
+      const id = Number(el.dataset.id);
+      const row = ALL.find(x => Number(x.id) === id);
+      if (!row) return;
+
+      const stRaw = row?.[BEWERBUNG_STATUS_COL];
+      const eligible = (isVollmitglied(stRaw) || isAnwaerterAbgelehnt(stRaw));
+      if (!CAN_EDIT || !eligible) return;
+
+      const now = !!row?.[MAIL_BOOL_COL];
+      toggleMail(id, !now);
+    }
+
     function wireFilters(){
       q.addEventListener("input", render);
       fRessort.addEventListener("change", render);
@@ -1473,6 +1560,9 @@
     });
 
     tbody.addEventListener("click", (e)=>{
+      const mail = e.target.closest('[data-action="mail"]');
+      if (mail) { handleMailToggleEl(mail); return; }
+
       const btn = e.target.closest("button[data-action]");
       if (!btn || btn.disabled) return;
 
@@ -1485,11 +1575,13 @@
       if (action === "reject") rejectCandidate(id);
     });
 
-    tbody.addEventListener("change", (e)=>{
-      const chk = e.target.closest('input[type="checkbox"][data-action="mail"]');
-      if (!chk) return;
-      const id = Number(chk.dataset.id);
-      toggleMail(id, chk.checked);
+    tbody.addEventListener("keydown", (e)=>{
+      const mail = e.target.closest('[data-action="mail"]');
+      if (!mail) return;
+      if (e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        handleMailToggleEl(mail);
+      }
     });
 
     document.addEventListener("keydown", (e)=>{
