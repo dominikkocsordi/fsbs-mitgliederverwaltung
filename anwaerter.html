@@ -70,11 +70,7 @@
       body{ animation:none !important; }
     }
 
-    /* ✅ Modal open => Background scroll aus */
-    body.modal-open{
-      overflow:hidden;
-      height:100vh;
-    }
+    body.modal-open{ overflow:hidden; height:100vh; }
 
     .app{ width:100%; max-width:1200px; margin:0 auto; }
 
@@ -87,7 +83,6 @@
       -webkit-backdrop-filter: blur(18px);
     }
 
-    /* ===== Header ===== */
     .top{
       display:flex;
       align-items:flex-end;
@@ -241,12 +236,7 @@
     .hidden{ display:none; }
 
     /* ===== NAV ===== */
-    .navWrap{
-      position: sticky;
-      top: var(--stickyTop);
-      z-index: 10;
-      margin-bottom: 16px;
-    }
+    .navWrap{ position: sticky; top: var(--stickyTop); z-index: 10; margin-bottom: 16px; }
     .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
@@ -344,7 +334,7 @@
       padding: 12px 14px;
       border-radius: 14px;
       outline:none;
-      min-width: 190px;
+      min-width: 170px;
       transition: transform .15s ease, background .15s ease, border-color .15s ease;
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
@@ -355,7 +345,6 @@
     }
     select option{ background: #1a1424; color: rgba(255,255,255,.92); }
 
-    /* ✅ MINI DASHBOARD (2 Cards) */
     .miniDash{
       display:grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -382,7 +371,7 @@
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.05);
     }
-    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 940px; }
+    table{ width:100%; border-collapse:separate; border-spacing:0; min-width: 1060px; }
     th, td{ padding:12px 14px; text-align:left; font-size:14px; vertical-align:middle; }
     th{
       font-size:12px;
@@ -437,7 +426,6 @@
       white-space:nowrap;
     }
 
-    /* ✅ Status pill */
     .statusPill{
       display:inline-flex;
       align-items:center;
@@ -457,6 +445,29 @@
       box-shadow: 0 0 0 2px rgba(255,255,255,.10);
       flex: 0 0 auto;
     }
+
+    /* ✅ Mail checkbox "glass" */
+    .chkWrap{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      user-select:none;
+    }
+    .chkWrap input[type="checkbox"]{
+      width: 18px; height: 18px;
+      accent-color: #f97316;
+      cursor: pointer;
+    }
+    .chkWrap.disabled{
+      opacity:.55;
+      filter: saturate(.85);
+    }
+    .chkText{ font-size:12px; color: rgba(255,255,255,.78); font-weight: 800; letter-spacing:.15px; }
+    .chkHint{ font-size:11px; color: rgba(255,255,255,.55); }
 
     /* ===== Modal ===== */
     .modalOverlay{
@@ -513,7 +524,7 @@
       .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
       .navLeft{ flex-wrap:nowrap; }
       .navRight{ margin-left: 0; }
-      table{ min-width: 860px; }
+      table{ min-width: 1020px; }
       th:nth-child(3), td:nth-child(3){ display:none; } /* Email ausblenden auf Mobile */
     }
   </style>
@@ -624,19 +635,25 @@
     <!-- CONTENT -->
     <div class="glass card hidden" id="contentCard">
       <div class="row">
-        <input id="q" placeholder="Suche (Name, Mail, Ressort, Status…)" />
+        <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
         <select id="fRessort"></select>
+
+        <!-- ✅ NEU: Status Filter -->
+        <select id="fStatus"></select>
+
+        <!-- ✅ NEU: Sort -->
+        <select id="sortBy"></select>
+
         <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
         <div class="spacer"></div>
         <div class="pill" id="countPill">0</div>
       </div>
 
-      <!-- ✅ MINI DASHBOARD (nur 2 Cards) -->
       <div class="miniDash" aria-label="Mini Dashboard">
         <div class="dashCard">
           <div>
-            <div class="dashLabel">Alle Anwärter</div>
-            <div class="dashHint">gesamt</div>
+            <div class="dashLabel">Alle Einträge</div>
+            <div class="dashHint">sichtbar</div>
           </div>
           <div class="dashValue" id="dashTotal">0</div>
         </div>
@@ -658,6 +675,7 @@
               <th>Ressort</th>
               <th>Email</th>
               <th>Status</th>
+              <th>Mail</th>
               <th style="width:340px;">Aktionen</th>
             </tr>
           </thead>
@@ -665,7 +683,7 @@
         </table>
       </div>
 
-      <div id="empty" class="empty hidden">Keine Anwärter gefunden.</div>
+      <div id="empty" class="empty hidden">Keine Einträge gefunden.</div>
     </div>
 
   </div>
@@ -733,6 +751,10 @@
     const MEMBERS_TABLE = "members";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
+    // ✅ Deine neue Spalte (bool) in Supabase:
+    // Falls sie bei dir anders heißt: hier anpassen.
+    const MAIL_BOOL_COL = "mail";
+
     const RESSORTS_FIXED = [
       "Externe Events",
       "Interne Events",
@@ -763,17 +785,17 @@
 
     const q = document.getElementById("q");
     const fRessort = document.getElementById("fRessort");
+    const fStatus  = document.getElementById("fStatus");
+    const sortBy   = document.getElementById("sortBy");
     const reloadBtn = document.getElementById("reloadBtn");
     const countPill = document.getElementById("countPill");
     const tbody = document.getElementById("tbody");
     const empty = document.getElementById("empty");
 
-    // Mini dashboard values (2 cards)
     const dashTotal = document.getElementById("dashTotal");
     const dashMine  = document.getElementById("dashMine");
     const dashMineHint = document.getElementById("dashMineHint");
 
-    // Edit modal
     const editOverlay = document.getElementById("editOverlay");
     const editSub = document.getElementById("editSub");
     const editRessort = document.getElementById("editRessort");
@@ -798,16 +820,24 @@
       return st === "anwärter abgelehnt" || st === "anwaerter abgelehnt";
     }
     function isVollmitglied(statusRaw){ return normalizeStatus(statusRaw) === "vollmitglied"; }
-
-    /* ✅ NEU: "Offen" erkennen + Ressort normalize */
     function isOffen(statusRaw){
       return !isVollmitglied(statusRaw) && !isAnwaerterAbgelehnt(statusRaw);
     }
-    function normalizeRessort(v){
-      return safe(v).trim().toLowerCase();
+    function normalizeRessort(v){ return safe(v).trim().toLowerCase(); }
+
+    /* ✅ Status key/label (für Filter/Sort) */
+    function statusKey(statusRaw){
+      if (isVollmitglied(statusRaw)) return "full";
+      if (isAnwaerterAbgelehnt(statusRaw)) return "rejected";
+      return "open";
+    }
+    function statusLabel(statusRaw){
+      const k = statusKey(statusRaw);
+      if (k === "full") return "Übernommen";
+      if (k === "rejected") return "Abgelehnt";
+      return "Offen";
     }
 
-    /* ✅ Status UI helper */
     function statusMeta(statusRaw){
       if (isVollmitglied(statusRaw)) {
         return {
@@ -841,7 +871,6 @@
               color: rgba(255,255,255,.92);`;
     }
 
-    /* ========= Ressort Pill Style ========= */
     const RESSORT_COLORS = {
       "Externe Events":   ["rgba(249,115,22,.22)", "rgba(168,85,247,.12)"],
       "Interne Events":   ["rgba(168,85,247,.22)", "rgba(249,115,22,.12)"],
@@ -1016,6 +1045,28 @@
         RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
     }
 
+    /* ✅ NEU: Status Filter füllen */
+    function fillStatusFilter(){
+      fStatus.innerHTML = `
+        <option value="">Status (alle)</option>
+        <option value="full">Übernommen</option>
+        <option value="rejected">Abgelehnt</option>
+      `;
+    }
+
+    /* ✅ NEU: Sort Optionen */
+    function fillSort(){
+      sortBy.innerHTML = `
+        <option value="created_desc">Sort: Neueste zuerst</option>
+        <option value="created_asc">Sort: Älteste zuerst</option>
+        <option value="name_asc">Sort: Name A→Z</option>
+        <option value="name_desc">Sort: Name Z→A</option>
+        <option value="status">Sort: Status</option>
+        <option value="mail_first">Sort: Mail offen zuerst</option>
+      `;
+      sortBy.value = "created_desc";
+    }
+
     function applyRoleUX(){
       if (!CAN_EDIT && MY_RESSORT && RESSORTS_FIXED.includes(MY_RESSORT)){
         fRessort.value = MY_RESSORT;
@@ -1040,15 +1091,59 @@
       dashMineHint.textContent = MY_RESSORT || "–";
     }
 
+    function compareStrings(a,b){
+      return a.localeCompare(b, "de", { sensitivity: "base" });
+    }
+
+    function getCreatedAt(row){
+      const v = row?.created_at;
+      const t = Date.parse(v);
+      return Number.isFinite(t) ? t : 0;
+    }
+
     function render(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
+      const sf = safe(fStatus.value).trim();    // "" | "full" | "rejected"
+      const so = safe(sortBy.value).trim();
 
-      const rows = ALL.filter(r => {
+      let rows = ALL.filter(r => {
         if (rf && safe(r.ressort).trim() !== rf) return false;
+        if (sf && statusKey(r?.[BEWERBUNG_STATUS_COL]) !== sf) return false;
+
         if (!text) return true;
-        const hay = [r.vorname, r.nachname, r.email, r.ressort, r[BEWERBUNG_STATUS_COL]].map(safe).join(" ").toLowerCase();
+        const hay = [r.vorname, r.nachname, r.email, r.ressort, statusLabel(r?.[BEWERBUNG_STATUS_COL])].map(safe).join(" ").toLowerCase();
         return hay.includes(text);
+      });
+
+      // ✅ Sort
+      rows.sort((a,b)=>{
+        if (so === "created_desc") return getCreatedAt(b) - getCreatedAt(a);
+        if (so === "created_asc")  return getCreatedAt(a) - getCreatedAt(b);
+
+        const nameA = `${safe(a.vorname)} ${safe(a.nachname)}`.trim();
+        const nameB = `${safe(b.vorname)} ${safe(b.nachname)}`.trim();
+
+        if (so === "name_asc")  return compareStrings(nameA, nameB);
+        if (so === "name_desc") return compareStrings(nameB, nameA);
+
+        if (so === "status"){
+          const order = { full: 0, rejected: 1, open: 2 };
+          const da = order[statusKey(a?.[BEWERBUNG_STATUS_COL])] ?? 9;
+          const db = order[statusKey(b?.[BEWERBUNG_STATUS_COL])] ?? 9;
+          if (da !== db) return da - db;
+          return compareStrings(nameA, nameB);
+        }
+
+        if (so === "mail_first"){
+          // unchecked zuerst (false/NULL), dann true
+          const ma = !!a?.[MAIL_BOOL_COL];
+          const mb = !!b?.[MAIL_BOOL_COL];
+          if (ma !== mb) return (ma ? 1 : 0) - (mb ? 1 : 0);
+          return getCreatedAt(b) - getCreatedAt(a);
+        }
+
+        return 0;
       });
 
       countPill.textContent = `${rows.length} / ${ALL.length}`;
@@ -1059,7 +1154,7 @@
         const thumb = safe(r.photo_thumb).trim();
         const photo = safe(r.photo_url).trim();
 
-        const stRaw = r[BEWERBUNG_STATUS_COL];
+        const stRaw = r?.[BEWERBUNG_STATUS_COL];
         const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
         const fullAlready = isVollmitglied(stRaw);
 
@@ -1068,6 +1163,12 @@
         const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
 
         const meta = statusMeta(stRaw);
+
+        // ✅ Checkbox nur "verfügbar", wenn Status = Vollmitglied ODER abgelehnt
+        const mailEligible = (fullAlready || rejectedAlready);
+        const mailCanToggle = CAN_EDIT && mailEligible;
+
+        const mailChecked = !!r?.[MAIL_BOOL_COL];
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1110,6 +1211,21 @@
           </td>
 
           <td>
+            <span class="chkWrap ${mailCanToggle ? "" : "disabled"}" title="${mailCanToggle ? "Mail-Status setzen" : "Erst nach Übernehmen/Ablehnen verfügbar (und nur Vorstand)"}">
+              <input type="checkbox"
+                data-action="mail"
+                data-id="${r.id}"
+                ${mailChecked ? "checked" : ""}
+                ${mailCanToggle ? "" : "disabled"}
+              />
+              <span>
+                <div class="chkText">Mail</div>
+                <div class="chkHint">${mailChecked ? "gesendet" : "offen"}</div>
+              </span>
+            </span>
+          </td>
+
+          <td>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <button class="btn-secondary" data-action="edit" data-id="${r.id}"
                 ${editDisabled ? "disabled" : ""} type="button">Bearbeiten</button>
@@ -1142,8 +1258,7 @@
         return;
       }
 
-      /* ✅ NEU: Nur Übernommen (Vollmitglied) ODER Abgelehnt anzeigen.
-         Alles "Offen" komplett ausblenden + Ressort == "abgelehnt" ausblenden */
+      // ✅ Wie gewünscht: "Offen" komplett ausblenden + Ressort=="abgelehnt" ausblenden
       ALL = (Array.isArray(data) ? data : []).filter(r => {
         const statusRaw = r?.[BEWERBUNG_STATUS_COL];
         const ressort = normalizeRessort(r?.ressort);
@@ -1242,9 +1357,10 @@
       const ok = confirm("Soll dieser Anwärter wirklich abgelehnt werden?\nStatus wird auf „Anwärter abgelehnt“ gesetzt.");
       if (!ok) return;
 
+      // ✅ optional: Mail-Checkbox initial auf false setzen (damit "offen" ist)
       const { error } = await sb
         .from(CANDIDATES_TABLE)
-        .update({ [BEWERBUNG_STATUS_COL]: "Anwärter abgelehnt" })
+        .update({ [BEWERBUNG_STATUS_COL]: "Anwärter abgelehnt", [MAIL_BOOL_COL]: false })
         .eq("id", id);
 
       if (error){
@@ -1302,23 +1418,50 @@
         return;
       }
 
+      // ✅ Mail-Checkbox initial auf false setzen (damit "offen" ist)
       const { error: upErr } = await sb
         .from(CANDIDATES_TABLE)
-        .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied" })
+        .update({ [BEWERBUNG_STATUS_COL]: "Vollmitglied", [MAIL_BOOL_COL]: false })
         .eq("id", row.id);
 
       if (upErr){
-        alert("Mitglied wurde in members angelegt, aber Status konnte nicht gesetzt werden:\n" + upErr.message);
+        alert("Mitglied wurde in members angelegt, aber Status/Mail konnte nicht gesetzt werden:\n" + upErr.message);
         return;
       }
 
       await fetchCandidates();
     }
 
+    /* ✅ NEU: Mail checkbox togglen */
+    async function toggleMail(id, checked){
+      if (!CAN_EDIT) return;
+
+      // local optimistic
+      const row = ALL.find(x => Number(x.id) === Number(id));
+      if (row) row[MAIL_BOOL_COL] = !!checked;
+      render();
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .update({ [MAIL_BOOL_COL]: !!checked })
+        .eq("id", id);
+
+      if (error){
+        // rollback
+        if (row) row[MAIL_BOOL_COL] = !checked;
+        render();
+        alert("Fehler beim Setzen des Mail-Status: " + error.message);
+      }
+    }
+
     // Events
-    fillRessortFilter();
-    q.addEventListener("input", render);
-    fRessort.addEventListener("change", render);
+    function wireFilters(){
+      q.addEventListener("input", render);
+      fRessort.addEventListener("change", render);
+      fStatus.addEventListener("change", render);
+      sortBy.addEventListener("change", render);
+    }
+
     reloadBtn.addEventListener("click", fetchCandidates);
 
     saveEditBtn.addEventListener("click", saveEdit);
@@ -1342,12 +1485,24 @@
       if (action === "reject") rejectCandidate(id);
     });
 
+    tbody.addEventListener("change", (e)=>{
+      const chk = e.target.closest('input[type="checkbox"][data-action="mail"]');
+      if (!chk) return;
+      const id = Number(chk.dataset.id);
+      toggleMail(id, chk.checked);
+    });
+
     document.addEventListener("keydown", (e)=>{
       if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEdit();
     });
 
     /* ========= Init ========= */
     (async () => {
+      fillRessortFilter();
+      fillStatusFilter();
+      fillSort();
+      wireFilters();
+
       const { data } = await sb.auth.getSession();
       const session = data?.session;
       const mail = session?.user?.email || "";
