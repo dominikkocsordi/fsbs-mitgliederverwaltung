@@ -18,38 +18,24 @@
 
 <style>
 :root{
-  --bg1:#120e18;
-  --bg2:#1a1424;
-  --bg3:#1f162c;
-
-  --accent1:#f97316;
-  --accent2:#a855f7;
-
+  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+  --accent1:#f97316; --accent2:#a855f7;
   --glass: rgba(255,255,255,.08);
   --border: rgba(255,255,255,.18);
-
   --text: rgba(255,255,255,.92);
   --muted: rgba(255,255,255,.65);
-
   --shadow: 0 20px 55px rgba(0,0,0,.50);
-
   --ok: rgba(34,197,94,.95);
-  --warn: rgba(251,146,60,.95);
 
-  --danger1: #fb7185;
-  --danger2: #e11d48;
-
-  /* ✅ Canonical Ressort-Pills (EINHEITLICH für alle Seiten) */
-  --rx-a1: rgba(249,115,22,.24);  --rx-a2: rgba(251,146,60,.14);  /* Orange */
-  --rx-p1: rgba(168,85,247,.24);  --rx-p2: rgba(124,58,237,.14);  /* Purple */
-  --rx-b1: rgba(56,189,248,.20);  --rx-b2: rgba(14,165,233,.12);  /* Blue */
-  --rx-g1: rgba(34,197,94,.22);   --rx-g2: rgba(16,185,129,.12);  /* Green */
-  --rx-r1: rgba(239,68,68,.18);   --rx-r2: rgba(251,113,133,.12); /* Red */
+  /* ✅ Canonical Ressort-Pills */
+  --rx-a1: rgba(249,115,22,.24);  --rx-a2: rgba(251,146,60,.14);
+  --rx-p1: rgba(168,85,247,.24);  --rx-p2: rgba(124,58,237,.14);
+  --rx-b1: rgba(56,189,248,.20);  --rx-b2: rgba(14,165,233,.12);
+  --rx-g1: rgba(34,197,94,.22);   --rx-g2: rgba(16,185,129,.12);
+  --rx-r1: rgba(239,68,68,.18);   --rx-r2: rgba(251,113,133,.12);
 }
-
 *{ box-sizing:border-box; }
-html, body { min-height: 100%; }
-
+html, body { min-height:100%; }
 html{
   background:
     radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
@@ -58,7 +44,6 @@ html{
     linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
   background-attachment: fixed;
 }
-
 body{
   margin:0;
   font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
@@ -68,16 +53,10 @@ body{
   justify-content:center;
   align-items:flex-start;
   padding:42px 16px;
-
   animation: pageIn .38s ease both;
 }
-@keyframes pageIn{
-  from{ opacity:0; transform: translateY(8px); }
-  to  { opacity:1; transform: translateY(0); }
-}
-@media (prefers-reduced-motion: reduce){
-  body{ animation:none !important; }
-}
+@keyframes pageIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)} }
+@media (prefers-reduced-motion: reduce){ body{ animation:none !important; } }
 
 .app{ width:100%; max-width:1200px; }
 
@@ -91,42 +70,21 @@ body{
 h1{ margin:0; font-size:32px; letter-spacing:.4px; }
 .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
-.brandLeft{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
+.brandLeft{ display:flex; align-items:center; gap:12px; }
 .brandLogo{
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  padding: 6px;
-  display:grid;
-  place-items:center;
+  width:60px;height:60px;border-radius:14px;padding:6px;
+  display:grid;place-items:center;text-decoration:none;flex:0 0 auto;
   background: rgba(255,255,255,.10);
-  border: 1px solid rgba(255,255,255,.18);
-  box-shadow: 0 16px 44px rgba(0,0,0,.30);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  flex: 0 0 auto;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
   transition: transform .16s ease, filter .16s ease, background .16s ease;
-  text-decoration:none;
 }
-.brandLogo:hover{
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-  background: rgba(255,255,255,.12);
-}
-.brandLogo img{
-  width: 100%;
-  height: 100%;
-  border-radius: 10px;
-  object-fit: cover;
-  display:block;
-}
+.brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
+.brandLogo img{ width:100%;height:100%;border-radius:10px;object-fit:cover;display:block; }
 @media (max-width: 640px){
-  .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
-  .brandLogo img{ border-radius: 9px; }
+  .brandLogo{ width:32px;height:32px;border-radius:12px;padding:5px; }
+  .brandLogo img{ border-radius:9px; }
 }
 
 .glass{
@@ -138,241 +96,105 @@ h1{ margin:0; font-size:32px; letter-spacing:.4px; }
   -webkit-backdrop-filter: blur(18px);
 }
 
-.card{ padding:18px; margin-bottom:16px; }
-.small{ font-size: 13px; color: var(--muted); }
-
 button{
-  border:none;
-  cursor:pointer;
-  border-radius:14px;
-  padding: 12px 16px;
+  border:none; cursor:pointer;
+  border-radius:14px; padding:12px 16px;
   font-weight:650;
   transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
 }
 button:active{ transform: translateY(0px) scale(.99); }
-
-.btn-primary{
-  background: linear-gradient(135deg, var(--accent1), var(--accent2));
-  color: #0f0b16;
-  box-shadow: 0 12px 30px rgba(168,85,247,.25);
-}
-.btn-primary:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.03);
-  box-shadow:
-    0 18px 36px rgba(249,115,22,.22),
-    0 18px 36px rgba(168,85,247,.20);
-}
 
 .btn-secondary{
   background: rgba(255,255,255,.14);
   color: var(--text);
   border: 1px solid var(--border);
 }
-.btn-secondary:hover{
-  transform: translateY(-2px);
-  background: rgba(255,255,255,.18);
-}
+.btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+.hidden{ display:none !important; }
 
 /* ===== Auth badge ===== */
 .authFloating{
-  position: static;
-  z-index: 1;
-  border-radius: 999px;
-  padding: 10px 12px;
-  display:flex;
-  align-items:center;
-  gap:10px;
+  border-radius:999px;
+  padding:10px 12px;
+  display:flex; align-items:center; gap:10px;
   background: rgba(255,255,255,.10);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 18px 55px rgba(0,0,0,.40);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
   user-select:none;
   max-width: min(560px, 100%);
 }
-.dot{
-  width:10px;height:10px;border-radius:999px;
-  background: rgba(255,255,255,.35);
-  position: relative;
-  flex: 0 0 auto;
-}
-.dot.ok{ background: var(--ok); }
+.dot{ width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.35); position:relative; }
+.dot.ok{ background: var(--ok); box-shadow:0 0 0 2px rgba(34,197,94,.20), 0 0 18px rgba(34,197,94,.55), 0 0 42px rgba(34,197,94,.30); }
 .dot.warn{ background: rgba(255,255,255,.35); }
 
-.dot.ok{
-  box-shadow:
-    0 0 0 2px rgba(34,197,94,.20),
-    0 0 18px rgba(34,197,94,.55),
-    0 0 42px rgba(34,197,94,.30);
-}
-@keyframes pulseRing {
-  0%   { transform: scale(1); opacity: .0; }
-  10%  { opacity: .6; }
-  70%  { transform: scale(3.2); opacity: 0; }
-  100% { transform: scale(3.2); opacity: 0; }
-}
-.dot.pulsing::after{
-  content:"";
-  position:absolute;
-  inset: -2px;
-  border-radius: 999px;
-  background: rgba(34,197,94,.25);
-  animation: pulseRing 1.15s ease-out 0s 2;
-  pointer-events:none;
-}
-
 .authAvatar{
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  display:grid;
-  place-items:center;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: .3px;
+  width:30px;height:30px;border-radius:999px;
+  display:grid;place-items:center;
+  font-weight:800;font-size:12px;letter-spacing:.3px;
   color: rgba(255,255,255,.92);
   border: 1px solid rgba(255,255,255,.18);
   box-shadow: 0 12px 28px rgba(0,0,0,.25);
   background: rgba(255,255,255,.10);
-  flex: 0 0 auto;
+  flex:0 0 auto;
 }
-.authAvatar.hidden{ display:none; }
-
-.authInfo{
-  display:flex;
-  flex-direction:column;
-  line-height:1.1;
-  min-width:0;
-  flex: 1 1 auto;
-}
-.authState{
-  font-size:13px;
-  font-weight:750;
-  letter-spacing:.25px;
-}
-.authState.hidden{ display:none; }
-
-.authTopLine{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  min-width:0;
-}
-.authCompact{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  min-width:0;
-}
-.authCompact.hidden{ display:none; }
-
+.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
+.authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
+.authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+.authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
 .authNameInline{
-  font-size:13px;
-  font-weight:850;
-  letter-spacing:.15px;
+  font-size:13px; font-weight:850; letter-spacing:.15px;
   color: rgba(255,255,255,.92);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   max-width: 220px;
 }
+.rolePill{
+  display:inline-flex; align-items:center;
+  padding:6px 10px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.86);
+  font-weight:900; font-size:11px; letter-spacing:.10px;
+  line-height:1; white-space:nowrap;
+}
+.rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
+.rolePill.ressortleiter{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
+
 .authChevron{
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color: rgba(255,255,255,.85);
-  width: 30px; height: 26px;
-  border-radius: 999px;
-  padding: 0;
-  display:grid;
-  place-items:center;
+  width:30px;height:26px;border-radius:999px;
+  padding:0; display:grid; place-items:center;
   cursor:pointer;
   transition: transform .15s ease, background .15s ease;
-  flex: 0 0 auto;
 }
 .authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
 
 .authDetails{
-  margin-top: 8px;
-  padding-top: 8px;
+  margin-top:8px; padding-top:8px;
   border-top: 1px solid rgba(255,255,255,.10);
-  display:flex;
-  gap:8px;
-  align-items:center;
+  display:flex; gap:8px; align-items:center;
   min-width:0;
 }
-.authDetails.hidden{ display:none; }
-
-.authMail{
-  font-size:11px;
-  color: rgba(255,255,255,.58);
-  margin-top:0;
-  word-break:break-all;
-}
-
-.rolePill{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.86);
-  font-weight:900;
-  font-size: 11px;
-  letter-spacing: .10px;
-  line-height: 1;
-  white-space:nowrap;
-  flex: 0 0 auto;
-}
-.rolePill.vorstand{
-  border-color: rgba(56,189,248,.40);
-  background: rgba(56,189,248,.12);
-}
-.rolePill.ressortleiter{
-  border-color: rgba(251,146,60,.35);
-  background: rgba(251,146,60,.12);
-}
-
-.hidden{ display:none; }
+.authMail{ font-size:11px; color: rgba(255,255,255,.58); word-break:break-all; }
 
 /* ===== NAV ===== */
-.navWrap{
-  margin-bottom: 16px;
-  position: sticky;
-  top: 14px;
-  z-index: 6;
-}
-.nav{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  padding: 10px;
-}
-.navLeft{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
+.navWrap{ margin-bottom:16px; position: sticky; top:14px; z-index:6; }
+.nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px; }
+.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 .navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
 .navLink{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding: 10px 12px;
-  border-radius: 16px;
+  display:inline-flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:16px;
   text-decoration:none;
   color: rgba(255,255,255,.86);
-  border: 1px solid rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
-  user-select:none;
-  white-space:nowrap;
+  user-select:none; white-space:nowrap;
 }
 .navLink:hover{
   transform: translateY(-2px);
@@ -386,124 +208,70 @@ button:active{ transform: translateY(0px) scale(.99); }
   box-shadow: 0 12px 28px rgba(249,115,22,.25);
 }
 .navIcon{
-  width:30px; height:30px;
-  border-radius: 12px;
-  display:grid; place-items:center;
+  width:30px;height:30px;border-radius:12px;
+  display:grid;place-items:center;
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.12);
 }
 .navTitle{ font-weight:750; letter-spacing:.2px; }
 .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
-/* ===== Dashboard cards ===== */
+/* ===== Dashboard ===== */
 .grid{
   display:grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 12px;
 }
-.kpi{ grid-column: span 4; padding: 18px; border-radius: 22px; }
+.kpi{ grid-column: span 4; padding:18px; border-radius:22px; }
 .kpiBig{ grid-column: span 6; }
 .kpiFull{ grid-column: 1 / -1; }
 
-.kpiCard{
-  position: relative;
-  overflow:hidden;
-  transition: transform .16s ease, filter .16s ease, border-color .16s ease, background .16s ease;
-}
-.kpiCard:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.03);
-  border-color: rgba(255,255,255,.22);
-  background: rgba(255,255,255,.11);
-}
+.kpiCard{ position:relative; overflow:hidden; transition: transform .16s ease, filter .16s ease, border-color .16s ease, background .16s ease; }
+.kpiCard:hover{ transform: translateY(-2px); filter: brightness(1.03); border-color: rgba(255,255,255,.22); background: rgba(255,255,255,.11); }
 
-.kpiTop{
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
-}
-.kpiTitle{
-  font-size:13px;
-  color: rgba(255,255,255,.70);
-  font-weight:700;
-  letter-spacing:.2px;
-}
-.kpiValue{
-  margin-top:6px;
-  font-size:28px;
-  font-weight:900;
-  letter-spacing:.2px;
-}
-.kpiSub{
-  margin-top:8px;
-  font-size:13px;
-  color: rgba(255,255,255,.62);
-  line-height:1.4;
-}
+.kpiTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.kpiTitle{ font-size:13px; color: rgba(255,255,255,.70); font-weight:700; letter-spacing:.2px; }
+.kpiValue{ margin-top:6px; font-size:28px; font-weight:900; letter-spacing:.2px; }
+.kpiSub{ margin-top:8px; font-size:13px; color: rgba(255,255,255,.62); line-height:1.4; }
 .kpiIcon{
-  width:42px; height:42px;
-  border-radius: 16px;
-  display:grid; place-items:center;
+  width:42px;height:42px;border-radius:16px;
+  display:grid;place-items:center;
   background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.12);
 }
+.kpiActions{ margin-top:14px; display:flex; justify-content:flex-end; gap:10px; }
+.kpiActions .btn-secondary{ padding:10px 12px; border-radius:14px; font-weight:900; font-size:12px; }
 
-/* clean action row */
-.kpiActions{
-  margin-top: 14px;
-  display:flex;
-  justify-content:flex-end;
-  gap:10px;
-}
-.kpiActions .btn-secondary,
-.kpiActions .btn-primary{
-  padding: 10px 12px;
-  border-radius: 14px;
-  font-weight: 900;
-  font-size: 12px;
-}
+.card{ padding:18px; margin-bottom:16px; }
+.small{ font-size:13px; color: var(--muted); }
+.hr{ height:1px; background: rgba(255,255,255,.10); margin:12px 0 0; }
 
-/* ✅ Einheitliche Ressort-Pills */
 .ressortList{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
 .badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 12px;
-  border-radius:999px;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 12px; border-radius:999px;
   border:1px solid rgba(255,255,255,.18);
   background: rgba(255,255,255,.08);
   color: rgba(255,255,255,.92);
-  font-weight:900;
-  font-size:12px;
+  font-weight:900; font-size:12px;
   white-space:nowrap;
-  position:relative;
   overflow:hidden;
 }
 .badge strong{ font-weight:900; }
-
-.hr{
-  height:1px;
-  background: rgba(255,255,255,.10);
-  margin: 12px 0 0;
-}
 
 @media (max-width: 900px){
   .kpi{ grid-column: span 6; }
   .kpiBig{ grid-column: span 12; }
 }
 @media (max-width: 640px){
-  body{ padding: 24px 14px; }
-  h1{ font-size: 26px; }
+  body{ padding:24px 14px; }
+  h1{ font-size:26px; }
   .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-  .authNameInline{ max-width: 150px; }
-
-  .navWrap{ top: 10px; }
+  .authNameInline{ max-width:150px; }
+  .navWrap{ top:10px; }
   .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
   .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left: 0; }
-
+  .navRight{ margin-left:0; }
   .kpi{ grid-column: span 12; }
 }
 </style>
@@ -535,7 +303,6 @@ button:active{ transform: translateY(0px) scale(.99); }
 
             <div class="authCompact hidden" id="authCompact">
               <span class="authNameInline" id="authNameInline">User</span>
-              <!-- ✅ nur 1 Rolle-Pill -->
               <span class="rolePill" id="authRolePill">Rolle</span>
               <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
             </div>
@@ -573,7 +340,8 @@ button:active{ transform: translateY(0px) scale(.99); }
           <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
         </a>
 
-        <a class="navLink" href="rechnungen.html">
+        <!-- ✅ NUR Vorstand sieht das -->
+        <a class="navLink" href="rechnungen.html" id="navFinanzen">
           <span class="navIcon">💰</span>
           <span><div class="navTitle">Finanzen</div><div class="navHint">Belege</div></span>
         </a>
@@ -600,7 +368,6 @@ button:active{ transform: translateY(0px) scale(.99); }
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const LOGIN_PAGE = "login.html";
 
 /* ========= Tables ========= */
@@ -613,37 +380,26 @@ const CAND_STATUS_COL = "bewerbung_status";
 const CAND_REJECT_PATTERN = "abgelehnt%";
 
 /* ✅ Einheitliche Ressorts */
-const RESSORTS = [
-  "Externe Events",
-  "Interne Events",
-  "Merchandise",
-  "Kommunikation",
-  "Sponsoring"
-];
+const RESSORTS = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
 
-/* ✅ Canonical Farbmap (identisch zu members/anwaerter verwenden!) */
+/* ✅ Canonical Farbmap */
 const RESSORT_COLORS = {
   "Externe Events":  ["var(--rx-a1)", "var(--rx-a2)"],
   "Interne Events":  ["var(--rx-p1)", "var(--rx-p2)"],
   "Merchandise":     ["var(--rx-g1)", "var(--rx-g2)"],
   "Kommunikation":   ["var(--rx-b1)", "var(--rx-b2)"],
-  // Spezial: Orange→Purple Mix, bleibt aber trotzdem überall gleich
   "Sponsoring":      ["linear-gradient(135deg, var(--rx-a1), var(--rx-p2))", null],
   "Abgelehnt":       ["var(--rx-r1)", "var(--rx-r2)"],
 };
-
 function pillStyle(label){
   const key = (label || "").trim();
   const pair = RESSORT_COLORS[key];
 
-  // Sponsoring Spezial-Fall (Gradient string)
   if (pair && pair[1] === null && typeof pair[0] === "string" && pair[0].startsWith("linear-gradient")){
     return `background: ${pair[0]}; border-color: rgba(168,85,247,.28);`;
   }
-
   const a = pair?.[0] ?? "rgba(255,255,255,.10)";
   const b = pair?.[1] ?? "rgba(255,255,255,.06)";
-
   const border =
     key === "Externe Events" ? "rgba(249,115,22,.30)" :
     key === "Interne Events" ? "rgba(168,85,247,.30)" :
@@ -652,7 +408,6 @@ function pillStyle(label){
     key === "Sponsoring"     ? "rgba(168,85,247,.28)" :
     key === "Abgelehnt"      ? "rgba(239,68,68,.28)"  :
                                "rgba(255,255,255,.18)";
-
   return `background: linear-gradient(135deg, ${a}, ${b}); border-color: ${border};`;
 }
 
@@ -676,21 +431,20 @@ const authRolePill = document.getElementById("authRolePill");
 const authToggle = document.getElementById("authToggle");
 const authDetails = document.getElementById("authDetails");
 
+/* ✅ NAV: Finanzen nur Vorstand */
+const navFinanzen = document.getElementById("navFinanzen");
+function setNavVisibility(isVorstand){
+  if (!navFinanzen) return;
+  navFinanzen.classList.toggle("hidden", !isVorstand);
+}
+
 function closeAuthDetails(){ authDetails.classList.add("hidden"); }
-authToggle?.addEventListener("click", (e)=>{
-  e.stopPropagation();
-  authDetails.classList.toggle("hidden");
-});
-document.addEventListener("click", (e)=>{
-  if (!authBadge.contains(e.target)) closeAuthDetails();
-});
+authToggle?.addEventListener("click", (e)=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", (e)=>{ if (!authBadge.contains(e.target)) closeAuthDetails(); });
 
 function hashString(str){
   let h = 2166136261;
-  for (let i = 0; i < str.length; i++){
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
+  for (let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
   return (h >>> 0);
 }
 function initialsFromEmail(email){
@@ -725,10 +479,6 @@ function setAvatar(email){
   authAvatar.classList.remove("hidden");
   authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
 }
-function pulseLogin(){
-  authDot.classList.add("pulsing");
-  setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-}
 function setRolePill(role){
   const r = normRole(role);
   authRolePill.textContent = roleLabel(r);
@@ -741,35 +491,23 @@ function setCompactIdentity(displayName, email){
   const fallback = ((email || "").split("@")[0] || "User").trim();
   authNameInline.textContent = name || fallback;
 }
-function setAuthUI(isAuthed, email = "", doPulse = false){
+function setAuthUI(isAuthed, email = ""){
   if (isAuthed){
-    authDot.classList.remove("warn");
-    authDot.classList.add("ok");
-    authState.classList.add("hidden");
-    authState.textContent = "";
-    authCompact.classList.remove("hidden");
-    closeAuthDetails();
-    authMail.textContent = (email || "").trim();
+    authDot.classList.remove("warn"); authDot.classList.add("ok");
+    authState.classList.add("hidden"); authCompact.classList.remove("hidden");
+    closeAuthDetails(); authMail.textContent = (email || "").trim();
     setAvatar(email);
-    if (doPulse) pulseLogin();
   } else {
-    authDot.classList.remove("ok");
-    authDot.classList.add("warn");
-    authState.classList.remove("hidden");
-    authState.textContent = "nicht eingeloggt";
-    authCompact.classList.add("hidden");
-    closeAuthDetails();
-    authMail.textContent = "";
+    authDot.classList.remove("ok"); authDot.classList.add("warn");
+    authState.classList.remove("hidden"); authState.textContent = "nicht eingeloggt";
+    authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent = "";
     setAvatar("");
   }
 }
 
 async function requireAuthOrRedirect(){
   const { data } = await sb.auth.getSession();
-  if (!data.session){
-    window.location.replace(LOGIN_PAGE);
-    throw new Error("No session");
-  }
+  if (!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); }
   return data.session;
 }
 
@@ -802,9 +540,7 @@ async function loadMyProfile(session){
 }
 
 /* ========= Counting helpers ========= */
-function candBaseFilter(q){
-  return q.not(CAND_STATUS_COL, "ilike", CAND_REJECT_PATTERN);
-}
+function candBaseFilter(q){ return q.not(CAND_STATUS_COL, "ilike", CAND_REJECT_PATTERN); }
 
 async function countTable(table, filterCol=null, filterVal=null, opts = {}){
   let q = sb.from(table).select("id", { count:"exact", head:true });
@@ -817,12 +553,10 @@ async function countTable(table, filterCol=null, filterVal=null, opts = {}){
 /* ========= Dashboard UI ========= */
 const grid = document.getElementById("grid");
 
-function card({span="kpi", title, value, sub, icon, href, buttonText="Öffnen", primary=false}){
-  const btnClass = primary ? "btn-primary" : "btn-secondary";
-  const btn = href
-    ? `<button class="${btnClass}" type="button" onclick="go('${href}', event)">${buttonText} ↗</button>`
-    : "";
+function go(href, ev){ ev?.stopPropagation(); location.href = href; }
 
+function card({span="kpi", title, value, sub, icon, href, buttonText="Öffnen"}){
+  const btn = href ? `<button class="btn-secondary" type="button" onclick="go('${href}', event)">${buttonText} ↗</button>` : "";
   return `
     <div class="glass ${span} kpi kpiCard" ${href ? `onclick="location.href='${href}'"` : ""}>
       <div class="kpiTop">
@@ -837,12 +571,6 @@ function card({span="kpi", title, value, sub, icon, href, buttonText="Öffnen", 
     </div>
   `;
 }
-
-function go(href, ev){
-  ev?.stopPropagation();
-  location.href = href;
-}
-
 function cardStatic({span="kpiFull", title, sub, innerHtml=""}){
   return `
     <div class="glass ${span} card">
@@ -853,7 +581,6 @@ function cardStatic({span="kpiFull", title, sub, innerHtml=""}){
     </div>
   `;
 }
-
 function resortBadge(name, membersCount, candCount){
   const label = (name || "—").trim();
   return `
@@ -866,13 +593,15 @@ function resortBadge(name, membersCount, candCount){
 async function loadDashboard(){
   const session = await requireAuthOrRedirect();
   const email = session?.user?.email || "";
-  setAuthUI(true, email, false);
+  setAuthUI(true, email);
 
   const me = await loadMyProfile(session);
   const isVorstand = normRole(me.role) === "vorstand";
   const myRessort = (me.ressort || "").trim();
 
-  // totals
+  /* ✅ NAV an Rolle anpassen */
+  setNavVisibility(isVorstand);
+
   const membersAll = await countTable(MEMBERS_TABLE);
   const candAll    = await countTable(CAND_TABLE, null, null, { base: candBaseFilter });
 
@@ -891,38 +620,14 @@ async function loadDashboard(){
               ${myRessort ? myRessort : "—"} · <strong>${membersMine}</strong> Mitgl · <strong>${candMine}</strong> Anw
             </span>
           </div>
-          <div class="small" style="margin-top:12px; line-height:1.5;">
-           
-          </div>
         `
       })}
-
-      ${card({
-        href:"members.html",
-        title:"Mitglieder",
-        value:String(membersMine),
-        sub:"Mitglieder in deinem Ressort.",
-        icon:"👥",
-        primary:true,
-        span:"kpiBig",
-        buttonText:"Mitglieder"
-      })}
-
-      ${card({
-        href:"anwaerter.html",
-        title:"Anwärter",
-        value:String(candMine),
-        sub:"Anwärter in deinem Ressort.",
-        icon:"👶🏼",
-        primary:false,
-        span:"kpiBig",
-        buttonText:"Anwärter"
-      })}
+      ${card({ href:"members.html", title:"Mitglieder", value:String(membersMine), sub:"Mitglieder in deinem Ressort.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
+      ${card({ href:"anwaerter.html", title:"Anwärter", value:String(candMine), sub:"Anwärter in deinem Ressort.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
     `;
     return;
   }
 
-  // Vorstand: pro Ressort
   const byR = await Promise.all(RESSORTS.map(async r => ({
     r,
     m: await countTable(MEMBERS_TABLE,"ressort", r),
@@ -930,35 +635,12 @@ async function loadDashboard(){
   })));
 
   grid.innerHTML = `
-    ${card({
-      href:"members.html",
-      title:"Gesamt Mitglieder",
-      value:String(membersAll),
-      sub:"Alle Ressorts zusammen.",
-      icon:"👥",
-      span:"kpiBig",
-      primary:true,
-      buttonText:"Mitglieder"
-    })}
-
-    ${card({
-      href:"anwaerter.html",
-      title:"Gesamt Anwärter",
-      value:String(candAll),
-      icon:"👶🏼",
-      span:"kpiBig",
-      primary:false,
-      buttonText:"Anwärter"
-    })}
-
+    ${card({ href:"members.html", title:"Gesamt Mitglieder", value:String(membersAll), sub:"Alle Ressorts zusammen.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
+    ${card({ href:"anwaerter.html", title:"Gesamt Anwärter", value:String(candAll), icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
     ${cardStatic({
       title:"Ressort-Übersicht",
       sub:"Mitglieder & Anwärter pro Ressort.",
-      innerHtml: `
-        <div class="ressortList">
-          ${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}
-        </div>
-      `
+      innerHtml: `<div class="ressortList">${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}</div>`
     })}
   `;
 }
@@ -973,7 +655,7 @@ async function logout(){
   try{
     const session = await requireAuthOrRedirect();
     const email = session?.user?.email || "";
-    setAuthUI(true, email, false);
+    setAuthUI(true, email);
     await loadDashboard();
   } catch(e){
     setAuthUI(false);
