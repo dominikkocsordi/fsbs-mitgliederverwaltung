@@ -799,7 +799,15 @@
     }
     function isVollmitglied(statusRaw){ return normalizeStatus(statusRaw) === "vollmitglied"; }
 
-    /* ✅ Status UI helper (NEU) */
+    /* ✅ NEU: "Offen" erkennen + Ressort normalize */
+    function isOffen(statusRaw){
+      return !isVollmitglied(statusRaw) && !isAnwaerterAbgelehnt(statusRaw);
+    }
+    function normalizeRessort(v){
+      return safe(v).trim().toLowerCase();
+    }
+
+    /* ✅ Status UI helper */
     function statusMeta(statusRaw){
       if (isVollmitglied(statusRaw)) {
         return {
@@ -969,7 +977,7 @@
 
       if (uid){
         const res = await sb
-          .from("profiles")
+          .from(PROFILES_TABLE)
           .select("role, display_name, ressort")
           .eq("id", uid)
           .maybeSingle();
@@ -1134,8 +1142,17 @@
         return;
       }
 
-      // ✅ WICHTIG: NICHT mehr rausfiltern – wir wollen ja "Übernommen/Abgelehnt" anzeigen
-      ALL = (Array.isArray(data) ? data : []);
+      /* ✅ NEU: Nur Übernommen (Vollmitglied) ODER Abgelehnt anzeigen.
+         Alles "Offen" komplett ausblenden + Ressort == "abgelehnt" ausblenden */
+      ALL = (Array.isArray(data) ? data : []).filter(r => {
+        const statusRaw = r?.[BEWERBUNG_STATUS_COL];
+        const ressort = normalizeRessort(r?.ressort);
+
+        if (isOffen(statusRaw)) return false;
+        if (ressort === "abgelehnt") return false;
+
+        return true;
+      });
 
       statusPill.textContent = `Geladen: ${ALL.length}`;
       render();
