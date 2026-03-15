@@ -428,8 +428,7 @@
               <th>Name</th>
               <th>E-Mail</th>
               <th>Status</th>
-              <th>Grund</th>
-              <th>Zeitstempel</th>
+              <th>Grund (bei Abwesenheit)</th>
             </tr>
           </thead>
           <tbody id="tbody"></tbody>
@@ -658,8 +657,7 @@
               ${present ? "🟢 Anwesend" : "🔴 Abwesend"}
             </span>
           </td>
-          <td class="reasonText">${esc(safe(row[F.reason]).trim() || "—")}</td>
-          <td class="muted">${esc(formatDate(safe(row[F.ts]).trim()))}</td>
+          <td class="reasonText">${!present ? esc(safe(row[F.reason]).trim() || "—") : "—"}</td>
         `;
 
         tbody.appendChild(tr);
