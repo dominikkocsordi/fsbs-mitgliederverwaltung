@@ -7,7 +7,6 @@
 
   <meta name="theme-color" content="#120e18">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -21,18 +20,13 @@
       --bg1:#120e18;
       --bg2:#1a1424;
       --bg3:#1f162c;
-
       --accent1:#f97316;
       --accent2:#a855f7;
-
       --glass: rgba(255,255,255,.10);
       --border: rgba(255,255,255,.18);
-
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.65);
-
       --shadow: 0 20px 55px rgba(0,0,0,.50);
-
       --ok: rgba(34,197,94,.95);
       --bad: rgba(239,68,68,.95);
       --warn: rgba(251,146,60,.95);
@@ -62,6 +56,7 @@
       overflow-x:hidden;
       animation: pageIn .38s ease both;
     }
+
     @keyframes pageIn{
       from{ opacity:0; transform: translateY(8px); }
       to  { opacity:1; transform: translateY(0); }
@@ -85,13 +80,19 @@
       gap:16px;
       margin-bottom: 16px;
     }
+
     h1{ margin:0; font-size:28px; letter-spacing:.3px; }
     .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
 
     .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
+
     .brandLogo{
-      width: 52px; height: 52px; border-radius: 14px; padding: 6px;
-      display:grid; place-items:center;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      padding: 6px;
+      display:grid;
+      place-items:center;
       background: rgba(255,255,255,.10);
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 16px 44px rgba(0,0,0,.30);
@@ -99,11 +100,24 @@
       -webkit-backdrop-filter: blur(18px);
       flex: 0 0 auto;
       transition: transform .16s ease, filter .16s ease, background .16s ease;
-      text-decoration:none; color: rgba(255,255,255,.92);
+      text-decoration:none;
+      color: rgba(255,255,255,.92);
       font-weight: 900;
     }
-    .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
-    .brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+
+    .brandLogo:hover{
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      background: rgba(255,255,255,.12);
+    }
+
+    .brandLogo img{
+      width:100%;
+      height:100%;
+      border-radius:10px;
+      object-fit:cover;
+      display:block;
+    }
 
     .pill{
       padding: 8px 12px;
@@ -122,15 +136,18 @@
       position: relative;
       overflow:hidden;
     }
+
     .pill::after{
       content:"";
-      position:absolute; inset:0;
+      position:absolute;
+      inset:0;
       background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
       transform: translateX(-140%);
       animation: shimmer 3.2s ease-in-out infinite;
       opacity: .55;
       pointer-events:none;
     }
+
     @keyframes shimmer{
       0%{ transform: translateX(-140%); }
       55%{ transform: translateX(140%); }
@@ -149,7 +166,9 @@
     .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 
     .navLink{
-      display:inline-flex; align-items:center; gap:10px;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
       padding: 10px 12px;
       border-radius: 16px;
       text-decoration:none;
@@ -160,24 +179,24 @@
       user-select:none;
       white-space:nowrap;
     }
+
     .navLink:hover{
       transform: translateY(-2px);
       filter: brightness(1.06);
       background: rgba(255,255,255,.10);
       border-color: rgba(255,255,255,.22);
     }
-    .navLink.active{
-      background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(168,85,247,.16));
-      border-color: rgba(249,115,22,.35);
-      box-shadow: 0 12px 28px rgba(249,115,22,.18), 0 12px 28px rgba(168,85,247,.14);
-    }
+
     .navIcon{
-      width:30px; height:30px;
+      width:30px;
+      height:30px;
       border-radius: 12px;
-      display:grid; place-items:center;
+      display:grid;
+      place-items:center;
       background: rgba(255,255,255,.08);
       border: 1px solid rgba(255,255,255,.12);
     }
+
     .navTitle{ font-weight:750; letter-spacing:.2px; }
     .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
@@ -185,9 +204,8 @@
     .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
     .spacer{ flex:1; }
 
-    input,select,button{
-      font: inherit;
-    }
+    input,select,button{ font: inherit; }
+
     input,select{
       background: rgba(255,255,255,.12);
       border: 1px solid rgba(255,255,255,.22);
@@ -197,13 +215,19 @@
       outline:none;
       min-width: 190px;
     }
+
     input::placeholder{ color: rgba(255,255,255,.55); }
+
     input:focus, select:focus{
       border-color: rgba(249,115,22,.55);
       background: rgba(255,255,255,.16);
       transform: translateY(-1px);
     }
-    select option{ background: #1a1424; color: rgba(255,255,255,.92); }
+
+    select option{
+      background: #1a1424;
+      color: rgba(255,255,255,.92);
+    }
 
     button{
       border:none;
@@ -213,19 +237,28 @@
       font-weight:800;
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
+
     .btn-secondary{
       background: rgba(255,255,255,.14);
       color: var(--text);
       border: 1px solid var(--border);
     }
-    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
+
+    .btn-secondary:hover{
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.18);
+    }
 
     .btn-primary{
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
       color: #0f0b16;
       box-shadow: 0 14px 34px rgba(168,85,247,.22), 0 12px 28px rgba(249,115,22,.14);
     }
-    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
+
+    .btn-primary:hover{
+      transform: translateY(-2px);
+      filter: brightness(1.03);
+    }
 
     .kpiGrid{
       display:grid;
@@ -233,8 +266,14 @@
       gap: 10px;
       margin-bottom: 14px;
     }
-    @media (max-width: 1020px){ .kpiGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    @media (max-width: 640px){ .kpiGrid{ grid-template-columns: 1fr; } }
+
+    @media (max-width: 1020px){
+      .kpiGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    @media (max-width: 640px){
+      .kpiGrid{ grid-template-columns: 1fr; }
+    }
 
     .kpiPill{
       position: relative;
@@ -246,22 +285,27 @@
       overflow: hidden;
       min-height: 66px;
     }
+
     .kpiPill::before{
       content:"";
-      position:absolute; inset:-80px;
-      background: radial-gradient(circle at 30% 30%, rgba(249,115,22,.35), transparent 45%),
-                  radial-gradient(circle at 70% 40%, rgba(168,85,247,.28), transparent 50%),
-                  radial-gradient(circle at 55% 80%, rgba(124,58,237,.18), transparent 55%);
+      position:absolute;
+      inset:-80px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(249,115,22,.35), transparent 45%),
+        radial-gradient(circle at 70% 40%, rgba(168,85,247,.28), transparent 50%),
+        radial-gradient(circle at 55% 80%, rgba(124,58,237,.18), transparent 55%);
       filter: blur(10px);
       opacity: .65;
       animation: floatGlow 7s ease-in-out infinite;
       pointer-events:none;
     }
+
     @keyframes floatGlow{
       0%{ transform: translate3d(-8px, 6px, 0) scale(1.00); }
       50%{ transform: translate3d(10px, -8px, 0) scale(1.03); }
       100%{ transform: translate3d(-8px, 6px, 0) scale(1.00); }
     }
+
     .kpiTop{
       position: relative;
       display:flex;
@@ -269,9 +313,30 @@
       justify-content:space-between;
       gap:10px;
     }
-    .kpiLabel{ position: relative; font-size: 12px; color: rgba(255,255,255,.70); }
-    .kpiValue{ position: relative; font-weight: 950; font-size: 20px; letter-spacing: .3px; color: rgba(255,255,255,.92); margin-top: 6px; }
-    .kpiDot{ width:10px; height:10px; border-radius: 999px; background: rgba(255,255,255,.35); flex:0 0 auto; }
+
+    .kpiLabel{
+      position: relative;
+      font-size: 12px;
+      color: rgba(255,255,255,.70);
+    }
+
+    .kpiValue{
+      position: relative;
+      font-weight: 950;
+      font-size: 20px;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.92);
+      margin-top: 6px;
+    }
+
+    .kpiDot{
+      width:10px;
+      height:10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.35);
+      flex:0 0 auto;
+    }
+
     .kpiDot.ok{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 2px rgba(34,197,94,.18), 0 0 18px rgba(34,197,94,.25); }
     .kpiDot.bad{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 2px rgba(239,68,68,.16), 0 0 18px rgba(239,68,68,.20); }
     .kpiDot.warn{ background: rgba(251,146,60,.95); box-shadow: 0 0 0 2px rgba(251,146,60,.18), 0 0 18px rgba(251,146,60,.20); }
@@ -284,7 +349,12 @@
       overflow:hidden;
       background: rgba(255,255,255,.05);
     }
-    table{ width:100%; border-collapse: collapse; }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+    }
+
     thead th{
       text-align:left;
       font-size:12px;
@@ -293,31 +363,46 @@
       background: rgba(255,255,255,.06);
       border-bottom:1px solid rgba(255,255,255,.10);
     }
+
     tbody td{
       padding: 14px 16px;
       border-bottom:1px solid rgba(255,255,255,.08);
       vertical-align: top;
     }
+
     tbody tr:hover{ background: rgba(255,255,255,.04); }
     tbody tr:last-child td{ border-bottom:none; }
 
     .nameCell{ font-weight:850; }
     .mailLink{ color: rgba(255,255,255,.86); text-decoration:none; }
     .mailLink:hover{ text-decoration:underline; }
-    .reasonText{ color: rgba(255,255,255,.74); max-width: 420px; }
+
+    .reasonText{
+      color: rgba(255,255,255,.74);
+      max-width: 500px;
+      line-height: 1.45;
+      white-space: normal;
+      word-break: break-word;
+    }
 
     .statusBadge{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:12px; font-weight:900;
-      padding:7px 10px; border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      font-weight:900;
+      padding:7px 10px;
+      border-radius:999px;
       border:1px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.08);
     }
+
     .statusBadge.ok{
       border-color: rgba(34,197,94,.28);
       background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(16,185,129,.10));
       color:#d1fae5;
     }
+
     .statusBadge.bad{
       border-color: rgba(239,68,68,.28);
       background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(225,29,72,.10));
@@ -338,8 +423,9 @@
 
     @media (max-width: 900px){
       .tableWrap{ overflow:auto; }
-      table{ min-width: 920px; }
+      table{ min-width: 760px; }
     }
+
     @media (max-width: 640px){
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       input,select{ min-width:0; width:100%; }
@@ -439,7 +525,6 @@
   </div>
 
   <script>
-    /* ========= CONFIG ========= */
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1Awj72kMuAVG7a0dmAqXLEAN3m2lfHI4mTT0otGulx8o/export?format=csv&gid=316397747";
 
     const SUPABASE_URL = "";
@@ -486,7 +571,6 @@
       reason: "Grund"
     };
 
-    /* ========= ELEMENTS ========= */
     const statusPill = document.getElementById("statusPill");
     const q = document.getElementById("q");
     const fStatus = document.getElementById("fStatus");
@@ -497,11 +581,9 @@
     const tbody = document.getElementById("tbody");
     const empty = document.getElementById("empty");
 
-    /* ========= STATE ========= */
     let ALL = [];
     let autoRefresh = null;
 
-    /* ========= HELPERS ========= */
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
       .replaceAll("&","&amp;")
@@ -539,7 +621,7 @@
     }
 
     function parseCsv(text){
-      const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
       if(lines.length < 2) return [];
 
       const headers = parseCsvLine(lines[0]);
@@ -574,6 +656,7 @@
         "Falls abwesend, warum?",
         "Grund (bei Abwesenheit)"
       ]);
+
       if (direct) return direct;
 
       const fallbackKey = Object.keys(row).find(key => {
@@ -583,7 +666,6 @@
           k.includes("abwesenheitsgrund") ||
           k.includes("grund für abwesenheit") ||
           k.includes("falls nein") ||
-          k.includes("warum") ||
           k.includes("nicht teilnehmen")
         );
       });
@@ -613,11 +695,9 @@
 
     function normalizeRow(row){
       const normalized = { ...row };
-
       normalized[F.email] = findEmailValue(row);
       normalized[F.status] = findStatusValue(row);
       normalized[F.reason] = findReasonValue(row);
-
       return normalized;
     }
 
@@ -642,6 +722,7 @@
             row[F.status],
             row[F.reason]
           ].map(safe).join(" ").toLowerCase();
+
           if(!hay.includes(text)) return false;
         }
 
@@ -686,6 +767,7 @@
       rows.forEach(row => {
         const tr = document.createElement("tr");
         const present = isPresent(row);
+        const reason = !present ? safe(row[F.reason]).trim() || "—" : "—";
 
         tr.innerHTML = `
           <td class="nameCell">${esc(getFullName(row))}</td>
@@ -699,7 +781,7 @@
               ${present ? "🟢 Anwesend" : "🔴 Abwesend"}
             </span>
           </td>
-          <td class="reasonText">${!present ? esc(safe(row[F.reason]).trim() || "—") : "—"}</td>
+          <td class="reasonText">${esc(reason)}</td>
         `;
 
         tbody.appendChild(tr);
@@ -708,7 +790,7 @@
 
     function downloadCsv(){
       const rows = filtered();
-      const header = [F.ts, F.fn, F.ln, F.email, F.status, F.reason];
+      const header = ["Zeitstempel", "Vorname", "Nachname", "E-Mail", "Status", "Grund"];
       const data = [header, ...rows.map(r => [
         safe(r[F.ts]),
         safe(r[F.fn]),
@@ -757,9 +839,10 @@
       try{
         const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
         if(!res.ok) throw new Error("Sheet konnte nicht geladen werden");
+
         const text = await res.text();
         ALL = parseCsv(text);
-        console.log("Erste geladene Zeile:", ALL[0]);
+
         statusPill.textContent = `Geladen: ${ALL.length}`;
         render();
       } catch(err){
@@ -771,713 +854,7 @@
     async function init(){
       const ok = await ensureAuth();
       if(!ok) return;
-      await fetchRows();
 
-      if(autoRefresh) clearInterval(autoRefresh);
-      autoRefresh = setInterval(fetchRows, 60000);
-    }
-
-    [q, fStatus].forEach(el => el?.addEventListener("input", render));
-    reloadBtn?.addEventListener("click", fetchRows);
-    exportBtn?.addEventListener("click", downloadCsv);
-
-    init();
-  </script>
-</body>
-</html>      --bad: rgba(239,68,68,.95);
-      --warn: rgba(251,146,60,.95);
-;
-    }
-
-    *{box-sizing:border-box}
-    html, body { min-height:100%; }
-
-    html{
-      background:
-        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-      background-attachment: fixed;
-    }
-
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color: var(--text);
-      background: transparent;
-      padding: 28px 16px 60px;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-      overflow-x:hidden;
-      animation: pageIn .38s ease both;
-    }
-    @keyframes pageIn{
-      from{ opacity:0; transform: translateY(8px); }
-      to  { opacity:1; transform: translateY(0); }
-    }
-
-    .app{ width:100%; max-width:1200px; }
-
-    .glass{
-      background: rgba(255,255,255,.10);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-    }
-
-    .top{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom: 16px;
-    }
-    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
-    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-
-    .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
-    .brandLogo{
-      width: 52px; height: 52px; border-radius: 14px; padding: 6px;
-      display:grid; place-items:center;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 16px 44px rgba(0,0,0,.30);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      flex: 0 0 auto;
-      transition: transform .16s ease, filter .16s ease, background .16s ease;
-      text-decoration:none; color: rgba(255,255,255,.92);
-      font-weight: 900;
-    }
-    .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
-    .brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
-
-    .pill{
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-      border: 1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.78);
-      box-shadow: 0 12px 30px rgba(0,0,0,.22);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      position: relative;
-      overflow:hidden;
-    }
-    .pill::after{
-      content:"";
-      position:absolute; inset:0;
-      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.10) 40%, transparent 70%);
-      transform: translateX(-140%);
-      animation: shimmer 3.2s ease-in-out infinite;
-      opacity: .55;
-      pointer-events:none;
-    }
-    @keyframes shimmer{
-      0%{ transform: translateX(-140%); }
-      55%{ transform: translateX(140%); }
-      100%{ transform: translateX(140%); }
-    }
-
-    .pill.status{
-      border-color: rgba(249,115,22,.22);
-      background: linear-gradient(135deg, rgba(249,115,22,.18), rgba(168,85,247,.14));
-      color: rgba(255,255,255,.90);
-      box-shadow: 0 16px 40px rgba(168,85,247,.16), 0 12px 30px rgba(249,115,22,.14);
-    }
-
-    .navWrap{ position: sticky; top: 14px; z-index: 10; margin-bottom: 16px; }
-    .nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding: 10px; }
-    .navLeft{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-
-    .navLink{
-      display:inline-flex; align-items:center; gap:10px;
-      padding: 10px 12px;
-      border-radius: 16px;
-      text-decoration:none;
-      color: rgba(255,255,255,.86);
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .navLink:hover{
-      transform: translateY(-2px);
-      filter: brightness(1.06);
-      background: rgba(255,255,255,.10);
-      border-color: rgba(255,255,255,.22);
-    }
-    .navLink.active{
-      background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(168,85,247,.16));
-      border-color: rgba(249,115,22,.35);
-      box-shadow: 0 12px 28px rgba(249,115,22,.18), 0 12px 28px rgba(168,85,247,.14);
-    }
-    .navIcon{
-      width:30px; height:30px;
-      border-radius: 12px;
-      display:grid; place-items:center;
-      background: rgba(255,255,255,.08);
-      border: 1px solid rgba(255,255,255,.12);
-    }
-    .navTitle{ font-weight:750; letter-spacing:.2px; }
-    .navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
-
-    .card{ padding:16px; margin-bottom:14px; }
-    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .spacer{ flex:1; }
-
-    input,select,button{
-      font: inherit;
-    }
-    input,select{
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.22);
-      color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      outline:none;
-      min-width: 190px;
-    }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus, select:focus{
-      border-color: rgba(249,115,22,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
-    }
-    select option{ background: #1a1424; color: rgba(255,255,255,.92); }
-
-    button{
-      border:none;
-      cursor:pointer;
-      border-radius:14px;
-      padding: 10px 14px;
-      font-weight:800;
-      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
-    }
-    .btn-secondary{
-      background: rgba(255,255,255,.14);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
-
-    .btn-primary{
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #0f0b16;
-      box-shadow: 0 14px 34px rgba(168,85,247,.22), 0 12px 28px rgba(249,115,22,.14);
-    }
-    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-
-    .kpiGrid{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    @media (max-width: 1020px){ .kpiGrid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    @media (max-width: 640px){ .kpiGrid{ grid-template-columns: 1fr; } }
-
-    .kpiPill{
-      position: relative;
-      border-radius: 18px;
-      padding: 12px 12px;
-      border: 1px solid rgba(255,255,255,.16);
-      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
-      box-shadow: 0 14px 45px rgba(0,0,0,.28);
-      overflow: hidden;
-      min-height: 66px;
-    }
-    .kpiPill::before{
-      content:"";
-      position:absolute; inset:-80px;
-      background: radial-gradient(circle at 30% 30%, rgba(249,115,22,.35), transparent 45%),
-                  radial-gradient(circle at 70% 40%, rgba(168,85,247,.28), transparent 50%),
-                  radial-gradient(circle at 55% 80%, rgba(124,58,237,.18), transparent 55%);
-      filter: blur(10px);
-      opacity: .65;
-      animation: floatGlow 7s ease-in-out infinite;
-      pointer-events:none;
-    }
-    @keyframes floatGlow{
-      0%{ transform: translate3d(-8px, 6px, 0) scale(1.00); }
-      50%{ transform: translate3d(10px, -8px, 0) scale(1.03); }
-      100%{ transform: translate3d(-8px, 6px, 0) scale(1.00); }
-    }
-    .kpiTop{
-      position: relative;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .kpiLabel{ position: relative; font-size: 12px; color: rgba(255,255,255,.70); }
-    .kpiValue{ position: relative; font-weight: 950; font-size: 20px; letter-spacing: .3px; color: rgba(255,255,255,.92); margin-top: 6px; }
-    .kpiDot{ width:10px; height:10px; border-radius: 999px; background: rgba(255,255,255,.35); flex:0 0 auto; }
-    .kpiDot.ok{ background: rgba(34,197,94,.95); box-shadow: 0 0 0 2px rgba(34,197,94,.18), 0 0 18px rgba(34,197,94,.25); }
-    .kpiDot.bad{ background: rgba(239,68,68,.95); box-shadow: 0 0 0 2px rgba(239,68,68,.16), 0 0 18px rgba(239,68,68,.20); }
-    .kpiDot.warn{ background: rgba(251,146,60,.95); box-shadow: 0 0 0 2px rgba(251,146,60,.18), 0 0 18px rgba(251,146,60,.20); }
-    .kpiDot.purple{ background: rgba(168,85,247,.95); box-shadow: 0 0 0 2px rgba(168,85,247,.18), 0 0 18px rgba(168,85,247,.22); }
-
-    .tableWrap{
-      margin-top: 14px;
-      border:1px solid rgba(255,255,255,.16);
-      border-radius: 22px;
-      overflow:hidden;
-      background: rgba(255,255,255,.05);
-    }
-    table{ width:100%; border-collapse: collapse; }
-    thead th{
-      text-align:left;
-      font-size:12px;
-      color: rgba(255,255,255,.65);
-      padding: 14px 16px;
-      background: rgba(255,255,255,.06);
-      border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    tbody td{
-      padding: 14px 16px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      vertical-align: top;
-    }
-    tbody tr:hover{ background: rgba(255,255,255,.04); }
-    tbody tr:last-child td{ border-bottom:none; }
-
-    .nameCell{ font-weight:850; }
-    .mailLink{ color: rgba(255,255,255,.86); text-decoration:none; }
-    .mailLink:hover{ text-decoration:underline; }
-    .reasonText{ color: rgba(255,255,255,.74); max-width: 420px; }
-
-    .statusBadge{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:12px; font-weight:900;
-      padding:7px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.08);
-    }
-    .statusBadge.ok{
-      border-color: rgba(34,197,94,.28);
-      background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(16,185,129,.10));
-      color:#d1fae5;
-    }
-    .statusBadge.bad{
-      border-color: rgba(239,68,68,.28);
-      background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(225,29,72,.10));
-      color:#fee2e2;
-    }
-
-    .empty{
-      margin-top: 12px;
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px dashed rgba(255,255,255,.22);
-      background: rgba(255,255,255,.04);
-      color: rgba(255,255,255,.78);
-    }
-
-    .muted{ color: rgba(255,255,255,.62); }
-    .hidden{ display:none; }
-
-    @media (max-width: 900px){
-      .tableWrap{ overflow:auto; }
-      table{ min-width: 920px; }
-    }
-    @media (max-width: 640px){
-      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-      input,select{ min-width:0; width:100%; }
-      .nav{ flex-wrap:nowrap; overflow:auto; }
-      .navLeft{ flex-wrap:nowrap; }
-      .row .spacer{ display:none; }
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-
-    <div class="top">
-      <div class="brandLeft">
-        <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
-          <img src="logo.png" alt="Fachschaft Logo" onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
-        </a>
-        <div>
-          <h1>Anwesenheit MV SoSe 26</h1>
-          <div class="subtitle">Übersicht aus Google Sheet · neue Einträge werden automatisch übernommen</div>
-        </div>
-      </div>
-
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-        <div class="pill status" id="statusPill">Nicht geladen</div>
-      </div>
-    </div>
-
-    <div class="glass navWrap">
-      <div class="nav">
-        <div class="navLeft">
-          <a class="navLink" href="/index.html">
-            <span class="navIcon">🏠</span>
-            <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
-          </a>
-
-          <a class="navLink" href="/members.html">
-            <span class="navIcon">👥</span>
-            <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
-          </a>
-
-          <a class="navLink" href="/anwaerter.html">
-            <span class="navIcon">👶🏼</span>
-            <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
-          </a>
-
-          <a class="navLink" href="/bewerbungen.html">
-            <span class="navIcon">📝</span>
-            <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
-          </a>
-
-          <a class="navLink" href="/rechnungen.html">
-            <span class="navIcon">💰</span>
-            <span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen & Auslagen</div></span>
-          </a>
-
-          <a class="navLink" href="/mitgliederbefragung.html">
-            <span class="navIcon">📊</span>
-            <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <div class="glass card">
-      <div class="kpiGrid" id="kpiGrid"></div>
-
-      <div class="row">
-        <input id="q" placeholder="Suche (Name, Mail, Grund...)" />
-        <select id="fStatus">
-          <option value="">Status (alle)</option>
-          <option value="anwesend">Anwesend</option>
-          <option value="abwesend">Abwesend</option>
-        </select>
-        <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
-        <button class="btn-primary" id="exportBtn" type="button">CSV exportieren</button>
-        <div class="spacer"></div>
-        <div class="pill" id="countPill">0</div>
-      </div>
-
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>E-Mail</th>
-              <th>Status</th>
-              <th>Grund (bei Abwesenheit)</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-
-      <div id="empty" class="empty hidden">Keine Einträge gefunden.</div>
-    </div>
-  </div>
-
-  <script>
-    /* ========= CONFIG ========= */
-    // Hier deine veröffentlichte CSV- oder Apps-Script-URL eintragen
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1Awj72kMuAVG7a0dmAqXLEAN3m2lfHI4mTT0otGulx8o/export?format=csv&gid=316397747";
-
-    // Optional: Supabase nur falls du denselben Login-Stack behalten willst
-    const SUPABASE_URL = "";
-    const SUPABASE_KEY = "";
-    const USE_AUTH = false;
-    const LOGIN_REDIRECT = "/login.html";
-    const sb = (USE_AUTH && SUPABASE_URL && SUPABASE_KEY)
-      ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-      : null;
-
-    const FALLBACK_ROWS = [
-      {
-        "Zeitstempel": "2026-03-07T19:26:47",
-        "Vorname": "Dominik",
-        "Nachname": "Kocsordi",
-        "E-Mail": "dominik.kocsordi@hm.edu",
-        "Status": "Ja, ich bin anwesend.",
-        "Grund": ""
-      },
-      {
-        "Zeitstempel": "2026-03-07T19:32:49",
-        "Vorname": "Anna",
-        "Nachname": "Terziev",
-        "E-Mail": "annaterziev212@gmx.de",
-        "Status": "Nein, ich bin abwesend.",
-        "Grund": "Ich habe an dem Abend einen familiären Termin."
-      },
-      {
-        "Zeitstempel": "2026-03-07T20:01:45",
-        "Vorname": "Leonard",
-        "Nachname": "Vogl",
-        "E-Mail": "leonard.vogl@hm.edu",
-        "Status": "Nein, ich bin abwesend.",
-        "Grund": "Pflichtpraktikum"
-      }
-    ];
-
-    const F = {
-      ts: "Zeitstempel",
-      fn: "Vorname",
-      ln: "Nachname",
-      email: "E-Mail",
-      emailAlt: "E-Mail Adresse",
-      status: "Status",
-      attendanceQuestion: "Nimmst du an der MV teil?",
-      reason: "Grund",
-      reasonAlt: "Falls nein, was ist der Grund für deine Abwesenheit?"
-    };
-
-    /* ========= ELEMENTS ========= */
-    const statusPill = document.getElementById("statusPill");
-    const q = document.getElementById("q");
-    const fStatus = document.getElementById("fStatus");
-    const reloadBtn = document.getElementById("reloadBtn");
-    const exportBtn = document.getElementById("exportBtn");
-    const countPill = document.getElementById("countPill");
-    const kpiGrid = document.getElementById("kpiGrid");
-    const tbody = document.getElementById("tbody");
-    const empty = document.getElementById("empty");
-
-    /* ========= STATE ========= */
-    let ALL = [];
-    let autoRefresh = null;
-
-    /* ========= HELPERS ========= */
-    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-    const esc = (s) => String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-
-    function parseCsvLine(line){
-      const result = [];
-      let current = "";
-      let inQuotes = false;
-
-      for(let i = 0; i < line.length; i++){
-        const char = line[i];
-        const next = line[i + 1];
-
-        if(char === '"'){
-          if(inQuotes && next === '"'){
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if(char === ',' && !inQuotes){
-          result.push(current.trim());
-          current = "";
-        } else {
-          current += char;
-        }
-      }
-
-      result.push(current.trim());
-      return result;
-    }
-
-    function parseCsv(text){
-      const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
-      if(lines.length < 2) return [];
-
-      const headers = parseCsvLine(lines[0]);
-
-      return lines.slice(1).map(line => {
-        const cols = parseCsvLine(line);
-        const row = {};
-        headers.forEach((h, i) => row[h] = cols[i] || "");
-        return normalizeRow(row);
-      });
-    }
-
-    function normalizeRow(row){
-      const normalized = { ...row };
-      if(!normalized[F.email] && normalized[F.emailAlt]) normalized[F.email] = normalized[F.emailAlt];
-      if(!normalized[F.status] && normalized[F.attendanceQuestion]) normalized[F.status] = normalized[F.attendanceQuestion];
-      if(!normalized[F.reason] && normalized[F.reasonAlt]) normalized[F.reason] = normalized[F.reasonAlt];
-      return normalized;
-    }
-
-    function isPresent(row){
-      const s = safe(row[F.status]).toLowerCase();
-      return s.includes("ja") || s.includes("anwesend");
-    }
-
-    function getFullName(row){
-      return [safe(row[F.fn]).trim(), safe(row[F.ln]).trim()].filter(Boolean).join(" ") || "Unbekannt";
-    }
-
-    function formatDate(value){
-      if(!value) return "—";
-      const d = new Date(value);
-      if(Number.isNaN(d.getTime())) return value;
-      return new Intl.DateTimeFormat("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(d);
-    }
-
-    function filtered(){
-      const text = safe(q.value).trim().toLowerCase();
-      const status = safe(fStatus.value).trim();
-
-      return ALL.filter(row => {
-        if(text){
-          const hay = [
-            getFullName(row),
-            row[F.email],
-            row[F.status],
-            row[F.reason]
-          ].map(safe).join(" ").toLowerCase();
-          if(!hay.includes(text)) return false;
-        }
-
-        if(status === "anwesend" && !isPresent(row)) return false;
-        if(status === "abwesend" && isPresent(row)) return false;
-        return true;
-      });
-    }
-
-    function makeKpi(label, value, dotClass){
-      const el = document.createElement("div");
-      el.className = "kpiPill";
-      el.innerHTML = `
-        <div class="kpiTop">
-          <div class="kpiLabel">${esc(label)}</div>
-          <span class="kpiDot ${esc(dotClass || "")}"></span>
-        </div>
-        <div class="kpiValue">${esc(String(value))}</div>
-      `;
-      return el;
-    }
-
-    function renderDashboard(){
-      const anwesend = ALL.filter(isPresent).length;
-      const abwesend = ALL.length - anwesend;
-      const quote = ALL.length ? Math.round((anwesend / ALL.length) * 100) : 0;
-
-      kpiGrid.innerHTML = "";
-      kpiGrid.appendChild(makeKpi("Gesamt", ALL.length, "purple"));
-      kpiGrid.appendChild(makeKpi("Anwesend", anwesend, "ok"));
-      kpiGrid.appendChild(makeKpi("Abwesend", abwesend, "bad"));
-      kpiGrid.appendChild(makeKpi("Teilnahmequote", `${quote}%`, "warn"));
-    }
-
-    function render(){
-      const rows = filtered();
-      countPill.textContent = `${rows.length} / ${ALL.length}`;
-      empty.classList.toggle("hidden", rows.length !== 0);
-      tbody.innerHTML = "";
-      renderDashboard();
-
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        const present = isPresent(row);
-
-        tr.innerHTML = `
-          <td class="nameCell">${esc(getFullName(row))}</td>
-          <td>
-            ${safe(row[F.email]).trim()
-              ? `<a class="mailLink" href="mailto:${esc(safe(row[F.email]).trim())}">${esc(safe(row[F.email]).trim())}</a>`
-              : `<span class="muted">—</span>`}
-          </td>
-          <td>
-            <span class="statusBadge ${present ? "ok" : "bad"}">
-              ${present ? "🟢 Anwesend" : "🔴 Abwesend"}
-            </span>
-          </td>
-          <td class="reasonText">${!present ? esc(safe(row[F.reason]).trim() || "—") : "—"}</td>
-        `;
-
-        tbody.appendChild(tr);
-      });
-    }
-
-    function downloadCsv(){
-      const rows = filtered();
-      const header = [F.ts, F.fn, F.ln, F.email, F.status, F.reason];
-      const data = [header, ...rows.map(r => [
-        safe(r[F.ts]),
-        safe(r[F.fn]),
-        safe(r[F.ln]),
-        safe(r[F.email]),
-        safe(r[F.status]),
-        safe(r[F.reason])
-      ])];
-
-      const csv = data
-        .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
-        .join("\n");
-
-      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "anwesenheit-mv.csv";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    async function ensureAuth(){
-      if(!USE_AUTH || !sb) return true;
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
-      if(!session){
-        window.location.href = LOGIN_REDIRECT;
-        return false;
-      }
-      return true;
-    }
-
-    async function fetchRows(){
-      statusPill.textContent = "Lade…";
-
-      if(!SHEET_CSV_URL){
-        ALL = FALLBACK_ROWS.map(normalizeRow);
-        statusPill.textContent = `Fallback-Daten: ${ALL.length}`;
-        render();
-        return;
-      }
-
-      try{
-        const res = await fetch(SHEET_CSV_URL, { cache: "no-store" });
-        if(!res.ok) throw new Error("Sheet konnte nicht geladen werden");
-        const text = await res.text();
-        ALL = parseCsv(text);
-        statusPill.textContent = `Geladen: ${ALL.length}`;
-        render();
-      } catch(err){
-        console.error(err);
-        statusPill.textContent = "Fehler beim Laden";
-      }
-    }
-
-    async function init(){
-      const ok = await ensureAuth();
-      if(!ok) return;
       await fetchRows();
 
       if(autoRefresh) clearInterval(autoRefresh);
