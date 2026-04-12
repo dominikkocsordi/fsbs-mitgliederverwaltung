@@ -863,6 +863,27 @@
     </div>
   </dialog>
 
+  <!-- Ressort-Auswahl Dialog -->
+  <dialog id="ressortDlg">
+    <div class="dlgShell" style="max-width:440px; margin:auto;">
+      <div class="sheetHandle" aria-hidden="true"></div>
+      <div class="modalHeader">
+        <div>
+          <h2 class="modalTitle">Ressort auswählen</h2>
+          <div class="modalSub" id="ressortDlgSub">Endgültiges Ressort für den Anwärter</div>
+        </div>
+        <button class="btn-secondary closeX" id="ressortDlgClose" type="button">✕</button>
+      </div>
+      <div style="margin-top:16px;">
+        <select id="ressortSelect" style="width:100%; min-width:0;"></select>
+      </div>
+      <div class="modalActions" style="margin-top:14px;">
+        <button class="btn-secondary" id="ressortDlgCancel" type="button">Abbrechen</button>
+        <button class="btn-primary" id="ressortDlgConfirm" type="button">Als Anwärter übernehmen</button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- ✅ Fallback -->
   <div class="fallbackOverlay" id="fbOverlay">
     <div class="fallbackPanel" onclick="event.stopPropagation()">
@@ -969,6 +990,12 @@
     const rejectBtn = document.getElementById("rejectBtn");
     const rsvpBtn = document.getElementById("rsvpBtn");
     const meetBtn = document.getElementById("meetBtn");
+    const ressortDlg = document.getElementById("ressortDlg");
+    const ressortSelect = document.getElementById("ressortSelect");
+    const ressortDlgSub = document.getElementById("ressortDlgSub");
+    const ressortDlgClose = document.getElementById("ressortDlgClose");
+    const ressortDlgCancel = document.getElementById("ressortDlgCancel");
+    const ressortDlgConfirm = document.getElementById("ressortDlgConfirm");
 
     const fbOverlay = document.getElementById("fbOverlay");
     const fbTitle = document.getElementById("fbTitle");
@@ -1553,7 +1580,7 @@
     })();
 
     /* ========= STATUS ACTIONS ========= */
-    async function setStatus(row, status){
+    async function setStatus(row, status, ressortOverride){
       const id = normId(makeBewerbungId(row));
       if (!id){ alert("Fehler: Bewerbung hat keine ID."); return; }
 
@@ -1565,7 +1592,7 @@
           vorname:           safe(row[F.fn]).trim(),
           nachname:          safe(row[F.ln]).trim(),
           email:             safe(row[F.email]).trim(),
-          ressort:           safe(row[F.r1]).trim(),
+          ressort:           ressortOverride || safe(row[F.r1]).trim(),
           photo_url:         getPhotoUrl(row) || null,
           photo_thumb:       getThumb(row) || null,
         }, { onConflict: CAND_ID_COL });
@@ -1585,9 +1612,26 @@
 
     function handleMove(){
       if (!ACTIVE_ROW || !CAN_EDIT) return;
-      if (!confirm("Bewerbung als Anwärter übernehmen?")) return;
-      setStatus(ACTIVE_ROW, "anwaerter");
+
+      // Dropdown mit allen Ressorts befüllen, Prio 1 vorausgewählt
+      const r1 = safe(ACTIVE_ROW[F.r1]).trim();
+      ressortSelect.innerHTML = RESSORTS_FIXED.map(r =>
+        `<option value="${esc(r)}"${r === r1 ? " selected" : ""}>${esc(r)}</option>`
+      ).join("");
+
+      const name = (safe(ACTIVE_ROW[F.fn]) + " " + safe(ACTIVE_ROW[F.ln])).trim();
+      ressortDlgSub.textContent = name || "Anwärter";
+
+      ressortDlg.showModal();
     }
+
+    ressortDlgClose?.addEventListener("click", () => ressortDlg.close());
+    ressortDlgCancel?.addEventListener("click", () => ressortDlg.close());
+    ressortDlgConfirm?.addEventListener("click", () => {
+      const selectedRessort = ressortSelect.value;
+      ressortDlg.close();
+      setStatus(ACTIVE_ROW, "anwaerter", selectedRessort);
+    });
 
     function handleRsvp(){
       if (!ACTIVE_ROW || !CAN_EDIT) return;
