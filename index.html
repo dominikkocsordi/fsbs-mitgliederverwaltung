@@ -516,9 +516,7 @@ const PROFILES_TABLE = "profiles";
 const MEMBERS_TABLE = "members";
 const CAND_TABLE = "anwaerter";
 
-/* Filter: abgelehnte NICHT zählen */
 const CAND_STATUS_COL = "bewerbung_status";
-const CAND_REJECT_PATTERN = "abgelehnt%";
 
 /* Einheitliche Ressorts */
 const RESSORTS = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
@@ -723,7 +721,7 @@ async function loadMyProfile(session){
 
 /* ========= Counting helpers ========= */
 function candBaseFilter(q){
-  return q.not(CAND_STATUS_COL, "ilike", CAND_REJECT_PATTERN);
+  return q.eq(CAND_STATUS_COL, "anwaerter");
 }
 
 async function countTable(table, filterCol=null, filterVal=null, opts = {}){
