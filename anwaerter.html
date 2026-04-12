@@ -1337,12 +1337,13 @@
         return;
       }
 
-      // ✅ Offen komplett ausblenden + Ressort=="abgelehnt" ausblenden
+      // Nur bestätigte Anwärter zeigen — Zwischenstatus aus bewerbungen.html ausblenden
+      const BEWERBUNG_EXCLUDE = ["abgelehnt", "kennenlernen", "rueckmeldung"];
       ALL = (Array.isArray(data) ? data : []).filter(r => {
-        const statusRaw = r?.[BEWERBUNG_STATUS_COL];
+        const statusRaw = normalizeStatus(r?.[BEWERBUNG_STATUS_COL]);
         const ressort = normalizeRessort(r?.ressort);
 
-        if (isOffen(statusRaw)) return false;
+        if (BEWERBUNG_EXCLUDE.includes(statusRaw)) return false;
         if (ressort === "abgelehnt") return false;
 
         return true;
