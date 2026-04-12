@@ -1507,7 +1507,16 @@
 
       const { error } = await sb
         .from(CANDIDATES_TABLE)
-        .upsert({ [CAND_ID_COL]: id, [CAND_STATUS_COL]: status }, { onConflict: CAND_ID_COL });
+        .upsert({
+          [CAND_ID_COL]:     id,
+          [CAND_STATUS_COL]: status,
+          vorname:           safe(row[F.fn]).trim(),
+          nachname:          safe(row[F.ln]).trim(),
+          email:             safe(row[F.email]).trim(),
+          ressort:           safe(row[F.r1]).trim(),
+          photo_url:         getPhotoUrl(row) || null,
+          photo_thumb:       getThumb(row) || null,
+        }, { onConflict: CAND_ID_COL });
 
       if (error){ alert("Fehler beim Speichern: " + error.message); return; }
 
