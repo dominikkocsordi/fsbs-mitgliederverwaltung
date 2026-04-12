@@ -1500,6 +1500,39 @@
       await fetchRows();
     })();
 
+    /* ========= STATUS ACTIONS ========= */
+    async function setStatus(row, status){
+      const id = normId(makeBewerbungId(row));
+      if (!id){ alert("Fehler: Bewerbung hat keine ID."); return; }
+
+      const { error } = await sb
+        .from(CANDIDATES_TABLE)
+        .upsert({ [CAND_ID_COL]: id, [CAND_STATUS_COL]: status }, { onConflict: CAND_ID_COL });
+
+      if (error){ alert("Fehler beim Speichern: " + error.message); return; }
+
+      statusMap.set(id, status);
+      render();
+      closeModal();
+    }
+
+    function handleReject(){
+      if (!ACTIVE_ROW || !CAN_EDIT) return;
+      if (!confirm("Bewerbung wirklich ablehnen?")) return;
+      setStatus(ACTIVE_ROW, "abgelehnt");
+    }
+
+    function handleMove(){
+      if (!ACTIVE_ROW || !CAN_EDIT) return;
+      if (!confirm("Bewerbung als Anwärter übernehmen?")) return;
+      setStatus(ACTIVE_ROW, "anwaerter");
+    }
+
+    rejectBtn?.addEventListener("click", handleReject);
+    fbReject?.addEventListener("click", handleReject);
+    moveToCandidateBtn?.addEventListener("click", handleMove);
+    fbMove?.addEventListener("click", handleMove);
+
     /* ========= EVENTS ========= */
     [q, fRes, fSem].forEach(el => el?.addEventListener("input", render));
     reloadBtn?.addEventListener("click", fetchRows);
