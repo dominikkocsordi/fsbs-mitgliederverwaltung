@@ -74,13 +74,7 @@ body{
   body{ animation:none !important; }
 }
 
-/* iOS-kompatibles Body-Lock: position:fixed statt overflow:hidden */
-body.locked{
-  position: fixed;
-  left: 0;
-  right: 0;
-  overflow: hidden;
-}
+/* kein body-lock mehr nötig — dialog handelt das nativ */
 
 .app{ width:100%; max-width:1200px; }
 
@@ -614,33 +608,52 @@ th.avatarTh{ width: 52px; }
   font-weight: 600;
 }
 
-/* ===== Modal ===== */
-.modalOverlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.60);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding: 18px;
-  z-index: 9999;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+/* ===== Dialog Modal ===== */
+dialog{
+  border: none;
+  padding: 0;
+  background: transparent;
+  width: min(640px, calc(100% - 36px));
+  max-width: calc(100% - 36px);
 }
-.modalOverlay.show{ display:flex; }
+dialog::backdrop{ background: rgba(0,0,0,.60); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 
-.modal{
-  width: min(640px, calc(100% - 32px));
-  border-radius: 24px;
+.dlgShell{
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 26px;
+  box-shadow: 0 20px 55px rgba(0,0,0,.50);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   padding: 28px 28px 24px;
-  position: relative;
-  max-height: 90vh;
+  max-height: calc(100dvh - 36px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
   animation: modalIn .20s ease both;
 }
 @keyframes modalIn{
   from{ opacity:0; transform: translateY(14px) scale(.98); }
   to{ opacity:1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px){
+  dialog{
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    transform: none;
+  }
+  .dlgShell{
+    border-radius: 22px 22px 0 0;
+    padding: 16px 16px 32px;
+    max-height: 92dvh;
+  }
 }
 
 /* Modal drag handle (mobile) */
@@ -930,12 +943,12 @@ hr.sep{
 
 </div><!-- /app -->
 
-<!-- MODAL -->
-<div class="modalOverlay" id="modalOverlay" onclick="overlayClick(event)">
-  <div class="glass modal" onclick="event.stopPropagation()">
+<!-- DIALOG MODAL -->
+<dialog id="dlg">
+  <div class="dlgShell">
     <div class="modalDragHandle"></div>
 
-    <button class="btn-secondary closeX" onclick="closeModal()" title="Schließen">✕</button>
+    <button class="btn-secondary closeX" id="closeModalBtn" type="button" title="Schließen">✕</button>
 
     <!-- Avatar preview -->
     <div class="modalAvatarWrap">
@@ -991,11 +1004,11 @@ hr.sep{
 
     <!-- Modal Actions -->
     <div class="modalActions">
-      <button class="btn-secondary" onclick="closeModal()">Abbrechen</button>
-      <button class="btn-primary" id="modalSaveBtn" onclick="saveModal()">Speichern</button>
+      <button class="btn-secondary" type="button" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" id="modalSaveBtn" type="button" onclick="saveModal()">Speichern</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <script>
 /* ========= Supabase config ========= */
@@ -1058,7 +1071,8 @@ const countInfo = document.getElementById("countInfo");
 const listEl    = document.getElementById("list");
 const cardGrid  = document.getElementById("cardGrid");
 
-const modalOverlay  = document.getElementById("modalOverlay");
+const dlg           = document.getElementById("dlg");
+const closeModalBtn = document.getElementById("closeModalBtn");
 const modalTitle    = document.getElementById("modalTitle");
 const modalSub      = document.getElementById("modalSub");
 const modalSaveBtn  = document.getElementById("modalSaveBtn");
@@ -1472,31 +1486,25 @@ function render(){
   }).join("");
 }
 
-/* ========= Modal logic ========= */
-function overlayClick(e){ if (e.target === modalOverlay) closeModal(); }
-
-let _savedScroll = 0;
-
+/* ========= Modal logic (dialog-basiert — iOS-sicher) ========= */
 function openModal(){
-  // iOS-kompatibler Scroll-Lock: scroll-Position merken, body fixieren
-  _savedScroll = window.scrollY || window.pageYOffset || 0;
-  document.body.style.top = `-${_savedScroll}px`;
-  document.body.classList.add("locked");
-
-  modalOverlay.classList.add("show");
   updateModalAvatar();
+  dlg.showModal();
   setTimeout(() => mFirst.focus(), 80);
 }
 function closeModal(){
-  modalOverlay.classList.remove("show");
-
-  // Body-Lock aufheben + Scroll-Position wiederherstellen
-  document.body.classList.remove("locked");
-  document.body.style.top = "";
-  window.scrollTo(0, _savedScroll);
-
+  if (dlg.open) dlg.close();
   editPk = null;
 }
+
+closeModalBtn?.addEventListener("click", closeModal);
+
+/* Backdrop-Klick schließt Dialog */
+dlg?.addEventListener("click", (e) => {
+  const r = dlg.getBoundingClientRect();
+  const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+  if (outside) closeModal();
+});
 function clearModal(){
   mNo.value = ""; mFirst.value = ""; mLast.value = ""; mEmail.value = "";
   mDept.value = ""; mRole.value = ""; mStatus.value = "";
@@ -1532,7 +1540,7 @@ function openEdit(pk){
 }
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal();
+  if (e.key === "Escape" && dlg.open) closeModal();
 });
 
 /* ========= CRUD ========= */
