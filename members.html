@@ -74,9 +74,12 @@ body{
   body{ animation:none !important; }
 }
 
+/* iOS-kompatibles Body-Lock: position:fixed statt overflow:hidden */
 body.locked{
-  overflow:hidden !important;
-  touch-action:none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  overflow: hidden;
 }
 
 .app{ width:100%; max-width:1200px; }
@@ -1472,15 +1475,26 @@ function render(){
 /* ========= Modal logic ========= */
 function overlayClick(e){ if (e.target === modalOverlay) closeModal(); }
 
+let _savedScroll = 0;
+
 function openModal(){
-  modalOverlay.classList.add("show");
+  // iOS-kompatibler Scroll-Lock: scroll-Position merken, body fixieren
+  _savedScroll = window.scrollY || window.pageYOffset || 0;
+  document.body.style.top = `-${_savedScroll}px`;
   document.body.classList.add("locked");
+
+  modalOverlay.classList.add("show");
   updateModalAvatar();
-  setTimeout(() => mFirst.focus(), 50);
+  setTimeout(() => mFirst.focus(), 80);
 }
 function closeModal(){
   modalOverlay.classList.remove("show");
+
+  // Body-Lock aufheben + Scroll-Position wiederherstellen
   document.body.classList.remove("locked");
+  document.body.style.top = "";
+  window.scrollTo(0, _savedScroll);
+
   editPk = null;
 }
 function clearModal(){
