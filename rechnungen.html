@@ -716,6 +716,11 @@
               <div class="navHint">Auswertung</div>
             </span>
           </a>
+
+          <a class="navLink" href="/nutzer.html" id="navNutzer" style="display:none;">
+            <span class="navIcon">⚙️</span>
+            <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
+          </a>
         </div>
 
         <div class="navRight">
@@ -873,6 +878,7 @@
     // Elements
     const navWrap = document.getElementById("navWrap");
     const belegeNavLink = document.getElementById("belegeNavLink");
+    const navNutzer = document.getElementById("navNutzer");
     const logoutBtn = document.getElementById("logoutBtn");
     const logoutBtn2 = document.getElementById("logoutBtn2");
 
@@ -1061,6 +1067,7 @@
 
       navWrap.style.display = allowed ? "block" : "none";
       belegeNavLink.style.display = allowed ? "inline-flex" : "none";
+      if (navNutzer) navNutzer.style.display = allowed ? "" : "none";
 
       denyWrap.style.display = allowed ? "none" : "block";
       kpiCard.style.display = allowed ? "block" : "none";
