@@ -1016,7 +1016,6 @@
     let ALL = [];
     let ACTIVE_ROW = null;
     let statusMap = new Map();
-    let prioMap   = new Map(); // bewerbung_id → { r1, r2 }
 
     let MY_ROLE = "";
     let MY_RESSORT = "";
@@ -1222,25 +1221,18 @@
 
     async function refreshStatusMapFor(rows){
       statusMap = new Map();
-      prioMap   = new Map();
       const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
       if (!ids.length) return;
 
       const { data, error } = await sb
         .from(CANDIDATES_TABLE)
-        .select(`${CAND_ID_COL},${CAND_STATUS_COL},ressort_prio1,ressort_prio2`)
+        .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
         .in(CAND_ID_COL, ids);
 
       if (error) return;
 
       (data || []).forEach(r => {
         statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
-        if (r.ressort_prio1 || r.ressort_prio2){
-          prioMap.set(normId(r[CAND_ID_COL]), {
-            r1: r.ressort_prio1 || "",
-            r2: r.ressort_prio2 || ""
-          });
-        }
       });
     }
     function getStatusForRow(row){
@@ -1368,15 +1360,11 @@
       const v = document.createElement("div"); v.className = "v";
 
       if (CAN_EDIT && (key === F.r1 || key === F.r2)){
-        const bid      = normId(makeBewerbungId(row));
-        const override = prioMap.get(bid);
-        const curVal   = (key === F.r1 ? override?.r1 : override?.r2) || rawVal;
-
         const sel = document.createElement("select");
         sel.dataset.prioField = key === F.r1 ? "r1" : "r2";
         sel.innerHTML = `<option value="">— kein Ressort —</option>` +
           RESSORTS_FIXED.map(r =>
-            `<option value="${esc(r)}"${r === curVal ? " selected" : ""}>${esc(r)}</option>`
+            `<option value="${esc(r)}"${r === rawVal ? " selected" : ""}>${esc(r)}</option>`
           ).join("");
         v.appendChild(sel);
       } else {
@@ -1638,47 +1626,32 @@
     async function handleSavePrios(){
       if (!ACTIVE_ROW || !CAN_EDIT) return;
 
-      // Read from whichever panel is visible
       const selR1 = kv.querySelector('[data-prio-field="r1"]') || fbKv.querySelector('[data-prio-field="r1"]');
       const selR2 = kv.querySelector('[data-prio-field="r2"]') || fbKv.querySelector('[data-prio-field="r2"]');
 
       const newR1 = selR1?.value ?? "";
       const newR2 = selR2?.value ?? "";
 
-      [savePriosBtn, fbSavePrios].forEach(btn => {
-        btn.textContent = "Speichert…";
-        btn.disabled = true;
-      });
+      [savePriosBtn, fbSavePrios].forEach(btn => { btn.textContent = "Speichert…"; btn.disabled = true; });
 
       try {
-        const id = normId(makeBewerbungId(ACTIVE_ROW));
-        if (!id){ alert("Fehler: Bewerbung hat keine ID."); return; }
+        const url = new URL(SHEET_API_URL);
+        url.searchParams.set("key",    SHEET_API_KEY);
+        url.searchParams.set("action", "updatePrios");
+        url.searchParams.set("ts",     safe(ACTIVE_ROW[F.ts]).trim());
+        url.searchParams.set("email",  safe(ACTIVE_ROW[F.email]).trim());
+        url.searchParams.set("prio1",  newR1);
+        url.searchParams.set("prio2",  newR2);
 
-        let sbError;
-        if (statusMap.has(id)){
-          ({ error: sbError } = await sb
-            .from(CANDIDATES_TABLE)
-            .update({ ressort_prio1: newR1 || null, ressort_prio2: newR2 || null })
-            .eq(CAND_ID_COL, id));
-        } else {
-          ({ error: sbError } = await sb
-            .from(CANDIDATES_TABLE)
-            .upsert({
-              [CAND_ID_COL]: id,
-              ressort_prio1: newR1 || null,
-              ressort_prio2: newR2 || null,
-              ressort:  newR1 || "",
-              vorname:  safe(ACTIVE_ROW[F.fn]).trim(),
-              nachname: safe(ACTIVE_ROW[F.ln]).trim(),
-              email:    safe(ACTIVE_ROW[F.email]).trim(),
-            }, { onConflict: CAND_ID_COL }));
-        }
+        const res  = await fetch(url.toString(), { cache: "no-store" });
+        const json = await res.json().catch(() => ({}));
 
-        if (sbError){ alert("Fehler: " + sbError.message); return; }
+        if (json.error){ alert("Fehler: " + json.error); return; }
 
-        // Update in-memory so reopening shows new values
+        // In-Memory aktualisieren + Karten neu rendern
         ACTIVE_ROW[F.r1] = newR1;
         ACTIVE_ROW[F.r2] = newR2;
+        render();
 
         [savePriosBtn, fbSavePrios].forEach(btn => { btn.textContent = "✓ Gespeichert"; });
         setTimeout(() => {
@@ -1686,7 +1659,7 @@
         }, 2000);
 
       } catch(err){
-        alert("Fehler beim Speichern: " + err.message);
+        alert("Fehler: " + err.message);
       } finally {
         [savePriosBtn, fbSavePrios].forEach(btn => { btn.disabled = false; });
       }
