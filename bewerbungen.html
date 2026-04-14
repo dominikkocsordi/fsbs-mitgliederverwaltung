@@ -855,6 +855,7 @@
       <div class="kv" id="kv"></div>
 
       <div class="modalActions">
+        <button class="btn-secondary" id="savePriosBtn" type="button" style="display:none;">Prios speichern</button>
         <button class="btn-danger" id="rejectBtn" type="button">Ablehnen</button>
         <button class="btn-amber" id="rsvpBtn" type="button">Rückmeldung Anwesenheit</button>
         <button class="btn-info" id="meetBtn" type="button">Anwesend Kennenlernen</button>
@@ -904,6 +905,7 @@
       <div class="kv" id="fbKv"></div>
 
       <div class="modalActions">
+        <button class="btn-secondary" id="fbSavePrios" type="button" style="display:none;">Prios speichern</button>
         <button class="btn-danger" id="fbReject" type="button">Ablehnen</button>
         <button class="btn-amber" id="fbRsvp" type="button">Rückmeldung Anwesenheit</button>
         <button class="btn-info" id="fbMeet" type="button">Anwesend Kennenlernen</button>
@@ -987,6 +989,8 @@
     const kv = document.getElementById("kv");
     const closeModalBtn = document.getElementById("closeModalBtn");
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
+    const savePriosBtn = document.getElementById("savePriosBtn");
+    const fbSavePrios  = document.getElementById("fbSavePrios");
     const rejectBtn = document.getElementById("rejectBtn");
     const rsvpBtn = document.getElementById("rsvpBtn");
     const meetBtn = document.getElementById("meetBtn");
@@ -1012,6 +1016,7 @@
     let ALL = [];
     let ACTIVE_ROW = null;
     let statusMap = new Map();
+    let prioMap   = new Map(); // bewerbung_id → { r1, r2 }
 
     let MY_ROLE = "";
     let MY_RESSORT = "";
@@ -1217,18 +1222,25 @@
 
     async function refreshStatusMapFor(rows){
       statusMap = new Map();
+      prioMap   = new Map();
       const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
       if (!ids.length) return;
 
       const { data, error } = await sb
         .from(CANDIDATES_TABLE)
-        .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
+        .select(`${CAND_ID_COL},${CAND_STATUS_COL},ressort_prio1,ressort_prio2`)
         .in(CAND_ID_COL, ids);
 
       if (error) return;
 
       (data || []).forEach(r => {
         statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
+        if (r.ressort_prio1 != null || r.ressort_prio2 != null){
+          prioMap.set(normId(r[CAND_ID_COL]), {
+            r1: r.ressort_prio1 || "",
+            r2: r.ressort_prio2 || ""
+          });
+        }
       });
     }
     function getStatusForRow(row){
@@ -1349,6 +1361,33 @@
     }
 
     /* ========= MODAL ========= */
+    function buildKvField(kvEl, key, row){
+      const rawVal = (key === F.degree) ? getDegree(row) : safe(row[key]).trim();
+
+      const k = document.createElement("div"); k.className = "k"; k.textContent = key;
+      const v = document.createElement("div"); v.className = "v";
+
+      if (CAN_EDIT && (key === F.r1 || key === F.r2)){
+        const bid     = normId(makeBewerbungId(row));
+        const override = prioMap.get(bid);
+        const curVal  = (key === F.r1 ? override?.r1 : override?.r2) || rawVal;
+
+        const sel = document.createElement("select");
+        sel.dataset.prioField = key === F.r1 ? "r1" : "r2";
+        sel.innerHTML = `<option value="">— kein Ressort —</option>` +
+          RESSORTS_FIXED.map(r =>
+            `<option value="${esc(r)}"${r === curVal ? " selected" : ""}>${esc(r)}</option>`
+          ).join("");
+        v.appendChild(sel);
+      } else {
+        if (String(rawVal).startsWith("http://") || String(rawVal).startsWith("https://") || String(rawVal).includes("drive.google.com")){
+          v.innerHTML = `<a href="${esc(rawVal)}" target="_blank" rel="noopener">${esc(rawVal)}</a>`;
+        } else v.textContent = rawVal || "—";
+      }
+
+      kvEl.appendChild(k); kvEl.appendChild(v);
+    }
+
     function dialogSupported(){ return !!(dlg && typeof dlg.showModal === "function"); }
     function openModalUI(){ dialogSupported() ? dlg.showModal() : fbOverlay.classList.add("show"); }
     function closeModalUI(){ dialogSupported() ? (dlg.open && dlg.close()) : fbOverlay.classList.remove("show"); }
@@ -1415,19 +1454,8 @@
       kv.innerHTML = "";
       fbKv.innerHTML = "";
       fields.forEach(key => {
-        // degree robust lesen
-        const val = (key === F.degree) ? getDegree(row) : safe(row[key]).trim();
-
-        const k1 = document.createElement("div"); k1.className="k"; k1.textContent = key;
-        const v1 = document.createElement("div"); v1.className="v";
-        if (String(val).startsWith("http://") || String(val).startsWith("https://") || String(val).includes("drive.google.com")){
-          v1.innerHTML = `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
-        } else v1.textContent = val || "—";
-        kv.appendChild(k1); kv.appendChild(v1);
-
-        const k2 = k1.cloneNode(true);
-        const v2 = v1.cloneNode(true);
-        fbKv.appendChild(k2); fbKv.appendChild(v2);
+        buildKvField(kv,   key, row);
+        buildKvField(fbKv, key, row);
       });
 
       rejectBtn.disabled = !CAN_EDIT;
@@ -1438,6 +1466,9 @@
       fbRsvp.disabled = !CAN_EDIT;
       fbMeet.disabled = !CAN_EDIT;
       fbMove.disabled = !CAN_EDIT;
+
+      savePriosBtn.style.display = CAN_EDIT ? "" : "none";
+      fbSavePrios.style.display  = CAN_EDIT ? "" : "none";
 
       openModalUI();
     }
@@ -1604,6 +1635,48 @@
       closeModal();
     }
 
+    async function handleSavePrios(){
+      if (!ACTIVE_ROW || !CAN_EDIT) return;
+
+      const id = normId(makeBewerbungId(ACTIVE_ROW));
+      if (!id){ alert("Fehler: Bewerbung hat keine ID."); return; }
+
+      // Read from whichever panel is visible
+      const selR1 = kv.querySelector('[data-prio-field="r1"]') || fbKv.querySelector('[data-prio-field="r1"]');
+      const selR2 = kv.querySelector('[data-prio-field="r2"]') || fbKv.querySelector('[data-prio-field="r2"]');
+
+      const newR1 = selR1?.value || null;
+      const newR2 = selR2?.value || null;
+
+      let error;
+      if (statusMap.has(id)){
+        ({ error } = await sb
+          .from(CANDIDATES_TABLE)
+          .update({ ressort_prio1: newR1, ressort_prio2: newR2 })
+          .eq(CAND_ID_COL, id));
+      } else {
+        ({ error } = await sb
+          .from(CANDIDATES_TABLE)
+          .upsert({
+            [CAND_ID_COL]: id,
+            ressort_prio1: newR1,
+            ressort_prio2: newR2,
+            vorname:  safe(ACTIVE_ROW[F.fn]).trim(),
+            nachname: safe(ACTIVE_ROW[F.ln]).trim(),
+            email:    safe(ACTIVE_ROW[F.email]).trim(),
+          }, { onConflict: CAND_ID_COL }));
+      }
+
+      if (error){ alert("Fehler beim Speichern: " + error.message); return; }
+
+      prioMap.set(id, { r1: newR1 || "", r2: newR2 || "" });
+
+      [savePriosBtn, fbSavePrios].forEach(btn => {
+        btn.textContent = "✓ Gespeichert";
+        setTimeout(() => { btn.textContent = "Prios speichern"; }, 2000);
+      });
+    }
+
     function handleReject(){
       if (!ACTIVE_ROW || !CAN_EDIT) return;
       if (!confirm("Bewerbung wirklich ablehnen?")) return;
@@ -1645,6 +1718,8 @@
       setStatus(ACTIVE_ROW, "kennenlernen");
     }
 
+    savePriosBtn?.addEventListener("click", handleSavePrios);
+    fbSavePrios?.addEventListener("click", handleSavePrios);
     rejectBtn?.addEventListener("click", handleReject);
     fbReject?.addEventListener("click", handleReject);
     rsvpBtn?.addEventListener("click", handleRsvp);
