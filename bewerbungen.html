@@ -371,6 +371,13 @@
     }
     .btn-amber:hover{ transform: translateY(-2px); filter: brightness(1.04); }
 
+    .btn-purple{
+      background: linear-gradient(135deg, #a855f7, #7c3aed);
+      color: #fff;
+      box-shadow: 0 10px 26px rgba(168,85,247,.35);
+    }
+    .btn-purple:hover{ transform: translateY(-2px); filter: brightness(1.06); }
+
     .grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -522,6 +529,17 @@
     .cornerBadge.amber::before{
       background: radial-gradient(circle at 30% 30%, rgba(251,191,36,.45), transparent 60%),
                   radial-gradient(circle at 70% 70%, rgba(245,158,11,.25), transparent 60%);
+
+    }
+
+    .cornerBadge.purple{
+      border-color: rgba(168,85,247,.28);
+      background: linear-gradient(135deg, rgba(168,85,247,.18), rgba(124,58,237,.10));
+      color:#f3e8ff;
+    }
+    .cornerBadge.purple::before{
+      background: radial-gradient(circle at 30% 30%, rgba(168,85,247,.45), transparent 60%),
+                  radial-gradient(circle at 70% 70%, rgba(124,58,237,.25), transparent 60%);
     }
 
     .empty{
@@ -859,6 +877,7 @@
         <button class="btn-danger" id="rejectBtn" type="button">Ablehnen</button>
         <button class="btn-amber" id="rsvpBtn" type="button">Rückmeldung Anwesenheit</button>
         <button class="btn-info" id="meetBtn" type="button">Anwesend Kennenlernen</button>
+        <button class="btn-purple" id="priosConfirmedBtn" type="button">Prios Bestätigt</button>
         <button class="btn-primary" id="moveToCandidateBtn" type="button">Als Anwärter übernehmen</button>
       </div>
     </div>
@@ -909,6 +928,7 @@
         <button class="btn-danger" id="fbReject" type="button">Ablehnen</button>
         <button class="btn-amber" id="fbRsvp" type="button">Rückmeldung Anwesenheit</button>
         <button class="btn-info" id="fbMeet" type="button">Anwesend Kennenlernen</button>
+        <button class="btn-purple" id="fbPriosConfirmed" type="button">Prios Bestätigt</button>
         <button class="btn-primary" id="fbMove" type="button">Als Anwärter übernehmen</button>
       </div>
     </div>
@@ -989,8 +1009,10 @@
     const kv = document.getElementById("kv");
     const closeModalBtn = document.getElementById("closeModalBtn");
     const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
-    const savePriosBtn = document.getElementById("savePriosBtn");
-    const fbSavePrios  = document.getElementById("fbSavePrios");
+    const savePriosBtn       = document.getElementById("savePriosBtn");
+    const fbSavePrios        = document.getElementById("fbSavePrios");
+    const priosConfirmedBtn  = document.getElementById("priosConfirmedBtn");
+    const fbPriosConfirmed   = document.getElementById("fbPriosConfirmed");
     const rejectBtn = document.getElementById("rejectBtn");
     const rsvpBtn = document.getElementById("rsvpBtn");
     const meetBtn = document.getElementById("meetBtn");
@@ -1280,21 +1302,22 @@
     }
 
     function countByStatus(rows){
-      let offen=0, anwaerter=0, abgelehnt=0, rueckmeldung=0, kennenlernen=0;
+      let offen=0, anwaerter=0, abgelehnt=0, rueckmeldung=0, kennenlernen=0, priosBestaetigt=0;
       rows.forEach(r=>{
         const st = getStatusForRow(r);
-        if (st === "anwaerter")         anwaerter++;
-        else if (st === "abgelehnt")    abgelehnt++;
-        else if (st === "rueckmeldung") rueckmeldung++;
-        else if (st === "kennenlernen") kennenlernen++;
+        if (st === "anwaerter")            anwaerter++;
+        else if (st === "abgelehnt")       abgelehnt++;
+        else if (st === "rueckmeldung")    rueckmeldung++;
+        else if (st === "kennenlernen")    kennenlernen++;
+        else if (st === "prios_bestaetigt") priosBestaetigt++;
         else offen++;
       });
-      return { offen, anwaerter, abgelehnt, rueckmeldung, kennenlernen };
+      return { offen, anwaerter, abgelehnt, rueckmeldung, kennenlernen, priosBestaetigt };
     }
 
     function renderDashboard(){
       const rows = filtered();
-      const { offen, anwaerter, abgelehnt, rueckmeldung, kennenlernen } = countByStatus(rows);
+      const { offen, anwaerter, abgelehnt, rueckmeldung, kennenlernen, priosBestaetigt } = countByStatus(rows);
       const total = rows.length;
 
       kpiGrid.innerHTML = "";
@@ -1302,6 +1325,7 @@
       kpiGrid.appendChild(makeKpi("Offen", offen, "warn"));
       kpiGrid.appendChild(makeKpi("Rückmeldung", rueckmeldung, "orange"));
       kpiGrid.appendChild(makeKpi("Kennenlernen", kennenlernen, ""));
+      kpiGrid.appendChild(makeKpi("Prios Bestätigt", priosBestaetigt, "purple"));
       kpiGrid.appendChild(makeKpi("Anwärter", anwaerter, "ok"));
       kpiGrid.appendChild(makeKpi("Abgelehnt", abgelehnt, "bad"));
 
@@ -1449,10 +1473,12 @@
       rejectBtn.disabled = !CAN_EDIT;
       rsvpBtn.disabled = !CAN_EDIT;
       meetBtn.disabled = !CAN_EDIT;
+      priosConfirmedBtn.disabled = !CAN_EDIT;
       moveToCandidateBtn.disabled = !CAN_EDIT;
       fbReject.disabled = !CAN_EDIT;
       fbRsvp.disabled = !CAN_EDIT;
       fbMeet.disabled = !CAN_EDIT;
+      fbPriosConfirmed.disabled = !CAN_EDIT;
       fbMove.disabled = !CAN_EDIT;
 
       savePriosBtn.style.display = CAN_EDIT ? "" : "none";
@@ -1483,6 +1509,7 @@
       if (st === "abgelehnt")           return `<div class="cornerBadge bad"><span>🔴 Abgelehnt</span></div>`;
       if (st === "rueckmeldung")        return `<div class="cornerBadge amber"><span>🟡 Rückmeldung</span></div>`;
       if (st === "kennenlernen")        return `<div class="cornerBadge info"><span>🔵 Kennenlernen</span></div>`;
+      if (st === "prios_bestaetigt")    return `<div class="cornerBadge purple"><span>🟣 Prios Bestätigt</span></div>`;
       return `<div class="cornerBadge warn"><span>🟠 Offen</span></div>`;
     }
 
@@ -1706,6 +1733,12 @@
       setStatus(ACTIVE_ROW, "kennenlernen");
     }
 
+    function handlePriosBestaetigt(){
+      if (!ACTIVE_ROW || !CAN_EDIT) return;
+      if (!confirm("Status auf 'Prios Bestätigt' setzen?")) return;
+      setStatus(ACTIVE_ROW, "prios_bestaetigt");
+    }
+
     savePriosBtn?.addEventListener("click", handleSavePrios);
     fbSavePrios?.addEventListener("click", handleSavePrios);
     rejectBtn?.addEventListener("click", handleReject);
@@ -1714,6 +1747,8 @@
     fbRsvp?.addEventListener("click", handleRsvp);
     meetBtn?.addEventListener("click", handleMeet);
     fbMeet?.addEventListener("click", handleMeet);
+    priosConfirmedBtn?.addEventListener("click", handlePriosBestaetigt);
+    fbPriosConfirmed?.addEventListener("click", handlePriosBestaetigt);
     moveToCandidateBtn?.addEventListener("click", handleMove);
     fbMove?.addEventListener("click", handleMove);
 
