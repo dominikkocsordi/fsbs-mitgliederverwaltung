@@ -958,6 +958,7 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const contentCard = document.getElementById("contentCard");
     const navFinance = document.getElementById("navFinance");
+    const navNutzer = document.getElementById("navNutzer");
 
     const q = document.getElementById("q");
     const fRes = document.getElementById("fRes");
@@ -1140,6 +1141,7 @@
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
       if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
+      if (navNutzer) navNutzer.style.display = CAN_EDIT ? "" : "none";
     }
 
     logoutBtn?.addEventListener("click", async ()=>{

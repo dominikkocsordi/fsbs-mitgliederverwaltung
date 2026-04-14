@@ -597,6 +597,11 @@ button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transfor
           <span class="navIcon">📊</span>
           <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
         </a>
+
+        <a class="navLink" href="/nutzer.html" id="navNutzer" style="display:none;">
+          <span class="navIcon">⚙️</span>
+          <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
+        </a>
       </div>
 
       <div class="navRight">
@@ -838,6 +843,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const mainCard = document.getElementById("mainCard");
 const authCard = document.getElementById("authCard");
 const navWrap = document.getElementById("navWrap");
+const navNutzer = document.getElementById("navNutzer");
 const authErr = document.getElementById("authErr");
 
 const ressortFilter = document.getElementById("ressortFilter");
@@ -982,6 +988,8 @@ async function loadMyProfile(session){
   setRolePill(MY_ROLE || "ressortleiter");
   authNameInline.textContent = (data?.display_name || "").trim() || ((email.split("@")[0] || "User").trim());
   authBadge.title = `${(data?.display_name || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
+
+  if (navNutzer) navNutzer.style.display = (MY_ROLE === "vorstand") ? "" : "none";
 
   if (!ALLOWED.has(MY_ROLE)){
     throw new Error(`Zugriff verweigert: Rolle "${MY_ROLE || "—"}" ist nicht erlaubt.`);

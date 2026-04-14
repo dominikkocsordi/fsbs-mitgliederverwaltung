@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nutzerverwaltung</title>
+  <meta name="theme-color" content="#120e18">
+  <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+      --accent1:#f97316; --accent2:#a855f7;
+      --glass: rgba(255,255,255,.10); --border: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92); --muted: rgba(255,255,255,.65);
+      --shadow: 0 20px 55px rgba(0,0,0,.50);
+      --ok: rgba(34,197,94,.95); --bad: rgba(239,68,68,.95);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; }
+    html{
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      background-attachment: fixed;
+    }
+    @supports (-webkit-touch-callout: none){ html{ background-attachment:scroll; } }
+    body{
+      margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text); background:transparent;
+      padding:28px 16px 60px;
+      display:flex; justify-content:center; align-items:flex-start;
+      animation:pageIn .38s ease both;
+    }
+    @keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .app{ width:100%; max-width:1200px; }
+
+    .glass{
+      background:rgba(255,255,255,.10); border:1px solid var(--border);
+      border-radius:22px; box-shadow:var(--shadow);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    }
+    .hidden{ display:none !important; }
+
+    /* ===== Header ===== */
+    .top{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
+    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+    .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
+    .brandLogo{
+      width:52px; height:52px; border-radius:14px; padding:6px;
+      display:grid; place-items:center;
+      background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 16px 44px rgba(0,0,0,.30); backdrop-filter:blur(18px);
+      flex:0 0 auto; transition:transform .16s ease,filter .16s ease;
+      text-decoration:none; color:rgba(255,255,255,.92); font-weight:900;
+    }
+    .brandLogo:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+    .brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+
+    /* ===== Auth Badge ===== */
+    .authFloating{
+      border-radius:999px; padding:10px 12px; display:flex; align-items:center; gap:10px;
+      background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 18px 55px rgba(0,0,0,.40); backdrop-filter:blur(18px);
+      user-select:none; max-width:min(560px,100%);
+    }
+    .dot{ width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.35); flex:0 0 auto; }
+    .dot.ok{ background:var(--ok); box-shadow:0 0 0 2px rgba(34,197,94,.18),0 0 18px rgba(34,197,94,.20); }
+    .authAvatar{
+      width:30px; height:30px; border-radius:999px; display:grid; place-items:center;
+      font-weight:800; font-size:12px; color:rgba(255,255,255,.92);
+      border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.10); flex:0 0 auto;
+    }
+    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
+    .authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+    .authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
+    .authState{ font-size:13px; font-weight:700; }
+    .authNameInline{ font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+    .authMail{ font-size:11px; color:var(--muted); margin-top:4px; }
+    .authDetails{ padding-top:6px; }
+    .rolePill{
+      font-size:11px; font-weight:800; padding:3px 9px; border-radius:999px;
+      background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.22);
+      white-space:nowrap; letter-spacing:.4px;
+    }
+    .rolePill.vorstand{ border-color:rgba(56,189,248,.40); background:rgba(56,189,248,.12); color:#c7f9ff; }
+    .authChevron{ background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:0 2px; }
+
+    /* ===== Nav ===== */
+    .navWrap{ position:sticky; top:14px; z-index:10; margin-bottom:16px; padding:6px 10px; }
+    .nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-width:0; }
+    .navLeft{ display:flex; gap:4px; flex-wrap:wrap; min-width:0; }
+    .navRight{ display:flex; gap:8px; align-items:center; flex:0 0 auto; }
+    .navLink{
+      display:flex; align-items:center; gap:7px; padding:7px 11px;
+      border-radius:14px; font-size:13px; font-weight:600;
+      color:rgba(255,255,255,.75); text-decoration:none;
+      transition:background .16s,color .16s,transform .16s;
+      white-space:nowrap;
+    }
+    .navLink:hover{ background:rgba(255,255,255,.10); color:var(--text); transform:translateY(-1px); }
+    .navLink.active{ background:rgba(255,255,255,.13); color:var(--text); }
+    .navIcon{ font-size:16px; }
+    .navTitle{ font-weight:700; letter-spacing:.2px; }
+    .navHint{ font-size:12px; color:rgba(255,255,255,.60); }
+
+    /* ===== Buttons ===== */
+    button{
+      border:none; cursor:pointer; border-radius:14px; padding:10px 16px;
+      font-weight:650; font-size:14px;
+      transition:transform .16s,filter .16s,opacity .16s,background .16s;
+    }
+    button:active{ transform:translateY(0) scale(.99); }
+    button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transform:none !important; }
+    .btn-primary{ background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:#0f0b16; box-shadow:0 12px 30px rgba(168,85,247,.22); }
+    .btn-primary:hover{ transform:translateY(-2px); filter:brightness(1.04); }
+    .btn-secondary{ background:rgba(255,255,255,.12); color:var(--text); border:1px solid rgba(255,255,255,.20); }
+    .btn-secondary:hover{ transform:translateY(-2px); background:rgba(255,255,255,.18); }
+    .btn-danger{ background:linear-gradient(135deg,#fb7185,#e11d48); color:#fff; box-shadow:0 10px 26px rgba(225,29,72,.22); }
+    .btn-danger:hover{ transform:translateY(-2px); filter:brightness(1.02); }
+
+    /* ===== Content ===== */
+    .contentCard{ padding:20px; }
+
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    input,select{
+      background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22);
+      color:var(--text); border-radius:14px; padding:10px 14px; font-size:14px;
+      outline:none; transition:border-color .16s,background .16s;
+    }
+    input:focus,select:focus{ border-color:rgba(249,115,22,.55); background:rgba(255,255,255,.16); }
+    select option{ background:#1a1424; }
+
+    /* ===== Table ===== */
+    .tableWrap{ overflow-x:auto; }
+    table{ width:100%; border-collapse:collapse; }
+    thead th{
+      color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.5px;
+      text-transform:uppercase; text-align:left; padding:10px 16px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      white-space:nowrap;
+    }
+    tbody tr{ border-bottom:1px solid rgba(255,255,255,.05); transition:background .12s; }
+    tbody tr:last-child{ border-bottom:none; }
+    tbody tr:hover{ background:rgba(255,255,255,.04); }
+    tbody td{ padding:13px 16px; font-size:14px; vertical-align:middle; }
+
+    .badge-role{
+      display:inline-block; padding:3px 10px; border-radius:999px; font-size:12px; font-weight:700;
+    }
+    .badge-vorstand{ background:rgba(56,189,248,.15); border:1px solid rgba(56,189,248,.35); color:#c7f9ff; }
+    .badge-ressortleiter{ background:rgba(251,146,60,.12); border:1px solid rgba(251,146,60,.28); color:#fed7aa; }
+
+    .empty{ text-align:center; padding:48px 16px; color:var(--muted); font-size:15px; }
+
+    /* ===== Modal ===== */
+    dialog{
+      background:rgba(20,16,30,.97); border:1px solid rgba(255,255,255,.18);
+      border-radius:22px; box-shadow:0 32px 80px rgba(0,0,0,.70);
+      backdrop-filter:blur(24px); color:var(--text); padding:0;
+      width:min(500px,96vw); max-height:90dvh; overflow:auto;
+    }
+    dialog::backdrop{ background:rgba(0,0,0,.55); backdrop-filter:blur(3px); }
+    .dlgShell{ padding:20px; display:flex; flex-direction:column; gap:16px; }
+    .modalHeader{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .modalTitle{ margin:0; font-size:20px; }
+    .modalSub{ margin-top:4px; font-size:13px; color:var(--muted); }
+    .closeX{ padding:6px 10px; border-radius:10px; font-size:16px; }
+    .formGrid{ display:grid; gap:14px; }
+    .formLabel{ font-size:12px; color:var(--muted); margin-bottom:5px; }
+    .modalActions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:4px; }
+
+    @media (max-width:640px){
+      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+      input,select{ min-width:0; width:100%; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+        <img src="logo.png" alt="Fachschaft Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Nutzerverwaltung</h1>
+        <div class="subtitle">Alle Accounts · nur Vorstand</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+      <div class="authFloating" id="authBadge">
+        <span class="dot" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill vorstand" id="authRolePill">Vorstand</span>
+              <button class="authChevron" id="authToggle" type="button" aria-label="Details">⌄</button>
+            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap hidden" id="navWrap">
+    <div class="nav">
+      <div class="navLeft">
+        <a class="navLink" href="/index.html">
+          <span class="navIcon">🏠</span>
+          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
+        </a>
+        <a class="navLink" href="/members.html">
+          <span class="navIcon">👥</span>
+          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
+        </a>
+        <a class="navLink" href="/anwaerter.html">
+          <span class="navIcon">👶🏼</span>
+          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
+        </a>
+        <a class="navLink" href="/bewerbungen.html">
+          <span class="navIcon">📝</span>
+          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
+        </a>
+        <a class="navLink" href="/rechnungen.html" id="navFinance">
+          <span class="navIcon">💰</span>
+          <span><div class="navTitle">Finanzen</div><div class="navHint">Rechnungen</div></span>
+        </a>
+        <a class="navLink" href="/mitgliederbefragung.html">
+          <span class="navIcon">📊</span>
+          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
+        </a>
+        <a class="navLink active" href="/nutzer.html">
+          <span class="navIcon">⚙️</span>
+          <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
+        </a>
+      </div>
+      <div class="navRight">
+        <button class="btn-secondary hidden" id="logoutBtn" type="button">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="glass contentCard hidden" id="contentCard">
+    <div class="row">
+      <input id="q" placeholder="Suche (Name, E-Mail, Ressort…)" style="flex:1;min-width:180px;" />
+      <select id="fRole">
+        <option value="">Rolle (alle)</option>
+        <option value="vorstand">Vorstand</option>
+        <option value="ressortleiter">Ressortleiter</option>
+      </select>
+    </div>
+
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>E-Mail</th>
+            <th>Ressort</th>
+            <th>Rolle</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="empty hidden" id="empty">Keine Nutzer gefunden.</div>
+  </div>
+
+</div>
+
+<!-- Edit Modal -->
+<dialog id="editDlg">
+  <div class="dlgShell">
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle">Nutzer bearbeiten</h2>
+        <div class="modalSub" id="editSub">–</div>
+      </div>
+      <button class="btn-secondary closeX" id="editClose" type="button">✕</button>
+    </div>
+
+    <div class="formGrid">
+      <div>
+        <div class="formLabel">Name</div>
+        <input id="editName" type="text" placeholder="Anzeigename" />
+      </div>
+      <div>
+        <div class="formLabel">E-Mail (nur anzeigen)</div>
+        <input id="editEmail" type="email" readonly style="opacity:.6;cursor:default;" />
+      </div>
+      <div>
+        <div class="formLabel">Ressort</div>
+        <select id="editRessort"></select>
+      </div>
+      <div>
+        <div class="formLabel">Rolle</div>
+        <select id="editRole">
+          <option value="ressortleiter">Ressortleiter</option>
+          <option value="vorstand">Vorstand</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modalActions">
+      <button class="btn-secondary" id="editCancel" type="button">Abbrechen</button>
+      <button class="btn-primary" id="editSave" type="button">Speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const PROFILES_TABLE = "profiles";
+  const RESSORTS_FIXED = ["Externe Events","Interne Events","Sponsoring","Merchandise","Kommunikation"];
+
+  // Elements
+  const navWrap     = document.getElementById("navWrap");
+  const logoutBtn   = document.getElementById("logoutBtn");
+  const contentCard = document.getElementById("contentCard");
+  const authBadge   = document.getElementById("authBadge");
+  const authDot     = document.getElementById("authDot");
+  const authState   = document.getElementById("authState");
+  const authMail    = document.getElementById("authMail");
+  const authAvatar  = document.getElementById("authAvatar");
+  const authCompact = document.getElementById("authCompact");
+  const authNameInline = document.getElementById("authNameInline");
+  const authRolePill   = document.getElementById("authRolePill");
+  const authToggle  = document.getElementById("authToggle");
+  const authDetails = document.getElementById("authDetails");
+
+  const q       = document.getElementById("q");
+  const fRole   = document.getElementById("fRole");
+  const tbody   = document.getElementById("tbody");
+  const empty   = document.getElementById("empty");
+
+  const editDlg     = document.getElementById("editDlg");
+  const editSub     = document.getElementById("editSub");
+  const editClose   = document.getElementById("editClose");
+  const editCancel  = document.getElementById("editCancel");
+  const editSave    = document.getElementById("editSave");
+  const editName    = document.getElementById("editName");
+  const editEmail   = document.getElementById("editEmail");
+  const editRessort = document.getElementById("editRessort");
+  const editRole    = document.getElementById("editRole");
+
+  // State
+  let ALL = [];
+  let EDITING = null;
+
+  // Ressort dropdown befüllen
+  editRessort.innerHTML = `<option value="">— kein Ressort —</option>` +
+    RESSORTS_FIXED.map(r => `<option value="${r}">${r}</option>`).join("");
+
+  function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+  function safe(v){ return String(v ?? ""); }
+  function normRole(r){ return safe(r).toLowerCase().trim(); }
+
+  function roleLabel(r){
+    if (normRole(r) === "vorstand") return "Vorstand";
+    return "Ressortleiter";
+  }
+  function roleBadge(r){
+    if (normRole(r) === "vorstand")
+      return `<span class="badge-role badge-vorstand">Vorstand</span>`;
+    return `<span class="badge-role badge-ressortleiter">Ressortleiter</span>`;
+  }
+
+  function initialsFromText(txt){
+    const parts = (txt||"").trim().split(/\s+/).filter(Boolean);
+    return ((parts[0]?.[0]||"") + (parts[1]?.[0]||"")).toUpperCase() || "U";
+  }
+
+  // Auth UI
+  authToggle?.addEventListener("click", e => { e.stopPropagation(); authDetails?.classList.toggle("hidden"); });
+  document.addEventListener("click", e => { if (!authBadge.contains(e.target)) authDetails?.classList.add("hidden"); });
+
+  logoutBtn?.addEventListener("click", async () => {
+    await sb.auth.signOut();
+    location.href = "/login.html";
+  });
+
+  function filtered(){
+    const text = safe(q.value).trim().toLowerCase();
+    const role = safe(fRole.value).trim();
+    return ALL.filter(r => {
+      if (role && normRole(r.role) !== role) return false;
+      if (text){
+        const hay = [r.display_name, r.email, r.ressort, r.role].map(safe).join(" ").toLowerCase();
+        if (!hay.includes(text)) return false;
+      }
+      return true;
+    });
+  }
+
+  function render(){
+    const rows = filtered();
+    empty.classList.toggle("hidden", rows.length > 0);
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><strong>${esc(r.display_name || "—")}</strong></td>
+        <td style="color:var(--muted)">${esc(r.email || "—")}</td>
+        <td>${esc(r.ressort || "—")}</td>
+        <td>${roleBadge(r.role)}</td>
+        <td style="text-align:right">
+          <button class="btn-secondary" style="padding:6px 12px;font-size:12px;"
+            onclick="openEdit('${esc(r.id)}')">Bearbeiten</button>
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function openEdit(id){
+    EDITING = ALL.find(r => r.id === id);
+    if (!EDITING) return;
+    editSub.textContent = EDITING.display_name || EDITING.email || "Nutzer";
+    editName.value    = EDITING.display_name || "";
+    editEmail.value   = EDITING.email || "";
+    editRessort.value = EDITING.ressort || "";
+    editRole.value    = normRole(EDITING.role) || "ressortleiter";
+    editDlg.showModal();
+  }
+  window.openEdit = openEdit; // global für onclick
+
+  editClose?.addEventListener("click",  () => editDlg.close());
+  editCancel?.addEventListener("click", () => editDlg.close());
+
+  editSave?.addEventListener("click", async () => {
+    if (!EDITING) return;
+    editSave.disabled = true;
+    editSave.textContent = "Speichert…";
+
+    const updates = {
+      display_name: editName.value.trim() || null,
+      ressort:      editRessort.value || null,
+      role:         editRole.value || "ressortleiter",
+    };
+
+    const { error } = await sb
+      .from(PROFILES_TABLE)
+      .update(updates)
+      .eq("id", EDITING.id);
+
+    editSave.disabled = false;
+    editSave.textContent = "Speichern";
+
+    if (error){ alert("Fehler: " + error.message); return; }
+
+    // In-memory aktualisieren
+    Object.assign(EDITING, updates);
+    render();
+    editDlg.close();
+  });
+
+  async function fetchProfiles(){
+    const { data, error } = await sb
+      .from(PROFILES_TABLE)
+      .select("id, display_name, email, ressort, role")
+      .order("display_name");
+
+    if (error){ console.error(error); return; }
+    ALL = data || [];
+    render();
+  }
+
+  [q, fRole].forEach(el => el?.addEventListener("input", render));
+
+  // Init
+  (async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session){ location.href = "/login.html"; return; }
+
+    const { data: profile } = await sb
+      .from(PROFILES_TABLE)
+      .select("role, display_name")
+      .eq("id", session.user.id)
+      .maybeSingle();
+
+    const role = normRole(profile?.role);
+    if (role !== "vorstand"){ location.href = "/index.html"; return; }
+
+    // Auth UI
+    authDot.classList.add("ok");
+    authState.classList.add("hidden");
+    authCompact.classList.remove("hidden");
+    const dn = (profile?.display_name || "").trim();
+    const email = session.user.email || "";
+    authNameInline.textContent = dn || email.split("@")[0];
+    authMail.textContent = email;
+    authAvatar.textContent = initialsFromText(dn || email);
+    authAvatar.classList.remove("hidden");
+    authRolePill.textContent = "Vorstand";
+
+    navWrap.classList.remove("hidden");
+    logoutBtn.classList.remove("hidden");
+    contentCard.classList.remove("hidden");
+
+    await fetchProfiles();
+  })();
+</script>
+</body>
+</html>
