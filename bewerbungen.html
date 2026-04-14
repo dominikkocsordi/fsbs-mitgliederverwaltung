@@ -1683,6 +1683,12 @@
         setTimeout(() => {
           [savePriosBtn, fbSavePrios].forEach(btn => { btn.textContent = "Prios speichern"; });
         }, 2000);
+
+      } catch(err){
+        alert("Fehler beim Speichern: " + err.message);
+      } finally {
+        [savePriosBtn, fbSavePrios].forEach(btn => { btn.disabled = false; });
+      }
     }
 
     function handleReject(){
