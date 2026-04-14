@@ -1338,7 +1338,7 @@
       }
 
       // Nur bestätigte Anwärter zeigen — Zwischenstatus aus bewerbungen.html ausblenden
-      const BEWERBUNG_EXCLUDE = ["abgelehnt", "kennenlernen", "rueckmeldung"];
+      const BEWERBUNG_EXCLUDE = ["abgelehnt", "kennenlernen", "rueckmeldung", "prios_bestaetigt"];
       ALL = (Array.isArray(data) ? data : []).filter(r => {
         const statusRaw = normalizeStatus(r?.[BEWERBUNG_STATUS_COL]);
         const ressort = normalizeRessort(r?.ressort);
