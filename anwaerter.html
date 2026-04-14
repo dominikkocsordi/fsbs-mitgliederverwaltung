@@ -719,6 +719,11 @@
               <div class="navHint">Auswertung</div>
             </span>
           </a>
+
+          <a class="navLink" href="/nutzer.html" id="navNutzer" style="display:none;">
+            <span class="navIcon">⚙️</span>
+            <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
+          </a>
         </div>
 
         <div class="navRight">
@@ -860,6 +865,7 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
     const navFinance = document.getElementById("navFinance");
+    const navNutzer = document.getElementById("navNutzer");
 
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
@@ -1107,6 +1113,7 @@
           dashMineHint.textContent = MY_RESSORT || "–";
 
           if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
+          if (navNutzer) navNutzer.style.display = CAN_EDIT ? "" : "none";
           return;
         }
       }
@@ -1118,6 +1125,7 @@
       setRolePill(MY_ROLE || "ressortleiter");
       dashMineHint.textContent = MY_RESSORT || "–";
       if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
+      if (navNutzer) navNutzer.style.display = CAN_EDIT ? "" : "none";
     }
 
     logoutBtn.addEventListener("click", async () => {

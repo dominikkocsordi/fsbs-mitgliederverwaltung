@@ -469,6 +469,11 @@ button:active{ transform: translateY(0px) scale(.99); }
           <span class="navIcon">📊</span>
           <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
         </a>
+
+        <a class="navLink" href="nutzer.html" id="navNutzer" style="display:none;">
+          <span class="navIcon">⚙️</span>
+          <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
+        </a>
       </div>
 
       <div class="navRight">
@@ -579,10 +584,12 @@ const authDetails = document.getElementById("authDetails");
 
 /* NAV: Finanzen nur Vorstand */
 const navFinanzen = document.getElementById("navFinanzen");
+const navNutzer = document.getElementById("navNutzer");
 
 function setNavVisibility(isVorstand){
   if (!navFinanzen) return;
   navFinanzen.classList.toggle("hidden", !isVorstand);
+  if (navNutzer) navNutzer.style.display = isVorstand ? "" : "none";
 }
 
 function closeAuthDetails(){
