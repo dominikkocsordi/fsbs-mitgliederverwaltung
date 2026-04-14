@@ -1,65 +1,34 @@
 /**
- * PATCH für bestehenden Apps Script Code.
- *
- * 1. In deiner bestehenden doGet-Funktion ganz am Anfang (vor dem normalen
- *    Sheet-Read) diese Zeilen einfügen:
- *
- *      if (e.parameter.action === "updatePrios") {
- *        return updatePrios(e.parameter);
- *      }
- *
- * 2. Die Funktion updatePrios() unten einfach ans Ende des Scripts hängen.
- *
- * 3. Web App neu deployen ("Neue Version erstellen")
+ * NUR diese Funktion im Apps Script ersetzen (nicht doGet anfassen).
+ * Sucht die Zeile nur anhand der E-Mail (Zeitstempel-Vergleich entfällt,
+ * da Google Sheets Datum als Date-Objekt speichert → Vergleich schlägt fehl).
  */
-
-// Muss mit SHEET_API_KEY im Frontend übereinstimmen
-const API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
-
-// Leer lassen = aktives Sheet; sonst z.B. "Formularantworten 1"
-const RESPONSES_SHEET_NAME = "";
-
-function updatePrios(params) {
-  if (params.key !== API_KEY) {
-    return json({ error: "Unauthorized" });
+function updatePrios(p) {
+  if (p.key !== "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324") {
+    return ContentService.createTextOutput('{"error":"Unauthorized"}').setMimeType(ContentService.MimeType.JSON);
   }
 
-  var ss    = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = RESPONSES_SHEET_NAME
-    ? ss.getSheetByName(RESPONSES_SHEET_NAME)
-    : ss.getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data  = sheet.getDataRange().getValues();
+  var h     = data[0];
 
-  var data    = sheet.getDataRange().getValues();
-  var headers = data[0];
+  var mC  = h.indexOf("E-Mail Adresse");
+  var r1C = h.indexOf("Ressort Prio 1");
+  var r2C = h.indexOf("Ressort Prio 2");
 
-  var tsCol    = headers.indexOf("Zeitstempel");
-  var emailCol = headers.indexOf("E-Mail Adresse");
-  var r1Col    = headers.indexOf("Ressort Prio 1");
-  var r2Col    = headers.indexOf("Ressort Prio 2");
-
-  if (tsCol < 0 || emailCol < 0 || r1Col < 0 || r2Col < 0) {
-    return json({ error: "Spalten nicht gefunden", headers: headers });
+  if (mC < 0 || r1C < 0 || r2C < 0) {
+    return ContentService.createTextOutput('{"error":"Spalten nicht gefunden: ' + h.join("|") + '"}').setMimeType(ContentService.MimeType.JSON);
   }
 
-  var ts    = String(params.ts    || "").trim();
-  var email = String(params.email || "").trim().toLowerCase();
+  var email = String(p.email || "").trim().toLowerCase();
 
   for (var i = 1; i < data.length; i++) {
-    var rowTs    = String(data[i][tsCol]).trim();
-    var rowEmail = String(data[i][emailCol]).trim().toLowerCase();
-
-    if (rowTs === ts && rowEmail === email) {
-      if (params.prio1 !== undefined) sheet.getRange(i + 1, r1Col + 1).setValue(params.prio1);
-      if (params.prio2 !== undefined) sheet.getRange(i + 1, r2Col + 1).setValue(params.prio2);
-      return json({ ok: true });
+    if (String(data[i][mC]).trim().toLowerCase() === email) {
+      sheet.getRange(i + 1, r1C + 1).setValue(p.prio1 || "");
+      sheet.getRange(i + 1, r2C + 1).setValue(p.prio2 || "");
+      return ContentService.createTextOutput('{"ok":true}').setMimeType(ContentService.MimeType.JSON);
     }
   }
 
-  return json({ error: "Zeile nicht gefunden" });
-}
-
-function json(obj) {
-  return ContentService
-    .createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput('{"error":"Nicht gefunden: ' + email + '"}').setMimeType(ContentService.MimeType.JSON);
 }
