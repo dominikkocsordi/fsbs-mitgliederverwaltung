@@ -1639,19 +1639,15 @@
       });
 
       try {
-        const res = await fetch(SHEET_API_URL, {
-          method:   "POST",
-          redirect: "follow",
-          headers:  { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            key:   SHEET_API_KEY,
-            ts:    safe(ACTIVE_ROW[F.ts]).trim(),
-            email: safe(ACTIVE_ROW[F.email]).trim(),
-            prio1: newR1,
-            prio2: newR2,
-          }),
-        });
+        const url = new URL(SHEET_API_URL);
+        url.searchParams.set("key",    SHEET_API_KEY);
+        url.searchParams.set("action", "updatePrios");
+        url.searchParams.set("ts",     safe(ACTIVE_ROW[F.ts]).trim());
+        url.searchParams.set("email",  safe(ACTIVE_ROW[F.email]).trim());
+        url.searchParams.set("prio1",  newR1);
+        url.searchParams.set("prio2",  newR2);
 
+        const res  = await fetch(url.toString(), { cache: "no-store" });
         const json = await res.json().catch(() => ({}));
 
         if (json.error){ alert("Fehler: " + json.error); return; }
