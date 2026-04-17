@@ -703,11 +703,8 @@ async function loadMyProfile(session){
     .eq("id", uid)
     .single();
 
-  if (error){
-    console.warn("Profil konnte nicht geladen werden:", error.message);
-    setCompactIdentity("", email);
-    setRolePill("ressortleiter");
-    return { role: "ressortleiter", display_name: "", ressort: "", email };
+  if (error || !data){
+    throw new Error("kein_profil");
   }
 
   const myRole = normRole(data?.role);
@@ -949,7 +946,13 @@ async function logout(){
     await loadDashboard();
     await loadMvWidget();
   } catch(e){
-    setAuthUI(false);
+    if (e?.message === "kein_profil"){
+      setAuthUI(true, "");
+      const g = document.getElementById("grid");
+      if (g) g.innerHTML = `<div style="grid-column:1/-1;padding:32px;text-align:center;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
+    } else {
+      setAuthUI(false);
+    }
   }
 })();
 

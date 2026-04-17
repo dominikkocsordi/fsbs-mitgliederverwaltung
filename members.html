@@ -1300,11 +1300,8 @@ async function loadMyProfile(session){
     .eq("id", uid)
     .single();
 
-  if (error){
-    console.warn("Profil konnte nicht geladen werden:", error.message);
-    setCompactIdentity("", email);
-    setRolePill("ressortleiter");
-    return;
+  if (error || !data){
+    throw new Error("kein_profil");
   }
 
   MY_ROLE  = normRole(data?.role);
@@ -1601,12 +1598,22 @@ async function del(pk){
 
 /* ========= Init ========= */
 (async () => {
-  const session = await requireAuthOrRedirect();
-  const mail    = session?.user?.email || "";
-  setAuthUI(true, mail, false);
-  await loadMyProfile(session);
-  applyPermissions();
-  await load();
+  try {
+    const session = await requireAuthOrRedirect();
+    const mail    = session?.user?.email || "";
+    setAuthUI(true, mail, false);
+    await loadMyProfile(session);
+    applyPermissions();
+    await load();
+  } catch(e) {
+    if (e?.message === "kein_profil"){
+      const mainCard = document.getElementById("mainCard");
+      if (mainCard){
+        mainCard.classList.remove("hidden");
+        mainCard.innerHTML = `<div style="padding:32px;text-align:center;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
+      }
+    }
+  }
 })();
 
 /* PWA SW */
