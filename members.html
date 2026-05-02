@@ -894,6 +894,10 @@ hr.sep{
           <span class="navIcon">⚙️</span>
           <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
         </a>
+        <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">
+          <span class="navIcon">🗳️</span>
+          <span><div class="navTitle">Wahlen</div><div class="navHint">Abstimmungen</div></span>
+        </a>
       </div>
 
       <div class="navRight">
@@ -1068,6 +1072,7 @@ const authDetails   = document.getElementById("authDetails");
 const navWrap    = document.getElementById("navWrap");
 const navFinance = document.getElementById("navFinance");
 const navNutzer  = document.getElementById("navNutzer");
+const navWahlen  = document.getElementById("navWahlen");
 const mainCard   = document.getElementById("mainCard");
 
 const searchEl  = document.getElementById("search");
@@ -1320,6 +1325,7 @@ async function loadMyProfile(session){
     navFinance.style.display = CAN_EDIT ? "" : "none";
   }
   if (navNutzer) navNutzer.style.display = CAN_EDIT ? "" : "none";
+  if (navWahlen) navWahlen.style.display = CAN_EDIT ? "" : "none";
 }
 
 function applyPermissions(){

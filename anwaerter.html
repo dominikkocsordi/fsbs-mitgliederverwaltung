@@ -724,6 +724,10 @@
             <span class="navIcon">⚙️</span>
             <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
           </a>
+          <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">
+            <span class="navIcon">🗳️</span>
+            <span><div class="navTitle">Wahlen</div><div class="navHint">Abstimmungen</div></span>
+          </a>
         </div>
 
         <div class="navRight">
@@ -867,6 +871,7 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const navFinance = document.getElementById("navFinance");
     const navNutzer = document.getElementById("navNutzer");
+    const navWahlen = document.getElementById("navWahlen");
 
     const authBadge = document.getElementById("authBadge");
     const authDot = document.getElementById("authDot");
@@ -1115,6 +1120,7 @@
 
           if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
           if (navNutzer) navNutzer.style.display = CAN_EDIT ? "" : "none";
+          if (navWahlen) navWahlen.style.display = CAN_EDIT ? "" : "none";
           return;
         }
       }

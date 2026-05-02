@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Abstimmungen · FSBS</title>
+<meta name="theme-color" content="#120e18">
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+  --accent1:#f97316; --accent2:#a855f7;
+  --glass: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.18);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
+  --shadow: 0 20px 55px rgba(0,0,0,.50);
+  --ok: rgba(34,197,94,.95);
+  --bad: rgba(239,68,68,.95);
+  --danger1: #fb7185; --danger2: #e11d48;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html, body{ min-height:100%; }
+html{
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  background-attachment: fixed;
+}
+@supports (-webkit-touch-callout: none){ html{ background-attachment:scroll; } }
+body{
+  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color: var(--text); background: transparent;
+  display:flex; justify-content:center; align-items:flex-start;
+  padding:42px 16px 60px; overflow-x:hidden;
+  animation: pageIn .38s ease both;
+}
+@keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@media (prefers-reduced-motion: reduce){ body{ animation:none !important; } }
+
+.app{ width:100%; max-width:1200px; }
+
+.top{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:16px; margin-bottom:14px; flex-wrap:wrap;
+}
+h1{ font-size:32px; letter-spacing:.4px; }
+.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+.brandLeft{ display:flex; align-items:center; gap:12px; }
+.brandLogo{
+  width:60px; height:60px; border-radius:14px; padding:6px;
+  display:grid; place-items:center; text-decoration:none; flex:0 0 auto;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  transition:transform .16s ease, filter .16s ease, background .16s ease;
+}
+.brandLogo:hover{ transform:translateY(-1px); filter:brightness(1.05); background:rgba(255,255,255,.12); }
+.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+@media (max-width:640px){
+  .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
+  .brandLogo img{ border-radius:9px; }
+}
+
+.glass{
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  border-radius:22px; box-shadow:var(--shadow);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+
+button{
+  border:none; cursor:pointer; border-radius:14px; padding:12px 18px;
+  font-weight:600; font-family:inherit; font-size:inherit; touch-action:manipulation;
+  transition:transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+}
+button:active{ transform:translateY(0px) scale(.98); }
+button:disabled{ cursor:not-allowed !important; opacity:.45 !important; transform:none !important; filter:none !important; }
+
+.btn-primary{
+  background:linear-gradient(135deg, var(--accent1), var(--accent2));
+  color:#0f0b16; font-weight:700;
+  box-shadow:0 12px 30px rgba(168,85,247,.25);
+}
+.btn-primary:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+
+.btn-secondary{
+  background:rgba(255,255,255,.14); color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-secondary:hover{ transform:translateY(-2px); background:rgba(255,255,255,.18); }
+
+.btn-danger{
+  background:linear-gradient(135deg, rgba(251,113,133,.22), rgba(225,29,72,.18));
+  color:var(--danger1); border:1px solid rgba(251,113,133,.28);
+}
+.btn-danger:hover{ transform:translateY(-2px); filter:brightness(1.1); }
+
+.btn-sm{ padding:8px 14px; font-size:13px; border-radius:12px; }
+
+.hidden{ display:none !important; }
+
+/* Auth badge */
+.authFloating{
+  border-radius:999px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 18px 55px rgba(0,0,0,.40);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  user-select:none; max-width:min(560px,100%);
+}
+.dot{ width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.35); }
+.dot.ok{ background:var(--ok); box-shadow:0 0 0 2px rgba(34,197,94,.20),0 0 18px rgba(34,197,94,.55),0 0 42px rgba(34,197,94,.30); }
+.authAvatar{
+  width:30px; height:30px; border-radius:999px;
+  display:grid; place-items:center;
+  font-weight:800; font-size:12px; letter-spacing:.3px;
+  color:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 12px 28px rgba(0,0,0,.25); background:rgba(255,255,255,.10); flex:0 0 auto;
+}
+.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
+.authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
+.authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
+.authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
+.authNameInline{
+  font-size:13px; font-weight:850; letter-spacing:.15px; color:rgba(255,255,255,.92);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;
+}
+.rolePill{
+  display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.86); font-weight:900; font-size:11px; letter-spacing:.10px;
+  line-height:1; white-space:nowrap;
+}
+.rolePill.vorstand{ border-color:rgba(56,189,248,.40); background:rgba(56,189,248,.12); }
+.rolePill.ressortleiter{ border-color:rgba(251,146,60,.35); background:rgba(251,146,60,.12); }
+.authChevron{
+  border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.85); width:30px; height:26px; border-radius:999px;
+  padding:0; display:grid; place-items:center; cursor:pointer;
+  transition:transform .15s ease, background .15s ease;
+}
+.authChevron:hover{ background:rgba(255,255,255,.10); transform:translateY(-1px); }
+.authDetails{
+  margin-top:8px; padding-top:8px;
+  border-top:1px solid rgba(255,255,255,.10);
+  display:flex; gap:8px; align-items:center; min-width:0;
+}
+.authMail{ font-size:11px; color:rgba(255,255,255,.58); word-break:break-all; }
+
+/* Nav */
+.navWrap{ margin-bottom:16px; position:sticky; top:14px; z-index:6; }
+.nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px; }
+.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.navLink{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:16px; text-decoration:none;
+  color:rgba(255,255,255,.86); border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  transition:transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
+  user-select:none; white-space:nowrap;
+}
+.navLink:hover{ transform:translateY(-2px); filter:brightness(1.06); background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.22); }
+.navLink.active{
+  background:linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
+  border-color:rgba(249,115,22,.35); box-shadow:0 12px 28px rgba(249,115,22,.25);
+}
+.navIcon{ width:30px; height:30px; border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); }
+.navTitle{ font-weight:750; letter-spacing:.2px; }
+.navHint{ font-size:12px; color:rgba(255,255,255,.60); margin-left:2px; }
+
+/* Page layout */
+.pageHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; margin-bottom:20px; flex-wrap:wrap;
+}
+.pageTitle{ font-size:22px; font-weight:800; }
+.pageSub{ font-size:13px; color:var(--muted); margin-top:4px; }
+
+/* Session list */
+.sessionList{ display:flex; flex-direction:column; gap:14px; }
+
+.sessionCard{
+  padding:20px; border-radius:20px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  box-shadow:0 12px 36px rgba(0,0,0,.30);
+  transition:transform .16s ease, box-shadow .16s ease;
+}
+.sessionCard:hover{ transform:translateY(-2px); box-shadow:0 18px 48px rgba(0,0,0,.38); }
+
+.sessionCardTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.sessionCardInfo{ flex:1 1 auto; min-width:0; }
+.sessionCardTitle{ font-size:18px; font-weight:800; letter-spacing:.2px; margin-bottom:6px; }
+.sessionCardMeta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+.statusBadge{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:.2px;
+}
+.statusBadge.open{
+  background:rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.35);
+  color:rgba(34,197,94,.95);
+}
+.statusBadge.closed{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.55);
+}
+.sessionDate{ font-size:12px; color:var(--muted); }
+
+.sessionCardActions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; flex:0 0 auto; }
+
+/* Results */
+.resultsBlock{ margin-top:18px; border-top:1px solid rgba(255,255,255,.10); padding-top:16px; }
+.resultsTitle{ font-size:13px; font-weight:700; color:var(--muted); margin-bottom:12px; letter-spacing:.3px; text-transform:uppercase; }
+.resultRow{ margin-bottom:10px; }
+.resultLabel{ display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:600; margin-bottom:5px; }
+.resultLabelText{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; padding-right:10px; }
+.resultCount{ font-size:13px; color:var(--muted); white-space:nowrap; }
+.resultBar{ height:8px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
+.resultBarFill{ height:100%; border-radius:999px; background:linear-gradient(90deg, var(--accent1), var(--accent2)); transition:width .5s ease; }
+.totalVotes{ font-size:12px; color:var(--muted); margin-top:10px; }
+
+/* Empty state */
+.emptyState{ text-align:center; padding:60px 20px; }
+.emptyIcon{ font-size:48px; margin-bottom:16px; }
+.emptyTitle{ font-size:18px; font-weight:700; margin-bottom:8px; }
+.emptySub{ font-size:14px; color:var(--muted); }
+
+/* Toast */
+.toast{
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:rgba(34,197,94,.20); border:1px solid rgba(34,197,94,.40);
+  color:rgba(255,255,255,.92); padding:12px 22px; border-radius:999px;
+  font-size:14px; font-weight:600; letter-spacing:.2px;
+  box-shadow:0 12px 32px rgba(0,0,0,.35); z-index:999;
+  transition:transform .3s ease, opacity .3s ease; opacity:0; pointer-events:none;
+}
+.toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+.toast.error{ background:rgba(239,68,68,.20); border-color:rgba(239,68,68,.40); }
+
+/* Modal */
+dialog{
+  background:transparent; border:none; padding:0; max-width:520px; width:calc(100% - 32px);
+  margin:auto;
+}
+dialog::backdrop{ background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
+.modalBox{
+  background:rgba(22,16,34,.95); border:1px solid rgba(255,255,255,.18);
+  border-radius:22px; box-shadow:0 30px 80px rgba(0,0,0,.60);
+  padding:24px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+}
+.modalTitle{ font-size:20px; font-weight:800; margin-bottom:20px; }
+
+.formGroup{ margin-bottom:14px; }
+.formLabel{ font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
+input[type=text]{
+  background:rgba(255,255,255,.12); border:1px solid var(--border);
+  color:var(--text); padding:12px 14px; border-radius:14px; outline:none;
+  font-size:15px; font-family:inherit; width:100%;
+  transition:background .15s, border-color .15s, transform .15s;
+}
+input[type=text]::placeholder{ color:rgba(255,255,255,.35); }
+input[type=text]:focus{
+  border-color:rgba(249,115,22,.55); background:rgba(255,255,255,.16); transform:translateY(-1px);
+}
+
+.optionsList{ display:flex; flex-direction:column; gap:8px; }
+.optionRow{ display:flex; gap:8px; align-items:center; }
+.optionRow input{ flex:1; }
+.optionRemove{
+  width:34px; height:34px; border-radius:10px; padding:0; font-size:16px;
+  background:rgba(239,68,68,.15); color:var(--danger1);
+  border:1px solid rgba(239,68,68,.25); flex:0 0 auto;
+}
+.optionRemove:hover{ background:rgba(239,68,68,.25); transform:scale(1.05); }
+
+.addOptionBtn{
+  margin-top:8px; padding:9px 14px; font-size:13px; border-radius:12px;
+  background:rgba(255,255,255,.10); color:rgba(255,255,255,.75);
+  border:1px dashed rgba(255,255,255,.20);
+}
+.addOptionBtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.30); transform:translateY(-1px); }
+
+.modalActions{ display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap; }
+.modalActions button{ min-width:120px; }
+
+/* Spinner */
+.spinner{
+  width:36px; height:36px; border-radius:50%;
+  border:3px solid rgba(255,255,255,.15); border-top-color:var(--accent1);
+  animation:spin .7s linear infinite; margin:0 auto 16px;
+}
+@keyframes spin{ to{transform:rotate(360deg)} }
+
+@media (max-width:640px){
+  body{ padding:24px 14px; }
+  h1{ font-size:26px; }
+  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .navWrap{ top:10px; }
+  .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling:touch; }
+  .navLeft{ flex-wrap:nowrap; }
+  .navRight{ margin-left:0; }
+  .sessionCardTop{ flex-direction:column; }
+  .sessionCardActions{ width:100%; }
+  .authNameInline{ max-width:150px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="index.html" title="FSBS Intern">
+        <img src="logo.png" alt="Fachschaft Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Abstimmungen</h1>
+        <div class="subtitle">Wahlen verwalten</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap">
+    <div class="nav">
+      <div class="navLeft">
+        <a class="navLink" href="index.html">
+          <span class="navIcon">🏠</span>
+          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
+        </a>
+        <a class="navLink" href="members.html">
+          <span class="navIcon">👥</span>
+          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
+        </a>
+        <a class="navLink" href="anwaerter.html">
+          <span class="navIcon">👶🏼</span>
+          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
+        </a>
+        <a class="navLink" href="bewerbungen.html">
+          <span class="navIcon">📝</span>
+          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
+        </a>
+        <a class="navLink" href="rechnungen.html" id="navFinanzen">
+          <span class="navIcon">💰</span>
+          <span><div class="navTitle">Finanzen</div><div class="navHint">Belege</div></span>
+        </a>
+        <a class="navLink" href="mitgliederbefragung.html">
+          <span class="navIcon">📊</span>
+          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
+        </a>
+        <a class="navLink" href="nutzer.html" id="navNutzer" style="display:none;">
+          <span class="navIcon">⚙️</span>
+          <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
+        </a>
+        <a class="navLink active" href="wahlen.html">
+          <span class="navIcon">🗳️</span>
+          <span><div class="navTitle">Wahlen</div><div class="navHint">Abstimmungen</div></span>
+        </a>
+      </div>
+      <div class="navRight">
+        <button class="btn-secondary" onclick="logout()" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="mainContent">
+    <div style="text-align:center;padding:60px 20px;">
+      <div class="spinner"></div>
+      <div style="color:var(--muted);font-size:14px;">Lade…</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Create Session Modal -->
+<dialog id="createModal">
+  <div class="modalBox">
+    <div class="modalTitle">Neue Abstimmung</div>
+
+    <div class="formGroup">
+      <label class="formLabel" for="sessionTitle">Titel</label>
+      <input type="text" id="sessionTitle" placeholder="z.B. Wahl des Veranstaltungsorts" maxlength="120" />
+    </div>
+
+    <div class="formGroup">
+      <label class="formLabel">Optionen</label>
+      <div class="optionsList" id="optionsList"></div>
+      <button class="addOptionBtn" id="addOptionBtn" type="button">+ Option hinzufügen</button>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">Mindestens 2, maximal 10 Optionen.</div>
+    </div>
+
+    <div class="modalActions">
+      <button class="btn-secondary" id="cancelModalBtn" type="button">Abbrechen</button>
+      <button class="btn-primary" id="saveSessionBtn" type="button">Abstimmung starten</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const LOGIN_PAGE = "login.html";
+
+/* ---- Helpers ---- */
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+let toastTimer;
+function showToast(msg, isError = false){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.toggle("error", isError);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+function formatDate(iso){
+  if (!iso) return "";
+  const d = new Date(iso);
+  return d.toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
+    + " " + d.toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" });
+}
+
+function shareUrl(token){
+  return location.origin + location.pathname.replace("wahlen.html","") + "abstimmung.html?s=" + token;
+}
+
+/* ---- Auth UI ---- */
+const authBadge   = document.getElementById("authBadge");
+const authDot     = document.getElementById("authDot");
+const authState   = document.getElementById("authState");
+const authMail    = document.getElementById("authMail");
+const authAvatar  = document.getElementById("authAvatar");
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill   = document.getElementById("authRolePill");
+const authToggle  = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
+
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+authToggle?.addEventListener("click", e => { e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", e => { if (!authBadge.contains(e.target)) closeAuthDetails(); });
+
+function hashString(str){
+  let h = 2166136261;
+  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function initialsFromEmail(email){
+  const e=(email||"").trim().toLowerCase();
+  if(!e) return "U";
+  const local=e.split("@")[0]||"u";
+  const parts=local.split(/[.\-_]+/).filter(Boolean);
+  const a=(parts[0]?.[0]||local[0]||"u").toUpperCase();
+  const b=(parts[1]?.[0]||local[1]||"").toUpperCase();
+  return (a+b).trim()||a;
+}
+function setAvatar(email){
+  const e=(email||"").trim().toLowerCase();
+  if(!e){ authAvatar.classList.add("hidden"); return; }
+  const h=hashString(e); const hue=h%360; const hue2=(hue+38)%360;
+  authAvatar.textContent=initialsFromEmail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background=`linear-gradient(135deg, hsla(${hue},85%,55%,.55), hsla(${hue2},85%,55%,.35))`;
+}
+function normRole(v){ return (v||"").trim().toLowerCase(); }
+function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; return "Unbekannt"; }
+function setRolePill(role){
+  const r=normRole(role);
+  authRolePill.textContent=roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if(r==="vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function setAuthUI(isAuthed, email=""){
+  if(isAuthed){
+    authDot.classList.remove("warn"); authDot.classList.add("ok");
+    authState.classList.add("hidden"); authCompact.classList.remove("hidden");
+    closeAuthDetails(); authMail.textContent=(email||"").trim(); setAvatar(email);
+  } else {
+    authDot.classList.remove("ok"); authDot.classList.add("warn");
+    authState.classList.remove("hidden"); authState.textContent="nicht eingeloggt";
+    authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent=""; setAvatar("");
+  }
+}
+
+async function requireAuthOrRedirect(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); }
+  return data.session;
+}
+
+async function loadMyProfile(session){
+  const uid = session?.user?.id;
+  const email = session?.user?.email || "";
+  const { data, error } = await sb.from("profiles").select("role,display_name").eq("id", uid).maybeSingle();
+  if (error || !data){ throw new Error("kein_profil"); }
+  setAuthUI(true, email);
+  const name = (data.display_name || "").trim();
+  authNameInline.textContent = name || email.split("@")[0];
+  setRolePill(data.role);
+  const isVorstand = normRole(data.role) === "vorstand";
+  const navFinanzen = document.getElementById("navFinanzen");
+  const navNutzer = document.getElementById("navNutzer");
+  if (navFinanzen) navFinanzen.classList.toggle("hidden", !isVorstand);
+  if (navNutzer) navNutzer.style.display = isVorstand ? "" : "none";
+  return data;
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  window.location.replace(LOGIN_PAGE);
+}
+
+/* ---- Session rendering ---- */
+let allSessions = [];
+
+async function loadSessions(){
+  const { data, error } = await sb.from("vote_sessions").select("*").order("created_at", { ascending:false });
+  if (error){ renderError("Fehler beim Laden der Abstimmungen: " + error.message); return; }
+  allSessions = data || [];
+  renderSessions();
+}
+
+async function loadResults(sessionId){
+  const { data } = await sb.from("votes").select("option_index").eq("session_id", sessionId);
+  return data || [];
+}
+
+function renderError(msg){
+  document.getElementById("mainContent").innerHTML =
+    `<div style="text-align:center;padding:60px 20px;color:rgba(239,68,68,.85);font-size:15px;">⚠️ ${esc(msg)}</div>`;
+}
+
+function renderSessions(){
+  const el = document.getElementById("mainContent");
+
+  let html = `<div class="pageHeader">
+    <div>
+      <div class="pageTitle">Abstimmungen</div>
+      <div class="pageSub">${allSessions.length} Abstimmung${allSessions.length !== 1 ? "en" : ""} gesamt</div>
+    </div>
+    <button class="btn-primary" id="openCreateBtn" type="button">+ Neue Abstimmung</button>
+  </div>
+  <div class="sessionList" id="sessionList">`;
+
+  if (allSessions.length === 0){
+    html += `<div class="glass emptyState">
+      <div class="emptyIcon">🗳️</div>
+      <div class="emptyTitle">Noch keine Abstimmungen</div>
+      <div class="emptySub">Erstelle eine neue Abstimmung, um loszulegen.</div>
+    </div>`;
+  } else {
+    for (const s of allSessions){
+      const isOpen = s.status === "open";
+      const opts = Array.isArray(s.options) ? s.options : [];
+      html += buildSessionCard(s, isOpen, opts);
+    }
+  }
+
+  html += `</div>`;
+  el.innerHTML = html;
+
+  document.getElementById("openCreateBtn")?.addEventListener("click", openCreateModal);
+
+  for (const s of allSessions){
+    const isOpen = s.status === "open";
+    document.getElementById(`btn-copy-${s.id}`)?.addEventListener("click", () => copyLink(s.token));
+    document.getElementById(`btn-close-${s.id}`)?.addEventListener("click", () => closeSession(s.id));
+    document.getElementById(`btn-delete-${s.id}`)?.addEventListener("click", () => deleteSession(s.id, s.title));
+    if (!isOpen){
+      loadResultsAndRender(s.id, s.options);
+    }
+  }
+}
+
+function buildSessionCard(s, isOpen, opts){
+  const statusBadge = isOpen
+    ? `<span class="statusBadge open">● Offen</span>`
+    : `<span class="statusBadge closed">● Geschlossen</span>`;
+
+  const actions = isOpen ? `
+    <button class="btn-secondary btn-sm" id="btn-copy-${s.id}" type="button">🔗 Link kopieren</button>
+    <button class="btn-secondary btn-sm" id="btn-close-${s.id}" type="button" style="border-color:rgba(249,115,22,.30);color:rgba(249,115,22,.85);">🔒 Schließen</button>
+    <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️</button>
+  ` : `
+    <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️ Löschen</button>
+  `;
+
+  const optPreview = opts.slice(0, 3).map(o => `<span style="font-size:12px;color:var(--muted);">${esc(o)}</span>`).join(" · ");
+  const moreOpts = opts.length > 3 ? `<span style="font-size:12px;color:var(--muted);">+${opts.length - 3} weitere</span>` : "";
+
+  const resultsBlock = !isOpen
+    ? `<div class="resultsBlock" id="results-${s.id}"><div style="color:var(--muted);font-size:13px;">Lade Ergebnisse…</div></div>`
+    : `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);">
+        <div style="font-size:13px;color:var(--muted);">
+          Share-Link: <code style="font-size:12px;color:rgba(249,115,22,.85);word-break:break-all;">${esc(shareUrl(s.token))}</code>
+        </div>
+       </div>`;
+
+  return `<div class="sessionCard">
+    <div class="sessionCardTop">
+      <div class="sessionCardInfo">
+        <div class="sessionCardTitle">${esc(s.title)}</div>
+        <div class="sessionCardMeta">
+          ${statusBadge}
+          <span class="sessionDate">${formatDate(s.created_at)}</span>
+          <span style="font-size:12px;color:var(--muted);">${opts.length} Option${opts.length !== 1 ? "en" : ""}</span>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">${optPreview}${moreOpts}</div>
+      </div>
+      <div class="sessionCardActions">${actions}</div>
+    </div>
+    ${resultsBlock}
+  </div>`;
+}
+
+async function loadResultsAndRender(sessionId, opts){
+  const votes = await loadResults(sessionId);
+  const el = document.getElementById(`results-${sessionId}`);
+  if (!el) return;
+
+  const total = votes.length;
+  const counts = Array(opts.length).fill(0);
+  for (const v of votes){
+    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index]++;
+  }
+
+  if (total === 0){
+    el.innerHTML = `<div class="resultsBlock">
+      <div class="resultsTitle">Ergebnisse</div>
+      <div style="font-size:14px;color:var(--muted);">Keine Stimmen abgegeben.</div>
+    </div>`;
+    return;
+  }
+
+  let rows = "";
+  for (let i = 0; i < opts.length; i++){
+    const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+    rows += `<div class="resultRow">
+      <div class="resultLabel">
+        <span class="resultLabelText">${esc(opts[i])}</span>
+        <span class="resultCount">${counts[i]} Stimme${counts[i] !== 1 ? "n" : ""} (${pct}%)</span>
+      </div>
+      <div class="resultBar"><div class="resultBarFill" style="width:${pct}%"></div></div>
+    </div>`;
+  }
+
+  el.innerHTML = `<div class="resultsBlock">
+    <div class="resultsTitle">Ergebnisse</div>
+    ${rows}
+    <div class="totalVotes">Gesamt: ${total} Stimme${total !== 1 ? "n" : ""}</div>
+  </div>`;
+}
+
+/* ---- Actions ---- */
+async function copyLink(token){
+  const url = shareUrl(token);
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast("Link in Zwischenablage kopiert!");
+  } catch {
+    showToast(url, false);
+  }
+}
+
+async function closeSession(id){
+  if (!confirm("Abstimmung schließen? Das kann nicht rückgängig gemacht werden.")) return;
+  const { error } = await sb.from("vote_sessions").update({ status:"closed" }).eq("id", id);
+  if (error){ showToast("Fehler: " + error.message, true); return; }
+  showToast("Abstimmung geschlossen.");
+  await loadSessions();
+}
+
+async function deleteSession(id, title){
+  if (!confirm(`Abstimmung „${title}" und alle Stimmen löschen?`)) return;
+  const { error } = await sb.from("vote_sessions").delete().eq("id", id);
+  if (error){ showToast("Fehler: " + error.message, true); return; }
+  showToast("Abstimmung gelöscht.");
+  await loadSessions();
+}
+
+/* ---- Create Modal ---- */
+const modal = document.getElementById("createModal");
+let optionCount = 0;
+
+function openCreateModal(){
+  optionCount = 0;
+  document.getElementById("sessionTitle").value = "";
+  document.getElementById("optionsList").innerHTML = "";
+  addOptionRow(); addOptionRow();
+  modal.showModal();
+  document.getElementById("sessionTitle").focus();
+}
+
+function addOptionRow(){
+  if (optionCount >= 10) return;
+  optionCount++;
+  const i = optionCount;
+  const row = document.createElement("div");
+  row.className = "optionRow";
+  row.dataset.optId = i;
+  row.innerHTML = `<input type="text" placeholder="Option ${i}" maxlength="120" />
+    <button class="optionRemove" type="button" title="Entfernen" ${optionCount <= 2 ? "disabled" : ""}>✕</button>`;
+  row.querySelector(".optionRemove").addEventListener("click", () => {
+    if (document.querySelectorAll(".optionRow").length <= 2) return;
+    row.remove();
+    optionCount = document.querySelectorAll(".optionRow").length;
+    document.getElementById("addOptionBtn").disabled = optionCount >= 10;
+    refreshRemoveButtons();
+  });
+  document.getElementById("optionsList").appendChild(row);
+  document.getElementById("addOptionBtn").disabled = optionCount >= 10;
+  refreshRemoveButtons();
+}
+
+function refreshRemoveButtons(){
+  const rows = document.querySelectorAll(".optionRow");
+  rows.forEach(r => {
+    const btn = r.querySelector(".optionRemove");
+    if (btn) btn.disabled = rows.length <= 2;
+  });
+}
+
+document.getElementById("addOptionBtn").addEventListener("click", addOptionRow);
+document.getElementById("cancelModalBtn").addEventListener("click", () => modal.close());
+modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
+
+document.getElementById("saveSessionBtn").addEventListener("click", async () => {
+  const title = document.getElementById("sessionTitle").value.trim();
+  if (!title){ showToast("Bitte einen Titel eingeben.", true); return; }
+
+  const opts = Array.from(document.querySelectorAll(".optionRow input"))
+    .map(i => i.value.trim()).filter(Boolean);
+  if (opts.length < 2){ showToast("Mindestens 2 Optionen benötigt.", true); return; }
+
+  const saveBtn = document.getElementById("saveSessionBtn");
+  saveBtn.disabled = true; saveBtn.textContent = "Erstelle…";
+
+  const { error } = await sb.from("vote_sessions").insert({ title, options: opts });
+  saveBtn.disabled = false; saveBtn.textContent = "Abstimmung starten";
+
+  if (error){ showToast("Fehler: " + error.message, true); return; }
+  modal.close();
+  showToast("Abstimmung erstellt!");
+  await loadSessions();
+});
+
+/* ---- Init ---- */
+(async () => {
+  try {
+    const session = await requireAuthOrRedirect();
+    const profile = await loadMyProfile(session);
+    if (normRole(profile.role) !== "vorstand"){
+      document.getElementById("mainContent").innerHTML = `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – diese Seite ist nur für den Vorstand.</div>`;
+      return;
+    }
+    await loadSessions();
+  } catch(e){
+    if (e?.message === "kein_profil"){
+      setAuthUI(false);
+      document.getElementById("mainContent").innerHTML = `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
+    }
+  }
+})();
+</script>
+</body>
+</html>

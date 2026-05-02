@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Abstimmung · FSBS</title>
+  <meta name="theme-color" content="#120e18">
+  <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+      --accent1:#f97316; --accent2:#a855f7;
+      --border: rgba(255,255,255,.18);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.65);
+      --shadow: 0 20px 55px rgba(0,0,0,.50);
+      --ok: rgba(34,197,94,.95);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; margin:0; }
+    html{
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      background-attachment: fixed;
+    }
+    @supports (-webkit-touch-callout:none){ html{ background-attachment:scroll; } }
+    body{
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color: var(--text);
+      display:flex; justify-content:center; align-items:flex-start;
+      padding: 40px 16px 60px;
+      animation: pageIn .35s ease both;
+    }
+    @keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    .wrap{ width:100%; max-width:520px; }
+
+    .brand{
+      display:flex; align-items:center; gap:12px; margin-bottom:24px;
+    }
+    .brandLogo{
+      width:44px; height:44px; border-radius:12px; padding:5px;
+      display:grid; place-items:center;
+      background:rgba(255,255,255,.10); border:1px solid var(--border);
+      backdrop-filter:blur(18px); flex:0 0 auto;
+    }
+    .brandLogo img{ width:100%; height:100%; border-radius:8px; object-fit:cover; display:block; }
+    .brandTitle{ font-size:15px; font-weight:700; color:var(--muted); }
+
+    .glass{
+      background:rgba(255,255,255,.10); border:1px solid var(--border);
+      border-radius:22px; box-shadow:var(--shadow);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      padding:24px;
+    }
+
+    .sessionTitle{
+      font-size:22px; font-weight:800; letter-spacing:.2px;
+      margin:0 0 6px;
+    }
+    .sessionSub{
+      font-size:13px; color:var(--muted); margin-bottom:24px;
+    }
+
+    .options{ display:flex; flex-direction:column; gap:10px; }
+
+    .optBtn{
+      width:100%; padding:16px 18px;
+      background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.16);
+      border-radius:16px; color:var(--text);
+      font-size:15px; font-weight:600; text-align:left;
+      cursor:pointer;
+      transition: background .15s, border-color .15s, transform .12s;
+      display:flex; align-items:center; gap:12px;
+    }
+    .optBtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.28); transform:translateY(-1px); }
+    .optBtn.selected{
+      background:linear-gradient(135deg,rgba(249,115,22,.22),rgba(168,85,247,.18));
+      border-color:rgba(249,115,22,.55);
+      box-shadow:0 8px 24px rgba(249,115,22,.18);
+    }
+    .optBtn.selected .optCheck{ opacity:1; }
+    .optCheck{
+      width:20px; height:20px; border-radius:50%; flex:0 0 auto;
+      border:2px solid rgba(249,115,22,.8);
+      background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      display:grid; place-items:center; opacity:0;
+      transition:opacity .15s;
+      font-size:11px; color:#0f0b16; font-weight:900;
+    }
+
+    .submitRow{ margin-top:20px; }
+    .btnPrimary{
+      width:100%; padding:15px;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      color:#0f0b16; font-weight:800; font-size:15px;
+      border:none; border-radius:16px; cursor:pointer;
+      box-shadow:0 12px 30px rgba(168,85,247,.25);
+      transition:transform .15s,filter .15s,opacity .15s;
+    }
+    .btnPrimary:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+    .btnPrimary:disabled{ opacity:.45; cursor:not-allowed; transform:none; filter:none; }
+
+    .stateBox{
+      text-align:center; padding:40px 20px;
+    }
+    .stateIcon{ font-size:52px; margin-bottom:16px; }
+    .stateTitle{ font-size:20px; font-weight:800; margin-bottom:8px; }
+    .stateSub{ font-size:14px; color:var(--muted); line-height:1.5; }
+
+    .spinner{
+      width:36px; height:36px; border-radius:50%;
+      border:3px solid rgba(255,255,255,.15);
+      border-top-color:var(--accent1);
+      animation:spin .7s linear infinite; margin:0 auto 16px;
+    }
+    @keyframes spin{ to{transform:rotate(360deg)} }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brandLogo">
+      <img src="logo.png" alt="FSBS" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
+    </div>
+    <div class="brandTitle">Fachschaft Business School e.V.</div>
+  </div>
+
+  <div class="glass" id="card">
+    <div class="stateBox" id="stateLoading">
+      <div class="spinner"></div>
+      <div class="stateSub">Lade Abstimmung…</div>
+    </div>
+  </div>
+
+</div>
+<script>
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const card = document.getElementById("card");
+
+  function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+  function showState(icon, title, sub){
+    card.innerHTML = `<div class="stateBox">
+      <div class="stateIcon">${icon}</div>
+      <div class="stateTitle">${esc(title)}</div>
+      <div class="stateSub">${esc(sub)}</div>
+    </div>`;
+  }
+
+  function getToken(){
+    return new URLSearchParams(location.search).get("s") || "";
+  }
+
+  function getVoterToken(sessionToken){
+    const key = "vt_" + sessionToken;
+    let vt = sessionStorage.getItem(key);
+    if (!vt){ vt = crypto.randomUUID(); sessionStorage.setItem(key, vt); }
+    return vt;
+  }
+
+  function alreadyVoted(sessionToken){
+    return !!sessionStorage.getItem("voted_" + sessionToken);
+  }
+
+  function markVoted(sessionToken){
+    sessionStorage.setItem("voted_" + sessionToken, "1");
+  }
+
+  function renderVoting(session){
+    const opts = session.options || [];
+    const sessionToken = session.token;
+    let selected = null;
+
+    card.innerHTML = `
+      <h1 class="sessionTitle">${esc(session.title)}</h1>
+      <div class="sessionSub">Wähle eine Option und bestätige.</div>
+      <div class="options" id="opts">
+        ${opts.map((o, i) => `
+          <button class="optBtn" data-i="${i}" type="button">
+            <span class="optCheck">✓</span>
+            ${esc(o)}
+          </button>
+        `).join("")}
+      </div>
+      <div class="submitRow">
+        <button class="btnPrimary" id="submitBtn" disabled type="button">Option wählen</button>
+      </div>
+      <div id="vMsg" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,.6);text-align:center;min-height:18px;"></div>
+    `;
+
+    const submitBtn = document.getElementById("submitBtn");
+    const vMsg = document.getElementById("vMsg");
+
+    card.querySelectorAll(".optBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        card.querySelectorAll(".optBtn").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        selected = parseInt(btn.dataset.i);
+        submitBtn.disabled = false;
+        submitBtn.textContent = `„${esc(opts[selected])}" wählen`;
+      });
+    });
+
+    submitBtn.addEventListener("click", async () => {
+      if (selected === null) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Speichere…";
+      vMsg.textContent = "";
+
+      const voterToken = getVoterToken(sessionToken);
+
+      const { error } = await sb.from("votes").insert({
+        session_id: session.id,
+        option_index: selected,
+        voter_token: voterToken,
+      });
+
+      if (error){
+        if (error.code === "23505"){
+          markVoted(sessionToken);
+          showState("🔒", "Bereits abgestimmt", "Du hast für diese Abstimmung bereits eine Stimme abgegeben.");
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = `„${esc(opts[selected])}" wählen`;
+          vMsg.textContent = "Fehler: " + error.message;
+        }
+        return;
+      }
+
+      markVoted(sessionToken);
+      showState("✅", "Stimme erfasst!", "Danke für deine Teilnahme. Deine Stimme wurde anonym gespeichert.");
+    });
+  }
+
+  (async () => {
+    const token = getToken();
+    if (!token){ showState("❌", "Kein Link", "Bitte den Link vom Vorstand verwenden."); return; }
+
+    if (alreadyVoted(token)){
+      showState("🔒", "Bereits abgestimmt", "Du hast für diese Abstimmung bereits eine Stimme abgegeben.");
+      return;
+    }
+
+    const { data, error } = await sb
+      .from("vote_sessions")
+      .select("*")
+      .eq("token", token)
+      .maybeSingle();
+
+    if (error || !data){
+      showState("❌", "Abstimmung nicht gefunden", "Der Link ist ungültig oder die Abstimmung wurde gelöscht.");
+      return;
+    }
+
+    if (data.status !== "open"){
+      showState("🔒", "Abstimmung geschlossen", "Diese Abstimmung wurde bereits beendet.");
+      return;
+    }
+
+    renderVoting(data);
+  })();
+</script>
+</body>
+</html>
