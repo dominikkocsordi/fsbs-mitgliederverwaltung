@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zeugnisse · FSBS</title>
+<meta name="theme-color" content="#120e18">
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+  --accent1:#f97316; --accent2:#a855f7;
+  --border: rgba(255,255,255,.18);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
+  --shadow: 0 20px 55px rgba(0,0,0,.50);
+  --ok: rgba(34,197,94,.95);
+  --bad: rgba(239,68,68,.95);
+  --danger1: #fb7185;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ min-height:100%; }
+html{
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  background-attachment:fixed;
+}
+@supports (-webkit-touch-callout:none){ html{ background-attachment:scroll; } }
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text); background:transparent;
+  display:flex; justify-content:center; align-items:flex-start;
+  padding:42px 16px 80px; overflow-x:hidden;
+  animation:pageIn .38s ease both;
+}
+@keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@media (prefers-reduced-motion:reduce){ body{ animation:none !important; } }
+.app{ width:100%; max-width:1160px; }
+
+/* Brand / top */
+.top{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+h1{ font-size:32px; letter-spacing:.4px; }
+.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+.brandLeft{ display:flex; align-items:center; gap:12px; }
+.brandLogo{
+  width:60px; height:60px; border-radius:14px; padding:6px;
+  display:grid; place-items:center; text-decoration:none; flex:0 0 auto;
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  box-shadow:0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  transition:transform .16s, filter .16s;
+}
+.brandLogo:hover{ transform:translateY(-1px); filter:brightness(1.05); }
+.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+
+/* Glass */
+.glass{
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  border-radius:22px; box-shadow:var(--shadow);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+
+/* Buttons */
+button{
+  border:none; cursor:pointer; border-radius:14px; padding:12px 18px;
+  font-weight:600; font-family:inherit; font-size:inherit; touch-action:manipulation;
+  transition:transform .16s, filter .16s, opacity .16s;
+}
+button:active{ transform:scale(.98); }
+button:disabled{ cursor:not-allowed !important; opacity:.4 !important; transform:none !important; }
+.btn-primary{ background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:#0f0b16; font-weight:700; box-shadow:0 12px 30px rgba(168,85,247,.25); }
+.btn-primary:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+.btn-secondary{ background:rgba(255,255,255,.14); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover{ transform:translateY(-2px); background:rgba(255,255,255,.18); }
+.btn-danger{ background:linear-gradient(135deg,rgba(251,113,133,.22),rgba(225,29,72,.18)); color:var(--danger1); border:1px solid rgba(251,113,133,.22); }
+.btn-danger:hover{ transform:translateY(-2px); filter:brightness(1.1); }
+.btn-sm{ padding:8px 13px; font-size:13px; border-radius:11px; }
+.btn-xs{ padding:5px 10px; font-size:12px; border-radius:9px; }
+.btn-export{
+  background:linear-gradient(135deg,rgba(56,189,248,.22),rgba(14,165,233,.18));
+  color:rgba(186,230,253,.95); border:1px solid rgba(56,189,248,.30);
+  padding:11px 24px; border-radius:13px; font-weight:700; font-family:inherit; font-size:14px;
+  cursor:pointer; box-shadow:0 8px 22px rgba(56,189,248,.12);
+  transition:transform .16s, filter .16s, box-shadow .16s;
+}
+.btn-export:hover{ transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 12px 28px rgba(56,189,248,.18); }
+
+/* Auth badge */
+.authFloating{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.10); border:1px solid var(--border); border-radius:18px; padding:8px 14px; backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); box-shadow:0 12px 30px rgba(0,0,0,.30); cursor:pointer; transition:background .18s; }
+.authFloating:hover{ background:rgba(255,255,255,.14); }
+.dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+.dot.ok{ background:var(--ok); box-shadow:0 0 6px rgba(34,197,94,.7); }
+.dot.warn{ background:rgba(239,68,68,.8); }
+.authAvatar{ width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex:0 0 auto; }
+.authInfo{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.authTopLine{ display:flex; align-items:center; gap:8px; }
+.authState{ font-size:13px; color:var(--muted); }
+.authCompact{ display:flex; align-items:center; gap:6px; }
+.authNameInline{ font-size:13px; font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rolePill{ font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase; padding:2px 8px; border-radius:20px; border:1px solid transparent; }
+.rolePill.vorstand{ background:rgba(168,85,247,.22); color:rgba(192,132,252,.95); border-color:rgba(168,85,247,.35); }
+.rolePill.ressortleiter{ background:rgba(249,115,22,.18); color:rgba(251,146,60,.95); border-color:rgba(249,115,22,.30); }
+.authChevron{ background:none; border:none; color:var(--muted); font-size:14px; padding:0 2px; cursor:pointer; border-radius:4px; }
+.authDetails{ margin-top:4px; }
+.authMail{ font-size:12px; color:var(--muted); }
+.hidden{ display:none !important; }
+
+/* Nav */
+.navWrap{ position:sticky; top:16px; z-index:100; padding:8px 10px; margin-bottom:28px; }
+.nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.navLeft{ display:flex; gap:2px; align-items:center; flex:1; min-width:0; overflow-x:auto; }
+.navLeft::-webkit-scrollbar{ display:none; }
+.navRight{ display:flex; gap:8px; align-items:center; flex:0 0 auto; }
+.navLink{ display:flex; align-items:center; gap:5px; padding:8px 13px; border-radius:12px; text-decoration:none; color:var(--muted); font-size:13.5px; font-weight:500; white-space:nowrap; border:1px solid transparent; transition:background .16s, color .16s, border-color .16s, transform .16s; }
+.navLink:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); color:rgba(255,255,255,.92); transform:translateY(-1px); }
+.navLink.active{ background:linear-gradient(135deg,rgba(249,115,22,.20),rgba(168,85,247,.18)); border-color:rgba(249,115,22,.28); color:rgba(255,255,255,.95); font-weight:600; box-shadow:0 4px 14px rgba(168,85,247,.12); }
+
+/* Toast */
+.toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.35); color:rgba(34,197,94,.95); padding:11px 22px; border-radius:14px; font-size:14px; font-weight:600; backdrop-filter:blur(18px); opacity:0; pointer-events:none; z-index:9999; transition:opacity .22s, transform .22s; }
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.error{ background:rgba(239,68,68,.18); border-color:rgba(239,68,68,.35); color:rgba(239,68,68,.95); }
+
+/* Layout: two columns */
+.mainGrid{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:20px;
+  align-items:start;
+}
+
+/* Member panel */
+.memberPanel{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  border-radius:20px; padding:18px; position:sticky; top:90px;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+.memberPanelTitle{ font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px; }
+.mpSearch{
+  width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  border-radius:10px; padding:8px 12px; color:var(--text); font-family:inherit;
+  font-size:13px; outline:none; margin-bottom:10px;
+}
+.mpSearch:focus{ border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.07); }
+.mpSearch::placeholder{ color:var(--muted); }
+.memberList{ display:flex; flex-direction:column; gap:3px; max-height:calc(100vh - 280px); overflow-y:auto; }
+.memberList::-webkit-scrollbar{ width:5px; }
+.memberList::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:4px; }
+.memberItem{
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px; border-radius:10px; cursor:pointer;
+  border:1px solid transparent;
+  transition:background .12s, border-color .12s;
+}
+.memberItem:hover{ background:rgba(255,255,255,.07); }
+.memberItem.selected{
+  background:rgba(168,85,247,.16); border-color:rgba(168,85,247,.35);
+}
+.memberItem input[type="radio"]{ accent-color:var(--accent2); width:15px; height:15px; flex:0 0 auto; cursor:pointer; }
+.memberItemInfo{ min-width:0; }
+.memberItemName{ font-size:13px; font-weight:600; }
+.memberItemSub{ font-size:11px; color:var(--muted); margin-top:1px; }
+.memberEmpty{ font-size:13px; color:var(--muted); text-align:center; padding:20px 0; font-style:italic; }
+
+/* Certificate builder */
+.builderPanel{ display:flex; flex-direction:column; gap:16px; }
+
+/* Type tabs */
+.typeTabs{ display:flex; gap:8px; }
+.typeTab{
+  flex:1; padding:11px 16px; border-radius:14px; cursor:pointer;
+  font-size:14px; font-weight:600; font-family:inherit;
+  border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07);
+  color:var(--muted); text-align:center;
+  transition:background .16s, border-color .16s, color .16s;
+}
+.typeTab.active{
+  background:linear-gradient(135deg,rgba(249,115,22,.22),rgba(168,85,247,.20));
+  border-color:rgba(249,115,22,.35); color:var(--text);
+}
+.typeTab:hover:not(.active){ background:rgba(255,255,255,.10); color:var(--text); }
+
+/* Section cards */
+.sectionCard{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  border-radius:18px; padding:20px 22px;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+}
+.sectionTitle{ font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-bottom:14px; }
+.formGrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; }
+.formGrid .full{ grid-column:1/-1; }
+.fieldGroup{ display:flex; flex-direction:column; gap:5px; }
+.fieldGroup label{ font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+.fieldGroup input,
+.fieldGroup select,
+.fieldGroup textarea{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  border-radius:11px; padding:9px 13px; color:var(--text); font-family:inherit;
+  font-size:14px; outline:none; resize:none;
+  transition:border-color .14s, background .14s;
+}
+.fieldGroup input:focus,
+.fieldGroup select:focus,
+.fieldGroup textarea:focus{ border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.07); }
+.fieldGroup select option{ background:#1f162c; }
+.fieldGroup textarea{ min-height:90px; }
+.fieldGroup textarea.tall{ min-height:160px; }
+
+/* Task list */
+.taskList{ display:flex; flex-direction:column; gap:7px; }
+.taskItem{ display:flex; align-items:flex-start; gap:8px; }
+.taskItem input{
+  flex:1; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  border-radius:10px; padding:8px 12px; color:var(--text); font-family:inherit; font-size:14px;
+  outline:none; transition:border-color .14s, background .14s;
+}
+.taskItem input:focus{ border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.07); }
+.taskDel{
+  width:30px; height:36px; border-radius:9px; flex:0 0 auto;
+  background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.20);
+  color:rgba(239,68,68,.7); font-size:15px; cursor:pointer; padding:0; font-family:inherit;
+  display:grid; place-items:center;
+  transition:background .12s, color .12s;
+}
+.taskDel:hover{ background:rgba(239,68,68,.22); color:var(--bad); }
+.taskAddRow{ display:flex; gap:8px; align-items:center; margin-top:4px; }
+
+/* Signature row */
+.sigRow{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* Export bar */
+.exportBar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; flex-wrap:wrap;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  border-radius:18px; padding:18px 22px;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+.exportInfo{ font-size:13px; color:var(--muted); }
+.exportInfo strong{ color:var(--text); font-size:15px; }
+
+/* Empty state */
+.emptyState{ text-align:center; padding:48px 20px; color:var(--muted); font-size:14px; }
+.emptyIcon{ font-size:40px; margin-bottom:14px; }
+.emptyTitle{ font-size:17px; font-weight:600; color:rgba(255,255,255,.7); margin-bottom:6px; }
+
+/* Spinner */
+.spinner{ width:36px; height:36px; border-radius:50%; border:3px solid rgba(255,255,255,.15); border-top-color:var(--accent1); animation:spin .7s linear infinite; margin:0 auto 16px; }
+@keyframes spin{ to{transform:rotate(360deg)} }
+
+@media (max-width:900px){
+  .mainGrid{ grid-template-columns:1fr; }
+  .memberPanel{ position:static; max-height:280px; }
+  .memberList{ max-height:180px; }
+}
+@media (max-width:640px){
+  body{ padding:24px 14px 60px; }
+  h1{ font-size:26px; }
+  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .navWrap{ top:10px; }
+  .formGrid{ grid-template-columns:1fr; }
+  .formGrid .full{ grid-column:1; }
+  .sigRow{ grid-template-columns:1fr; }
+  .typeTabs{ flex-direction:column; }
+  .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="index.html" title="FSBS Intern">
+        <img src="logo.png" alt="FSBS Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Zeugnisse</h1>
+        <div class="subtitle">Ehrenamtliche Zeugnisse erstellen &amp; exportieren</div>
+      </div>
+    </div>
+    <div>
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap">
+    <div class="nav">
+      <div class="navLeft">
+        <a class="navLink" href="index.html">🏠 Dashboard</a>
+        <a class="navLink" href="members.html">👥 Mitglieder</a>
+        <a class="navLink" href="anwaerter.html">👶🏼 Anwärter</a>
+        <a class="navLink" href="bewerbungen.html">📝 Bewerbungen</a>
+        <a class="navLink" href="rechnungen.html" id="navFinanzen" style="display:none;">💰 Finanzen</a>
+        <a class="navLink" href="mitgliederbefragung.html">📊 Befragung</a>
+        <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
+        <a class="navLink" href="protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
+        <a class="navLink active" href="zeugnisse.html" id="navZeugnisse">🎓 Zeugnisse</a>
+      </div>
+      <div class="navRight">
+        <button class="btn-secondary" onclick="logout()" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="mainContent">
+    <div style="text-align:center;padding:60px 20px;">
+      <div class="spinner"></div>
+      <div style="color:var(--muted);font-size:14px;">Lade…</div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const LOGIN_PAGE = "login.html";
+
+/* ---- Helpers ---- */
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+let toastTimer;
+function showToast(msg, isError=false){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.toggle("error",isError); t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+function autoResize(ta){
+  if(!ta) return;
+  ta.style.height="auto"; ta.style.height=(ta.scrollHeight+2)+"px";
+}
+
+/* ---- Auth ---- */
+const authBadge   = document.getElementById("authBadge");
+const authDot     = document.getElementById("authDot");
+const authState   = document.getElementById("authState");
+const authMail    = document.getElementById("authMail");
+const authAvatar  = document.getElementById("authAvatar");
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill   = document.getElementById("authRolePill");
+const authToggle  = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
+
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+authToggle?.addEventListener("click", e=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", e=>{ if(!authBadge.contains(e.target)) closeAuthDetails(); });
+
+function hashString(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function initialsFromEmail(email){ const e=(email||"").trim().toLowerCase(); if(!e) return "U"; const local=e.split("@")[0]||"u"; const parts=local.split(/[.\-_]+/).filter(Boolean); return ((parts[0]?.[0]||local[0]||"u").toUpperCase()+(parts[1]?.[0]||local[1]||"").toUpperCase()).trim()||"U"; }
+function setAvatar(email){ const e=(email||"").trim().toLowerCase(); if(!e){ authAvatar.classList.add("hidden"); return; } const h=hashString(e); const hue=h%360; const hue2=(hue+38)%360; authAvatar.textContent=initialsFromEmail(e); authAvatar.classList.remove("hidden"); authAvatar.style.background=`linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`; }
+function normRole(v){ return (v||"").trim().toLowerCase(); }
+function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; return "Unbekannt"; }
+function setRolePill(role){ const r=normRole(role); authRolePill.textContent=roleLabel(r); authRolePill.classList.remove("vorstand","ressortleiter"); if(r==="vorstand") authRolePill.classList.add("vorstand"); else authRolePill.classList.add("ressortleiter"); }
+function setAuthUI(isAuthed, email=""){ if(isAuthed){ authDot.classList.remove("warn"); authDot.classList.add("ok"); authState.classList.add("hidden"); authCompact.classList.remove("hidden"); closeAuthDetails(); authMail.textContent=(email||"").trim(); setAvatar(email); } else { authDot.classList.remove("ok"); authDot.classList.add("warn"); authState.classList.remove("hidden"); authState.textContent="nicht eingeloggt"; authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent=""; setAvatar(""); } }
+async function requireAuthOrRedirect(){ const { data }=await sb.auth.getSession(); if(!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); } return data.session; }
+async function loadMyProfile(session){
+  const uid=session?.user?.id; const email=session?.user?.email||"";
+  const { data, error }=await sb.from("profiles").select("role,display_name").eq("id",uid).maybeSingle();
+  if(error||!data) throw new Error("kein_profil");
+  setAuthUI(true,email);
+  authNameInline.textContent=(data.display_name||"").trim()||email.split("@")[0];
+  setRolePill(data.role);
+  const isVorstand=normRole(data.role)==="vorstand";
+  ["navFinanzen","navWahlen","navProtokoll"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.style.display=isVorstand?"":"none";
+  });
+  return { ...data, email };
+}
+async function logout(){ await sb.auth.signOut(); window.location.replace(LOGIN_PAGE); }
+
+/* ================================================================
+   RESSORT TASK TEMPLATES
+   ================================================================ */
+const TASKS = {
+  "Externe Events": {
+    mitglied: [
+      "Planung, Organisation und Durchführung externer Fachschaftsveranstaltungen",
+      "Eventplanung & Organisation",
+      "Teilnehmerkommunikation & Einladungen",
+      "Durchführung & Nachbereitung von Events",
+      "Koordination mit externen Partnern und Dienstleistern",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Externe Events sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Planung, Konzeption und Koordination aller externen Fachschaftsveranstaltungen",
+      "Eigenständige Planung und Durchführung von Events mit externen Partnern und Locations",
+      "Aufbau und Pflege langfristiger Kontakte zu externen Partnern, Unternehmen und Dienstleistern",
+      "Verantwortlich für Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+      "Budgetverwaltung und Kostenkontrolle für den Bereich Externe Events",
+    ],
+  },
+  "Interne Events": {
+    mitglied: [
+      "Planung und Organisation interner Fachschaftsveranstaltungen",
+      "Koordination und Durchführung von Teamevents und Gemeinschaftsaktivitäten",
+      "Logistik und Materialorganisation für interne Veranstaltungen",
+      "Betreuung der Mitglieder bei internen Events",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Interne Events sowie eigenverantwortliche Führung und strategische Weiterentwicklung des gesamten Ressorts",
+      "Strategische Planung, Strukturierung und kontinuierliche Weiterentwicklung des Ressorts sowie Koordination aller Ressortaktivitäten und -mitglieder",
+      "Eigenständige Konzeption, detaillierte Planung und reibungslose Durchführung des jährlichen Fachschaftswochenendes",
+      "Verantwortlich für die Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder, inklusive Begleitung in der Einarbeitungsphase",
+      "Planung, Koordination und Durchführung einer Vielzahl interner Fachschaftsevents zur Stärkung des Gemeinschaftsgefühls und der Teamkohäsion",
+    ],
+  },
+  "Merchandise": {
+    mitglied: [
+      "Mitarbeit bei der Konzeption und Gestaltung von Merchandise-Artikeln",
+      "Koordination mit Lieferanten, Druckereien und externen Dienstleistern",
+      "Qualitätskontrolle und Bestandsmanagement der Merchandise-Artikel",
+      "Verkauf und Vertrieb von Fachschaftsmerchandise an Mitglieder und Studierende",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Merchandise sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Entwicklung, Planung und Weiterentwicklung des Merchandise-Sortiments der Fachschaft",
+      "Verhandlung, Auswahl und Koordination von Lieferanten, Druckereien und externen Partnern",
+      "Verantwortlich für Budgetverwaltung, Kalkulation und Preisgestaltung aller Merchandise-Produkte",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+    ],
+  },
+  "Kommunikation": {
+    mitglied: [
+      "Pflege und Verwaltung der Social-Media-Kanäle der Fachschaft (Instagram, LinkedIn u.a.)",
+      "Erstellung und Gestaltung von Kommunikationsmaterialien und kreativem Content",
+      "Redaktionelle Betreuung des Newsletters und der Fachschaftswebsite",
+      "Unterstützung bei der internen und externen Kommunikationskoordination",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Kommunikation sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Weiterentwicklung und Koordination aller Kommunikationskanäle der Fachschaft",
+      "Verantwortlich für die einheitliche Corporate Identity und das Erscheinungsbild der Fachschaft nach innen und außen",
+      "Planung und Umsetzung von Kommunikationskampagnen für interne und externe Zielgruppen",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+    ],
+  },
+  "Sponsoring": {
+    mitglied: [
+      "Akquise und Pflege von Sponsoringpartnerschaften für die Fachschaft",
+      "Erstellung von Sponsoringmaterialien, Präsentationen und Sponsoringkonzepten",
+      "Kommunikation, Koordination und Betreuung von Sponsorenpartnern",
+      "Unterstützung bei der Vorbereitung und Durchführung von Sponsorengesprächen",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Sponsoring sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Entwicklung, Ausbau und nachhaltige Pflege des Sponsorenportfolios der Fachschaft",
+      "Eigenständige Verhandlung, Koordination und Abschluss von Sponsoringvereinbarungen",
+      "Koordination und Pflege langfristiger Partnerschaftsbeziehungen mit Unternehmen und Organisationen",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+    ],
+  },
+};
+
+const ORG_TEXT = "Die Fachschaft Business School ist die offizielle Interessenvertretung aller Studierenden der Fakultät Betriebswirtschaft an der Hochschule München. Sie bildet die Schnittstelle zwischen der Hochschule und den Studierenden. Zu ihren Aufgaben zählt die Organisation des Campuslebens, das Errichten von Kommunikationsstrukturen und die Vermittlung zwischen Professoren und Studierenden. Des Weiteren organisiert sie Events, gestaltet die Hochschulpolitik und arbeitet mit Partnern aus der Wirtschaft sowie anderen studentischen Vereinen an Projekten für die Studierenden. Der Verein umfasst aktuell ca. 100 Mitglieder und vertritt über 2000 Studierende.";
+
+/* ================================================================
+   STATE
+   ================================================================ */
+let allMembers     = [];
+let filteredMembers= [];
+let selectedMember = null;
+let certType       = "zwischen"; // "zwischen" | "abschluss"
+let tasks          = [];
+
+/* ================================================================
+   PRONOUNS
+   ================================================================ */
+function pro(anrede){
+  const f = (anrede||"").trim().toLowerCase() === "frau";
+  return {
+    er:    f ? "Sie"    : "Er",
+    ihm:   f ? "ihr"   : "ihm",
+    sein:  f ? "ihr"   : "sein",
+    seine: f ? "ihre"  : "seine",
+    seiner:f ? "ihrer" : "seiner",
+    seinen:f ? "ihren" : "seinen",
+    Er:    f ? "Sie"   : "Er",
+  };
+}
+
+/* ================================================================
+   MEMBER LIST
+   ================================================================ */
+async function loadMembers(){
+  const { data, error } = await sb.from("members")
+    .select("id,vorname,nachname,ressort,rolle,status")
+    .not("status","ilike","aus%")
+    .order("nachname");
+  if(error){ showToast("Mitglieder konnten nicht geladen werden.", true); return; }
+  allMembers = data || [];
+  filteredMembers = allMembers;
+  renderMemberList();
+}
+
+function filterMembers(q){
+  const t=(q||"").trim().toLowerCase();
+  filteredMembers = t
+    ? allMembers.filter(m=>(m.vorname+" "+m.nachname).toLowerCase().includes(t)||(m.ressort||"").toLowerCase().includes(t))
+    : allMembers;
+  renderMemberList();
+}
+
+function renderMemberList(){
+  const container=document.getElementById("memberListEl"); if(!container) return;
+  if(filteredMembers.length===0){
+    container.innerHTML=`<div class="memberEmpty">Keine Mitglieder gefunden</div>`;
+    return;
+  }
+  container.innerHTML=filteredMembers.map(m=>{
+    const name=[m.vorname,m.nachname].filter(Boolean).join(" ");
+    const rolle=isLeitung(m.rolle)?"Ressortleitung":"Mitglied";
+    const selected=selectedMember?.id===m.id;
+    return `<label class="memberItem ${selected?"selected":""}" for="mr_${m.id}">
+      <input type="radio" id="mr_${m.id}" name="memberRadio" value="${m.id}"
+             ${selected?"checked":""} onchange="selectMember('${m.id}')">
+      <div class="memberItemInfo">
+        <div class="memberItemName">${esc(name)}</div>
+        <div class="memberItemSub">${esc(m.ressort||"–")} · ${rolle}</div>
+      </div>
+    </label>`;
+  }).join("");
+}
+
+function isLeitung(rolle){
+  const r=(rolle||"").trim().toLowerCase();
+  return r==="leitung"||r==="ressortleiter"||r==="ressortleiterin"||r==="ressortleitung"||r==="stv";
+}
+
+function selectMember(id){
+  selectedMember=allMembers.find(m=>m.id===id)||null;
+  renderMemberList();
+  populateForm();
+}
+
+/* ================================================================
+   FORM POPULATION
+   ================================================================ */
+function populateForm(){
+  const m=selectedMember;
+  if(!m) return;
+
+  const name=[m.vorname,m.nachname].filter(Boolean).join(" ");
+  setField("fVorname", m.vorname||"");
+  setField("fNachname", m.nachname||"");
+  setField("fRessort", m.ressort||"");
+  setField("fRolle", isLeitung(m.rolle)?"Ressortleitung":"Mitglied");
+
+  // Guess gender from name (simple heuristic, user can correct)
+  const anredeEl=document.getElementById("fAnrede");
+  if(anredeEl && !anredeEl.dataset.userSet){
+    const fn=(m.vorname||"").trim();
+    const likelyFemale=/a$|e$|i$|y$/i.test(fn)&&!/Klaus|Lukas|Elias|Tobias|Matthias|Niklas|Jonas|Thomas|Markus|Andreas|Marius/i.test(fn);
+    anredeEl.value=likelyFemale?"Frau":"Herr";
+  }
+
+  reloadTasks();
+  reloadAssessment();
+  document.getElementById("builderSection")?.removeAttribute("style");
+  updateExportInfo();
+}
+
+function setField(id, val){
+  const el=document.getElementById(id); if(el) el.value=val;
+}
+function getField(id){ return document.getElementById(id)?.value||""; }
+
+/* ================================================================
+   TASKS
+   ================================================================ */
+function getTasksForMember(){
+  const ressort=getField("fRessort");
+  const rolle=getField("fRolle");
+  const isLeit=rolle.toLowerCase().includes("leitung")||rolle.toLowerCase().includes("stv");
+  const bucket=TASKS[ressort];
+  if(!bucket) return ["Mitarbeit in der Fachschaft Business School e.V."];
+  return isLeit ? bucket.leitung : bucket.mitglied;
+}
+
+function reloadTasks(){
+  tasks=[...getTasksForMember()];
+  renderTasks();
+}
+
+function renderTasks(){
+  const container=document.getElementById("taskListEl"); if(!container) return;
+  container.innerHTML=tasks.map((t,i)=>`
+    <div class="taskItem">
+      <input type="text" value="${esc(t)}" oninput="tasks[${i}]=this.value"
+             placeholder="Aufgabe…">
+      <button class="taskDel" onclick="removeTask(${i})" type="button" title="Entfernen">✕</button>
+    </div>`).join("");
+}
+
+function removeTask(i){
+  tasks.splice(i,1); renderTasks();
+}
+
+function addTask(){
+  tasks.push(""); renderTasks();
+  // focus last input
+  const inputs=document.querySelectorAll("#taskListEl .taskItem input");
+  inputs[inputs.length-1]?.focus();
+}
+
+/* ================================================================
+   ASSESSMENT TEXT GENERATION
+   ================================================================ */
+function reloadAssessment(){
+  const m=selectedMember; if(!m) return;
+  const anrede=getField("fAnrede");
+  const vorname=getField("fVorname")||m.vorname||"";
+  const ressort=getField("fRessort")||m.ressort||"";
+  const rolle=getField("fRolle");
+  const isLeit=rolle.toLowerCase().includes("leitung");
+  const p=pro(anrede);
+  const von=getField("fVon");
+  const bis=getField("fBis");
+
+  let txt="";
+
+  if(certType==="zwischen"){
+    // Performance
+    txt+=`${p.Er} ist stets motiviert und zeigt zu unserer vollsten Zufriedenheit Engagement sowie Eigeninitiative. ${p.Er} ist stets motiviert und zeigt zu unserer vollsten Zufriedenheit Engagement sowie Eigeninitiative. ${p.seine.charAt(0).toUpperCase()+p.seine.slice(1)} Zuverlässigkeit und Einsatzfreude sind beeindruckend. Besonders hervorzuheben ist ${p.seine} motivierende und offene Art, die ${p.er} durch ${p.seine} Aufgaben im Ressort mit ${p.seinem||p.seinen} Kommunikationsstil bewies.\n\nInsgesamt zeichnet sich ${vorname} durch ${p.seine} Fähigkeit zur Teamarbeit und ${p.sein||p.seine} organisatorisches Geschick aus. ${p.seine.charAt(0).toUpperCase()+p.seine.slice(1)} Beitrag in der Fachschaft ist beispielhaft für aktive Studierende, die sich für die Verbesserung der Hochschulbedingungen einsetzen.\n\nWir bedanken uns herzlich bei ${vorname} für ${p.seinen||p.seinen} Einsatz und ${p.sein||p.seine} kontinuierliches Streben nach Exzellenz in der studentischen Mitbestimmung an der HM Business School.`;
+  } else {
+    // Abschluss
+    txt+=`${vorname} hat die ${p.ihm} übertragenen Aufgaben stets mit außerordentlichem Engagement, höchster Zuverlässigkeit und herausragender Qualität erfüllt. ${p.seine.charAt(0).toUpperCase()+p.seine.slice(1)} Mitarbeit in der Fachschaft war durchweg vorbildlich und von ausgezeichneter Güte, und ${p.er} hat sich mit vollem Einsatz dafür eingesetzt, die Ziele und Projekte der Fachschaft voranzutreiben.\n\nIm Team konnte ${vorname} sich stets hervorragend integrieren und hat durch ${p.seine} ausgeprägte Teamfähigkeit und exzellente Kommunikationsstärke maßgeblich zur äußerst erfolgreichen Zusammenarbeit beigetragen.`;
+    if(isLeit && ressort){
+      txt+=`\n\n${vorname} übernahm als ${anrede==="Frau"?"Ressortleiterin":"Ressortleiter"} die Leitung des Ressorts „${ressort}" und führte dieses mit großem Verantwortungsbewusstsein und herausragender Führungsstärke${bis?` bis ${bis}`:""}.\n\nBesonders hervorzuheben sind ${vorname}s herausragende Initiative und ${p.sein||p.seine} außergewöhnliches Engagement bei der Übernahme von Leitungsverantwortung. ${p.Er} hat nicht nur alle ${p.ihm} zugewiesenen Aufgaben in ausgezeichneter Weise erfüllt, sondern auch stets aktiv und eigeninitiativ nach Möglichkeiten gesucht, um die Fachschaftsaktivitäten nachhaltig zu verbessern und weiterzuentwickeln.\n\nInsgesamt war ${vorname} ein herausragendes und außerordentlich wertvolles Mitglied der Fachschaft, das sowohl durch ${p.seine} exzellenten Führungsleistungen als auch durch ${p.sein||p.seine} vorbildliches Engagement einen nachhaltigen und maßgeblichen Beitrag geleistet hat. ${p.seine.charAt(0).toUpperCase()+p.seine.slice(1)} Bereitschaft, Verantwortung zu übernehmen, und ${p.sein||p.seine} außerordentlicher Einsatz für die Belange der Fachschaft machen ${p.ihn||p.ihm} zu einem in jeder Hinsicht hervorragend geschätzten Mitglied.`;
+    }
+    txt+=`\n\nWir bedanken uns herzlich bei ${vorname} für ${p.seinen||p.seinen} Einsatz und ${p.sein||p.seine} Streben nach Exzellenz in der studentischen Mitbestimmung an der HM Business School.`;
+  }
+
+  const el=document.getElementById("fBeurteilung"); if(el){ el.value=txt; autoResize(el); }
+}
+
+// Pronoun helpers that were missing
+function proExtra(anrede){
+  const f=(anrede||"").trim().toLowerCase()==="frau";
+  return {
+    ihn: f?"sie":"ihn",
+    seinem: f?"ihrem":"seinem",
+    seinen: f?"ihren":"seinen",
+    sein: f?"ihr":"sein",
+  };
+}
+
+/* ================================================================
+   CERT TYPE SWITCH
+   ================================================================ */
+function setCertType(type){
+  certType=type;
+  document.querySelectorAll(".typeTab").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.type===type);
+  });
+  // show/hide Abschluss-only fields
+  document.querySelectorAll("[data-abschluss]").forEach(el=>{
+    el.style.display=type==="abschluss"?"":"none";
+  });
+  // update title & intro
+  updateDynamicText();
+  reloadAssessment();
+}
+
+function updateDynamicText(){
+  const el=document.getElementById("certTypeLabel");
+  if(el) el.textContent=certType==="zwischen"?"Ehrenamtliches Zwischenzeugnis":"Ehrenamtliches Zeugnis";
+}
+
+function updateExportInfo(){
+  const m=selectedMember;
+  const name=m?[m.vorname,m.nachname].filter(Boolean).join(" "):"–";
+  const el=document.getElementById("exportMemberName");
+  if(el) el.textContent=name;
+}
+
+/* ================================================================
+   FULL PAGE RENDER
+   ================================================================ */
+function renderPage(){
+  const mc=document.getElementById("mainContent"); if(!mc) return;
+  const today=new Date().toISOString().slice(0,10);
+  const todayFmt=new Date().toLocaleDateString("de-DE",{day:"numeric",month:"long",year:"numeric"});
+
+  mc.innerHTML=`
+  <div class="mainGrid">
+
+    <!-- LEFT: Member panel -->
+    <div class="memberPanel">
+      <div class="memberPanelTitle">👥 Mitglied auswählen</div>
+      <input class="mpSearch" id="memberSearch" type="text" placeholder="Name oder Ressort suchen…"
+             oninput="filterMembers(this.value)">
+      <div class="memberList" id="memberListEl">
+        <div class="memberEmpty">Lade Mitglieder…</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Builder -->
+    <div class="builderPanel">
+
+      <!-- Empty state when no member selected -->
+      <div id="emptyHint" class="sectionCard">
+        <div class="emptyState">
+          <div class="emptyIcon">🎓</div>
+          <div class="emptyTitle">Mitglied auswählen</div>
+          <div>Wähle links ein Mitglied aus, um ein Zeugnis zu erstellen.</div>
+        </div>
+      </div>
+
+      <!-- Builder (hidden until member selected) -->
+      <div id="builderSection" style="display:none;">
+
+        <!-- Type tabs -->
+        <div class="typeTabs">
+          <button class="typeTab active" data-type="zwischen" onclick="setCertType('zwischen')" type="button">
+            📄 Zwischenzeugnis
+          </button>
+          <button class="typeTab" data-type="abschluss" onclick="setCertType('abschluss')" type="button">
+            🎓 Abschlusszeugnis
+          </button>
+        </div>
+
+        <!-- Stammdaten -->
+        <div class="sectionCard">
+          <div class="sectionTitle">Stammdaten</div>
+          <div class="formGrid">
+            <div class="fieldGroup">
+              <label>Anrede</label>
+              <select id="fAnrede" onchange="this.dataset.userSet='1';reloadAssessment()">
+                <option value="Herr">Herr</option>
+                <option value="Frau">Frau</option>
+                <option value="">Keine (Name)</option>
+              </select>
+            </div>
+            <div class="fieldGroup">
+              <label>Ressort</label>
+              <select id="fRessort" onchange="reloadTasks();reloadAssessment()">
+                <option value="">– Ressort wählen –</option>
+                <option>Externe Events</option>
+                <option>Interne Events</option>
+                <option>Merchandise</option>
+                <option>Kommunikation</option>
+                <option>Sponsoring</option>
+              </select>
+            </div>
+            <div class="fieldGroup">
+              <label>Vorname</label>
+              <input type="text" id="fVorname" placeholder="Vorname" oninput="reloadAssessment()">
+            </div>
+            <div class="fieldGroup">
+              <label>Nachname</label>
+              <input type="text" id="fNachname" placeholder="Nachname">
+            </div>
+            <div class="fieldGroup">
+              <label>Funktion im Verein</label>
+              <select id="fRolle" onchange="reloadTasks();reloadAssessment()">
+                <option value="Mitglied">Mitglied</option>
+                <option value="Ressortleitung">Ressortleitung</option>
+                <option value="Stellvertretende Ressortleitung">Stellvertretende Ressortleitung</option>
+                <option value="Vorstand">Vorstand</option>
+              </select>
+            </div>
+            <div class="fieldGroup">
+              <label>Zeugnisdatum</label>
+              <input type="date" id="fDatum" value="${today}">
+            </div>
+            <div class="fieldGroup">
+              <label>Mitglied seit</label>
+              <input type="text" id="fVon" placeholder="z.B. März 2023" oninput="reloadAssessment()">
+            </div>
+            <div class="fieldGroup" data-abschluss style="display:none;">
+              <label>Tätig bis</label>
+              <input type="text" id="fBis" placeholder="z.B. Sommersemester 2025" oninput="reloadAssessment()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Task list -->
+        <div class="sectionCard">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
+            <div class="sectionTitle" style="margin:0;">Aufgaben &amp; Tätigkeiten</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-secondary btn-xs" onclick="reloadTasks()" type="button" title="Aufgaben aus Vorlage neu laden">↺ Vorlage</button>
+              <button class="btn-secondary btn-xs" onclick="addTask()" type="button">+ Aufgabe</button>
+            </div>
+          </div>
+          <div class="taskList" id="taskListEl"></div>
+        </div>
+
+        <!-- Assessment text -->
+        <div class="sectionCard">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
+            <div class="sectionTitle" style="margin:0;">Beurteilungstext</div>
+            <button class="btn-secondary btn-xs" onclick="reloadAssessment()" type="button">↺ Vorlage</button>
+          </div>
+          <div class="fieldGroup">
+            <textarea id="fBeurteilung" class="tall" placeholder="Beurteilungstext…"
+                      oninput="autoResize(this)"></textarea>
+          </div>
+        </div>
+
+        <!-- Signatures -->
+        <div class="sectionCard">
+          <div class="sectionTitle">Unterzeichner</div>
+          <div class="sigRow">
+            <div class="fieldGroup">
+              <label>Vorstandsvorsitz</label>
+              <input type="text" id="fSig1Name" value="Dominik Kocsordi" placeholder="Name">
+            </div>
+            <div class="fieldGroup">
+              <label>Titel / Funktion</label>
+              <input type="text" id="fSig1Titel" value="Vorstandsvorsitz" placeholder="Funktion">
+            </div>
+            <div class="fieldGroup" data-abschluss style="display:none;">
+              <label>Ressortleitung (Name)</label>
+              <input type="text" id="fSig2Name" placeholder="Name der Ressortleitung">
+            </div>
+            <div class="fieldGroup" data-abschluss style="display:none;">
+              <label>Ressortleitung (Funktion)</label>
+              <input type="text" id="fSig2Titel" placeholder="z.B. Ressortleitung Interne Events">
+            </div>
+          </div>
+        </div>
+
+        <!-- Export bar -->
+        <div class="exportBar">
+          <div class="exportInfo">
+            <strong id="exportMemberName">–</strong>
+            <span style="display:block;margin-top:2px;">Zeugnis als Word-Datei exportieren</span>
+          </div>
+          <button class="btn-export" onclick="exportToWord()" type="button">📄 Als Word exportieren (.doc)</button>
+        </div>
+
+      </div><!-- /builderSection -->
+    </div><!-- /builderPanel -->
+  </div>`;
+
+  // After render: attach field listeners
+  document.getElementById("fAnrede")?.addEventListener("change", ()=>reloadAssessment());
+  document.querySelectorAll(".protoHeaderCard textarea").forEach(ta=>autoResize(ta));
+}
+
+/* ================================================================
+   WORD EXPORT
+   ================================================================ */
+function exportToWord(){
+  const m=selectedMember;
+  if(!m){ showToast("Bitte zuerst ein Mitglied auswählen.", true); return; }
+
+  // Collect current task values from DOM
+  const taskInputs=document.querySelectorAll("#taskListEl .taskItem input");
+  const currentTasks=Array.from(taskInputs).map(i=>i.value.trim()).filter(Boolean);
+
+  const anrede   = getField("fAnrede");
+  const vorname  = getField("fVorname");
+  const nachname = getField("fNachname");
+  const fullName = [vorname, nachname].filter(Boolean).join(" ");
+  const ressort  = getField("fRessort");
+  const rolle    = getField("fRolle");
+  const von      = getField("fVon");
+  const bis      = getField("fBis");
+  const datum    = getField("fDatum");
+  const beurt    = getField("fBeurteilung");
+  const sig1n    = getField("fSig1Name");
+  const sig1t    = getField("fSig1Titel");
+  const sig2n    = getField("fSig2Name");
+  const sig2t    = getField("fSig2Titel");
+  const isAbschluss = certType==="abschluss";
+  const isLeit   = rolle.toLowerCase().includes("leitung");
+  const p        = pro(anrede);
+
+  const datumFmt = datum
+    ? new Date(datum+"T12:00:00").toLocaleDateString("de-DE",{day:"numeric",month:"long",year:"numeric"})
+    : "";
+
+  // Headline
+  const headline = isAbschluss ? "Ehrenamtliches Zeugnis" : "Ehrenamtliches Zwischenzeugnis";
+
+  // Opening sentence
+  let opening = "";
+  if(isAbschluss){
+    const anredeStr = anrede ? `${anrede} ` : "";
+    opening = `${anredeStr}${esc(fullName)}, war seit ${esc(von||"…")} in der Fachschaft Business School der HM Business School ehrenamtlich tätig.`;
+  } else {
+    opening = `Hiermit bestätigen wir, dass ${esc(fullName)} seit ${esc(von||"…")} Mitglied in der Fachschaft Business School e.V. ist.`;
+  }
+
+  // Ressort paragraph
+  const ressortPronoun = anrede==="Frau" ? "ihren" : "seinen";
+  const ressortIntro = isAbschluss
+    ? `${esc(vorname)} hat die ${esc(anrede==="Frau"?"ihr":"ihm")} übertragenen Aufgaben und Projekte im Ressort „${esc(ressort)}" mit höchstem Engagement wahrgenommen.`
+    : `${esc(fullName)} gehört dem Ressort „${esc(ressort)}" an. Folgende Tätigkeiten zählen zu ${ressortPronoun} Aufgaben:`;
+
+  // Task bullet list
+  const taskHtml = currentTasks.map(t=>`<li>${esc(t)}</li>`).join("");
+
+  // Assessment
+  const assessHtml = esc(beurt).replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>");
+
+  // Build document body
+  let body = `
+    <p style="text-align:right;font-size:10pt;color:#555;">${esc(datumFmt)}</p>
+    <br>
+    <p style="font-size:15pt;font-weight:bold;text-decoration:underline;">${esc(headline)}</p>
+    <br>
+    <p>${opening}</p>
+    <br>
+    <p>${esc(ORG_TEXT)}</p>
+    <br>
+    <p>${ressortIntro}</p>
+    ${currentTasks.length>0?`<ul>${taskHtml}</ul>`:""}
+    <br>
+    <p>${assessHtml}</p>
+    <br><br>
+    <p>München, den ${esc(datumFmt)}</p>
+    <br><br><br>`;
+
+  // Signatures
+  if(isAbschluss && sig2n){
+    body+=`<table width="100%"><tr>
+      <td width="45%" style="border-top:1px solid #555;text-align:center;padding-top:6pt;font-size:10pt;">
+        ${esc(sig1n)}<br><span style="font-size:9pt;color:#555;">${esc(sig1t)}</span>
+      </td>
+      <td width="10%"></td>
+      <td width="45%" style="border-top:1px solid #555;text-align:center;padding-top:6pt;font-size:10pt;">
+        ${esc(sig2n)}<br><span style="font-size:9pt;color:#555;">${esc(sig2t)}</span>
+      </td>
+    </tr></table>`;
+  } else {
+    body+=`<table width="60%"><tr>
+      <td style="border-top:1px solid #555;text-align:center;padding-top:6pt;font-size:10pt;">
+        ${esc(sig1n)}<br><span style="font-size:9pt;color:#555;">${esc(sig1t)}</span>
+      </td>
+    </tr></table>`;
+  }
+
+  const fullDoc=`<html xmlns:o='urn:schemas-microsoft-com:office:office'
+    xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+  <head><meta charset='utf-8'><title>${esc(headline)}</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+  <style>
+    @page{margin:2.5cm 2.5cm 2.5cm 2.5cm;}
+    body{font-family:Arial,sans-serif;font-size:11pt;color:#1a1a1a;line-height:1.6;}
+    p{margin:0 0 6pt;}
+    ul{margin:4pt 0 8pt;padding-left:20pt;}
+    li{margin:3pt 0;}
+    table{border-collapse:collapse;}
+  </style>
+  </head>
+  <body>
+    <!-- Letterhead -->
+    <table width="100%" style="margin-bottom:24pt;">
+      <tr>
+        <td style="font-size:12pt;font-weight:bold;vertical-align:top;">
+          Fachschaft Business School e.V<br>
+          <span style="font-size:9pt;font-weight:normal;color:#555;">
+            Am Stadtpark 20 · 81243 München<br>
+            fachschaft10@hm.edu
+          </span>
+        </td>
+      </tr>
+    </table>
+    ${body}
+  </body></html>`;
+
+  const blob=new Blob(["﻿",fullDoc],{type:"application/msword"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const safeName=(nachname||"").replace(/[^\w]/g,"")+"_"+(vorname||"").replace(/[^\w]/g,"")+"_"+headline.replace(/\s/g,"_");
+  a.href=url; a.download=`${safeName}.doc`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("✅ Zeugnis exportiert!");
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+(async()=>{
+  try{
+    const session = await requireAuthOrRedirect();
+    const profile = await loadMyProfile(session);
+    if(normRole(profile.role)!=="vorstand"){
+      document.getElementById("mainContent").innerHTML=
+        `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">
+          ⛔ Kein Zugriff – diese Seite ist nur für den Vorstand.
+        </div>`;
+      return;
+    }
+    renderPage();
+    await loadMembers();
+  } catch(e){
+    if(e?.message==="kein_profil"){
+      setAuthUI(false);
+      document.getElementById("mainContent").innerHTML=
+        `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">
+          ⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.
+        </div>`;
+    }
+  }
+})();
+</script>
+</body>
+</html>
