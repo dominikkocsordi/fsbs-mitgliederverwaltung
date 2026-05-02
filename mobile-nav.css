@@ -1,58 +1,295 @@
-/* ===== MOBILE NAV / HAMBURGER ===== */
+/* ============================================================
+   MOBILE NAV — Slide-in Drawer + Global Mobile UI
+   ============================================================ */
+
+/* ---------- Hamburger (hidden on desktop) ---------- */
 .hamburger {
   display: none;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.16);
-  border-radius: 10px;
-  color: rgba(255,255,255,.9);
-  font-size: 20px;
-  line-height: 1;
-  padding: 5px 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.92);
+  font-size: 22px;
   cursor: pointer;
-  order: 1;
+  padding: 0;
+  transition: background .14s;
   flex: 0 0 auto;
   font-family: inherit;
+  line-height: 1;
+}
+.hamburger:hover { background: rgba(255,255,255,.17); }
+
+/* ---------- Full-screen overlay ---------- */
+.mobileOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 1199;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: fadeIn .22s ease;
+}
+.mobileOverlay.open { display: block; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+/* ---------- Drawer ---------- */
+.mobileDrawer {
+  position: fixed;
+  top: 0; left: -300px; bottom: 0;
+  width: 280px;
+  max-width: 88vw;
+  z-index: 1200;
+  background: rgba(15,11,24,.97);
+  border-right: 1px solid rgba(255,255,255,.13);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  display: flex;
+  flex-direction: column;
+  transition: left .27s cubic-bezier(.4,0,.2,1);
+  overscroll-behavior: contain;
+}
+.mobileDrawer.open { left: 0; box-shadow: 8px 0 32px rgba(0,0,0,.55); }
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.09);
+  flex: 0 0 auto;
+}
+.drawerLogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.drawerLogoImg {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  object-fit: cover;
+}
+.drawerAppName {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255,255,255,.92);
+  letter-spacing: .2px;
+}
+.drawerClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.13);
+  color: rgba(255,255,255,.65);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  transition: background .14s, color .14s;
+}
+.drawerClose:hover { background: rgba(255,255,255,.13); color: rgba(255,255,255,.92); }
+
+.drawerUser {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex: 0 0 auto;
+}
+.drawerUserInner {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.09);
+}
+.drawerAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(255,255,255,.9);
+  flex: 0 0 auto;
+  background: rgba(168,85,247,.35);
+}
+.drawerUserInfo { min-width: 0; }
+.drawerUserName {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,.92);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.drawerUserRole {
+  font-size: 11px;
+  color: rgba(255,255,255,.45);
+  margin-top: 2px;
+}
+
+.drawerLinks {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  -webkit-overflow-scrolling: touch;
+}
+.drawerLinks::-webkit-scrollbar { width: 3px; }
+.drawerLinks::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 2px; }
+
+.drawerLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 13px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255,255,255,.72);
+  border: 1px solid transparent;
+  transition: background .13s, color .13s, border-color .13s;
+  min-height: 48px;
+}
+.drawerLink:hover {
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.95);
+}
+.drawerLink.active {
+  background: linear-gradient(135deg,rgba(249,115,22,.20),rgba(168,85,247,.17));
+  border-color: rgba(249,115,22,.28);
+  color: rgba(255,255,255,.97);
+  font-weight: 600;
+}
+
+.drawerFooter {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255,255,255,.07);
+  flex: 0 0 auto;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.drawerLogout {
+  width: 100%;
+  padding: 13px;
+  border-radius: 13px;
+  background: rgba(239,68,68,.11);
+  border: 1px solid rgba(239,68,68,.22);
+  color: rgba(252,165,165,.88);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  min-height: 48px;
   transition: background .14s;
 }
-.hamburger:hover { background: rgba(255,255,255,.13); }
+.drawerLogout:hover { background: rgba(239,68,68,.20); }
 
+/* ============================================================
+   MOBILE OVERRIDES  (≤ 768px)
+   ============================================================ */
 @media (max-width: 768px) {
+
+  /* --- Nav bar: hamburger left, logout right --- */
   .hamburger { display: flex; }
-
+  .navLeft { display: none !important; }
   .nav {
-    flex-wrap: wrap;
-    overflow-x: visible !important;
-    align-items: center;
-    gap: 0;
-  }
-
-  .navRight { order: 2; margin-left: auto; }
-
-  .navLeft {
-    display: none !important;
-    flex-direction: column;
-    width: 100%;
-    order: 3;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255,255,255,.08);
-    gap: 2px;
+    justify-content: space-between !important;
     overflow: visible !important;
+    gap: 0 !important;
   }
-  .navLeft.open { display: flex !important; }
+  .navRight { margin-left: 0 !important; }
 
-  .navLink {
-    width: 100%;
-    padding: 11px 14px !important;
-    border-radius: 12px !important;
-    font-size: 15px !important;
-    justify-content: flex-start;
+  /* --- Hide desktop auth badge (info shown in drawer) --- */
+  .authFloating { display: none !important; }
+
+  /* --- Top header --- */
+  .top {
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+    flex-wrap: nowrap !important;
   }
+  .brandRight { display: none !important; }
+
+  h1 { font-size: 20px !important; letter-spacing: .1px !important; }
+  .subtitle { font-size: 12px !important; margin-top: 3px !important; }
+
+  .brandLogo {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 11px !important;
+    padding: 4px !important;
+  }
+
+  /* --- Nav wrap --- */
+  .navWrap { top: 8px !important; margin-bottom: 12px !important; }
+  .nav { padding: 6px 8px !important; }
+
+  /* --- Tap targets --- */
+  .btn-primary, .btn-secondary, .btn-danger, .iconBtn {
+    min-height: 44px;
+  }
+  .navRight button { min-height: 38px; font-size: 13px !important; padding: 8px 14px !important; }
+
+  /* --- Body padding --- */
+  body {
+    padding-top: 20px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* --- KPI / dashboard grid --- */
+  .grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  .kpi  { grid-column: span 1 !important; padding: 14px !important; }
+  .kpiBig { grid-column: span 1 !important; }
+  .kpiFull { grid-column: 1/-1 !important; }
+  .kpiValue { font-size: 22px !important; }
+
+  /* --- Cards --- */
+  .card { padding: 14px !important; border-radius: 18px !important; }
+  .glass { border-radius: 18px !important; }
+
+  /* --- Tables: horizontal scroll --- */
+  .tableWrap { border-radius: 14px !important; }
+  table { min-width: 600px; }
+  th, td { padding: 10px 10px !important; font-size: 13px !important; }
+
+  /* --- Form fields --- */
+  input, select, textarea {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+    min-height: 44px;
+  }
+  textarea { min-height: unset !important; }
+
+  /* --- Modals / drawers --- */
+  .modalCard { border-radius: 20px !important; max-height: 92vh !important; }
 }
 
-/* ===== PWA / SAFE AREA ===== */
-@supports (padding: env(safe-area-inset-bottom)) {
-  body { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+/* Very small screens */
+@media (max-width: 420px) {
+  .grid { grid-template-columns: 1fr !important; }
+  .kpiFull { grid-column: span 1 !important; }
+  h1 { font-size: 18px !important; }
 }
