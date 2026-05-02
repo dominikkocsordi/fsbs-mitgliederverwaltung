@@ -806,7 +806,7 @@ hr.sep{
         <a class="navLink active" href="members.html" id="navMembers">👥 Mitglieder</a>
         <a class="navLink" href="anwaerter.html" id="navCandidates">👶🏼 Anwärter</a>
         <a class="navLink" href="bewerbungen.html" id="navApps">📝 Bewerbungen</a>
-        <a class="navLink" href="rechnungen.html" id="navFinance">💰 Finanzen</a>
+        <a class="navLink" href="rechnungen.html" id="navFinanzen">💰 Finanzen</a>
         <a class="navLink" href="mitgliederbefragung.html" id="navSurvey">📊 Befragung</a>
         <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
         <a class="navLink" href="protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
@@ -981,7 +981,7 @@ const authToggle    = document.getElementById("authToggle");
 const authDetails   = document.getElementById("authDetails");
 
 const navWrap    = document.getElementById("navWrap");
-const navFinance = document.getElementById("navFinance");
+const navFinanzen = document.getElementById("navFinanzen");
 const navWahlen  = document.getElementById("navWahlen");
 const mainCard   = document.getElementById("mainCard");
 
@@ -1231,8 +1231,8 @@ async function loadMyProfile(session){
   authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
 
   /* NAV: Finanzen nur Vorstand */
-  if (navFinance){
-    navFinance.style.display = CAN_EDIT ? "" : "none";
+  if (navFinanzen){
+    navFinanzen.style.display = CAN_EDIT ? "" : "none";
   }
   if (navWahlen)    navWahlen.style.display    = CAN_EDIT ? "" : "none";
   const navProtokoll = document.getElementById("navProtokoll");

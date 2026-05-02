@@ -537,7 +537,7 @@ button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transfor
         <a class="navLink" href="/members.html">👥 Mitglieder</a>
         <a class="navLink" href="/anwaerter.html">👶🏼 Anwärter</a>
         <a class="navLink" href="/bewerbungen.html">📝 Bewerbungen</a>
-        <a class="navLink" href="/rechnungen.html">💰 Finanzen</a>
+        <a class="navLink" href="/rechnungen.html" id="navFinanzen" style="display:none;">💰 Finanzen</a>
         <a class="navLink active" href="/mitgliederbefragung.html">📊 Befragung</a>
         <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
         <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
@@ -781,7 +781,8 @@ const logoutBtn = document.getElementById("logoutBtn");
 const mainCard = document.getElementById("mainCard");
 const authCard = document.getElementById("authCard");
 const navWrap = document.getElementById("navWrap");
-const navWahlen = document.getElementById("navWahlen");
+const navFinanzen  = document.getElementById("navFinanzen");
+const navWahlen    = document.getElementById("navWahlen");
 const authErr = document.getElementById("authErr");
 
 const ressortFilter = document.getElementById("ressortFilter");
@@ -927,7 +928,8 @@ async function loadMyProfile(session){
   authNameInline.textContent = (data?.display_name || "").trim() || ((email.split("@")[0] || "User").trim());
   authBadge.title = `${(data?.display_name || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
 
-  if (navWahlen) navWahlen.style.display = (MY_ROLE === "vorstand") ? "" : "none";
+  if (navFinanzen)  navFinanzen.style.display  = (MY_ROLE === "vorstand") ? "" : "none";
+  if (navWahlen)    navWahlen.style.display    = (MY_ROLE === "vorstand") ? "" : "none";
   const navProtokoll = document.getElementById("navProtokoll");
   if (navProtokoll) navProtokoll.style.display = (MY_ROLE === "vorstand") ? "" : "none";
 

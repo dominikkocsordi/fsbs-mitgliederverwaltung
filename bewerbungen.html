@@ -780,7 +780,7 @@
           <a class="navLink" href="/members.html">👥 Mitglieder</a>
           <a class="navLink" href="/anwaerter.html">👶🏼 Anwärter</a>
           <a class="navLink active" href="/bewerbungen.html">📝 Bewerbungen</a>
-          <a class="navLink" href="/rechnungen.html" id="navFinance">💰 Finanzen</a>
+          <a class="navLink" href="/rechnungen.html" id="navFinanzen">💰 Finanzen</a>
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">📊 Befragung</a>
           <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
           <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
@@ -935,7 +935,7 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
     const contentCard = document.getElementById("contentCard");
-    const navFinance = document.getElementById("navFinance");
+    const navFinanzen = document.getElementById("navFinanzen");
     const navWahlen = document.getElementById("navWahlen");
 
     const q = document.getElementById("q");
@@ -1120,7 +1120,7 @@
       const dn = (data?.display_name || "").trim();
       if (dn) authAvatar.textContent = initialsFromText(dn);
 
-      if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
+      if (navFinanzen) navFinanzen.style.display = CAN_EDIT ? "" : "none";
       if (navWahlen) navWahlen.style.display = CAN_EDIT ? "" : "none";
       const navProtokoll = document.getElementById("navProtokoll");
       if (navProtokoll) navProtokoll.style.display = CAN_EDIT ? "" : "none";
