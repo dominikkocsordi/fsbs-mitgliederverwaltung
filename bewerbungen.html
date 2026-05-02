@@ -1645,6 +1645,7 @@
           vorname:           safe(row[F.fn]).trim(),
           nachname:          safe(row[F.ln]).trim(),
           email:             safe(row[F.email]).trim(),
+          telefon:           safe(row[F.phone]).trim() || null,
           ressort:           ressortOverride || safe(row[F.r1]).trim(),
           photo_url:         getPhotoUrl(row) || null,
           photo_thumb:       getThumb(row) || null,

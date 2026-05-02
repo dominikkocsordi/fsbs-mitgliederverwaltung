@@ -773,6 +773,7 @@
               <th>Name</th>
               <th>Ressort</th>
               <th>Email</th>
+              <th>Telefon</th>
               <th>Status</th>
               <th>Mail</th>
               <th style="width:340px;">Aktionen</th>
@@ -1288,6 +1289,7 @@
           </td>
 
           <td>${esc(safe(r.email) || "—")}</td>
+          <td>${r.telefon ? `<a href="tel:${esc(safe(r.telefon))}" style="color:rgba(249,115,22,.95);text-decoration:none;">${esc(safe(r.telefon))}</a>` : `<span style="color:rgba(255,255,255,.35)">—</span>`}</td>
 
           <td>
             <span class="statusPill" style="${statusPillStyle(meta)}">
