@@ -191,40 +191,26 @@ button:active{ transform: translateY(0px) scale(.99); }
 .authMail{ font-size:11px; color: rgba(255,255,255,.58); word-break:break-all; }
 
 /* ===== NAV ===== */
-.navWrap{ margin-bottom:16px; position: sticky; top:14px; z-index:6; }
-.nav{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px; }
-.navLeft{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
+/* ===== NAV ===== */
+.navWrap{ margin-bottom:16px; position:sticky; top:14px; z-index:6; }
+.nav{ display:flex; gap:2px; align-items:center; padding:5px 6px; overflow-x:auto; scrollbar-width:none; }
+.nav::-webkit-scrollbar{ display:none; }
+.navLeft{ display:flex; gap:2px; align-items:center; flex:1; min-width:0; }
+.navRight{ flex:0 0 auto; padding-left:6px; border-left:1px solid rgba(255,255,255,.08); margin-left:4px; }
 .navLink{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:16px;
-  text-decoration:none;
-  color: rgba(255,255,255,.86);
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
-  user-select:none; white-space:nowrap;
+  display:inline-flex; align-items:center; gap:5px;
+  padding:7px 13px; border-radius:999px;
+  text-decoration:none; font-size:13px; font-weight:600;
+  color:rgba(255,255,255,.65); border:1px solid transparent;
+  white-space:nowrap; user-select:none;
+  transition:background .14s, border-color .14s, color .14s, transform .14s;
 }
-.navLink:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.22);
-}
+.navLink:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); color:rgba(255,255,255,.92); transform:translateY(-1px); }
 .navLink.active{
-  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
-  border-color: rgba(249,115,22,.35);
-  box-shadow: 0 12px 28px rgba(249,115,22,.25);
+  background:linear-gradient(135deg, rgba(249,115,22,.22), rgba(168,85,247,.16));
+  border-color:rgba(249,115,22,.32); color:rgba(255,255,255,.96);
+  box-shadow:0 3px 14px rgba(249,115,22,.18);
 }
-.navIcon{
-  width:30px;height:30px;border-radius:12px;
-  display:grid;place-items:center;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-}
-.navTitle{ font-weight:750; letter-spacing:.2px; }
-.navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
 /* ===== Dashboard ===== */
 .grid{
@@ -386,9 +372,6 @@ button:active{ transform: translateY(0px) scale(.99); }
   .top{ flex-direction:column; align-items:flex-start; gap:10px; }
   .authNameInline{ max-width:150px; }
   .navWrap{ top:10px; }
-  .nav{ flex-wrap:nowrap; overflow:auto; -webkit-overflow-scrolling: touch; }
-  .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left:0; }
   .kpi{ grid-column: span 12; }
   .mvCompact{ flex-direction:column; align-items:flex-start; }
   .mvRight{ width:100%; }
@@ -440,46 +423,14 @@ button:active{ transform: translateY(0px) scale(.99); }
   <div class="glass navWrap" id="navWrap">
     <div class="nav">
       <div class="navLeft">
-        <a class="navLink active" href="index.html">
-          <span class="navIcon">🏠</span>
-          <span><div class="navTitle">Dashboard</div><div class="navHint">Übersicht</div></span>
-        </a>
-
-        <a class="navLink" href="members.html">
-          <span class="navIcon">👥</span>
-          <span><div class="navTitle">Mitglieder</div><div class="navHint">Verwalten</div></span>
-        </a>
-
-        <a class="navLink" href="anwaerter.html">
-          <span class="navIcon">👶🏼</span>
-          <span><div class="navTitle">Anwärter</div><div class="navHint">Liste</div></span>
-        </a>
-
-        <a class="navLink" href="bewerbungen.html">
-          <span class="navIcon">📝</span>
-          <span><div class="navTitle">Bewerbungen</div><div class="navHint">Google Sheet</div></span>
-        </a>
-
-        <a class="navLink" href="rechnungen.html" id="navFinanzen">
-          <span class="navIcon">💰</span>
-          <span><div class="navTitle">Finanzen</div><div class="navHint">Belege</div></span>
-        </a>
-
-        <a class="navLink" href="mitgliederbefragung.html">
-          <span class="navIcon">📊</span>
-          <span><div class="navTitle">Befragung</div><div class="navHint">Auswertung</div></span>
-        </a>
-
-        <a class="navLink" href="nutzer.html" id="navNutzer" style="display:none;">
-          <span class="navIcon">⚙️</span>
-          <span><div class="navTitle">Nutzer</div><div class="navHint">Verwaltung</div></span>
-        </a>
-        <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">
-          <span class="navIcon">🗳️</span>
-          <span><div class="navTitle">Wahlen</div><div class="navHint">Abstimmungen</div></span>
-        </a>
+        <a class="navLink active" href="index.html">🏠 Dashboard</a>
+        <a class="navLink" href="members.html">👥 Mitglieder</a>
+        <a class="navLink" href="anwaerter.html">👶🏼 Anwärter</a>
+        <a class="navLink" href="bewerbungen.html">📝 Bewerbungen</a>
+        <a class="navLink" href="rechnungen.html" id="navFinanzen">💰 Finanzen</a>
+        <a class="navLink" href="mitgliederbefragung.html">📊 Befragung</a>
+        <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
       </div>
-
       <div class="navRight">
         <button class="btn-secondary" onclick="logout()" type="button">Logout</button>
       </div>
@@ -588,13 +539,11 @@ const authDetails = document.getElementById("authDetails");
 
 /* NAV: Finanzen nur Vorstand */
 const navFinanzen = document.getElementById("navFinanzen");
-const navNutzer = document.getElementById("navNutzer");
 const navWahlen = document.getElementById("navWahlen");
 
 function setNavVisibility(isVorstand){
   if (!navFinanzen) return;
   navFinanzen.classList.toggle("hidden", !isVorstand);
-  if (navNutzer) navNutzer.style.display = isVorstand ? "" : "none";
   if (navWahlen) navWahlen.style.display = isVorstand ? "" : "none";
 }
 

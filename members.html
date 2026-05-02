@@ -378,61 +378,26 @@ button:disabled:hover{ transform:none !important; filter:none !important; }
 .small{ font-size: 13px; color: var(--muted); }
 
 /* ===== NAV ===== */
-.navWrap{
-  margin-bottom: 16px;
-  position: sticky;
-  top: 14px;
-  z-index: 6;
-}
-.nav{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-  padding: 10px;
-}
-.navLeft{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.navRight{ margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
+/* ===== NAV ===== */
+.navWrap{ margin-bottom:16px; position:sticky; top:14px; z-index:6; }
+.nav{ display:flex; gap:2px; align-items:center; padding:5px 6px; overflow-x:auto; scrollbar-width:none; }
+.nav::-webkit-scrollbar{ display:none; }
+.navLeft{ display:flex; gap:2px; align-items:center; flex:1; min-width:0; }
+.navRight{ flex:0 0 auto; padding-left:6px; border-left:1px solid rgba(255,255,255,.08); margin-left:4px; }
 .navLink{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  text-decoration:none;
-  color: rgba(255,255,255,.86);
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  transition: transform .16s ease, filter .16s ease, background .16s ease, border-color .16s ease;
-  user-select:none;
-  white-space:nowrap;
+  display:inline-flex; align-items:center; gap:5px;
+  padding:7px 13px; border-radius:999px;
+  text-decoration:none; font-size:13px; font-weight:600;
+  color:rgba(255,255,255,.65); border:1px solid transparent;
+  white-space:nowrap; user-select:none;
+  transition:background .14s, border-color .14s, color .14s, transform .14s;
 }
-.navLink:hover{
-  transform: translateY(-2px);
-  filter: brightness(1.06);
-  background: rgba(255,255,255,.10);
-  border-color: rgba(255,255,255,.22);
-}
+.navLink:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); color:rgba(255,255,255,.92); transform:translateY(-1px); }
 .navLink.active{
-  background: linear-gradient(135deg, rgba(249,115,22,.20), rgba(251,146,60,.15));
-  border-color: rgba(249,115,22,.35);
-  box-shadow: 0 12px 28px rgba(249,115,22,.25);
+  background:linear-gradient(135deg, rgba(249,115,22,.22), rgba(168,85,247,.16));
+  border-color:rgba(249,115,22,.32); color:rgba(255,255,255,.96);
+  box-shadow:0 3px 14px rgba(249,115,22,.18);
 }
-.navIcon{
-  width:30px; height:30px;
-  border-radius: 12px;
-  display:grid; place-items:center;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-}
-.navTitle{ font-weight: 700; letter-spacing:.2px; }
-.navHint{ font-size:12px; color: rgba(255,255,255,.60); margin-left:2px; }
 
 /* ===== Pills ===== */
 @keyframes pillShimmer{
@@ -770,9 +735,6 @@ hr.sep{
   .filterBar .btnCreate{ grid-column: 2 / 3; }
 
   .navWrap{ top: 10px; }
-  .nav{ flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling: touch; }
-  .navLeft{ flex-wrap:nowrap; }
-  .navRight{ margin-left: 0; }
 
   .modalOverlay{
     align-items:flex-end;
