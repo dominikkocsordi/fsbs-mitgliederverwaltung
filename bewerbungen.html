@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<link rel="stylesheet" href="/mobile-nav.css">
   <title>Bewerbungen</title>
 
   <meta name="theme-color" content="#120e18">
@@ -775,6 +779,7 @@
     <!-- NAV -->
     <div class="glass navWrap hidden" id="navWrap">
       <div class="nav">
+        <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
         <div class="navLeft">
           <a class="navLink" href="/index.html">🏠 Dashboard</a>
           <a class="navLink" href="/members.html">👥 Mitglieder</a>
@@ -1725,5 +1730,6 @@
     [q, fRes, fSem].forEach(el => el?.addEventListener("input", render));
     reloadBtn?.addEventListener("click", fetchRows);
   </script>
+<script src="/mobile-nav.js"></script>
 </body>
 </html>

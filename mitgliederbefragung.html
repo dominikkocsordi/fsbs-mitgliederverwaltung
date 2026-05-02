@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<link rel="stylesheet" href="/mobile-nav.css">
 <title>Mitgliederbefragung</title>
 
 <!-- Favicon -->
@@ -532,7 +536,8 @@ button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transfor
   <!-- NAV (nur eingeloggt) -->
   <div class="glass navWrap hidden" id="navWrap">
     <div class="nav">
-      <div class="navLeft">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+        <div class="navLeft">
         <a class="navLink" href="/index.html">🏠 Dashboard</a>
         <a class="navLink" href="/members.html">👥 Mitglieder</a>
         <a class="navLink" href="/anwaerter.html">👶🏼 Anwärter</a>
@@ -1222,5 +1227,6 @@ async function logout(){
 })();
 </script>
 
+<script src="/mobile-nav.js"></script>
 </body>
 </html>

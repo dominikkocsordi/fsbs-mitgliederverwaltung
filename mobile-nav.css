@@ -1,0 +1,58 @@
+/* ===== MOBILE NAV / HAMBURGER ===== */
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 10px;
+  color: rgba(255,255,255,.9);
+  font-size: 20px;
+  line-height: 1;
+  padding: 5px 10px;
+  cursor: pointer;
+  order: 1;
+  flex: 0 0 auto;
+  font-family: inherit;
+  transition: background .14s;
+}
+.hamburger:hover { background: rgba(255,255,255,.13); }
+
+@media (max-width: 768px) {
+  .hamburger { display: flex; }
+
+  .nav {
+    flex-wrap: wrap;
+    overflow-x: visible !important;
+    align-items: center;
+    gap: 0;
+  }
+
+  .navRight { order: 2; margin-left: auto; }
+
+  .navLeft {
+    display: none !important;
+    flex-direction: column;
+    width: 100%;
+    order: 3;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    gap: 2px;
+    overflow: visible !important;
+  }
+  .navLeft.open { display: flex !important; }
+
+  .navLink {
+    width: 100%;
+    padding: 11px 14px !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    justify-content: flex-start;
+  }
+}
+
+/* ===== PWA / SAFE AREA ===== */
+@supports (padding: env(safe-area-inset-bottom)) {
+  body { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
