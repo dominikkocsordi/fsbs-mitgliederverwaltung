@@ -540,14 +540,13 @@ function renderMemberList(){
     const name=[m.vorname,m.nachname].filter(Boolean).join(" ");
     const rolle=isLeitung(m.rolle)?"Ressortleitung":"Mitglied";
     const selected=selectedMember?.id===m.id;
-    return `<label class="memberItem ${selected?"selected":""}" for="mr_${m.id}">
-      <input type="radio" id="mr_${m.id}" name="memberRadio" value="${m.id}"
-             ${selected?"checked":""} onchange="selectMember('${m.id}')">
+    return `<div class="memberItem ${selected?"selected":""}" onclick="selectMember('${m.id}')">
+      <input type="radio" name="memberRadio" value="${m.id}" ${selected?"checked":""} style="pointer-events:none;">
       <div class="memberItemInfo">
         <div class="memberItemName">${esc(name)}</div>
         <div class="memberItemSub">${esc(m.ressort||"–")} · ${rolle}</div>
       </div>
-    </label>`;
+    </div>`;
   }).join("");
 }
 
