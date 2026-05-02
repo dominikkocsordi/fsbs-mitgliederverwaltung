@@ -357,6 +357,7 @@ input[type=text]:focus{
         <a class="navLink" href="rechnungen.html" id="navFinanzen">💰 Finanzen</a>
         <a class="navLink" href="mitgliederbefragung.html">📊 Befragung</a>
         <a class="navLink active" href="wahlen.html">🗳️ Wahlen</a>
+        <a class="navLink" href="protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
       </div>
       <div class="navRight">
         <button class="btn-secondary" onclick="logout()" type="button">Logout</button>
@@ -506,8 +507,10 @@ async function loadMyProfile(session){
   authNameInline.textContent = name || email.split("@")[0];
   setRolePill(data.role);
   const isVorstand = normRole(data.role) === "vorstand";
-  const navFinanzen = document.getElementById("navFinanzen");
-  if (navFinanzen) navFinanzen.classList.toggle("hidden", !isVorstand);
+  const navFinanzen  = document.getElementById("navFinanzen");
+  const navProtokoll = document.getElementById("navProtokoll");
+  if (navFinanzen)  navFinanzen.classList.toggle("hidden", !isVorstand);
+  if (navProtokoll) navProtokoll.style.display = isVorstand ? "" : "none";
   return data;
 }
 

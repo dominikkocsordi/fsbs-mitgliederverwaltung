@@ -641,6 +641,7 @@
           <a class="navLink active" href="/rechnungen.html">💰 Finanzen</a>
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">📊 Befragung</a>
           <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
+          <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
         </div>
 
         <div class="navRight">
@@ -984,6 +985,8 @@
       navWrap.style.display = allowed ? "block" : "none";
       belegeNavLink.style.display = allowed ? "inline-flex" : "none";
       if (navWahlen) navWahlen.style.display = allowed ? "" : "none";
+      const navProtokoll = document.getElementById("navProtokoll");
+      if (navProtokoll) navProtokoll.style.display = allowed ? "" : "none";
 
       denyWrap.style.display = allowed ? "none" : "block";
       kpiCard.style.display = allowed ? "block" : "none";

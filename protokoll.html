@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protokoll · FSBS</title>
+<meta name="theme-color" content="#120e18">
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+  --accent1:#f97316; --accent2:#a855f7;
+  --glass: rgba(255,255,255,.08);
+  --border: rgba(255,255,255,.18);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
+  --shadow: 0 20px 55px rgba(0,0,0,.50);
+  --ok: rgba(34,197,94,.95);
+  --bad: rgba(239,68,68,.95);
+  --danger1: #fb7185; --danger2: #e11d48;
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ min-height:100%; }
+html{
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  background-attachment:fixed;
+}
+@supports (-webkit-touch-callout:none){ html{ background-attachment:scroll; } }
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--text); background:transparent;
+  display:flex; justify-content:center; align-items:flex-start;
+  padding:42px 16px 80px; overflow-x:hidden;
+  animation:pageIn .38s ease both;
+}
+@keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@media (prefers-reduced-motion:reduce){ body{ animation:none !important; } }
+
+.app{ width:100%; max-width:1100px; }
+
+.top{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:16px; margin-bottom:14px; flex-wrap:wrap;
+}
+h1{ font-size:32px; letter-spacing:.4px; }
+.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
+.brandLeft{ display:flex; align-items:center; gap:12px; }
+.brandLogo{
+  width:60px; height:60px; border-radius:14px; padding:6px;
+  display:grid; place-items:center; text-decoration:none; flex:0 0 auto;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
+  box-shadow:0 16px 44px rgba(0,0,0,.30);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  transition:transform .16s ease, filter .16s ease, background .16s ease;
+}
+.brandLogo:hover{ transform:translateY(-1px); filter:brightness(1.05); background:rgba(255,255,255,.12); }
+.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
+@media (max-width:640px){
+  .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
+  .brandLogo img{ border-radius:9px; }
+}
+
+.glass{
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  border-radius:22px; box-shadow:var(--shadow);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+
+button{
+  border:none; cursor:pointer; border-radius:14px; padding:12px 18px;
+  font-weight:600; font-family:inherit; font-size:inherit; touch-action:manipulation;
+  transition:transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+}
+button:active{ transform:translateY(0px) scale(.98); }
+button:disabled{ cursor:not-allowed !important; opacity:.45 !important; transform:none !important; filter:none !important; }
+
+.btn-primary{
+  background:linear-gradient(135deg, var(--accent1), var(--accent2));
+  color:#0f0b16; font-weight:700;
+  box-shadow:0 12px 30px rgba(168,85,247,.25);
+}
+.btn-primary:hover{ transform:translateY(-2px); filter:brightness(1.05); }
+
+.btn-secondary{
+  background:rgba(255,255,255,.14); color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-secondary:hover{ transform:translateY(-2px); background:rgba(255,255,255,.18); }
+
+.btn-danger{
+  background:linear-gradient(135deg, rgba(251,113,133,.22), rgba(225,29,72,.18));
+  color:var(--danger1); border:1px solid rgba(251,113,133,.22);
+}
+.btn-danger:hover{ transform:translateY(-2px); filter:brightness(1.1); }
+
+.btn-sm{ padding:8px 13px; font-size:13px; border-radius:11px; }
+.btn-xs{ padding:5px 10px; font-size:12px; border-radius:9px; }
+
+/* Auth badge */
+.authFloating{
+  display:flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  border-radius:18px; padding:8px 14px;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 12px 30px rgba(0,0,0,.30); cursor:pointer;
+  transition:background .18s ease;
+}
+.authFloating:hover{ background:rgba(255,255,255,.14); }
+.dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+.dot.ok{ background:var(--ok); box-shadow:0 0 6px rgba(34,197,94,.7); }
+.dot.warn{ background:rgba(239,68,68,.8); }
+.authAvatar{
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:rgba(255,255,255,.92);
+  flex:0 0 auto;
+}
+.authInfo{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+.authTopLine{ display:flex; align-items:center; gap:8px; }
+.authState{ font-size:13px; color:var(--muted); }
+.authCompact{ display:flex; align-items:center; gap:6px; }
+.authNameInline{ font-size:13px; font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.rolePill{
+  font-size:10px; font-weight:700; letter-spacing:.4px; text-transform:uppercase;
+  padding:2px 8px; border-radius:20px; border:1px solid transparent;
+}
+.rolePill.vorstand{ background:rgba(168,85,247,.22); color:rgba(192,132,252,.95); border-color:rgba(168,85,247,.35); }
+.rolePill.ressortleiter{ background:rgba(249,115,22,.18); color:rgba(251,146,60,.95); border-color:rgba(249,115,22,.30); }
+.authChevron{ background:none; border:none; color:var(--muted); font-size:14px; padding:0 2px; cursor:pointer; border-radius:4px; transition:transform .2s ease; }
+.authDetails{ margin-top:4px; }
+.authMail{ font-size:12px; color:var(--muted); }
+.hidden{ display:none !important; }
+
+/* Nav */
+.navWrap{
+  position:sticky; top:16px; z-index:100;
+  padding:8px 10px; margin-bottom:28px;
+}
+.nav{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.navLeft{ display:flex; gap:2px; align-items:center; flex:1; min-width:0; overflow-x:auto; }
+.navLeft::-webkit-scrollbar{ display:none; }
+.navRight{ display:flex; gap:8px; align-items:center; flex:0 0 auto; }
+.navLink{
+  display:flex; align-items:center; gap:5px;
+  padding:8px 13px; border-radius:12px; text-decoration:none;
+  color:var(--muted); font-size:13.5px; font-weight:500; white-space:nowrap;
+  border:1px solid transparent;
+  transition:background .16s ease, color .16s ease, border-color .16s ease, transform .16s ease;
+}
+.navLink:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); color:rgba(255,255,255,.92); transform:translateY(-1px); }
+.navLink.active{
+  background:linear-gradient(135deg, rgba(249,115,22,.20), rgba(168,85,247,.18));
+  border-color:rgba(249,115,22,.28);
+  color:rgba(255,255,255,.95); font-weight:600;
+  box-shadow:0 4px 14px rgba(168,85,247,.12);
+}
+
+/* Toast */
+.toast{
+  position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.35);
+  color:rgba(34,197,94,.95); padding:11px 22px; border-radius:14px;
+  font-size:14px; font-weight:600; backdrop-filter:blur(18px);
+  opacity:0; pointer-events:none; z-index:9999;
+  transition:opacity .22s ease, transform .22s ease;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.error{ background:rgba(239,68,68,.18); border-color:rgba(239,68,68,.35); color:rgba(239,68,68,.95); }
+
+/* Page layout */
+.pageHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; margin-bottom:24px; flex-wrap:wrap;
+}
+.pageTitle{ font-size:22px; font-weight:700; }
+.pageSub{ font-size:13px; color:var(--muted); margin-top:3px; }
+.headerActions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+/* Protocol Header Card */
+.protoHeaderCard{
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  border-radius:20px; box-shadow:var(--shadow);
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  padding:24px; margin-bottom:20px;
+}
+.protoHeaderGrid{
+  display:grid; grid-template-columns:1fr 1fr; gap:14px 20px;
+}
+.protoHeaderGrid .full{ grid-column:1/-1; }
+.fieldGroup{ display:flex; flex-direction:column; gap:5px; }
+.fieldGroup label{ font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; }
+.fieldGroup input,
+.fieldGroup select,
+.fieldGroup textarea{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
+  border-radius:12px; padding:10px 14px; color:var(--text);
+  font-family:inherit; font-size:14px;
+  transition:border-color .16s ease, background .16s ease;
+  outline:none; resize:none;
+}
+.fieldGroup input:focus,
+.fieldGroup select:focus,
+.fieldGroup textarea:focus{
+  border-color:rgba(168,85,247,.5); background:rgba(168,85,247,.08);
+}
+.fieldGroup select option{ background:#1f162c; color:var(--text); }
+.fieldGroup textarea{ min-height:72px; }
+.timeRow{ display:flex; gap:10px; align-items:center; }
+.timeRow input{ flex:1; }
+.timeRow span{ color:var(--muted); font-size:13px; flex:0 0 auto; }
+
+/* Schnellbausteine toolbar */
+.bausteineWrap{
+  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  border-radius:20px; padding:16px 20px; margin-bottom:20px;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+.bausteineTitle{
+  font-size:12px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.5px; margin-bottom:12px;
+}
+.bausteineBtns{ display:flex; gap:8px; flex-wrap:wrap; }
+.baustein-btn{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  border-radius:12px; padding:9px 15px; color:var(--text);
+  font-size:13px; font-weight:500; cursor:pointer; font-family:inherit;
+  display:flex; align-items:center; gap:6px;
+  transition:background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.baustein-btn:hover{
+  background:rgba(255,255,255,.13); border-color:rgba(168,85,247,.35);
+  transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+.baustein-btn .bicon{ font-size:15px; }
+
+/* Block list */
+.blockList{ display:flex; flex-direction:column; gap:14px; margin-bottom:24px; }
+
+.block{
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  border-radius:18px; padding:18px 20px;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  transition:border-color .18s ease;
+}
+.block:hover{ border-color:rgba(255,255,255,.22); }
+
+.blockHeader{
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; gap:10px;
+}
+.blockType{
+  display:flex; align-items:center; gap:8px;
+  font-size:13px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.4px;
+}
+.blockTypeIcon{ font-size:16px; }
+.blockNum{
+  font-size:12px; padding:2px 9px; border-radius:8px;
+  background:rgba(168,85,247,.18); border:1px solid rgba(168,85,247,.30);
+  color:rgba(192,132,252,.9); font-weight:700;
+}
+.blockActions{ display:flex; gap:6px; align-items:center; }
+.block-act{
+  width:30px; height:30px; border-radius:9px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
+  color:var(--muted); font-size:14px; display:grid; place-items:center;
+  cursor:pointer; padding:0; font-family:inherit;
+  transition:background .14s ease, color .14s ease, transform .14s ease;
+}
+.block-act:hover{ background:rgba(255,255,255,.14); color:var(--text); transform:translateY(-1px); }
+.block-act.del{ color:rgba(239,68,68,.7); border-color:rgba(239,68,68,.20); }
+.block-act.del:hover{ background:rgba(239,68,68,.14); color:var(--bad); border-color:rgba(239,68,68,.35); }
+
+.blockFields{ display:flex; flex-direction:column; gap:10px; }
+.blockFields input,
+.blockFields textarea,
+.blockFields select{
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14);
+  border-radius:11px; padding:9px 13px; color:var(--text);
+  font-family:inherit; font-size:14px; width:100%; resize:none;
+  transition:border-color .14s ease, background .14s ease;
+  outline:none;
+}
+.blockFields input:focus,
+.blockFields textarea:focus,
+.blockFields select:focus{
+  border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.07);
+}
+.blockFields select option{ background:#1f162c; color:var(--text); }
+.blockFields textarea{ min-height:80px; }
+.blockFields textarea.tall{ min-height:120px; }
+
+/* Abstimmung specific */
+.abstRow{
+  display:grid; grid-template-columns:1fr 1fr 1fr 1.2fr; gap:10px;
+}
+.abstLabel{ font-size:11px; color:var(--muted); margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+.ergebnisSelect select{
+  font-weight:700 !important;
+}
+
+/* Pause block */
+.pauseBlock{ display:flex; align-items:center; gap:12px; }
+.pauseBlock input{ flex:1; }
+
+/* Empty state */
+.emptyBlocks{
+  text-align:center; padding:48px 20px;
+  color:var(--muted); font-size:14px;
+  background:rgba(255,255,255,.04); border:1px dashed rgba(255,255,255,.12);
+  border-radius:18px;
+}
+.emptyBlocks .emptyIcon{ font-size:36px; margin-bottom:12px; }
+.emptyBlocks .emptyTitle{ font-size:16px; font-weight:600; color:rgba(255,255,255,.7); margin-bottom:6px; }
+
+/* Export area */
+.exportBar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; flex-wrap:wrap;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  border-radius:18px; padding:18px 22px;
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+}
+.exportInfo{ font-size:13px; color:var(--muted); }
+.exportInfo strong{ color:var(--text); }
+.exportBtns{ display:flex; gap:10px; flex-wrap:wrap; }
+.btn-export{
+  background:linear-gradient(135deg, rgba(56,189,248,.22), rgba(14,165,233,.18));
+  color:rgba(186,230,253,.95); border:1px solid rgba(56,189,248,.30);
+  padding:11px 22px; border-radius:13px; font-weight:700; font-family:inherit;
+  font-size:14px; cursor:pointer;
+  transition:transform .16s ease, filter .16s ease, box-shadow .16s ease;
+  box-shadow:0 8px 22px rgba(56,189,248,.12);
+}
+.btn-export:hover{ transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 12px 28px rgba(56,189,248,.18); }
+
+/* Spinner */
+.spinner{
+  width:36px; height:36px; border-radius:50%;
+  border:3px solid rgba(255,255,255,.15); border-top-color:var(--accent1);
+  animation:spin .7s linear infinite; margin:0 auto 16px;
+}
+@keyframes spin{ to{transform:rotate(360deg)} }
+
+@media (max-width:720px){
+  .protoHeaderGrid{ grid-template-columns:1fr; }
+  .protoHeaderGrid .full{ grid-column:1; }
+  .abstRow{ grid-template-columns:1fr 1fr; }
+  .ergebnisSelect{ grid-column:1/-1; }
+  body{ padding:24px 14px 60px; }
+  h1{ font-size:26px; }
+  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .navWrap{ top:10px; }
+  .authNameInline{ max-width:110px; }
+  .exportBar{ flex-direction:column; align-items:stretch; }
+  .exportBtns{ justify-content:center; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP -->
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="index.html" title="FSBS Intern">
+        <img src="logo.png" alt="FSBS Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Protokoll</h1>
+        <div class="subtitle">Sitzungsprotokoll erstellen &amp; exportieren</div>
+      </div>
+    </div>
+    <div>
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap">
+    <div class="nav">
+      <div class="navLeft">
+        <a class="navLink" href="index.html">🏠 Dashboard</a>
+        <a class="navLink" href="members.html">👥 Mitglieder</a>
+        <a class="navLink" href="anwaerter.html">👶🏼 Anwärter</a>
+        <a class="navLink" href="bewerbungen.html">📝 Bewerbungen</a>
+        <a class="navLink" href="rechnungen.html" id="navFinanzen">💰 Finanzen</a>
+        <a class="navLink" href="mitgliederbefragung.html">📊 Befragung</a>
+        <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
+        <a class="navLink active" href="protokoll.html" id="navProtokoll">📋 Protokoll</a>
+      </div>
+      <div class="navRight">
+        <button class="btn-secondary" onclick="logout()" type="button">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="mainContent">
+    <div style="text-align:center;padding:60px 20px;">
+      <div class="spinner"></div>
+      <div style="color:var(--muted);font-size:14px;">Lade…</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const LOGIN_PAGE = "login.html";
+const LS_KEY = "fsbs_protokoll_draft";
+
+/* ---- Helpers ---- */
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+let toastTimer;
+function showToast(msg, isError=false){
+  const t=document.getElementById("toast");
+  t.textContent=msg;
+  t.classList.toggle("error",isError);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+/* ---- Auth UI ---- */
+const authBadge   = document.getElementById("authBadge");
+const authDot     = document.getElementById("authDot");
+const authState   = document.getElementById("authState");
+const authMail    = document.getElementById("authMail");
+const authAvatar  = document.getElementById("authAvatar");
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill   = document.getElementById("authRolePill");
+const authToggle  = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
+
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+authToggle?.addEventListener("click", e=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", e=>{ if (!authBadge.contains(e.target)) closeAuthDetails(); });
+
+function hashString(str){
+  let h=2166136261;
+  for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
+  return h>>>0;
+}
+function initialsFromEmail(email){
+  const e=(email||"").trim().toLowerCase(); if(!e) return "U";
+  const local=e.split("@")[0]||"u";
+  const parts=local.split(/[.\-_]+/).filter(Boolean);
+  const a=(parts[0]?.[0]||local[0]||"u").toUpperCase();
+  const b=(parts[1]?.[0]||local[1]||"").toUpperCase();
+  return (a+b).trim()||a;
+}
+function setAvatar(email){
+  const e=(email||"").trim().toLowerCase();
+  if(!e){ authAvatar.classList.add("hidden"); return; }
+  const h=hashString(e); const hue=h%360; const hue2=(hue+38)%360;
+  authAvatar.textContent=initialsFromEmail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background=`linear-gradient(135deg, hsla(${hue},85%,55%,.55), hsla(${hue2},85%,55%,.35))`;
+}
+function normRole(v){ return (v||"").trim().toLowerCase(); }
+function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; return "Unbekannt"; }
+function setRolePill(role){
+  const r=normRole(role);
+  authRolePill.textContent=roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if(r==="vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function setAuthUI(isAuthed, email=""){
+  if(isAuthed){
+    authDot.classList.remove("warn"); authDot.classList.add("ok");
+    authState.classList.add("hidden"); authCompact.classList.remove("hidden");
+    closeAuthDetails(); authMail.textContent=(email||"").trim(); setAvatar(email);
+  } else {
+    authDot.classList.remove("ok"); authDot.classList.add("warn");
+    authState.classList.remove("hidden"); authState.textContent="nicht eingeloggt";
+    authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent=""; setAvatar("");
+  }
+}
+
+async function requireAuthOrRedirect(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); }
+  return data.session;
+}
+
+async function loadMyProfile(session){
+  const uid = session?.user?.id;
+  const email = session?.user?.email || "";
+  const { data, error } = await sb.from("profiles").select("role,display_name").eq("id",uid).maybeSingle();
+  if (error || !data) throw new Error("kein_profil");
+  setAuthUI(true, email);
+  const name = (data.display_name||"").trim();
+  authNameInline.textContent = name || email.split("@")[0];
+  setRolePill(data.role);
+  const isVorstand = normRole(data.role) === "vorstand";
+  const navFinanzen = document.getElementById("navFinanzen");
+  const navWahlen   = document.getElementById("navWahlen");
+  if (navFinanzen) navFinanzen.classList.toggle("hidden", !isVorstand);
+  if (navWahlen)   navWahlen.style.display = isVorstand ? "" : "none";
+  if (!isVorstand) {
+    // Store display name for protocol keeper field
+  }
+  return { ...data, email, displayName: name || email.split("@")[0] };
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  window.location.replace(LOGIN_PAGE);
+}
+
+/* ================================================================
+   PROTOKOLL ENGINE
+   ================================================================ */
+
+let blocks = [];
+let nextId  = 1;
+let currentUser = "";
+let saveTimer = null;
+
+const BLOCK_DEFS = {
+  begruessung: { label:"Begrüßung & Eröffnung", icon:"👋" },
+  top:         { label:"Tagesordnungspunkt",     icon:"📋" },
+  abstimmung:  { label:"Abstimmung",             icon:"🗳️" },
+  beschluss:   { label:"Beschluss",              icon:"✅" },
+  diskussion:  { label:"Diskussionspunkt",       icon:"💬" },
+  pause:       { label:"Pause",                  icon:"☕" },
+  schluss:     { label:"Sitzungsende",           icon:"🔚" },
+};
+
+/* ---- Data helpers ---- */
+function defaultData(type){
+  switch(type){
+    case "begruessung": return { inhalt:"" };
+    case "top":         return { titel:"", inhalt:"" };
+    case "abstimmung":  return { antrag:"", ja:"0", nein:"0", enthaltung:"0", ergebnis:"angenommen", anmerkung:"" };
+    case "beschluss":   return { text:"" };
+    case "diskussion":  return { thema:"", inhalt:"" };
+    case "pause":       return { dauer:"" };
+    case "schluss":     return { uhrzeit:"", anmerkung:"" };
+    default:            return {};
+  }
+}
+
+function getHeaderData(){
+  return {
+    typ:              document.getElementById("hdrTyp")?.value    || "",
+    titel:            document.getElementById("hdrTitel")?.value  || "",
+    datum:            document.getElementById("hdrDatum")?.value  || "",
+    von:              document.getElementById("hdrVon")?.value    || "",
+    bis:              document.getElementById("hdrBis")?.value    || "",
+    ort:              document.getElementById("hdrOrt")?.value    || "",
+    protokollfuehrer: document.getElementById("hdrPfl")?.value   || "",
+    anwesende:        document.getElementById("hdrAnw")?.value    || "",
+  };
+}
+
+function setHeaderData(d){
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||""; };
+  set("hdrTyp",   d.typ);
+  set("hdrTitel", d.titel);
+  set("hdrDatum", d.datum);
+  set("hdrVon",   d.von);
+  set("hdrBis",   d.bis);
+  set("hdrOrt",   d.ort);
+  set("hdrPfl",   d.protokollfuehrer);
+  set("hdrAnw",   d.anwesende);
+}
+
+/* ---- Auto-numbering helpers ---- */
+function getTopNumber(blockId){
+  let n=0;
+  for(const b of blocks){
+    if(b.type==="top") n++;
+    if(b.id===blockId) return n;
+  }
+  return 0;
+}
+function getBeschlussNumber(blockId){
+  let n=0;
+  for(const b of blocks){
+    if(b.type==="beschluss") n++;
+    if(b.id===blockId) return n;
+  }
+  return 0;
+}
+
+/* ---- Save/Load localStorage ---- */
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>persistState(), 600);
+}
+
+function persistState(){
+  try {
+    const header = getHeaderData();
+    localStorage.setItem(LS_KEY, JSON.stringify({ header, blocks, nextId }));
+  } catch(e){}
+}
+
+function loadSavedState(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    blocks  = data.blocks  || [];
+    nextId  = data.nextId  || (blocks.length ? Math.max(...blocks.map(b=>b.id))+1 : 1);
+    renderPage();
+    if(data.header) setHeaderData(data.header);
+    return blocks.length > 0;
+  } catch(e){ return false; }
+}
+
+/* ---- Block mutation ---- */
+function syncBlockData(id){
+  const b = blocks.find(x=>x.id===id);
+  if(!b) return;
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if(!el) return;
+  el.querySelectorAll("[data-field]").forEach(inp=>{
+    b.data[inp.dataset.field] = inp.value;
+  });
+}
+
+function addBlock(type){
+  const id = nextId++;
+  blocks.push({ id, type, data: defaultData(type) });
+  renderBlocks();
+  scheduleSave();
+  // scroll last block into view
+  setTimeout(()=>{
+    const last = document.querySelector(".blockList .block:last-child");
+    last?.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  }, 60);
+}
+
+function deleteBlock(id){
+  syncAllBlocks();
+  blocks = blocks.filter(b=>b.id!==id);
+  renderBlocks();
+  scheduleSave();
+}
+
+function moveBlock(id, dir){
+  syncAllBlocks();
+  const idx = blocks.findIndex(b=>b.id===id);
+  if(idx<0) return;
+  const newIdx = idx+dir;
+  if(newIdx<0 || newIdx>=blocks.length) return;
+  [blocks[idx], blocks[newIdx]] = [blocks[newIdx], blocks[idx]];
+  renderBlocks();
+  scheduleSave();
+}
+
+function syncAllBlocks(){
+  for(const b of blocks) syncBlockData(b.id);
+}
+
+function clearProtokoll(){
+  if(!confirm("Aktuelles Protokoll löschen und neu starten?")) return;
+  blocks = [];
+  nextId = 1;
+  localStorage.removeItem(LS_KEY);
+  renderPage();
+  showToast("Neues Protokoll gestartet.");
+}
+
+/* ---- Rendering ---- */
+function renderBlocks(){
+  const container = document.getElementById("blockList");
+  if(!container) return;
+
+  if(blocks.length===0){
+    container.innerHTML = `
+      <div class="emptyBlocks">
+        <div class="emptyIcon">📄</div>
+        <div class="emptyTitle">Noch keine Bausteine</div>
+        <div>Klicke oben auf einen Schnellbaustein, um loszulegen.</div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = blocks.map((b,i)=>buildBlockHTML(b,i)).join("");
+
+  // Attach auto-resize to all textareas
+  container.querySelectorAll("textarea").forEach(ta=>{
+    autoResize(ta);
+    ta.addEventListener("input", ()=>{ autoResize(ta); scheduleSave(); });
+  });
+  container.querySelectorAll("input, select").forEach(el=>{
+    el.addEventListener("input", ()=>scheduleSave());
+    el.addEventListener("change", ()=>scheduleSave());
+  });
+}
+
+function autoResize(ta){
+  ta.style.height = "auto";
+  ta.style.height = (ta.scrollHeight + 2) + "px";
+}
+
+function buildBlockHTML(b, idx){
+  const def = BLOCK_DEFS[b.type] || { label:b.type, icon:"📌" };
+  const isFirst = idx===0;
+  const isLast  = idx===blocks.length-1;
+
+  let numBadge = "";
+  if(b.type==="top")       numBadge = `<span class="blockNum">TOP ${getTopNumber(b.id)}</span>`;
+  if(b.type==="beschluss") numBadge = `<span class="blockNum">Beschluss ${getBeschlussNumber(b.id)}</span>`;
+
+  const fields = buildFieldsHTML(b);
+
+  return `<div class="block" data-id="${b.id}">
+    <div class="blockHeader">
+      <div class="blockType">
+        <span class="blockTypeIcon">${def.icon}</span>
+        ${esc(def.label)}
+        ${numBadge}
+      </div>
+      <div class="blockActions">
+        <button class="block-act" title="Nach oben" onclick="moveBlock(${b.id},-1)" ${isFirst?"disabled":""} type="button">↑</button>
+        <button class="block-act" title="Nach unten" onclick="moveBlock(${b.id},1)" ${isLast?"disabled":""} type="button">↓</button>
+        <button class="block-act del" title="Entfernen" onclick="deleteBlock(${b.id})" type="button">✕</button>
+      </div>
+    </div>
+    <div class="blockFields">${fields}</div>
+  </div>`;
+}
+
+function buildFieldsHTML(b){
+  const v = b.data;
+  switch(b.type){
+
+    case "begruessung":
+      return `<textarea data-field="inhalt" placeholder="Begrüßungstext, Anwesenheitsquorum, Eröffnung…" class="tall">${esc(v.inhalt)}</textarea>`;
+
+    case "top":
+      return `
+        <input type="text" data-field="titel" placeholder="Titel des Tagesordnungspunkts" value="${esc(v.titel)}">
+        <textarea data-field="inhalt" placeholder="Diskussionsverlauf, Ergebnisse, Notizen…" class="tall">${esc(v.inhalt)}</textarea>`;
+
+    case "abstimmung":
+      return `
+        <input type="text" data-field="antrag" placeholder="Antragstext / Beschreibung der Abstimmung" value="${esc(v.antrag)}">
+        <div class="abstRow">
+          <div>
+            <div class="abstLabel">✅ Ja</div>
+            <input type="number" data-field="ja" min="0" value="${esc(v.ja||"0")}">
+          </div>
+          <div>
+            <div class="abstLabel">❌ Nein</div>
+            <input type="number" data-field="nein" min="0" value="${esc(v.nein||"0")}">
+          </div>
+          <div>
+            <div class="abstLabel">⬜ Enthaltung</div>
+            <input type="number" data-field="enthaltung" min="0" value="${esc(v.enthaltung||"0")}">
+          </div>
+          <div class="ergebnisSelect">
+            <div class="abstLabel">Ergebnis</div>
+            <select data-field="ergebnis">
+              <option value="angenommen" ${v.ergebnis==="angenommen"?"selected":""}>✅ Angenommen</option>
+              <option value="abgelehnt"  ${v.ergebnis==="abgelehnt" ?"selected":""}>❌ Abgelehnt</option>
+              <option value="vertagt"    ${v.ergebnis==="vertagt"   ?"selected":""}>⏳ Vertagt</option>
+            </select>
+          </div>
+        </div>
+        <textarea data-field="anmerkung" placeholder="Anmerkungen zur Abstimmung (optional)…">${esc(v.anmerkung)}</textarea>`;
+
+    case "beschluss":
+      return `<textarea data-field="text" placeholder="Beschlusstext…" class="tall">${esc(v.text)}</textarea>`;
+
+    case "diskussion":
+      return `
+        <input type="text" data-field="thema" placeholder="Thema der Diskussion" value="${esc(v.thema)}">
+        <textarea data-field="inhalt" placeholder="Diskussionsverlauf, wichtige Punkte, Ergebnisse…" class="tall">${esc(v.inhalt)}</textarea>`;
+
+    case "pause":
+      return `<div class="pauseBlock">
+        <span style="font-size:20px;flex:0 0 auto;">☕</span>
+        <input type="text" data-field="dauer" placeholder="Dauer der Pause (z.B. 15 Min.)" value="${esc(v.dauer)}">
+      </div>`;
+
+    case "schluss":
+      return `
+        <input type="text" data-field="uhrzeit" placeholder="Uhrzeit der Sitzungsschließung (z.B. 20:45)" value="${esc(v.uhrzeit)}">
+        <textarea data-field="anmerkung" placeholder="Abschlussbemerkungen, nächster Termin…">${esc(v.anmerkung)}</textarea>`;
+
+    default:
+      return `<textarea data-field="inhalt" placeholder="Inhalt…">${esc(v.inhalt||"")}</textarea>`;
+  }
+}
+
+/* ---- Full page render ---- */
+function renderPage(){
+  const mc = document.getElementById("mainContent");
+  if(!mc) return;
+
+  const today = new Date().toISOString().slice(0,10);
+
+  mc.innerHTML = `
+    <!-- Header info -->
+    <div class="pageHeader">
+      <div>
+        <div class="pageTitle">📋 Sitzungsprotokoll</div>
+        <div class="pageSub">Entwurf wird automatisch gespeichert</div>
+      </div>
+      <div class="headerActions">
+        <button class="btn-secondary btn-sm" onclick="clearProtokoll()" type="button">🗑️ Neu</button>
+      </div>
+    </div>
+
+    <!-- Protocol header card -->
+    <div class="protoHeaderCard">
+      <div class="protoHeaderGrid">
+        <div class="fieldGroup">
+          <label>Sitzungstyp</label>
+          <select id="hdrTyp" oninput="scheduleSave()">
+            <option value="Mitgliederversammlung">Mitgliederversammlung</option>
+            <option value="Vorstandssitzung" selected>Vorstandssitzung</option>
+            <option value="Außerordentliche Mitgliederversammlung">Außerordentliche MV</option>
+            <option value="Sitzung">Sitzung</option>
+            <option value="Klausurtagung">Klausurtagung</option>
+          </select>
+        </div>
+        <div class="fieldGroup">
+          <label>Titel / Bezeichnung</label>
+          <input id="hdrTitel" type="text" placeholder="z.B. Vorstandssitzung SoSe 2026" oninput="scheduleSave()">
+        </div>
+        <div class="fieldGroup">
+          <label>Datum</label>
+          <input id="hdrDatum" type="date" value="${today}" oninput="scheduleSave()">
+        </div>
+        <div class="fieldGroup">
+          <label>Uhrzeit</label>
+          <div class="timeRow">
+            <input id="hdrVon" type="time" placeholder="Beginn" oninput="scheduleSave()">
+            <span>–</span>
+            <input id="hdrBis" type="time" placeholder="Ende" oninput="scheduleSave()">
+            <span>Uhr</span>
+          </div>
+        </div>
+        <div class="fieldGroup">
+          <label>Ort</label>
+          <input id="hdrOrt" type="text" placeholder="z.B. Seminarraum A 201" oninput="scheduleSave()">
+        </div>
+        <div class="fieldGroup">
+          <label>Protokollführer/in</label>
+          <input id="hdrPfl" type="text" placeholder="Name" value="${esc(currentUser)}" oninput="scheduleSave()">
+        </div>
+        <div class="fieldGroup full">
+          <label>Anwesende</label>
+          <textarea id="hdrAnw" placeholder="Namen der anwesenden Personen (eine pro Zeile oder kommagetrennt)…" oninput="scheduleSave()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Schnellbausteine -->
+    <div class="bausteineWrap">
+      <div class="bausteineTitle">⚡ Schnellbausteine</div>
+      <div class="bausteineBtns">
+        ${Object.entries(BLOCK_DEFS).map(([type,def])=>`
+          <button class="baustein-btn" onclick="addBlock('${type}')" type="button">
+            <span class="bicon">${def.icon}</span> ${esc(def.label)}
+          </button>`).join("")}
+      </div>
+    </div>
+
+    <!-- Block list -->
+    <div class="blockList" id="blockList"></div>
+
+    <!-- Export bar -->
+    <div class="exportBar">
+      <div class="exportInfo">
+        <strong id="blockCount">0 Bausteine</strong>
+        <span> · Protokoll exportieren</span>
+      </div>
+      <div class="exportBtns">
+        <button class="btn-export" onclick="exportToWord()" type="button">📄 Als Word exportieren (.doc)</button>
+      </div>
+    </div>`;
+
+  renderBlocks();
+
+  // Attach header textarea auto-resize
+  document.querySelectorAll(".protoHeaderCard textarea").forEach(ta=>{
+    autoResize(ta);
+    ta.addEventListener("input", ()=>autoResize(ta));
+  });
+
+  updateBlockCount();
+}
+
+function updateBlockCount(){
+  const el = document.getElementById("blockCount");
+  if(!el) return;
+  const n = blocks.length;
+  el.textContent = n===0 ? "Keine Bausteine" : n===1 ? "1 Baustein" : `${n} Bausteine`;
+}
+
+/* observe block count after renders */
+const origRenderBlocks = renderBlocks;
+
+/* ---- Word Export ---- */
+function exportToWord(){
+  syncAllBlocks();
+  const header = getHeaderData();
+
+  const datumFormatted = header.datum
+    ? new Date(header.datum + "T12:00:00").toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"})
+    : "";
+
+  let body = "";
+
+  // Title block
+  body += `<h1>${esc(header.typ||"Protokoll")}</h1>`;
+  if(header.titel) body += `<h2 style="text-align:center;border:none;font-size:15pt;">${esc(header.titel)}</h2>`;
+
+  // Meta table
+  body += `<table class="meta">
+    <tr>
+      <td><b>Datum:</b></td><td>${esc(datumFormatted)}</td>
+      <td><b>Uhrzeit:</b></td><td>${esc(header.von||"–")} – ${esc(header.bis||"–")} Uhr</td>
+    </tr>
+    <tr>
+      <td><b>Ort:</b></td><td>${esc(header.ort||"–")}</td>
+      <td><b>Protokoll:</b></td><td>${esc(header.protokollfuehrer||"–")}</td>
+    </tr>
+  </table>`;
+
+  // Attendees
+  if(header.anwesende.trim()){
+    body += `<h2>Anwesende</h2>`;
+    const lines = header.anwesende.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+    body += `<p>${lines.map(esc).join(" &nbsp;·&nbsp; ")}</p>`;
+  }
+
+  // Tagesordnung (collect all TOPs)
+  const topBlocks = blocks.filter(b=>b.type==="top");
+  if(topBlocks.length>0){
+    body += `<h2>Tagesordnung</h2><ol>`;
+    topBlocks.forEach(b=>{
+      body += `<li>${esc(b.data.titel||"(ohne Titel)")}</li>`;
+    });
+    body += `</ol>`;
+  }
+
+  // Protocol content
+  body += `<h2>Protokoll</h2>`;
+  let topNum=0, beschlussNum=0;
+
+  for(const b of blocks){
+    switch(b.type){
+      case "begruessung":
+        body += `<h3>Begrüßung und Eröffnung</h3>`;
+        if(b.data.inhalt) body += `<p>${esc(b.data.inhalt).replace(/\n/g,"<br>")}</p>`;
+        break;
+
+      case "top":
+        topNum++;
+        body += `<h3>TOP ${topNum}: ${esc(b.data.titel||"(ohne Titel)")}</h3>`;
+        if(b.data.inhalt) body += `<p>${esc(b.data.inhalt).replace(/\n/g,"<br>")}</p>`;
+        break;
+
+      case "abstimmung":
+        body += `<h4 style="margin-top:12pt;">Abstimmung: ${esc(b.data.antrag||"")}</h4>`;
+        body += `<table class="abst">
+          <tr><th>Ja</th><th>Nein</th><th>Enthaltung</th><th>Ergebnis</th></tr>
+          <tr>
+            <td>${esc(b.data.ja||"0")}</td>
+            <td>${esc(b.data.nein||"0")}</td>
+            <td>${esc(b.data.enthaltung||"0")}</td>
+            <td class="${esc(b.data.ergebnis||"")}">${
+              b.data.ergebnis==="angenommen" ? "✅ Angenommen" :
+              b.data.ergebnis==="abgelehnt"  ? "❌ Abgelehnt"  :
+                                               "⏳ Vertagt"
+            }</td>
+          </tr>
+        </table>`;
+        if(b.data.anmerkung) body += `<p><i>${esc(b.data.anmerkung).replace(/\n/g,"<br>")}</i></p>`;
+        break;
+
+      case "beschluss":
+        beschlussNum++;
+        body += `<div class="beschluss"><b>Beschluss ${beschlussNum}:</b><br>${esc(b.data.text||"").replace(/\n/g,"<br>")}</div>`;
+        break;
+
+      case "diskussion":
+        body += `<h3>Diskussion: ${esc(b.data.thema||"")}</h3>`;
+        if(b.data.inhalt) body += `<p>${esc(b.data.inhalt).replace(/\n/g,"<br>")}</p>`;
+        break;
+
+      case "pause":
+        body += `<p style="text-align:center;color:#666;"><i>— Pause${b.data.dauer ? " ("+esc(b.data.dauer)+")" : ""} —</i></p>`;
+        break;
+
+      case "schluss":
+        body += `<h3>Sitzungsende</h3>`;
+        if(b.data.uhrzeit) body += `<p>Die Sitzung wurde um <b>${esc(b.data.uhrzeit)} Uhr</b> geschlossen.</p>`;
+        if(b.data.anmerkung) body += `<p>${esc(b.data.anmerkung).replace(/\n/g,"<br>")}</p>`;
+        break;
+    }
+  }
+
+  // Signature area
+  const pfl = esc(header.protokollfuehrer||"Protokollführer/in");
+  body += `<br><br><br>
+  <table width="100%" style="border-collapse:collapse;">
+    <tr>
+      <td width="42%" style="border-top:1px solid #555;text-align:center;padding-top:6pt;font-size:10pt;">${pfl}</td>
+      <td width="16%"></td>
+      <td width="42%" style="border-top:1px solid #555;text-align:center;padding-top:6pt;font-size:10pt;">1. Vorsitzende/r</td>
+    </tr>
+  </table>`;
+
+  const fullDoc = `<html xmlns:o='urn:schemas-microsoft-com:office:office'
+    xmlns:w='urn:schemas-microsoft-com:office:word'
+    xmlns='http://www.w3.org/TR/REC-html40'>
+  <head>
+  <meta charset='utf-8'>
+  <title>Protokoll</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+  <style>
+    @page { margin: 2.5cm 2.5cm 2cm 2.5cm; }
+    body { font-family: Arial, sans-serif; font-size: 11pt; color: #111; line-height: 1.55; }
+    h1 { font-size: 17pt; font-weight: bold; text-align: center; margin: 0 0 6pt; }
+    h2 { font-size: 13pt; font-weight: bold; margin: 18pt 0 6pt; border-bottom: 1px solid #444; padding-bottom: 3pt; page-break-after: avoid; }
+    h3 { font-size: 11.5pt; font-weight: bold; margin: 14pt 0 5pt; page-break-after: avoid; }
+    h4 { font-size: 11pt; font-weight: bold; margin: 10pt 0 4pt; }
+    p  { margin: 4pt 0; }
+    ol, ul { margin: 4pt 0; padding-left: 18pt; }
+    li { margin: 3pt 0; }
+    table.meta { width: 100%; border-collapse: collapse; margin: 10pt 0 16pt; }
+    table.meta td { padding: 3pt 12pt 3pt 0; font-size: 10.5pt; vertical-align: top; }
+    table.abst { width: 100%; border-collapse: collapse; margin: 6pt 0 8pt; }
+    table.abst th { background: #f0f0f0; border: 1px solid #bbb; padding: 4pt 8pt; font-size: 10pt; text-align: center; }
+    table.abst td { border: 1px solid #bbb; padding: 4pt 8pt; font-size: 10pt; text-align: center; }
+    .beschluss { background: #f7f7f7; border-left: 3px solid #555; padding: 6pt 10pt; margin: 8pt 0; page-break-inside: avoid; }
+    .angenommen { color: #14532d; font-weight: bold; }
+    .abgelehnt  { color: #7f1d1d; font-weight: bold; }
+    .vertagt    { color: #78350f; font-weight: bold; }
+  </style>
+  </head>
+  <body>${body}</body>
+  </html>`;
+
+  const blob = new Blob(["﻿", fullDoc], { type: "application/msword" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  const safeName = (header.titel||"Protokoll").replace(/[^\w\säöüÄÖÜ\-]/g,"").trim().replace(/\s+/g,"_") || "Protokoll";
+  const dateStr  = (header.datum||new Date().toISOString().slice(0,10)).replace(/-/g,"");
+  a.href     = url;
+  a.download = `Protokoll_${safeName}_${dateStr}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("✅ Protokoll exportiert!");
+}
+
+/* ---- Init ---- */
+(async ()=>{
+  try {
+    const session = await requireAuthOrRedirect();
+    const profile = await loadMyProfile(session);
+
+    if(normRole(profile.role) !== "vorstand"){
+      document.getElementById("mainContent").innerHTML =
+        `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">
+          ⛔ Kein Zugriff – diese Seite ist nur für den Vorstand.
+        </div>`;
+      return;
+    }
+
+    currentUser = profile.displayName || profile.display_name || "";
+
+    const hasSaved = loadSavedState();
+    if(!hasSaved){
+      renderPage();
+    }
+
+    // Hook up block count update after DOM ready
+    setInterval(()=>{
+      const n = document.querySelectorAll(".block").length;
+      const el = document.getElementById("blockCount");
+      if(el) el.textContent = n===0 ? "Keine Bausteine" : n===1 ? "1 Baustein" : `${n} Bausteine`;
+    }, 500);
+
+  } catch(e){
+    if(e?.message==="kein_profil"){
+      setAuthUI(false);
+      document.getElementById("mainContent").innerHTML =
+        `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">
+          ⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.
+        </div>`;
+    }
+  }
+})();
+</script>
+</body>
+</html>

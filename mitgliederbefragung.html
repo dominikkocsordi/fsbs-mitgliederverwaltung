@@ -540,6 +540,7 @@ button:disabled{ cursor:not-allowed !important; opacity:.55 !important; transfor
         <a class="navLink" href="/rechnungen.html">💰 Finanzen</a>
         <a class="navLink active" href="/mitgliederbefragung.html">📊 Befragung</a>
         <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
+        <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
       </div>
       <div class="navRight">
         <button class="btn-secondary hidden" id="logoutBtn" onclick="logout()">Logout</button>
@@ -927,6 +928,8 @@ async function loadMyProfile(session){
   authBadge.title = `${(data?.display_name || email || "User")} • ${roleLabel(MY_ROLE || "ressortleiter")}`;
 
   if (navWahlen) navWahlen.style.display = (MY_ROLE === "vorstand") ? "" : "none";
+  const navProtokoll = document.getElementById("navProtokoll");
+  if (navProtokoll) navProtokoll.style.display = (MY_ROLE === "vorstand") ? "" : "none";
 
   if (!ALLOWED.has(MY_ROLE)){
     throw new Error(`Zugriff verweigert: Rolle "${MY_ROLE || "—"}" ist nicht erlaubt.`);

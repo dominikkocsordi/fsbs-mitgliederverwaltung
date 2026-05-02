@@ -783,6 +783,7 @@
           <a class="navLink" href="/rechnungen.html" id="navFinance">💰 Finanzen</a>
           <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">📊 Befragung</a>
           <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
+          <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
         </div>
         <div class="navRight">
           <button class="btn-secondary hidden" id="logoutBtn" type="button">Logout</button>
@@ -1121,6 +1122,8 @@
 
       if (navFinance) navFinance.style.display = CAN_EDIT ? "" : "none";
       if (navWahlen) navWahlen.style.display = CAN_EDIT ? "" : "none";
+      const navProtokoll = document.getElementById("navProtokoll");
+      if (navProtokoll) navProtokoll.style.display = CAN_EDIT ? "" : "none";
     }
 
     logoutBtn?.addEventListener("click", async ()=>{
