@@ -514,11 +514,11 @@ function pro(anrede){
 async function loadMembers(){
   const { data, error } = await sb.from("members")
     .select("id,vorname,nachname,ressort,rolle,status")
-    .not("status","ilike","aus%")
     .order("nachname");
-  if(error){ showToast("Mitglieder konnten nicht geladen werden.", true); return; }
-  allMembers = data || [];
+  if(error){ console.error("loadMembers error:", error); showToast("Mitglieder konnten nicht geladen werden.", true); return; }
+  allMembers = (data || []).filter(m=>!(m.status||"").toLowerCase().startsWith("aus"));
   filteredMembers = allMembers;
+  console.log("loadMembers:", allMembers.length, "Mitglieder geladen", allMembers[0]);
   renderMemberList();
 }
 
@@ -556,7 +556,8 @@ function isLeitung(rolle){
 }
 
 function selectMember(id){
-  selectedMember=allMembers.find(m=>m.id===id)||null;
+  selectedMember=allMembers.find(m=>String(m.id)===String(id))||null;
+  console.log("selectMember:", id, "→", selectedMember);
   renderMemberList();
   populateForm();
 }
