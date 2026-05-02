@@ -349,6 +349,47 @@ button:disabled{ cursor:not-allowed !important; opacity:.45 !important; transfor
 }
 .btn-export:hover{ transform:translateY(-2px); filter:brightness(1.08); box-shadow:0 12px 28px rgba(56,189,248,.18); }
 
+/* Member picker */
+.anwLabel{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.btn-pick{
+  font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px; cursor:pointer;
+  background:rgba(168,85,247,.16); border:1px solid rgba(168,85,247,.30);
+  color:rgba(192,132,252,.92); font-family:inherit;
+  transition:background .14s, transform .14s;
+}
+.btn-pick:hover{ background:rgba(168,85,247,.26); transform:translateY(-1px); }
+.btn-pick.active{ background:rgba(168,85,247,.28); border-color:rgba(168,85,247,.50); }
+.memberPicker{
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+  border-radius:14px; padding:12px 14px; margin-top:8px;
+}
+.mpSearch{
+  width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+  border-radius:10px; padding:8px 12px; color:var(--text); font-family:inherit;
+  font-size:13px; outline:none; margin-bottom:10px;
+}
+.mpSearch:focus{ border-color:rgba(168,85,247,.45); background:rgba(168,85,247,.07); }
+.mpSearch::placeholder{ color:var(--muted); }
+.mpList{
+  display:flex; flex-direction:column; gap:2px;
+  max-height:200px; overflow-y:auto; margin-bottom:10px;
+}
+.mpList::-webkit-scrollbar{ width:5px; }
+.mpList::-webkit-scrollbar-track{ background:rgba(255,255,255,.04); border-radius:4px; }
+.mpList::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.18); border-radius:4px; }
+.mpItem{
+  display:flex; align-items:center; gap:9px;
+  padding:6px 8px; border-radius:8px; cursor:pointer;
+  transition:background .12s;
+}
+.mpItem:hover{ background:rgba(255,255,255,.08); }
+.mpItem input[type="checkbox"]{ accent-color:var(--accent2); width:15px; height:15px; flex:0 0 auto; cursor:pointer; }
+.mpItem label{ font-size:13px; cursor:pointer; flex:1; }
+.mpItem .mpRessort{ font-size:11px; color:var(--muted); }
+.mpActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.mpCount{ font-size:12px; color:var(--muted); margin-left:auto; }
+.mpEmpty{ font-size:13px; color:var(--muted); text-align:center; padding:16px 0; font-style:italic; }
+
 /* Spinner */
 .spinner{
   width:36px; height:36px; border-radius:50%;
@@ -698,6 +739,7 @@ function newProtokoll(){
   clearTimeout(saveTimer);
   currentProtokollId = null;
   blocks = []; nextId = 1;
+  memberPickerOpen = false;
   renderPage();
   setSaveStatus("saved");
   renderProtokollListItems();
@@ -724,6 +766,117 @@ function renderProtokollListItems(){
       ${p.datum ? `<span style="color:var(--muted);font-size:11px;">${esc(fmtDate(p.datum))}</span>` : ""}
       <button class="protoItemDel" onclick="deleteProtokoll('${p.id}',event)" title="Löschen" type="button">✕</button>
     </div>`).join("");
+}
+
+/* ---- Member picker ---- */
+let memberPickerData  = null;   // cached after first load
+let memberPickerOpen  = false;
+let mpFilteredData    = [];
+
+async function toggleMemberPicker(){
+  const panel  = document.getElementById("memberPickerPanel");
+  const btn    = document.getElementById("btnPickMembers");
+  if(!panel || !btn) return;
+
+  memberPickerOpen = !memberPickerOpen;
+  panel.style.display = memberPickerOpen ? "block" : "none";
+  btn.classList.toggle("active", memberPickerOpen);
+
+  if(memberPickerOpen){
+    if(!memberPickerData){
+      const { data } = await sb.from("members")
+        .select("vorname,nachname,ressort,status")
+        .not("status","ilike","aus%")   // exclude ausgetreten
+        .order("nachname");
+      memberPickerData = data || [];
+    }
+    document.getElementById("mpSearch").value = "";
+    mpFilteredData = memberPickerData;
+    renderMpList();
+    document.getElementById("mpSearch")?.focus();
+  }
+}
+
+function filterMemberPicker(q){
+  if(!memberPickerData) return;
+  const t = q.trim().toLowerCase();
+  mpFilteredData = t
+    ? memberPickerData.filter(m=>
+        (m.vorname+" "+m.nachname).toLowerCase().includes(t) ||
+        (m.ressort||"").toLowerCase().includes(t))
+    : memberPickerData;
+  renderMpList();
+}
+
+function renderMpList(){
+  const list    = document.getElementById("mpList");
+  const countEl = document.getElementById("mpCount");
+  if(!list) return;
+
+  const current = getSelectedNames();
+
+  if(mpFilteredData.length === 0){
+    list.innerHTML = `<div class="mpEmpty">Keine Mitglieder gefunden</div>`;
+    if(countEl) countEl.textContent = "";
+    return;
+  }
+
+  list.innerHTML = mpFilteredData.map((m,i)=>{
+    const name  = [m.vorname, m.nachname].filter(Boolean).join(" ");
+    const safId = "mp_" + i;
+    const checked = current.has(name) ? "checked" : "";
+    return `<div class="mpItem">
+      <input type="checkbox" id="${safId}" value="${esc(name)}" ${checked}
+             onchange="updateMpCount()">
+      <label for="${safId}">
+        ${esc(name)}
+        ${m.ressort ? `<span class="mpRessort">· ${esc(m.ressort)}</span>` : ""}
+      </label>
+    </div>`;
+  }).join("");
+
+  updateMpCount();
+}
+
+function getSelectedNames(){
+  const ta = document.getElementById("hdrAnw");
+  if(!ta || !ta.value.trim()) return new Set();
+  return new Set(
+    ta.value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean)
+  );
+}
+
+function updateMpCount(){
+  const el = document.getElementById("mpCount");
+  if(!el) return;
+  const checked = document.querySelectorAll("#mpList input[type=checkbox]:checked").length;
+  el.textContent = checked > 0 ? `${checked} ausgewählt` : "";
+}
+
+function applyMemberSelection(){
+  const checkboxes = document.querySelectorAll("#mpList input[type=checkbox]");
+  const selected   = Array.from(checkboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+  const ta         = document.getElementById("hdrAnw");
+  if(!ta) return;
+
+  // Merge: keep manually typed names + add selected (avoid duplicates)
+  const existing  = ta.value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
+  const unchecked = new Set(
+    Array.from(checkboxes).filter(cb=>!cb.checked).map(cb=>cb.value)
+  );
+  // Keep manually typed names that are NOT in the picker (custom entries)
+  const allPickerNames = new Set(memberPickerData.map(m=>[m.vorname,m.nachname].filter(Boolean).join(" ")));
+  const manual = existing.filter(n => !allPickerNames.has(n));
+
+  const merged = [...new Set([...selected, ...manual])].sort((a,b)=>a.localeCompare(b,"de"));
+  ta.value = merged.join("\n");
+  autoResize(ta);
+  scheduleSave();
+
+  // Close picker
+  memberPickerOpen = true;   // set to true so toggle closes it
+  toggleMemberPicker();
+  showToast(`${selected.length} Mitglieder übernommen.`);
 }
 
 /* ---- Block sync ---- */
@@ -923,8 +1076,20 @@ function renderPage(){
           <input id="hdrPfl" type="text" placeholder="Name" value="${esc(currentUser)}" oninput="scheduleSave()">
         </div>
         <div class="fieldGroup full">
-          <label>Anwesende</label>
+          <div class="anwLabel">
+            <label>Anwesende</label>
+            <button class="btn-pick" id="btnPickMembers" onclick="toggleMemberPicker()" type="button">👥 Aus Mitgliederliste wählen</button>
+          </div>
           <textarea id="hdrAnw" placeholder="Namen der Anwesenden (eine pro Zeile oder kommagetrennt)…" oninput="scheduleSave()"></textarea>
+          <div class="memberPicker" id="memberPickerPanel" style="display:none;">
+            <input class="mpSearch" id="mpSearch" type="text" placeholder="Mitglied suchen…" oninput="filterMemberPicker(this.value)">
+            <div class="mpList" id="mpList"><div class="mpEmpty">Lade Mitglieder…</div></div>
+            <div class="mpActions">
+              <button class="btn-secondary btn-xs" onclick="applyMemberSelection()" type="button">✓ Übernehmen</button>
+              <button class="btn-secondary btn-xs" onclick="toggleMemberPicker()" type="button">Schließen</button>
+              <span class="mpCount" id="mpCount"></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
