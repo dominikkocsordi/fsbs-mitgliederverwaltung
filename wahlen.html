@@ -618,7 +618,7 @@ function renderSessions(){
   for (const s of allSessions){
     const isOpen = s.status === "open";
     document.getElementById(`btn-copy-${s.id}`)?.addEventListener("click", () => copyLink(s.token));
-    document.getElementById(`btn-beamer-${s.id}`)?.addEventListener("click", () => openBeamer(s.token));
+    document.getElementById(`btn-beamer-${s.id}`)?.addEventListener("click", () => openBeamer());
     document.getElementById(`btn-close-${s.id}`)?.addEventListener("click", () => closeSession(s.id));
     document.getElementById(`btn-release-${s.id}`)?.addEventListener("click", () => releaseResults(s.id));
     document.getElementById(`btn-hide-results-${s.id}`)?.addEventListener("click", () => hideResults(s.id));
@@ -755,8 +755,8 @@ async function loadOpenSessionStats(sessionId, limit){
 }
 
 /* ---- Beamer / Results release ---- */
-function openBeamer(token){
-  window.open("beamer.html?s=" + encodeURIComponent(token), "_blank", "noopener,noreferrer");
+function openBeamer(){
+  window.open("beamer.html", "_blank", "noopener,noreferrer");
 }
 
 async function releaseResults(id){
