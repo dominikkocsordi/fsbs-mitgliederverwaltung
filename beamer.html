@@ -125,6 +125,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const token = new URLSearchParams(location.search).get("s");
 let lastState = null;
+let lastSessionId = null;
 let lastVoteHash = null;
 
 function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
@@ -147,6 +148,20 @@ function generateQR(url){
   });
 }
 
+async function getCurrentSession(){
+  if (token){
+    const { data } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
+    return data || null;
+  }
+  const { data: open } = await sb.from("vote_sessions")
+    .select("*").eq("status","open")
+    .order("created_at", { ascending:false }).limit(1);
+  if (open?.length) return open[0];
+  const { data: latest } = await sb.from("vote_sessions")
+    .select("*").order("created_at", { ascending:false }).limit(1);
+  return latest?.[0] || null;
+}
+
 function setView(html, animate){
   const v = document.getElementById("view");
   v.innerHTML = html;
@@ -158,14 +173,18 @@ function setView(html, animate){
 }
 
 async function refresh(){
-  if (!token){
-    setView(`<div style="font-size:28px;color:rgba(239,68,68,.8);">⚠️ Kein Session-Token in der URL.</div>`, false);
-    return;
-  }
+  const session = await getCurrentSession();
 
-  const { data: session } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
   if (!session){
-    setView(`<div style="font-size:28px;color:rgba(239,68,68,.8);">⚠️ Abstimmung nicht gefunden.</div>`, false);
+    if (lastState !== "waiting"){
+      lastState = "waiting";
+      lastSessionId = null;
+      setView(`
+        <div style="text-align:center;">
+          <div style="font-size:72px;margin-bottom:28px;opacity:.35;">🗳️</div>
+          <div style="font-size:36px;font-weight:800;color:rgba(255,255,255,.35);">Keine aktive Abstimmung</div>
+        </div>`, true);
+    }
     return;
   }
 
@@ -173,7 +192,9 @@ async function refresh(){
     : session.results_visible ? "results"
     : "closed";
 
-  const stateChanged = state !== lastState;
+  const sessionChanged = session.id !== lastSessionId;
+  lastSessionId = session.id;
+  const stateChanged = state !== lastState || sessionChanged;
   lastState = state;
 
   if (state === "open"){
