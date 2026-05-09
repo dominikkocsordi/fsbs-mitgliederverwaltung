@@ -618,7 +618,10 @@ function renderSessions(){
   for (const s of allSessions){
     const isOpen = s.status === "open";
     document.getElementById(`btn-copy-${s.id}`)?.addEventListener("click", () => copyLink(s.token));
+    document.getElementById(`btn-beamer-${s.id}`)?.addEventListener("click", () => openBeamer(s.token));
     document.getElementById(`btn-close-${s.id}`)?.addEventListener("click", () => closeSession(s.id));
+    document.getElementById(`btn-release-${s.id}`)?.addEventListener("click", () => releaseResults(s.id));
+    document.getElementById(`btn-hide-results-${s.id}`)?.addEventListener("click", () => hideResults(s.id));
     document.getElementById(`btn-delete-${s.id}`)?.addEventListener("click", () => deleteSession(s.id, s.title));
     if (!isOpen){
       loadResultsAndRender(s.id, s.options, s.participant_limit);
@@ -635,9 +638,16 @@ function buildSessionCard(s, isOpen, opts){
 
   const actions = isOpen ? `
     <button class="btn-secondary btn-sm" id="btn-copy-${s.id}" type="button">🔗 Link kopieren</button>
+    <button class="btn-secondary btn-sm" id="btn-beamer-${s.id}" type="button">📺 Beamer</button>
     <button class="btn-secondary btn-sm" id="btn-close-${s.id}" type="button" style="border-color:rgba(249,115,22,.30);color:rgba(249,115,22,.85);">🔒 Schließen</button>
     <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️</button>
+  ` : s.results_visible ? `
+    <button class="btn-secondary btn-sm" id="btn-beamer-${s.id}" type="button">📺 Beamer</button>
+    <button class="btn-secondary btn-sm" id="btn-hide-results-${s.id}" type="button" style="border-color:rgba(168,85,247,.30);color:rgba(168,85,247,.85);">🙈 Ergebnisse verbergen</button>
+    <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️ Löschen</button>
   ` : `
+    <button class="btn-secondary btn-sm" id="btn-beamer-${s.id}" type="button">📺 Beamer</button>
+    <button class="btn-primary btn-sm" id="btn-release-${s.id}" type="button">📊 Ergebnisse freigeben</button>
     <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️ Löschen</button>
   `;
 
@@ -742,6 +752,25 @@ async function loadOpenSessionStats(sessionId, limit){
   const { count } = await sb.from("votes").select("*", { count:"exact", head:true }).eq("session_id", sessionId);
   const voted = count || 0;
   el.innerHTML = buildParticipantStats(voted, limit);
+}
+
+/* ---- Beamer / Results release ---- */
+function openBeamer(token){
+  window.open("beamer.html?s=" + encodeURIComponent(token), "_blank", "noopener,noreferrer");
+}
+
+async function releaseResults(id){
+  const { error } = await sb.from("vote_sessions").update({ results_visible: true }).eq("id", id);
+  if (error){ showToast("Fehler: " + error.message, true); return; }
+  showToast("Ergebnisse freigegeben – Beamer zeigt jetzt die Resultate.");
+  await loadSessions();
+}
+
+async function hideResults(id){
+  const { error } = await sb.from("vote_sessions").update({ results_visible: false }).eq("id", id);
+  if (error){ showToast("Fehler: " + error.message, true); return; }
+  showToast("Ergebnisse verborgen.");
+  await loadSessions();
 }
 
 /* ---- Actions ---- */
