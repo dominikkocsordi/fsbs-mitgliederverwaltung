@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beamer · FSBS</title>
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --accent1:#f97316; --accent2:#a855f7;
+  --green:rgba(34,197,94,.95); --red:rgba(239,68,68,.88);
+}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{
+  width:100%; height:100%; min-height:100vh; overflow:hidden;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:rgba(255,255,255,.92);
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
+    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
+    linear-gradient(135deg, #120e18, #1a1424, #1f162c);
+}
+#view{
+  width:100vw; height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  padding:64px;
+}
+#view.animate{
+  animation:fadeUp .55s cubic-bezier(.22,.68,0,1.1) both;
+}
+@keyframes fadeUp{ from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pulse{ 0%,100%{opacity:1;box-shadow:0 0 0 4px rgba(34,197,94,.2),0 0 24px rgba(34,197,94,.5)} 50%{opacity:.55;box-shadow:0 0 0 4px rgba(34,197,94,.08),0 0 10px rgba(34,197,94,.2)} }
+
+.fsbs-logo{
+  position:fixed; top:28px; left:36px; font-size:15px; font-weight:800;
+  color:rgba(255,255,255,.25); letter-spacing:.5px; pointer-events:none;
+}
+
+/* ---- Open state ---- */
+.open-wrap{ width:100%; max-width:1100px; }
+.live-indicator{
+  display:flex; align-items:center; gap:14px; margin-bottom:40px;
+}
+.live-dot{
+  width:15px; height:15px; border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 0 4px rgba(34,197,94,.2),0 0 24px rgba(34,197,94,.5);
+  animation:pulse 2s ease infinite; flex:0 0 auto;
+}
+.live-label{ font-size:22px; font-weight:700; color:var(--green); letter-spacing:.3px; }
+.beamer-title{ font-size:clamp(36px,5vw,66px); font-weight:900; letter-spacing:-.5px; line-height:1.1; }
+.open-title{ margin-bottom:44px; }
+.options-list{ display:flex; flex-direction:column; gap:14px; }
+.option-row{
+  display:flex; align-items:center; gap:24px; padding:18px 28px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+}
+.option-num{ font-size:clamp(24px,3vw,40px); font-weight:900; color:rgba(249,115,22,.65); min-width:44px; text-align:center; }
+.option-text{ font-size:clamp(22px,2.8vw,36px); font-weight:700; }
+
+/* ---- Closed state ---- */
+.closed-wrap{ text-align:center; max-width:900px; }
+.closed-icon{ font-size:clamp(64px,10vw,110px); margin-bottom:36px; line-height:1; }
+.closed-title{ margin-bottom:24px; }
+.closed-sub{ font-size:clamp(22px,2.8vw,34px); font-weight:600; color:rgba(255,255,255,.45); letter-spacing:.3px; }
+
+/* ---- Results state ---- */
+.results-wrap{ width:100%; max-width:1100px; }
+.results-label{
+  font-size:18px; font-weight:700; letter-spacing:.7px; text-transform:uppercase;
+  color:rgba(249,115,22,.85); margin-bottom:16px;
+}
+.results-title{ margin-bottom:36px; }
+.result-row{ margin-bottom:22px; }
+.result-label-row{
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:10px; gap:16px;
+}
+.result-option-name{ font-size:clamp(20px,2.4vw,30px); font-weight:700; }
+.result-option-count{ font-size:clamp(18px,2.2vw,28px); font-weight:800; color:rgba(255,255,255,.7); white-space:nowrap; }
+.result-bar{ height:16px; border-radius:999px; background:rgba(255,255,255,.10); }
+.result-bar-fill{
+  height:100%; border-radius:999px;
+  background:linear-gradient(90deg,var(--accent1),var(--accent2));
+  transition:width 1s cubic-bezier(.4,0,.2,1);
+}
+.stats-box{
+  margin-top:28px; padding:22px 28px; border-radius:20px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+  display:flex; align-items:stretch; gap:0;
+}
+.stats-divider{ width:1px; background:rgba(255,255,255,.12); align-self:stretch; margin:0 4px; }
+.stats-cell{ flex:1; text-align:center; padding:0 20px; }
+.stats-num{ font-size:clamp(36px,5vw,56px); font-weight:900; line-height:1; }
+.stats-lbl{ font-size:clamp(14px,1.5vw,18px); color:rgba(255,255,255,.5); margin-top:6px; }
+.stats-total{ margin-top:18px; font-size:20px; color:rgba(255,255,255,.45); }
+</style>
+</head>
+<body>
+
+<div class="fsbs-logo">FSBS Abstimmung</div>
+
+<div id="view">
+  <div style="font-size:32px;color:rgba(255,255,255,.3);">Lade…</div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const token = new URLSearchParams(location.search).get("s");
+let lastState = null;
+let lastVoteHash = null;
+
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+function setView(html, animate){
+  const v = document.getElementById("view");
+  v.innerHTML = html;
+  if (animate){
+    v.classList.remove("animate");
+    void v.offsetWidth;
+    v.classList.add("animate");
+  }
+}
+
+async function refresh(){
+  if (!token){
+    setView(`<div style="font-size:28px;color:rgba(239,68,68,.8);">⚠️ Kein Session-Token in der URL.</div>`, false);
+    return;
+  }
+
+  const { data: session } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
+  if (!session){
+    setView(`<div style="font-size:28px;color:rgba(239,68,68,.8);">⚠️ Abstimmung nicht gefunden.</div>`, false);
+    return;
+  }
+
+  const state = session.status === "open" ? "open"
+    : session.results_visible ? "results"
+    : "closed";
+
+  const stateChanged = state !== lastState;
+  lastState = state;
+
+  if (state === "open"){
+    if (stateChanged) setView(buildOpen(session), true);
+  } else if (state === "closed"){
+    if (stateChanged) setView(buildClosed(session), true);
+  } else {
+    const { data: votes } = await sb.from("votes").select("option_index").eq("session_id", session.id);
+    const vHash = (votes||[]).map(v=>v.option_index).sort().join(",");
+    if (!stateChanged && vHash === lastVoteHash) return;
+    lastVoteHash = vHash;
+    setView(buildResults(session, votes||[]), stateChanged);
+  }
+}
+
+function buildOpen(session){
+  const opts = session.options || [];
+  const optRows = opts.map((o,i) => `
+    <div class="option-row">
+      <span class="option-num">${i+1}</span>
+      <span class="option-text">${esc(o)}</span>
+    </div>`).join("");
+  return `
+    <div class="open-wrap">
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        <span class="live-label">Abstimmung läuft</span>
+      </div>
+      <div class="beamer-title open-title">${esc(session.title)}</div>
+      <div class="options-list">${optRows}</div>
+    </div>`;
+}
+
+function buildClosed(session){
+  return `
+    <div class="closed-wrap">
+      <div class="closed-icon">🔒</div>
+      <div class="beamer-title closed-title">${esc(session.title)}</div>
+      <div class="closed-sub">Abstimmung geschlossen</div>
+    </div>`;
+}
+
+function buildResults(session, votes){
+  const opts = session.options || [];
+  const total = votes.length;
+  const counts = Array(opts.length).fill(0);
+  for (const v of votes){
+    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index]++;
+  }
+
+  const rows = opts.map((o,i) => {
+    const pct = total > 0 ? Math.round((counts[i]/total)*100) : 0;
+    return `
+      <div class="result-row">
+        <div class="result-label-row">
+          <span class="result-option-name">${esc(o)}</span>
+          <span class="result-option-count">${counts[i]} Stimme${counts[i]!==1?"n":""} · ${pct}%</span>
+        </div>
+        <div class="result-bar">
+          <div class="result-bar-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  }).join("");
+
+  let statsHtml;
+  if (session.participant_limit){
+    const notVoted = Math.max(0, session.participant_limit - total);
+    statsHtml = `
+      <div class="stats-box">
+        <div class="stats-cell">
+          <div class="stats-num">${session.participant_limit}</div>
+          <div class="stats-lbl">Teilnehmer</div>
+        </div>
+        <div class="stats-divider"></div>
+        <div class="stats-cell">
+          <div class="stats-num" style="color:rgba(34,197,94,.9);">${total}</div>
+          <div class="stats-lbl">Abgestimmt</div>
+        </div>
+        <div class="stats-divider"></div>
+        <div class="stats-cell">
+          <div class="stats-num" style="color:rgba(239,68,68,.85);">${notVoted}</div>
+          <div class="stats-lbl">Nicht abgestimmt</div>
+        </div>
+      </div>`;
+  } else {
+    statsHtml = `<div class="stats-total">Gesamt: ${total} Stimme${total!==1?"n":""}</div>`;
+  }
+
+  return `
+    <div class="results-wrap">
+      <div class="results-label">Ergebnisse</div>
+      <div class="beamer-title results-title">${esc(session.title)}</div>
+      ${rows}
+      ${statsHtml}
+    </div>`;
+}
+
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>
