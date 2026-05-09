@@ -264,16 +264,41 @@ dialog::backdrop{ background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
 
 .formGroup{ margin-bottom:14px; }
 .formLabel{ font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
-input[type=text]{
+input[type=text], input[type=number]{
   background:rgba(255,255,255,.12); border:1px solid var(--border);
   color:var(--text); padding:12px 14px; border-radius:14px; outline:none;
   font-size:15px; font-family:inherit; width:100%;
   transition:background .15s, border-color .15s, transform .15s;
 }
-input[type=text]::placeholder{ color:rgba(255,255,255,.35); }
-input[type=text]:focus{
+input[type=text]::placeholder, input[type=number]::placeholder{ color:rgba(255,255,255,.35); }
+input[type=text]:focus, input[type=number]:focus{
   border-color:rgba(249,115,22,.55); background:rgba(255,255,255,.16); transform:translateY(-1px);
 }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{ opacity:.5; }
+
+.limitToggleRow{
+  display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:14px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
+  cursor:pointer; user-select:none;
+}
+.limitToggleRow input[type=checkbox]{
+  width:17px; height:17px; cursor:pointer; accent-color:var(--accent1); flex:0 0 auto;
+}
+.limitToggleLabel{ font-size:14px; font-weight:600; }
+
+.participantStats{
+  margin-top:12px; padding:14px 16px; border-radius:16px;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
+  display:flex; flex-direction:column; gap:8px;
+}
+.participantStatsRow{
+  display:flex; justify-content:space-between; align-items:center; font-size:13px;
+}
+.statsLabel{ color:var(--muted); }
+.statsValueGreen{ font-weight:700; color:rgba(34,197,94,.9); }
+.statsValueRed{ font-weight:700; color:rgba(239,68,68,.82); }
+.statsValueNeutral{ font-weight:700; }
 
 .optionsList{ display:flex; flex-direction:column; gap:8px; }
 .optionRow{ display:flex; gap:8px; align-items:center; }
@@ -396,6 +421,18 @@ input[type=text]:focus{
       <div class="optionsList" id="optionsList"></div>
       <button class="addOptionBtn" id="addOptionBtn" type="button">+ Option hinzufügen</button>
       <div style="font-size:12px;color:var(--muted);margin-top:6px;">Mindestens 2, maximal 10 Optionen.</div>
+    </div>
+
+    <div class="formGroup">
+      <label class="formLabel">Teilnehmerlimit (optional)</label>
+      <label class="limitToggleRow">
+        <input type="checkbox" id="limitToggle" />
+        <span class="limitToggleLabel">Maximale Teilnehmerzahl festlegen</span>
+      </label>
+      <div id="limitInputWrap" class="hidden" style="margin-top:10px;">
+        <input type="number" id="participantLimitInput" placeholder="z.B. 32" min="1" max="9999" />
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;">Stimmen und Nein-Stimmen werden anhand dieser Zahl berechnet.</div>
+      </div>
     </div>
 
     <div class="modalActions">
@@ -584,7 +621,9 @@ function renderSessions(){
     document.getElementById(`btn-close-${s.id}`)?.addEventListener("click", () => closeSession(s.id));
     document.getElementById(`btn-delete-${s.id}`)?.addEventListener("click", () => deleteSession(s.id, s.title));
     if (!isOpen){
-      loadResultsAndRender(s.id, s.options);
+      loadResultsAndRender(s.id, s.options, s.participant_limit);
+    } else if (s.participant_limit) {
+      loadOpenSessionStats(s.id, s.participant_limit);
     }
   }
 }
@@ -604,6 +643,9 @@ function buildSessionCard(s, isOpen, opts){
 
   const optPreview = opts.slice(0, 3).map(o => `<span style="font-size:12px;color:var(--muted);">${esc(o)}</span>`).join(" · ");
   const moreOpts = opts.length > 3 ? `<span style="font-size:12px;color:var(--muted);">+${opts.length - 3} weitere</span>` : "";
+  const limitBadge = s.participant_limit
+    ? `<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.25);color:rgba(249,115,22,.9);">👥 ${s.participant_limit} Teilnehmer</span>`
+    : "";
 
   const resultsBlock = !isOpen
     ? `<div class="resultsBlock" id="results-${s.id}"><div style="color:var(--muted);font-size:13px;">Lade Ergebnisse…</div></div>`
@@ -611,6 +653,7 @@ function buildSessionCard(s, isOpen, opts){
         <div style="font-size:13px;color:var(--muted);">
           Share-Link: <code style="font-size:12px;color:rgba(249,115,22,.85);word-break:break-all;">${esc(shareUrl(s.token))}</code>
         </div>
+        ${s.participant_limit ? `<div id="openstats-${s.id}"></div>` : ""}
        </div>`;
 
   return `<div class="sessionCard">
@@ -621,6 +664,7 @@ function buildSessionCard(s, isOpen, opts){
           ${statusBadge}
           <span class="sessionDate">${formatDate(s.created_at)}</span>
           <span style="font-size:12px;color:var(--muted);">${opts.length} Option${opts.length !== 1 ? "en" : ""}</span>
+          ${limitBadge}
         </div>
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">${optPreview}${moreOpts}</div>
       </div>
@@ -630,7 +674,7 @@ function buildSessionCard(s, isOpen, opts){
   </div>`;
 }
 
-async function loadResultsAndRender(sessionId, opts){
+async function loadResultsAndRender(sessionId, opts, participantLimit){
   const votes = await loadResults(sessionId);
   const el = document.getElementById(`results-${sessionId}`);
   if (!el) return;
@@ -641,10 +685,15 @@ async function loadResultsAndRender(sessionId, opts){
     if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index]++;
   }
 
+  const limitStats = participantLimit
+    ? buildParticipantStats(total, participantLimit)
+    : "";
+
   if (total === 0){
     el.innerHTML = `<div class="resultsBlock">
       <div class="resultsTitle">Ergebnisse</div>
       <div style="font-size:14px;color:var(--muted);">Keine Stimmen abgegeben.</div>
+      ${limitStats}
     </div>`;
     return;
   }
@@ -665,7 +714,34 @@ async function loadResultsAndRender(sessionId, opts){
     <div class="resultsTitle">Ergebnisse</div>
     ${rows}
     <div class="totalVotes">Gesamt: ${total} Stimme${total !== 1 ? "n" : ""}</div>
+    ${limitStats}
   </div>`;
+}
+
+function buildParticipantStats(voted, limit){
+  const notVoted = Math.max(0, limit - voted);
+  return `<div class="participantStats">
+    <div class="participantStatsRow">
+      <span class="statsLabel">Festgelegte Teilnehmerzahl</span>
+      <span class="statsValueNeutral">${limit}</span>
+    </div>
+    <div class="participantStatsRow">
+      <span class="statsLabel">Haben abgestimmt</span>
+      <span class="statsValueGreen">${voted}</span>
+    </div>
+    <div class="participantStatsRow">
+      <span class="statsLabel">Haben nicht abgestimmt</span>
+      <span class="statsValueRed">${notVoted}</span>
+    </div>
+  </div>`;
+}
+
+async function loadOpenSessionStats(sessionId, limit){
+  const el = document.getElementById(`openstats-${sessionId}`);
+  if (!el) return;
+  const { count } = await sb.from("votes").select("*", { count:"exact", head:true }).eq("session_id", sessionId);
+  const voted = count || 0;
+  el.innerHTML = buildParticipantStats(voted, limit);
 }
 
 /* ---- Actions ---- */
@@ -703,6 +779,9 @@ function openCreateModal(){
   optionCount = 0;
   document.getElementById("sessionTitle").value = "";
   document.getElementById("optionsList").innerHTML = "";
+  document.getElementById("limitToggle").checked = false;
+  document.getElementById("limitInputWrap").classList.add("hidden");
+  document.getElementById("participantLimitInput").value = "";
   addOptionRow(); addOptionRow();
   modal.showModal();
   document.getElementById("sessionTitle").focus();
@@ -740,6 +819,10 @@ function refreshRemoveButtons(){
 document.getElementById("addOptionBtn").addEventListener("click", addOptionRow);
 document.getElementById("cancelModalBtn").addEventListener("click", () => modal.close());
 modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
+document.getElementById("limitToggle").addEventListener("change", e => {
+  document.getElementById("limitInputWrap").classList.toggle("hidden", !e.target.checked);
+  if (!e.target.checked) document.getElementById("participantLimitInput").value = "";
+});
 
 document.getElementById("saveSessionBtn").addEventListener("click", async () => {
   const title = document.getElementById("sessionTitle").value.trim();
@@ -749,10 +832,17 @@ document.getElementById("saveSessionBtn").addEventListener("click", async () => 
     .map(i => i.value.trim()).filter(Boolean);
   if (opts.length < 2){ showToast("Mindestens 2 Optionen benötigt.", true); return; }
 
+  let participantLimit = null;
+  if (document.getElementById("limitToggle").checked) {
+    const raw = parseInt(document.getElementById("participantLimitInput").value, 10);
+    if (!isNaN(raw) && raw >= 1) participantLimit = raw;
+    else { showToast("Bitte eine gültige Teilnehmerzahl (≥ 1) eingeben.", true); return; }
+  }
+
   const saveBtn = document.getElementById("saveSessionBtn");
   saveBtn.disabled = true; saveBtn.textContent = "Erstelle…";
 
-  const { error } = await sb.from("vote_sessions").insert({ title, options: opts });
+  const { error } = await sb.from("vote_sessions").insert({ title, options: opts, participant_limit: participantLimit });
   saveBtn.disabled = false; saveBtn.textContent = "Abstimmung starten";
 
   if (error){ showToast("Fehler: " + error.message, true); return; }
