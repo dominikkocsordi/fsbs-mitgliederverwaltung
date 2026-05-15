@@ -308,6 +308,9 @@
       border-radius:14px;
       padding: 10px 14px;
       font-weight:700;
+      font-family: inherit;
+      font-size: 14px;
+      touch-action: manipulation;
       transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
     }
     button:active{ transform: translateY(0px) scale(.99); }
@@ -359,7 +362,10 @@
       padding: 12px 14px;
       border-radius: 14px;
       outline:none;
-      min-width: 190px;
+      font-family: inherit;
+      font-size: 14px;
+      min-width: 0;
+      width: 100%;
       transition: transform .15s ease, background .15s ease, border-color .15s ease;
     }
     input::placeholder{ color: rgba(255,255,255,.55); }
@@ -503,6 +509,8 @@
     .modalOverlay{
       position: fixed; inset:0; z-index:9999;
       background: rgba(0,0,0,.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       display:none;
       align-items:center;
       justify-content:center;
@@ -511,17 +519,17 @@
     .modalOverlay.show{ display:flex; }
 
     .modal{
-      width:min(920px, 100%);
-      max-height: 86vh;
-      overflow:auto;
+      width:min(860px, 100%);
+      max-height: 88vh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
       border-radius: 26px;
-      padding: 16px;
-      transform: translateY(6px);
-      animation: modalIn .18s ease both;
+      padding: 20px;
+      animation: modalIn .2s cubic-bezier(.22,.68,0,1.2) both;
     }
     @keyframes modalIn{
-      from{ opacity:.0; transform: translateY(12px); }
-      to{ opacity:1; transform: translateY(0); }
+      from{ opacity:0; transform: translateY(14px) scale(.98); }
+      to{ opacity:1; transform: translateY(0) scale(1); }
     }
 
     .modalHeader{
@@ -560,6 +568,43 @@
     .split{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
     .split > *{ flex: 1 1 260px; }
 
+    /* Controls bar responsive */
+    .controlsRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+      align-items:center;
+    }
+    .controlsRowBottom{
+      display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;
+    }
+    @media (max-width: 900px){
+      .controlsRow{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px){
+      .controlsRow{ grid-template-columns: 1fr; }
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+      background:rgba(34,197,94,.20); border:1px solid rgba(34,197,94,.40);
+      color:rgba(255,255,255,.92); padding:12px 22px; border-radius:999px;
+      font-size:14px; font-weight:600; letter-spacing:.2px;
+      box-shadow:0 12px 32px rgba(0,0,0,.35); z-index:10000;
+      transition:transform .3s ease, opacity .3s ease; opacity:0; pointer-events:none;
+      white-space:nowrap;
+    }
+    .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+    .toast.error{ background:rgba(239,68,68,.20); border-color:rgba(239,68,68,.40); }
+
+    /* Status button active state */
+    .statusBtn.active-status{
+      outline: 2px solid rgba(255,255,255,.60);
+      outline-offset: 2px;
+      filter: brightness(1.15);
+    }
+
     /* MOBILE */
     @media (max-width: 760px){
       .kv{ grid-template-columns: 1fr; }
@@ -570,16 +615,14 @@
       .top{ flex-direction:column; align-items:flex-start; gap:10px; }
       .authNameInline{ max-width: 150px; }
 
-      input,select{min-width:0; width:100%;}
       .row .spacer{ display:none; }
       .row{ align-items:stretch; }
-      button{ width:100%; }
 
       .navWrap{ top: 10px; }
 
       .grid{ grid-template-columns: 1fr; }
 
-      /* ✅ bottom sheet modal on mobile */
+      /* bottom sheet modal on mobile */
       .modalOverlay{ align-items:flex-end; padding:0; }
       .modal{
         width:100%;
@@ -587,6 +630,7 @@
         border-radius: 22px 22px 0 0;
         padding: 16px;
       }
+      .modalActions button{ width:100%; }
     }
   </style>
 </head>
@@ -657,7 +701,7 @@
             📁 Belege
           </a>
 
-          <button class="btn-secondary" id="logoutBtn">Logout</button>
+          <button class="btn-secondary" id="logoutBtn" type="button">Logout</button>
         </div>
       </div>
     </div>
@@ -670,7 +714,7 @@
           Diese Seite ist nur für <b>vorstand</b>.
         </div>
         <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn-secondary" id="logoutBtn2">Logout</button>
+          <button class="btn-secondary" id="logoutBtn2" type="button">Logout</button>
           <a class="pill" href="/index.html" style="text-decoration:none;">Zum Dashboard</a>
         </div>
       </div>
@@ -710,8 +754,8 @@
 
     <!-- Controls -->
     <div class="glass card" id="controlsCard" style="display:none;">
-      <div class="row">
-        <input id="q" placeholder="Suche (Name, Projekt, IBAN, Erläuterung…)" />
+      <div class="controlsRow">
+        <input id="q" placeholder="Suche (Name, Projekt, IBAN…)" />
         <select id="fStatus">
           <option value="">Status (alle)</option>
           <option value="Rechnung offen">Rechnung offen</option>
@@ -719,12 +763,12 @@
           <option value="Bezahlt">Bezahlt</option>
         </select>
         <select id="fProj"><option value="">Projekt (alle)</option></select>
-
-        <button class="btn-secondary" id="reloadBtn">Neu laden</button>
-        <button class="btn-primary" id="exportBtn">Export CSV</button>
-
+      </div>
+      <div class="controlsRowBottom">
+        <button class="btn-secondary" id="reloadBtn" type="button">↺ Neu laden</button>
+        <button class="btn-primary" id="exportBtn" type="button">⬇ Export CSV</button>
         <div class="spacer"></div>
-        <div class="pill" style="opacity:.9;">Klick auf Karte → Details</div>
+        <div class="pill" style="opacity:.7;font-size:12px;">Karte anklicken → Details</div>
       </div>
     </div>
 
@@ -732,6 +776,9 @@
     <div id="empty" class="empty" style="display:none;">Keine Einreichungen gefunden.</div>
 
   </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
   <!-- Modal -->
   <div class="modalOverlay" id="modalOverlay">
@@ -741,16 +788,16 @@
           <h2 class="modalTitle" id="modalTitle">Rechnung</h2>
           <div class="modalSub" id="modalSub">–</div>
         </div>
-        <button class="btn-secondary closeX" id="closeModalBtn">✕</button>
+        <button class="btn-secondary closeX" id="closeModalBtn" type="button" aria-label="Schließen">✕</button>
       </div>
 
       <div class="split">
         <div class="glass" style="border-radius:18px; padding:12px;">
           <div style="font-weight:900; margin-bottom:8px;">Status setzen</div>
           <div class="row" style="gap:10px;">
-            <button class="btn-danger" id="setOpenBtn">Rechnung offen</button>
-            <button class="btn-warn" id="setCheckBtn">In Prüfung</button>
-            <button class="btn-ok" id="setPaidBtn">Bezahlt</button>
+            <button class="btn-danger statusBtn" id="setOpenBtn" type="button">Rechnung offen</button>
+            <button class="btn-warn statusBtn" id="setCheckBtn" type="button">In Prüfung</button>
+            <button class="btn-ok statusBtn" id="setPaidBtn" type="button">Bezahlt ✓</button>
             <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none; display:none;">📎 Beleg öffnen</a>
           </div>
         </div>
@@ -766,7 +813,7 @@
       <div class="kv" id="kv"></div>
 
       <div class="modalActions">
-        <button class="btn-secondary" id="closeModalBtn2">Schließen</button>
+        <button class="btn-secondary" id="closeModalBtn2" type="button">Schließen</button>
       </div>
     </div>
   </div>
@@ -847,6 +894,17 @@
     const authRolePill = document.getElementById("authRolePill");
     const authToggle = document.getElementById("authToggle");
     const authDetails = document.getElementById("authDetails");
+
+    // Toast
+    let _toastTimer;
+    function showToast(msg, isError = false){
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.toggle("error", isError);
+      t.classList.add("show");
+      clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+    }
 
     // State
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
@@ -1110,14 +1168,16 @@
       const check = ALL.filter(r => statusNorm(r[F.status]) === "In Prüfung");
       const paid = ALL.filter(r => statusNorm(r[F.status]) === "Bezahlt");
 
+      const pl = (n) => `${n} ${n === 1 ? "Vorgang" : "Vorgänge"}`;
+
       document.getElementById("kpiOpenSum").textContent = fmtEUR(sum(open));
-      document.getElementById("kpiOpenCount").textContent = `${open.length} Vorgang/Vorgänge`;
+      document.getElementById("kpiOpenCount").textContent = pl(open.length);
 
       document.getElementById("kpiCheckSum").textContent = fmtEUR(sum(check));
-      document.getElementById("kpiCheckCount").textContent = `${check.length} Vorgang/Vorgänge`;
+      document.getElementById("kpiCheckCount").textContent = pl(check.length);
 
       document.getElementById("kpiPaidSum").textContent = fmtEUR(sum(paid));
-      document.getElementById("kpiPaidCount").textContent = `${paid.length} Vorgang/Vorgänge`;
+      document.getElementById("kpiPaidCount").textContent = pl(paid.length);
 
       document.getElementById("kpiTotalSum").textContent = fmtEUR(sum(ALL));
       document.getElementById("kpiTotalCount").textContent = `${ALL.length} gesamt`;
@@ -1188,6 +1248,12 @@
       selSum.textContent = fmtEUR(sum);
       selStatus.textContent = st;
 
+      // Highlight active status button
+      [setOpenBtn, setCheckBtn, setPaidBtn].forEach(b => b.classList.remove("active-status"));
+      if (st === "Rechnung offen") setOpenBtn.classList.add("active-status");
+      else if (st === "In Prüfung") setCheckBtn.classList.add("active-status");
+      else if (st === "Bezahlt") setPaidBtn.classList.add("active-status");
+
       const beleg = safe(row[F.beleg]).trim();
       if (beleg && beleg.startsWith("http")){
         belegLink.href = beleg;
@@ -1255,16 +1321,32 @@
     async function setStatusFor(ts, status){
       if (!CAN_VIEW) return;
 
-      await apiSetStatus(ts, status);
-      const i = ALL.findIndex(r => tsKey(r) === ts);
-      if (i >= 0) ALL[i][F.status] = status;
+      const btns = [setOpenBtn, setCheckBtn, setPaidBtn];
+      btns.forEach(b => { b.disabled = true; });
 
-      updateKPIs();
-      render();
+      try {
+        await apiSetStatus(ts, status);
+        const i = ALL.findIndex(r => tsKey(r) === ts);
+        if (i >= 0) ALL[i][F.status] = status;
 
-      if (ACTIVE_ROW && tsKey(ACTIVE_ROW) === ts) {
-        ACTIVE_ROW[F.status] = status;
-        selStatus.textContent = statusNorm(status);
+        updateKPIs();
+        render();
+
+        if (ACTIVE_ROW && tsKey(ACTIVE_ROW) === ts) {
+          ACTIVE_ROW[F.status] = status;
+          const st = statusNorm(status);
+          selStatus.textContent = st;
+          // Update active button highlight
+          btns.forEach(b => b.classList.remove("active-status"));
+          if (st === "Rechnung offen") setOpenBtn.classList.add("active-status");
+          else if (st === "In Prüfung") setCheckBtn.classList.add("active-status");
+          else if (st === "Bezahlt") setPaidBtn.classList.add("active-status");
+        }
+        showToast("Status gespeichert: " + statusNorm(status));
+      } catch(err) {
+        showToast("Fehler beim Speichern: " + err.message, true);
+      } finally {
+        btns.forEach(b => { b.disabled = false; });
       }
     }
 
