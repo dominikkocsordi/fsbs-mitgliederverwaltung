@@ -873,6 +873,7 @@
     const exportBtn = document.getElementById("exportBtn");
 
     const modalOverlay = document.getElementById("modalOverlay");
+    const modalEl = modalOverlay.querySelector(".modal");
     const modalTitle = document.getElementById("modalTitle");
     const modalSub = document.getElementById("modalSub");
     const kv = document.getElementById("kv");
@@ -1298,6 +1299,7 @@
       });
 
       modalOverlay.classList.add("show");
+      modalEl.scrollTop = 0;
       document.body.classList.add("locked");
     }
 
