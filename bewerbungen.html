@@ -1313,37 +1313,69 @@
       }
     }
 
+    /* ========= CACHE HELPERS ========= */
+    const CACHE_KEY = "bewerbungen_v1";
+    const CACHE_TTL = 10 * 60 * 1000;
+
+    function getCache(){
+      try {
+        const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (c && Array.isArray(c.rows) && Date.now() - c.ts < CACHE_TTL) return c.rows;
+      } catch(e){}
+      return null;
+    }
+
+    function setCache(rows){
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), rows })); } catch(e){}
+    }
+
     /* ========= FAST LOAD ========= */
     async function fetchRows(){
       if (!CAN_VIEW) return;
 
-      statusPill.textContent = "Lade…";
-      await new Promise(r => requestAnimationFrame(r));
-
-      const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
-      const res = await fetch(url, { cache: "no-store" });
-      const text = await res.text();
-
-      let json;
-      try { json = JSON.parse(text); }
-      catch(e){
-        statusPill.textContent = "API liefert kein JSON";
-        return;
+      // Phase 1: show cached data immediately (0ms perceived load)
+      const cached = getCache();
+      if (cached && cached.length){
+        ALL = cached;
+        statusMap = new Map();
+        fillFilters();
+        render();
+        statusPill.textContent = `Cache (${ALL.length}) · aktualisiere…`;
+        refreshStatusMapFor(ALL).then(()=>render()).catch(()=>{});
+      } else {
+        statusPill.textContent = "Lade…";
+        await new Promise(r => requestAnimationFrame(r));
       }
 
-      ALL = Array.isArray(json.rows) ? json.rows : [];
-
-      statusMap = new Map();
-      statusPill.textContent = `Geladen: ${ALL.length} · Status lädt…`;
-      fillFilters();
-      render();
-
-      refreshStatusMapFor(ALL).then(()=>{
-        statusPill.textContent = `Geladen: ${ALL.length}`;
+      // Phase 2: fetch fresh data in background
+      try {
+        const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
+        const res = await fetch(url, { cache: "no-store" });
+        const text = await res.text();
+        let json;
+        try { json = JSON.parse(text); }
+        catch(e){
+          if (!cached) statusPill.textContent = "API liefert kein JSON";
+          else statusPill.textContent = `Cache (${ALL.length}) · API-Fehler`;
+          return;
+        }
+        const freshRows = Array.isArray(json.rows) ? json.rows : [];
+        setCache(freshRows);
+        ALL = freshRows;
+        statusMap = new Map();
+        statusPill.textContent = `Geladen: ${ALL.length} · Status lädt…`;
+        fillFilters();
         render();
-      }).catch(()=>{
-        statusPill.textContent = `Geladen: ${ALL.length} · Status nicht verfügbar`;
-      });
+        refreshStatusMapFor(ALL).then(()=>{
+          statusPill.textContent = `Geladen: ${ALL.length}`;
+          render();
+        }).catch(()=>{
+          statusPill.textContent = `Geladen: ${ALL.length} · Status nicht verfügbar`;
+        });
+      } catch(err){
+        if (!cached) statusPill.textContent = "Ladefehler: " + err.message;
+        else statusPill.textContent = `Cache (${ALL.length}) · Aktualisierung fehlgeschlagen`;
+      }
     }
 
     /* ========= MODAL ========= */
