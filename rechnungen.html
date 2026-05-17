@@ -504,37 +504,29 @@
       color: rgba(255,255,255,.90);
     }
 
-    /* Modal */
+    /* Modal – Overlay zentriert, Modal scrollt intern.
+       Kein Overlay-Scroll → keine Scroll-Position-Probleme beim Öffnen. */
     .modalOverlay{
       position: fixed; inset:0; z-index:9999;
       background: rgba(0,0,0,.55);
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       display:none;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-    }
-    .modalOverlay.show{ display:block; }
-
-    /* Inner wrapper zentriert das Modal zuverlässig:
-       align-items:flex-start + margin:auto auf dem Modal-Kind:
-       – kurze Modals: auto-Margins verteilen den Leerraum → zentriert
-       – lange Modals: auto-Margins werden 0, Modal startet oben,
-         Overlay scrollt → kein abgeschnittener oberer Rand */
-    .modalInner{
-      min-height: 100%;
-      display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
-      padding: 24px 18px;
+      padding: 24px 16px;
+      overflow: hidden;
     }
+    .modalOverlay.show{ display:flex; }
 
     .modal{
       width: min(860px, 100%);
-      flex-shrink: 0;
-      margin-top: auto;
-      margin-bottom: auto;
+      /* Modal scrollt selbst – Overlay bleibt fix, kein scrollTop-Reset nötig */
+      max-height: calc(100vh - 48px);
+      max-height: calc(100dvh - 48px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       border-radius: 26px;
       padding: 20px;
       animation: modalIn .2s cubic-bezier(.22,.68,0,1.2) both;
@@ -635,14 +627,11 @@
       .grid{ grid-template-columns: 1fr; }
 
       /* bottom sheet modal on mobile */
-      .modalInner{ align-items: flex-end; padding: 0; }
+      .modalOverlay{ align-items: flex-end; padding: 0; }
       .modal{
         width:100%;
         max-height: 88svh;
         max-height: 88vh;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
         border-radius: 22px 22px 0 0;
         padding: 16px;
       }
@@ -798,7 +787,6 @@
 
   <!-- Modal -->
   <div class="modalOverlay" id="modalOverlay">
-    <div class="modalInner" id="modalInner">
     <div class="glass modal" onclick="event.stopPropagation()">
       <div class="modalHeader">
         <div>
@@ -833,7 +821,6 @@
         <button class="btn-secondary" id="closeModalBtn2" type="button">Schließen</button>
       </div>
     </div>
-    </div><!-- /modalInner -->
   </div><!-- /modalOverlay -->
 
   <script>
@@ -1311,7 +1298,6 @@
       });
 
       modalOverlay.classList.add("show");
-      modalOverlay.scrollTop = 0;
       document.body.classList.add("locked");
     }
 
@@ -1403,11 +1389,7 @@
 
     closeModalBtn?.addEventListener("click", closeModal);
     closeModalBtn2?.addEventListener("click", closeModal);
-    // Schließen nur wenn direkt auf den Hintergrund (modalInner) geklickt wird,
-    // nicht wenn ein Element innerhalb des Modals geklickt wird.
-    document.getElementById("modalInner")?.addEventListener("click", (e)=>{
-      if (e.target === document.getElementById("modalInner")) closeModal();
-    });
+    modalOverlay?.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
     document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
 
     /* ========= Init ========= */
