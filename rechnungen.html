@@ -3,1431 +3,878 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FSBS">
-<link rel="stylesheet" href="/mobile-nav.css">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FSBS">
+  <link rel="stylesheet" href="/mobile-nav.css">
   <title>Finanzen</title>
-
-  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="manifest" href="/favicon/site.webmanifest">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    :root{
-      --bg1:#120e18;
-      --bg2:#1a1424;
-      --bg3:#1f162c;
-
-      --accent1:#f97316;
-      --accent2:#a855f7;
-
-      --glass: rgba(255,255,255,.08);
-      --border: rgba(255,255,255,.18);
-
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.65);
-
-      --shadow: 0 20px 55px rgba(0,0,0,.50);
-
-      --ok: rgba(34,197,94,.95);
-      --bad: rgba(239,68,68,.95);
-      --warn: rgba(251,146,60,.95);
-
-      --danger1: #fb7185;
-      --danger2: #e11d48;
+    :root {
+      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
+      --accent1:#f97316; --accent2:#a855f7;
+      --border:rgba(255,255,255,.18);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --shadow:0 20px 55px rgba(0,0,0,.50);
+      --ok:rgba(34,197,94,.95);
     }
-
-    *{box-sizing:border-box}
-    html, body{ min-height:100%; }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{min-height:100%}
     html{
       background:
-        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-      background-attachment: fixed;
+        radial-gradient(900px 500px at 15% 10%,rgba(249,115,22,.25),transparent 60%),
+        radial-gradient(900px 500px at 85% 20%,rgba(168,85,247,.22),transparent 60%),
+        radial-gradient(800px 450px at 60% 90%,rgba(124,58,237,.18),transparent 60%),
+        linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+      background-attachment:fixed;
     }
     body{
       margin:0;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color: var(--text);
-      background: transparent;
-      padding: 28px 16px 60px;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--text);
+      background:transparent;
+      padding:28px 16px 60px;
       display:flex;
       justify-content:center;
       align-items:flex-start;
-      animation: pageIn .38s ease both;
+      animation:pageIn .38s ease both;
     }
-    @keyframes pageIn{
-      from{ opacity:0; transform: translateY(8px); }
-      to  { opacity:1; transform: translateY(0); }
-    }
-    @media (prefers-reduced-motion: reduce){
-      body{ animation:none !important; }
-    }
+    @keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media(prefers-reduced-motion:reduce){body{animation:none!important}}
 
-    /* scroll lock for modal */
-    body.locked{
-      overflow:hidden !important;
-    }
-
-    .app{ width:100%; max-width:1200px; }
+    .app{width:100%;max-width:1200px}
 
     .glass{
-      background: rgba(255,255,255,.10);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background:rgba(255,255,255,.10);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
     }
 
-    /* ===== Brand links: Logo + Titel ===== */
-    .brandLeft{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width:0;
-    }
+    /* Header */
+    .top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+    h1{margin:0;font-size:28px;letter-spacing:.3px}
+    .subtitle{margin-top:6px;color:var(--muted);font-size:14px}
+    .brandLeft{display:flex;align-items:center;gap:12px;min-width:0}
     .brandLogo{
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      padding: 6px;
-      display:grid;
-      place-items:center;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 16px 44px rgba(0,0,0,.30);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      flex: 0 0 auto;
-      transition: transform .16s ease, filter .16s ease, background .16s ease;
-      text-decoration:none;
-      color: rgba(255,255,255,.92);
-      font-weight: 900;
-      letter-spacing: .2px;
+      width:52px;height:52px;border-radius:14px;padding:6px;
+      display:grid;place-items:center;
+      background:rgba(255,255,255,.10);border:1px solid var(--border);
+      box-shadow:0 16px 44px rgba(0,0,0,.30);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      flex:0 0 auto;transition:transform .16s,filter .16s;
+      text-decoration:none;color:var(--text);font-weight:900;
     }
-    .brandLogo:hover{
-      transform: translateY(-1px);
-      filter: brightness(1.05);
-      background: rgba(255,255,255,.12);
-    }
-    .brandLogo img{
-      width: 100%;
-      height: 100%;
-      border-radius: 10px;
-      object-fit: cover;
-      display:block;
-    }
-    @media (max-width: 640px){
-      .brandLogo{ width: 32px; height: 32px; border-radius: 12px; padding: 5px; }
-      .brandLogo img{ border-radius: 9px; }
-    }
+    .brandLogo:hover{transform:translateY(-1px);filter:brightness(1.05)}
+    .brandLogo img{width:100%;height:100%;border-radius:10px;object-fit:cover;display:block}
 
-    /* ===== Header ===== */
-    .top{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap:16px;
-      margin-bottom: 16px;
-    }
-    h1{ margin:0; font-size:28px; letter-spacing:.3px; }
-    .subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-
-    /* ===== Animated pills (consistent) ===== */
-    @keyframes pillShimmer{
-      0%{ transform: translateX(-40%); opacity:.0; }
-      20%{ opacity:.35; }
-      60%{ opacity:.15; }
-      100%{ transform: translateX(140%); opacity:0; }
-    }
-    .pill{
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size: 12px;
-      color: rgba(255,255,255,.78);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      white-space:nowrap;
-      position:relative;
-      overflow:hidden;
-    }
-    .pill::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
-      width: 40%;
-      transform: translateX(-50%);
-      animation: pillShimmer 2.6s ease-in-out infinite;
-      pointer-events:none;
-      opacity:.0;
-    }
-    .pill:hover::after{ opacity:.35; }
-
-    /* ===== Auth badge ===== */
+    /* Auth badge */
     .authFloating{
-      border-radius: 999px;
-      padding: 10px 12px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 18px 55px rgba(0,0,0,.40);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      user-select:none;
-      max-width: min(560px, 100%);
+      border-radius:999px;padding:10px 12px;
+      display:flex;align-items:center;gap:10px;
+      background:rgba(255,255,255,.10);border:1px solid var(--border);
+      box-shadow:0 18px 55px rgba(0,0,0,.40);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      user-select:none;max-width:min(560px,100%);
     }
-    .dot{ width:10px;height:10px;border-radius:999px; background: rgba(255,255,255,.35); position:relative; flex:0 0 auto; }
-    .dot.ok{ background: var(--ok); }
-    .dot.warn{ background: rgba(255,255,255,.35); }
-
+    .dot{width:10px;height:10px;border-radius:999px;background:rgba(255,255,255,.35);flex:0 0 auto}
+    .dot.ok{background:var(--ok)}
     .authAvatar{
-      width: 30px;
-      height: 30px;
-      border-radius: 999px;
-      display:grid;
-      place-items:center;
-      font-weight: 800;
-      font-size: 12px;
-      letter-spacing: .3px;
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 12px 28px rgba(0,0,0,.25);
-      background: rgba(255,255,255,.10);
-      flex:0 0 auto;
+      width:30px;height:30px;border-radius:999px;
+      display:grid;place-items:center;
+      font-weight:800;font-size:12px;color:var(--text);
+      border:1px solid var(--border);background:rgba(255,255,255,.10);flex:0 0 auto;
     }
-    .authAvatar.hidden{ display:none; }
-
-    .authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex: 1 1 auto; }
-    .authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
-    .authState.hidden{ display:none; }
-
-    .authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
-    .authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
-    .authCompact.hidden{ display:none; }
-
-    .authNameInline{
-      font-size:13px;
-      font-weight:850;
-      letter-spacing:.15px;
-      color: rgba(255,255,255,.92);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      max-width: 220px;
-    }
-
-    .authChevron{
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.85);
-      width: 30px; height: 26px;
-      border-radius: 999px;
-      padding: 0;
-      display:grid;
-      place-items:center;
-      cursor:pointer;
-      transition: transform .15s ease, background .15s ease;
-      flex: 0 0 auto;
-    }
-    .authChevron:hover{ background: rgba(255,255,255,.10); transform: translateY(-1px); }
-
-    .authDetails{
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(255,255,255,.10);
-      display:flex;
-      gap:8px;
-      align-items:center;
-      min-width:0;
-    }
-    .authDetails.hidden{ display:none; }
-
-    .authMail{ font-size:11px; color: rgba(255,255,255,.58); margin-top:0; word-break:break-all; }
-
+    .authInfo{display:flex;flex-direction:column;line-height:1.1;min-width:0;flex:1 1 auto}
+    .authState{font-size:13px;font-weight:750;letter-spacing:.25px}
+    .authTopLine{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+    .authCompact{display:flex;align-items:center;gap:8px;min-width:0}
+    .authNameInline{font-size:13px;font-weight:850;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
     .rolePill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.08);
-      color: rgba(255,255,255,.82);
-      font-weight:800;
-      font-size: 11px;
-      letter-spacing: .10px;
-      line-height: 1;
-      white-space:nowrap;
-      flex: 0 0 auto;
+      display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);
+      font-weight:800;font-size:11px;color:var(--text);white-space:nowrap;flex:0 0 auto;
     }
-    .rolePill.vorstand{ border-color: rgba(56,189,248,.40); background: rgba(56,189,248,.12); }
-    .rolePill.other{ border-color: rgba(251,146,60,.35); background: rgba(251,146,60,.12); }
+    .rolePill.vorstand{border-color:rgba(56,189,248,.40);background:rgba(56,189,248,.12)}
+    .authChevron{
+      border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.85);width:30px;height:26px;border-radius:999px;
+      padding:0;display:grid;place-items:center;cursor:pointer;
+      transition:transform .15s,background .15s;flex:0 0 auto;
+    }
+    .authChevron:hover{background:rgba(255,255,255,.10);transform:translateY(-1px)}
+    .authDetails{
+      margin-top:8px;padding-top:8px;
+      border-top:1px solid rgba(255,255,255,.10);
+      display:flex;gap:8px;align-items:center;min-width:0;
+    }
+    .authMail{font-size:11px;color:rgba(255,255,255,.58);word-break:break-all}
 
-    .hidden{ display:none; }
-
-    /* ===== NAV ===== */
-    .navWrap{ margin-bottom:16px; position:sticky; top:14px; z-index:6; }
-    .nav{ display:flex; gap:2px; align-items:center; padding:5px 6px; overflow-x:auto; scrollbar-width:none; }
-    .nav::-webkit-scrollbar{ display:none; }
-    .navLeft{ display:flex; gap:2px; align-items:center; flex:1; min-width:0; }
-    .navRight{ flex:0 0 auto; padding-left:6px; border-left:1px solid rgba(255,255,255,.08); margin-left:4px; }
+    /* Nav */
+    .navWrap{margin-bottom:16px;position:sticky;top:14px;z-index:6}
+    .nav{display:flex;gap:2px;align-items:center;padding:5px 6px;overflow-x:auto;scrollbar-width:none}
+    .nav::-webkit-scrollbar{display:none}
+    .navLeft{display:flex;gap:2px;align-items:center;flex:1;min-width:0}
+    .navRight{flex:0 0 auto;padding-left:6px;border-left:1px solid rgba(255,255,255,.08);margin-left:4px}
     .navLink{
-      display:inline-flex; align-items:center; gap:5px;
-      padding:7px 13px; border-radius:999px;
-      text-decoration:none; font-size:13px; font-weight:600;
-      color:rgba(255,255,255,.65); border:1px solid transparent;
-      white-space:nowrap; user-select:none;
-      transition:background .14s, border-color .14s, color .14s, transform .14s;
+      display:inline-flex;align-items:center;gap:5px;
+      padding:7px 13px;border-radius:999px;
+      text-decoration:none;font-size:13px;font-weight:600;
+      color:rgba(255,255,255,.65);border:1px solid transparent;
+      white-space:nowrap;user-select:none;
+      transition:background .14s,border-color .14s,color .14s,transform .14s;
     }
-    .navLink:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); color:rgba(255,255,255,.92); transform:translateY(-1px); }
+    .navLink:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.13);color:var(--text);transform:translateY(-1px)}
     .navLink.active{
-      background:linear-gradient(135deg, rgba(249,115,22,.22), rgba(168,85,247,.16));
-      border-color:rgba(249,115,22,.32); color:rgba(255,255,255,.96);
+      background:linear-gradient(135deg,rgba(249,115,22,.22),rgba(168,85,247,.16));
+      border-color:rgba(249,115,22,.32);color:rgba(255,255,255,.96);
       box-shadow:0 3px 14px rgba(249,115,22,.18);
     }
 
+    /* Buttons */
     button{
-      border:none;
-      cursor:pointer;
-      border-radius:14px;
-      padding: 10px 14px;
-      font-weight:700;
-      font-family: inherit;
-      font-size: 14px;
-      touch-action: manipulation;
-      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+      border:none;cursor:pointer;border-radius:14px;padding:10px 14px;
+      font-weight:700;font-family:inherit;font-size:14px;touch-action:manipulation;
+      transition:transform .16s,filter .16s,opacity .16s;
     }
-    button:active{ transform: translateY(0px) scale(.99); }
-    button:disabled{ cursor: not-allowed !important; opacity: .55 !important; transform:none !important; }
+    button:active{transform:scale(.98)}
+    button:disabled{cursor:not-allowed!important;opacity:.55!important;transform:none!important}
+    .btn-secondary{background:rgba(255,255,255,.14);color:var(--text);border:1px solid var(--border)}
+    .btn-secondary:hover{transform:translateY(-2px);background:rgba(255,255,255,.18)}
+    .btn-primary{background:linear-gradient(135deg,var(--accent1),var(--accent2));color:#0f0b16;box-shadow:0 12px 30px rgba(168,85,247,.25)}
+    .btn-primary:hover{transform:translateY(-2px);filter:brightness(1.03)}
+    .btn-danger{background:linear-gradient(135deg,#fb7185,#e11d48);color:#fff}
+    .btn-danger:hover{transform:translateY(-2px);filter:brightness(1.02)}
+    .btn-warn{background:rgba(251,146,60,.16);color:var(--text);border:1px solid rgba(251,146,60,.28)}
+    .btn-warn:hover{transform:translateY(-2px);filter:brightness(1.04)}
+    .btn-ok{background:rgba(34,197,94,.16);color:var(--text);border:1px solid rgba(34,197,94,.28)}
+    .btn-ok:hover{transform:translateY(-2px);filter:brightness(1.04)}
 
-    .btn-secondary{
-      background: rgba(255,255,255,.14);
-      color: var(--text);
-      border: 1px solid var(--border);
+    /* Pill */
+    .pill{
+      padding:8px 12px;border-radius:999px;
+      background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);
+      font-size:12px;color:rgba(255,255,255,.78);
+      display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
     }
-    .btn-secondary:hover{ transform: translateY(-2px); background: rgba(255,255,255,.18); }
 
-    .btn-primary{
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #0f0b16;
-      box-shadow: 0 12px 30px rgba(168,85,247,.25);
-    }
-    .btn-primary:hover{ transform: translateY(-2px); filter: brightness(1.03); }
-
-    .btn-danger{
-      background: linear-gradient(135deg, var(--danger1), var(--danger2));
-      color: #fff;
-      box-shadow: 0 10px 26px rgba(225,29,72,.22);
-    }
-    .btn-danger:hover{ transform: translateY(-2px); filter: brightness(1.02); }
-
-    .btn-warn{
-      background: rgba(251,146,60,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(251,146,60,.28);
-    }
-    .btn-warn:hover{ transform: translateY(-2px); filter: brightness(1.04); }
-
-    .btn-ok{
-      background: rgba(34,197,94,.16);
-      color: rgba(255,255,255,.92);
-      border: 1px solid rgba(34,197,94,.28);
-    }
-    .btn-ok:hover{ transform: translateY(-2px); filter: brightness(1.04); }
-
-    .card{ padding:16px; margin-bottom:14px; }
-    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
-    .spacer{ flex:1; }
-
+    /* Inputs */
     input,select{
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.22);
-      color: var(--text);
-      padding: 12px 14px;
-      border-radius: 14px;
-      outline:none;
-      font-family: inherit;
-      font-size: 14px;
-      min-width: 0;
-      width: 100%;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);
+      color:var(--text);padding:12px 14px;border-radius:14px;
+      outline:none;font-family:inherit;font-size:14px;min-width:0;width:100%;
+      transition:transform .15s,background .15s,border-color .15s;
     }
-    input::placeholder{ color: rgba(255,255,255,.55); }
-    input:focus, select:focus{
-      border-color: rgba(249,115,22,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
-    }
-    select option{ background:#1a1424; color: rgba(255,255,255,.92); }
+    input::placeholder{color:rgba(255,255,255,.55)}
+    input:focus,select:focus{border-color:rgba(249,115,22,.55);background:rgba(255,255,255,.16);transform:translateY(-1px)}
+    select option{background:#1a1424;color:var(--text)}
 
     /* KPIs */
-    .kpiGrid{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap:12px;
-      margin-top: 10px;
-    }
-    @media (max-width: 1020px){ .kpiGrid{grid-template-columns: repeat(2, minmax(0,1fr));} }
-
+    .kpiGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:10px}
     .kpi{
-      padding: 14px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.06);
-      position: relative;
-      overflow:hidden;
+      padding:14px;border-radius:18px;
+      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);
+      position:relative;overflow:hidden;
     }
     .kpi::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      background: radial-gradient(500px 160px at 20% 10%, rgba(249,115,22,.18), transparent 60%),
-                  radial-gradient(460px 160px at 80% 20%, rgba(168,85,247,.14), transparent 60%);
+      content:"";position:absolute;inset:0;
+      background:radial-gradient(500px 160px at 20% 10%,rgba(249,115,22,.18),transparent 60%),
+                 radial-gradient(460px 160px at 80% 20%,rgba(168,85,247,.14),transparent 60%);
       pointer-events:none;
-      opacity:.75;
     }
-    .kpi > *{ position:relative; z-index:1; }
-    .kpi .k{ color: rgba(255,255,255,.70); font-size:12px; }
-    .kpi .v{ font-size: 20px; font-weight: 900; letter-spacing:.2px; margin-top:6px; }
-    .kpi .h{ color: rgba(255,255,255,.60); font-size:12px; margin-top:4px; }
+    .kpi>*{position:relative;z-index:1}
+    .kLabel{color:rgba(255,255,255,.70);font-size:12px}
+    .kValue{font-size:20px;font-weight:900;letter-spacing:.2px;margin-top:6px}
+    .kHint{color:rgba(255,255,255,.60);font-size:12px;margin-top:4px}
 
-    /* Cards grid */
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:14px;
-    }
-    @media (max-width: 1020px){ .grid{grid-template-columns: repeat(2, minmax(0,1fr));} }
-
-    .appCard{
+    /* Card grid */
+    .cardGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .entryCard{
       border:1px solid rgba(255,255,255,.18);
-      background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      border-radius: 22px;
-      box-shadow: 0 14px 55px rgba(0,0,0,.35);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      cursor:pointer;
-      transition: transform .18s ease, filter .18s ease, border-color .18s ease;
-      overflow:hidden;
-      position: relative;
-      padding: 14px;
+      background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.05));
+      border-radius:22px;box-shadow:0 14px 55px rgba(0,0,0,.35);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      cursor:pointer;transition:transform .18s,filter .18s,border-color .18s;
+      overflow:hidden;position:relative;padding:14px;
     }
-    .appCard:hover{ transform: translateY(-2px); filter: brightness(1.05); border-color: rgba(255,255,255,.28); }
-
-    .cardTop{ display:flex; align-items:flex-start; gap:12px; min-width:0; }
+    .entryCard:hover{transform:translateY(-2px);filter:brightness(1.05);border-color:rgba(255,255,255,.28)}
+    .entryCard:active{transform:scale(.99)}
+    .cardTop{display:flex;align-items:flex-start;gap:12px;min-width:0}
     .iconBox{
-      width:44px; height:44px; border-radius:16px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      display:grid; place-items:center;
-      flex:0 0 auto;
-      font-weight:900;
-      color: rgba(255,255,255,.80);
+      width:44px;height:44px;border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);
+      display:grid;place-items:center;flex:0 0 auto;font-weight:900;color:rgba(255,255,255,.80);
     }
-    .cardText{ min-width:0; flex:1 1 auto; }
-    .title{
-      font-weight:900;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .sub{
-      margin-top:4px;
-      color: rgba(255,255,255,.62);
-      font-size:12px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .metaRow{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .cardText{min-width:0;flex:1 1 auto}
+    .cardName{font-weight:900;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cardSub{margin-top:4px;color:rgba(255,255,255,.62);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cardMeta{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .metaPill{
-      font-size:12px;
-      padding:7px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      color: rgba(255,255,255,.82);
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
+      font-size:12px;padding:7px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.82);display:inline-flex;align-items:center;gap:8px;
     }
+    .statusBadge{
+      position:absolute;top:10px;right:10px;
+      font-size:11px;font-weight:900;padding:5px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);
+    }
+    .statusBadge.open{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.28);color:#fecaca}
+    .statusBadge.check{background:rgba(251,146,60,.16);border-color:rgba(251,146,60,.28);color:#fed7aa}
+    .statusBadge.paid{background:rgba(34,197,94,.16);border-color:rgba(34,197,94,.28);color:#bbf7d0}
 
-    .statusPill{
-      position:absolute;
-      top:10px;
-      right:10px;
-      font-size:12px;
-      font-weight:900;
-      padding:7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-    }
-    .statusPill.open{ background: rgba(239,68,68,.16); border-color: rgba(239,68,68,.28); color:#fecaca; }
-    .statusPill.check{ background: rgba(251,146,60,.16); border-color: rgba(251,146,60,.28); color:#fed7aa; }
-    .statusPill.paid{ background: rgba(34,197,94,.16); border-color: rgba(34,197,94,.28); color:#bbf7d0; }
-
-    .empty{
-      margin-top: 12px;
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px dashed rgba(255,255,255,.22);
-      background: rgba(255,255,255,.04);
-      color: rgba(255,255,255,.78);
-    }
-
-    /* Deny */
-    .denyBox{
-      padding: 18px;
-      border-radius: 22px;
-      border: 1px solid rgba(239,68,68,.28);
-      background: rgba(239,68,68,.10);
-      color: rgba(255,255,255,.90);
-    }
-
-    /* Modal – Overlay zentriert, Modal scrollt intern.
-       Kein Overlay-Scroll → keine Scroll-Position-Probleme beim Öffnen. */
-    .modalOverlay{
-      position: fixed; inset:0; z-index:9999;
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      display:none;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-      overflow: hidden;
-    }
-    .modalOverlay.show{ display:flex; }
-
-    .modal{
-      width: min(860px, 100%);
-      /* Modal scrollt selbst – Overlay bleibt fix, kein scrollTop-Reset nötig */
-      max-height: calc(100vh - 48px);
-      max-height: calc(100dvh - 48px);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
-      border-radius: 26px;
-      padding: 20px;
-      animation: modalIn .2s cubic-bezier(.22,.68,0,1.2) both;
-    }
-    @keyframes modalIn{
-      from{ opacity:0; transform: translateY(14px) scale(.98); }
-      to{ opacity:1; transform: translateY(0) scale(1); }
-    }
-
-    .modalHeader{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      margin-bottom: 10px;
-    }
-    .modalTitle{ margin:0; font-size: 20px; letter-spacing:.2px; }
-    .modalSub{ margin-top:6px; color: var(--muted); font-size: 13px; }
-    .closeX{ width:42px; height:42px; border-radius:14px; }
-
-    .kv{
-      display:grid;
-      grid-template-columns: 260px 1fr;
-      gap: 10px 14px;
-      padding: 12px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      border-radius: 18px;
-      margin-top: 12px;
-    }
-    .k{ color: rgba(255,255,255,.70); font-size:12px; }
-    .v{ color: rgba(255,255,255,.92); white-space:pre-wrap; overflow-wrap:anywhere; }
-    .v a{ color: rgba(180,210,255,.95); }
-
-    .modalActions{
-      display:flex;
-      justify-content:flex-end;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top: 12px;
-    }
-
-    .split{ display:flex; gap:12px; flex-wrap:wrap; margin-top: 10px; }
-    .split > *{ flex: 1 1 260px; }
-
-    /* Controls bar responsive */
-    .controlsRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:10px;
-      align-items:center;
-    }
-    .controlsRowBottom{
-      display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center;
-    }
-    @media (max-width: 900px){
-      .controlsRow{ grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 560px){
-      .controlsRow{ grid-template-columns: 1fr; }
-    }
+    /* Misc */
+    .card{padding:16px;margin-bottom:14px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .spacer{flex:1}
+    .hidden{display:none!important}
+    .denyBox{padding:18px;border-radius:22px;border:1px solid rgba(239,68,68,.28);background:rgba(239,68,68,.10);color:var(--text)}
+    .emptyState{margin-top:12px;padding:18px;border-radius:22px;border:1px dashed rgba(255,255,255,.22);background:rgba(255,255,255,.04);color:rgba(255,255,255,.78)}
+    .controlsRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:center}
+    .controlsBottom{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;align-items:center}
 
     /* Toast */
     .toast{
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-      background:rgba(34,197,94,.20); border:1px solid rgba(34,197,94,.40);
-      color:rgba(255,255,255,.92); padding:12px 22px; border-radius:999px;
-      font-size:14px; font-weight:600; letter-spacing:.2px;
-      box-shadow:0 12px 32px rgba(0,0,0,.35); z-index:10000;
-      transition:transform .3s ease, opacity .3s ease; opacity:0; pointer-events:none;
-      white-space:nowrap;
+      position:fixed;bottom:24px;left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:rgba(34,197,94,.20);border:1px solid rgba(34,197,94,.40);
+      color:var(--text);padding:12px 22px;border-radius:999px;
+      font-size:14px;font-weight:600;
+      box-shadow:0 12px 32px rgba(0,0,0,.35);z-index:10000;
+      transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;white-space:nowrap;
     }
-    .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
-    .toast.error{ background:rgba(239,68,68,.20); border-color:rgba(239,68,68,.40); }
+    .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    .toast.error{background:rgba(239,68,68,.20);border-color:rgba(239,68,68,.40)}
 
-    /* Status button active state */
-    .statusBtn.active-status{
-      outline: 2px solid rgba(255,255,255,.60);
-      outline-offset: 2px;
-      filter: brightness(1.15);
+    /* =====================================================
+       DIALOG — nativer <dialog>, immer korrekt zentriert,
+       scrollTop startet garantiert bei 0 bei jedem showModal()
+       ===================================================== */
+    dialog{
+      /* Reset UA */
+      border:none;outline:none;
+      /* Glass look direkt auf dem dialog-Element */
+      background:rgba(20,15,30,.92);
+      border:1px solid var(--border);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      color:var(--text);
+      font-family:inherit;
+      /* Größe */
+      width:min(860px,calc(100vw - 32px));
+      max-height:min(88vh,88dvh);
+      padding:20px;
+      /* Scroll auf dem dialog selbst – damit scrollTop-Reset funktioniert */
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior:contain;
     }
-
-    /* MOBILE */
-    @media (max-width: 760px){
-      .kv{ grid-template-columns: 1fr; }
+    dialog::backdrop{
+      background:rgba(0,0,0,.60);
+      backdrop-filter:blur(5px);
+      -webkit-backdrop-filter:blur(5px);
     }
-    @media (max-width: 640px){
-      body{ padding: 24px 14px 60px; }
+    @keyframes dlgIn{
+      from{opacity:0;transform:translateY(12px) scale(.98)}
+      to{opacity:1;transform:translateY(0) scale(1)}
+    }
+    dialog[open]{animation:dlgIn .2s cubic-bezier(.22,.68,0,1.2) both}
 
-      .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-      .authNameInline{ max-width: 150px; }
+    .dlgHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+    .dlgTitle{margin:0;font-size:20px;letter-spacing:.2px}
+    .dlgSub{margin-top:6px;color:var(--muted);font-size:13px}
+    .closeX{width:42px;height:42px;border-radius:14px;flex:0 0 auto}
 
-      .row .spacer{ display:none; }
-      .row{ align-items:stretch; }
+    .statusBar{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      padding:12px;border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);
+      margin-top:10px;
+    }
+    .statusBtn.is-active{outline:2px solid rgba(255,255,255,.60);outline-offset:2px;filter:brightness(1.15)}
 
-      .navWrap{ top: 10px; }
+    .summaryRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 
-      .grid{ grid-template-columns: 1fr; }
+    .kvGrid{
+      display:grid;grid-template-columns:180px 1fr;
+      gap:8px 14px;padding:12px;
+      border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);
+      border-radius:18px;margin-top:12px;
+    }
+    .kvKey{color:rgba(255,255,255,.65);font-size:12px;align-self:start;padding-top:2px}
+    .kvVal{color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+    .kvVal a{color:rgba(180,210,255,.95)}
 
-      /* bottom sheet modal on mobile */
-      .modalOverlay{ align-items: flex-end; padding: 0; }
-      .modal{
-        width:100%;
-        max-height: 88svh;
-        max-height: 88vh;
-        border-radius: 22px 22px 0 0;
-        padding: 16px;
+    .dlgActions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+    /* Responsive */
+    @media(max-width:1020px){
+      .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .cardGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:900px){.controlsRow{grid-template-columns:1fr 1fr}}
+    @media(max-width:760px){.kvGrid{grid-template-columns:1fr}}
+    @media(max-width:640px){
+      body{padding:24px 14px 60px}
+      .top{flex-direction:column;align-items:flex-start;gap:10px}
+      .brandLogo{width:32px;height:32px;border-radius:12px;padding:5px}
+      .authNameInline{max-width:150px}
+      .cardGrid{grid-template-columns:1fr}
+      .controlsRow{grid-template-columns:1fr}
+      .navWrap{top:10px}
+      dialog{
+        width:calc(100vw - 24px);
+        max-height:min(92vh,92dvh);
+        padding:16px;
+        border-radius:20px;
       }
-      .modalActions button{ width:100%; }
+      .dlgActions button{width:100%}
+    }
+    @media(max-width:420px){
+      .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
   </style>
 </head>
-
 <body>
-  <div class="app">
+<div class="app">
 
-    <!-- Header -->
-    <div class="top">
-      <div class="brandLeft">
-        <a class="brandLogo" href="/index.html" title="FSBS Intern">
-          <img src="logo.png" alt="Fachschaft Logo"
-               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
-        </a>
-
-        <div>
-          <h1>Finanzen</h1>
-          <div class="subtitle">Rechnungen & Auslagen</div>
-        </div>
+  <!-- Header -->
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/index.html" title="FSBS Intern">
+        <img src="logo.png" alt="Fachschaft Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Finanzen</h1>
+        <div class="subtitle">Rechnungen &amp; Auslagen</div>
       </div>
-
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-        <div class="pill" id="statusPill">–</div>
-
-        <div class="authFloating" id="authBadge" title="Login-Status">
-          <span class="dot warn" id="authDot"></span>
-          <div class="authAvatar hidden" id="authAvatar">U</div>
-
-          <div class="authInfo">
-            <div class="authTopLine">
-              <div class="authState" id="authState">nicht eingeloggt</div>
-
-              <div class="authCompact hidden" id="authCompact">
-                <span class="authNameInline" id="authNameInline">User</span>
-                <span class="rolePill other" id="authRolePill">rolle</span>
-                <button class="authChevron" id="authToggle" aria-label="Details">⌄</button>
-              </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+      <div class="pill" id="statusPill">–</div>
+      <div class="authFloating" id="authBadge">
+        <span class="dot" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">rolle</span>
+              <button class="authChevron" id="authToggle" type="button">⌄</button>
             </div>
-
-            <div class="authDetails hidden" id="authDetails">
-              <div class="authMail" id="authMail"></div>
-            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- NAV (nur Vorstand) -->
-    <div class="glass navWrap" id="navWrap" style="display:none;">
-      <div class="nav">
-        <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
-        <div class="navLeft">
-          <a class="navLink" href="/index.html">🏠 Dashboard</a>
-          <a class="navLink" href="/members.html">👥 Mitglieder</a>
-          <a class="navLink" href="/anwaerter.html">👶🏼 Anwärter</a>
-          <a class="navLink" href="/bewerbungen.html">📝 Bewerbungen</a>
-          <a class="navLink active" href="/rechnungen.html">💰 Finanzen</a>
-          <a class="navLink" href="/mitgliederbefragung.html" id="navSurvey">📊 Befragung</a>
-          <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
-          <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
-          <a class="navLink" href="/zeugnisse.html" id="navZeugnisse" style="display:none;">🎓 Zeugnisse</a>
-        </div>
-
-        <div class="navRight">
-          <a class="navLink" id="belegeNavLink"
-             href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing"
-             target="_blank" rel="noopener" style="display:none;">
-            📁 Belege
-          </a>
-
-          <button class="btn-secondary" id="logoutBtn" type="button">Logout</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Kein Zugriff -->
-    <div class="glass card" id="denyWrap" style="display:none;">
-      <div class="denyBox">
-        <div style="font-weight:900; font-size:16px;">Kein Zugriff</div>
-        <div style="margin-top:6px; color:rgba(255,255,255,.78);">
-          Diese Seite ist nur für <b>vorstand</b>.
-        </div>
-        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn-secondary" id="logoutBtn2" type="button">Logout</button>
-          <a class="pill" href="/index.html" style="text-decoration:none;">Zum Dashboard</a>
-        </div>
-      </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="glass card" id="kpiCard" style="display:none;">
-      <div class="row" style="align-items:flex-start;">
-        <div style="font-weight:900; font-size:16px;">Übersicht</div>
-        <div class="spacer"></div>
-        <div class="pill" id="countPill">0</div>
-      </div>
-
-      <div class="kpiGrid">
-        <div class="kpi">
-          <div class="k">Rechnung offen</div>
-          <div class="v" id="kpiOpenSum">–</div>
-          <div class="h" id="kpiOpenCount">–</div>
-        </div>
-        <div class="kpi">
-          <div class="k">In Prüfung</div>
-          <div class="v" id="kpiCheckSum">–</div>
-          <div class="h" id="kpiCheckCount">–</div>
-        </div>
-        <div class="kpi">
-          <div class="k">Bezahlt</div>
-          <div class="v" id="kpiPaidSum">–</div>
-          <div class="h" id="kpiPaidCount">–</div>
-        </div>
-        <div class="kpi">
-          <div class="k">Gesamt</div>
-          <div class="v" id="kpiTotalSum">–</div>
-          <div class="h" id="kpiTotalCount">–</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="glass card" id="controlsCard" style="display:none;">
-      <div class="controlsRow">
-        <input id="q" placeholder="Suche (Name, Projekt, IBAN…)" />
-        <select id="fStatus">
-          <option value="">Status (alle)</option>
-          <option value="Rechnung offen">Rechnung offen</option>
-          <option value="In Prüfung">In Prüfung</option>
-          <option value="Bezahlt">Bezahlt</option>
-        </select>
-        <select id="fProj"><option value="">Projekt (alle)</option></select>
-      </div>
-      <div class="controlsRowBottom">
-        <button class="btn-secondary" id="reloadBtn" type="button">↺ Neu laden</button>
-        <button class="btn-primary" id="exportBtn" type="button">⬇ Export CSV</button>
-        <div class="spacer"></div>
-        <div class="pill" style="opacity:.7;font-size:12px;">Karte anklicken → Details</div>
-      </div>
-    </div>
-
-    <div id="grid" class="grid" style="display:none;"></div>
-    <div id="empty" class="empty" style="display:none;">Keine Einreichungen gefunden.</div>
-
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast"></div>
-
-  <!-- Modal -->
-  <div class="modalOverlay" id="modalOverlay">
-    <div class="glass modal" onclick="event.stopPropagation()">
-      <div class="modalHeader">
-        <div>
-          <h2 class="modalTitle" id="modalTitle">Rechnung</h2>
-          <div class="modalSub" id="modalSub">–</div>
-        </div>
-        <button class="btn-secondary closeX" id="closeModalBtn" type="button" aria-label="Schließen">✕</button>
+  <!-- Nav -->
+  <div class="glass navWrap" id="navWrap" style="display:none;">
+    <div class="nav">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+      <div class="navLeft">
+        <a class="navLink" href="/index.html">🏠 Dashboard</a>
+        <a class="navLink" href="/members.html">👥 Mitglieder</a>
+        <a class="navLink" href="/anwaerter.html">👶🏼 Anwärter</a>
+        <a class="navLink" href="/bewerbungen.html">📝 Bewerbungen</a>
+        <a class="navLink active" href="/rechnungen.html">💰 Finanzen</a>
+        <a class="navLink" href="/mitgliederbefragung.html">📊 Befragung</a>
+        <a class="navLink" href="/wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
+        <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
+        <a class="navLink" href="/zeugnisse.html" id="navZeugnisse" style="display:none;">🎓 Zeugnisse</a>
       </div>
-
-      <div class="split">
-        <div class="glass" style="border-radius:18px; padding:12px;">
-          <div style="font-weight:900; margin-bottom:8px;">Status setzen</div>
-          <div class="row" style="gap:10px;">
-            <button class="btn-danger statusBtn" id="setOpenBtn" type="button">Rechnung offen</button>
-            <button class="btn-warn statusBtn" id="setCheckBtn" type="button">In Prüfung</button>
-            <button class="btn-ok statusBtn" id="setPaidBtn" type="button">Bezahlt ✓</button>
-            <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none; display:none;">📎 Beleg öffnen</a>
-          </div>
-        </div>
-
-        <div class="glass" style="border-radius:18px; padding:12px;">
-          <div style="font-weight:900; margin-bottom:8px;">Kurzinfo</div>
-          <div class="pill"><span>Ausgewählt:</span> <strong id="selName">–</strong></div>
-          <div class="pill" style="margin-top:10px;"><span>Summe:</span> <strong id="selSum">–</strong></div>
-          <div class="pill" style="margin-top:10px;"><span>Status:</span> <strong id="selStatus">–</strong></div>
-        </div>
-      </div>
-
-      <div class="kv" id="kv"></div>
-
-      <div class="modalActions">
-        <button class="btn-secondary" id="closeModalBtn2" type="button">Schließen</button>
+      <div class="navRight">
+        <a class="navLink" id="belegeNavLink"
+           href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing"
+           target="_blank" rel="noopener" style="display:none;">📁 Belege</a>
+        <button class="btn-secondary" id="logoutBtn" type="button">Logout</button>
       </div>
     </div>
-  </div><!-- /modalOverlay -->
+  </div>
 
-  <script>
-    // ==========================
-    // KONFIG
-    // ==========================
-    const APP_URL = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
+  <!-- Kein Zugriff -->
+  <div class="glass card" id="denyWrap" style="display:none;">
+    <div class="denyBox">
+      <div style="font-weight:900;font-size:16px;">Kein Zugriff</div>
+      <div style="margin-top:6px;color:rgba(255,255,255,.78);">Diese Seite ist nur für <b>Vorstand</b>.</div>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-secondary" id="logoutBtn2" type="button">Logout</button>
+        <a class="pill" href="/index.html" style="text-decoration:none;">Zum Dashboard</a>
+      </div>
+    </div>
+  </div>
 
-    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  <!-- KPIs -->
+  <div class="glass card" id="kpiCard" style="display:none;">
+    <div class="row">
+      <div style="font-weight:900;font-size:16px;">Übersicht</div>
+      <div class="spacer"></div>
+      <div class="pill" id="countPill">0</div>
+    </div>
+    <div class="kpiGrid">
+      <div class="kpi"><div class="kLabel">Rechnung offen</div><div class="kValue" id="kpiOpenSum">–</div><div class="kHint" id="kpiOpenCount">–</div></div>
+      <div class="kpi"><div class="kLabel">In Prüfung</div><div class="kValue" id="kpiCheckSum">–</div><div class="kHint" id="kpiCheckCount">–</div></div>
+      <div class="kpi"><div class="kLabel">Bezahlt</div><div class="kValue" id="kpiPaidSum">–</div><div class="kHint" id="kpiPaidCount">–</div></div>
+      <div class="kpi"><div class="kLabel">Gesamt</div><div class="kValue" id="kpiTotalSum">–</div><div class="kHint" id="kpiTotalCount">–</div></div>
+    </div>
+  </div>
 
-    const LOGIN_REDIRECT = "/login.html";
-    const PROFILES_TABLE = "profiles";
-    const REQUIRED_ROLE = "vorstand";
+  <!-- Controls -->
+  <div class="glass card" id="controlsCard" style="display:none;">
+    <div class="controlsRow">
+      <input id="searchInput" placeholder="Suche (Name, Projekt, IBAN…)" type="search" />
+      <select id="filterStatus">
+        <option value="">Status (alle)</option>
+        <option value="Rechnung offen">Rechnung offen</option>
+        <option value="In Prüfung">In Prüfung</option>
+        <option value="Bezahlt">Bezahlt</option>
+      </select>
+      <select id="filterProj"><option value="">Projekt (alle)</option></select>
+    </div>
+    <div class="controlsBottom">
+      <button class="btn-secondary" id="reloadBtn" type="button">↺ Neu laden</button>
+      <button class="btn-primary" id="exportBtn" type="button">⬇ CSV Export</button>
+      <div class="spacer"></div>
+      <span class="pill" style="opacity:.7;font-size:11px;">Karte anklicken → Details</span>
+    </div>
+  </div>
 
-    const F = {
-      ts: "Zeitstempel",
-      fn: "Vorname",
-      ln: "Nachname",
-      desc: "Beleg Erläuterung",
-      proj: "Projekt",
-      sum: "Beleg Summe",
-      date: "Beleg Datum",
-      status: "Status",
-      beleg: "Beleg hochladen",
-      iban: "Dein IBAN"
-    };
+  <div id="cardGrid" class="cardGrid" style="display:none;"></div>
+  <div id="emptyState" class="emptyState" style="display:none;">Keine Einreichungen gefunden.</div>
 
-    // Elements
-    const navWrap = document.getElementById("navWrap");
-    const belegeNavLink = document.getElementById("belegeNavLink");
-    const navWahlen = document.getElementById("navWahlen");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const logoutBtn2 = document.getElementById("logoutBtn2");
+</div>
 
-    const statusPill = document.getElementById("statusPill");
-    const countPill = document.getElementById("countPill");
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
-    const denyWrap = document.getElementById("denyWrap");
-    const kpiCard = document.getElementById("kpiCard");
-    const controlsCard = document.getElementById("controlsCard");
-    const grid = document.getElementById("grid");
-    const empty = document.getElementById("empty");
+<!-- Detail Dialog (native <dialog> – scrollTop wird bei jedem showModal() automatisch auf 0 gesetzt) -->
+<dialog id="detailDialog">
+  <div class="dlgHeader">
+    <div>
+      <h2 class="dlgTitle" id="dlgTitle">Rechnung</h2>
+      <div class="dlgSub" id="dlgSub">–</div>
+    </div>
+    <button class="btn-secondary closeX" id="dlgCloseBtn" type="button" aria-label="Schließen">✕</button>
+  </div>
 
-    const q = document.getElementById("q");
-    const fStatus = document.getElementById("fStatus");
-    const fProj = document.getElementById("fProj");
-    const reloadBtn = document.getElementById("reloadBtn");
-    const exportBtn = document.getElementById("exportBtn");
+  <div class="statusBar">
+    <span style="font-size:12px;color:var(--muted);font-weight:700;flex:0 0 auto;">Status:</span>
+    <button class="btn-danger statusBtn" id="setOpenBtn" type="button">Rechnung offen</button>
+    <button class="btn-warn statusBtn" id="setCheckBtn" type="button">In Prüfung</button>
+    <button class="btn-ok statusBtn" id="setPaidBtn" type="button">Bezahlt ✓</button>
+    <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none;">📎 Beleg</a>
+  </div>
 
-    const modalOverlay = document.getElementById("modalOverlay");
-    const modalEl = modalOverlay.querySelector(".modal");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalSub = document.getElementById("modalSub");
-    const kv = document.getElementById("kv");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const closeModalBtn2 = document.getElementById("closeModalBtn2");
+  <div class="summaryRow">
+    <span class="pill"><span style="color:var(--muted)">Person:&nbsp;</span><strong id="dlgName">–</strong></span>
+    <span class="pill"><span style="color:var(--muted)">Summe:&nbsp;</span><strong id="dlgSum">–</strong></span>
+    <span class="pill"><span style="color:var(--muted)">Status:&nbsp;</span><strong id="dlgStatus">–</strong></span>
+  </div>
 
-    const setOpenBtn = document.getElementById("setOpenBtn");
-    const setCheckBtn = document.getElementById("setCheckBtn");
-    const setPaidBtn = document.getElementById("setPaidBtn");
-    const belegLink = document.getElementById("belegLink");
+  <div class="kvGrid" id="kvGrid"></div>
 
-    const selName = document.getElementById("selName");
-    const selSum = document.getElementById("selSum");
-    const selStatus = document.getElementById("selStatus");
+  <div class="dlgActions">
+    <button class="btn-secondary" id="dlgCloseBtn2" type="button">Schließen</button>
+  </div>
+</dialog>
 
-    // Auth badge
-    const authBadge = document.getElementById("authBadge");
-    const authDot = document.getElementById("authDot");
-    const authState = document.getElementById("authState");
-    const authMail  = document.getElementById("authMail");
-    const authAvatar = document.getElementById("authAvatar");
-    const authCompact = document.getElementById("authCompact");
-    const authNameInline = document.getElementById("authNameInline");
-    const authRolePill = document.getElementById("authRolePill");
-    const authToggle = document.getElementById("authToggle");
-    const authDetails = document.getElementById("authDetails");
+<script>
+  const APP_URL = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const PROFILES_TABLE = "profiles";
+  const REQUIRED_ROLE = "vorstand";
 
-    // Toast
-    let _toastTimer;
-    function showToast(msg, isError = false){
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.toggle("error", isError);
-      t.classList.add("show");
-      clearTimeout(_toastTimer);
-      _toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+  const F = {
+    ts:"Zeitstempel", fn:"Vorname", ln:"Nachname",
+    desc:"Beleg Erläuterung", proj:"Projekt", sum:"Beleg Summe",
+    date:"Beleg Datum", status:"Status", beleg:"Beleg hochladen", iban:"Dein IBAN"
+  };
+
+  // Elements
+  const navWrap       = document.getElementById("navWrap");
+  const belegeNavLink = document.getElementById("belegeNavLink");
+  const statusPill    = document.getElementById("statusPill");
+  const countPill     = document.getElementById("countPill");
+  const denyWrap      = document.getElementById("denyWrap");
+  const kpiCard       = document.getElementById("kpiCard");
+  const controlsCard  = document.getElementById("controlsCard");
+  const cardGridEl    = document.getElementById("cardGrid");
+  const emptyState    = document.getElementById("emptyState");
+  const searchInput   = document.getElementById("searchInput");
+  const filterStatus  = document.getElementById("filterStatus");
+  const filterProj    = document.getElementById("filterProj");
+  const reloadBtn     = document.getElementById("reloadBtn");
+  const exportBtn     = document.getElementById("exportBtn");
+  const authBadge     = document.getElementById("authBadge");
+  const authDot       = document.getElementById("authDot");
+  const authState     = document.getElementById("authState");
+  const authMail      = document.getElementById("authMail");
+  const authAvatar    = document.getElementById("authAvatar");
+  const authCompact   = document.getElementById("authCompact");
+  const authNameInline= document.getElementById("authNameInline");
+  const authRolePill  = document.getElementById("authRolePill");
+  const authToggle    = document.getElementById("authToggle");
+  const authDetails   = document.getElementById("authDetails");
+  const logoutBtn     = document.getElementById("logoutBtn");
+  const logoutBtn2    = document.getElementById("logoutBtn2");
+  const dialog        = document.getElementById("detailDialog");
+  const dlgTitle      = document.getElementById("dlgTitle");
+  const dlgSub        = document.getElementById("dlgSub");
+  const dlgName       = document.getElementById("dlgName");
+  const dlgSum        = document.getElementById("dlgSum");
+  const dlgStatus     = document.getElementById("dlgStatus");
+  const kvGrid        = document.getElementById("kvGrid");
+  const belegLink     = document.getElementById("belegLink");
+  const setOpenBtn    = document.getElementById("setOpenBtn");
+  const setCheckBtn   = document.getElementById("setCheckBtn");
+  const setPaidBtn    = document.getElementById("setPaidBtn");
+
+  let ALL = [], ACTIVE_ROW = null, TOKEN = "", MY_ROLE = "";
+
+  // Helpers
+  const safe = v => v == null ? "" : String(v);
+  const esc  = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+
+  function parseEUR(v) {
+    if (typeof v === "number" && isFinite(v)) return v;
+    const s = safe(v).trim().replace(/\s/g,"").replace(/[^\d.,-]/g,"");
+    if (!s) return 0;
+    if (s.includes(".") && s.includes(",")) return Number(s.replace(/\./g,"").replace(",",".")) || 0;
+    if (s.includes(",")) return Number(s.replace(",",".")) || 0;
+    return Number(s) || 0;
+  }
+  const fmtEUR = n => new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
+  const pl = n => `${n} ${n===1?"Vorgang":"Vorgänge"}`;
+  const tsKey = row => safe(row?.[F.ts]).trim();
+
+  function normStatus(s) {
+    const t = safe(s).trim().toLowerCase();
+    if (t.includes("prüfung")) return "In Prüfung";
+    if (t.includes("bezahlt")) return "Bezahlt";
+    return "Rechnung offen";
+  }
+  function statusCls(st) {
+    if (st==="Bezahlt") return "paid";
+    if (st==="In Prüfung") return "check";
+    return "open";
+  }
+
+  function hashStr(s) {
+    let h = 2166136261;
+    for (let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
+    return h>>>0;
+  }
+  function initialsEmail(e) {
+    const local=(e||"").split("@")[0]||"u";
+    const p=local.split(/[.\-_]+/).filter(Boolean);
+    return ((p[0]?.[0]||local[0]||"u")+(p[1]?.[0]||local[1]||"")).toUpperCase()||"U";
+  }
+  function initialsText(t) {
+    const p=(t||"").trim().split(/\s+/).filter(Boolean);
+    return ((p[0]?.[0]||"U")+(p[1]?.[0]||"")).toUpperCase()||"U";
+  }
+
+  // Toast
+  let _tt;
+  function showToast(msg,isError=false){
+    const el=document.getElementById("toast");
+    el.textContent=msg; el.classList.toggle("error",isError); el.classList.add("show");
+    clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove("show"),2800);
+  }
+
+  // Auth UI
+  function setAvatar(email){
+    const e=(email||"").trim().toLowerCase();
+    if(!e){authAvatar.classList.add("hidden");return;}
+    const h=hashStr(e),hue=h%360,hue2=(hue+38)%360;
+    authAvatar.textContent=initialsEmail(e);
+    authAvatar.classList.remove("hidden");
+    authAvatar.style.background=`linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`;
+  }
+  function setAuthUI(ok,email=""){
+    authDot.classList.toggle("ok",ok);
+    if(ok){
+      authState.classList.add("hidden");
+      authCompact.classList.remove("hidden");
+      authMail.textContent=email; setAvatar(email);
+    } else {
+      authState.classList.remove("hidden");
+      authState.textContent="nicht eingeloggt";
+      authCompact.classList.add("hidden"); setAvatar("");
     }
+  }
+  function normRole(v){return String(v||"").trim().toLowerCase();}
+  function setRolePill(role){
+    const r=normRole(role);
+    authRolePill.textContent=r||"unbekannt";
+    authRolePill.classList.toggle("vorstand",r==="vorstand");
+  }
+  authToggle?.addEventListener("click",e=>{e.stopPropagation();authDetails.classList.toggle("hidden");});
+  document.addEventListener("click",e=>{if(!authBadge?.contains(e.target))authDetails.classList.add("hidden");});
 
-    // State
-    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-    const esc = (s) => String(s)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-
-    let MY_ROLE = "";
-    let CAN_VIEW = false;
-    let TOKEN = null;
-
-    let ALL = [];
-    let ACTIVE_ROW = null;
-
-    // Helpers
-    function parseEUR(v){
-      if (typeof v === "number" && Number.isFinite(v)) return v;
-      const raw = safe(v).trim();
-      if (!raw) return 0;
-      const s = raw.replace(/\s/g,"").replace(/[^\d.,-]/g,"");
-      const hasDot = s.includes(".");
-      const hasComma = s.includes(",");
-      if (hasDot && hasComma){
-        const norm = s.replace(/\./g,"").replace(",",".");
-        const n = Number(norm);
-        return Number.isFinite(n) ? n : 0;
-      }
-      if (hasComma && !hasDot){
-        const n = Number(s.replace(",","."));
-        return Number.isFinite(n) ? n : 0;
-      }
-      const n = Number(s);
-      return Number.isFinite(n) ? n : 0;
-    }
-    const fmtEUR = (n)=> new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
-
-    function tsKey(row){ return safe(row?.[F.ts]).trim(); }
-
-    function statusNorm(s){
-      const t = safe(s).trim();
-      if (!t) return "Rechnung offen";
-      const low = t.toLowerCase();
-      if (low.includes("prüfung")) return "In Prüfung";
-      if (low.includes("bezahlt")) return "Bezahlt";
-      if (low.includes("offen")) return "Rechnung offen";
-      return t;
-    }
-    function statusClass(st){
-      if (st === "Bezahlt") return "paid";
-      if (st === "In Prüfung") return "check";
-      return "open";
-    }
-    function uniq(arr){
-      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
-    }
-
-    // Badge helpers
-    function hashString(str){
-      let h = 2166136261;
-      for (let i = 0; i < str.length; i++){
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-      }
-      return (h >>> 0);
-    }
-    function initialsFromEmail(email){
-      const e = (email || "").trim().toLowerCase();
-      if (!e) return "U";
-      const local = e.split("@")[0] || "u";
-      const parts = local.split(/[.\-_]+/).filter(Boolean);
-      const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
-      const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
-      return (a + b).trim() || a;
-    }
-    function initialsFromText(txt){
-      const t = (txt || "").trim();
-      if (!t) return "U";
-      const parts = t.split(/\s+/).filter(Boolean);
-      const a = (parts[0]?.[0] || "U").toUpperCase();
-      const b = (parts[1]?.[0] || "").toUpperCase();
-      return (a + b).trim() || a;
-    }
-    function setAvatar(email){
-      const e = (email || "").trim().toLowerCase();
-      if (!e){
-        authAvatar.classList.add("hidden");
-        authAvatar.textContent = "U";
-        authAvatar.style.background = "rgba(255,255,255,.10)";
-        return;
-      }
-      const h = hashString(e);
-      const hue = h % 360;
-      const hue2 = (hue + 38) % 360;
-      authAvatar.textContent = initialsFromEmail(e);
-      authAvatar.classList.remove("hidden");
-      authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
-    }
-
-    function closeAuthDetails(){ authDetails.classList.add("hidden"); }
-    authToggle?.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      authDetails.classList.toggle("hidden");
+  // Access
+  function applyAccess(ok){
+    navWrap.style.display=ok?"block":"none";
+    if(belegeNavLink) belegeNavLink.style.display=ok?"inline-flex":"none";
+    ["navWahlen","navProtokoll","navZeugnisse"].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.style.display=ok?"":"none";
     });
-    document.addEventListener("click", (e)=>{
-      if (authBadge && !authBadge.contains(e.target)) closeAuthDetails();
+    denyWrap.style.display=ok?"none":"block";
+    kpiCard.style.display=ok?"block":"none";
+    controlsCard.style.display=ok?"block":"none";
+    cardGridEl.style.display=ok?"grid":"none";
+    if(!ok){cardGridEl.innerHTML="";ALL=[];}
+  }
+
+  async function doLogout(){await sb.auth.signOut();location.href="/login.html";}
+  logoutBtn?.addEventListener("click",doLogout);
+  logoutBtn2?.addEventListener("click",doLogout);
+
+  // API
+  async function apiGetRows(){
+    const res=await fetch(`${APP_URL}?token=${encodeURIComponent(TOKEN)}`);
+    const text=await res.text();
+    let json; try{json=JSON.parse(text);}catch{throw new Error("API: kein JSON – "+text.slice(0,120));}
+    if(json?.error) throw new Error("API: "+json.error);
+    return Array.isArray(json.rows)?json.rows:[];
+  }
+  async function apiSetStatus(ts,status){
+    const res=await fetch(`${APP_URL}?token=${encodeURIComponent(TOKEN)}`,{
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({timestamp:ts,status,token:TOKEN})
+    });
+    if(!res.ok) throw new Error("POST "+res.status);
+  }
+
+  // Filter
+  function filtered(){
+    const txt=safe(searchInput.value).trim().toLowerCase();
+    const st=safe(filterStatus.value).trim();
+    const pr=safe(filterProj.value).trim();
+    return ALL.filter(r=>{
+      if(st&&normStatus(r[F.status])!==st) return false;
+      if(pr&&safe(r[F.proj]).trim()!==pr) return false;
+      if(txt){
+        const blob=[r[F.fn],r[F.ln],r[F.proj],r[F.iban],r[F.desc]].map(safe).join(" ").toLowerCase();
+        if(!blob.includes(txt)) return false;
+      }
+      return true;
+    });
+  }
+
+  // KPIs
+  function updateKPIs(){
+    const sum=rows=>rows.reduce((a,r)=>a+parseEUR(r[F.sum]),0);
+    const open=ALL.filter(r=>normStatus(r[F.status])==="Rechnung offen");
+    const check=ALL.filter(r=>normStatus(r[F.status])==="In Prüfung");
+    const paid=ALL.filter(r=>normStatus(r[F.status])==="Bezahlt");
+    document.getElementById("kpiOpenSum").textContent=fmtEUR(sum(open));
+    document.getElementById("kpiOpenCount").textContent=pl(open.length);
+    document.getElementById("kpiCheckSum").textContent=fmtEUR(sum(check));
+    document.getElementById("kpiCheckCount").textContent=pl(check.length);
+    document.getElementById("kpiPaidSum").textContent=fmtEUR(sum(paid));
+    document.getElementById("kpiPaidCount").textContent=pl(paid.length);
+    document.getElementById("kpiTotalSum").textContent=fmtEUR(sum(ALL));
+    document.getElementById("kpiTotalCount").textContent=`${ALL.length} gesamt`;
+  }
+
+  function fillProjFilter(){
+    const projs=[...new Set(ALL.map(r=>safe(r[F.proj]).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
+    filterProj.innerHTML=`<option value="">Projekt (alle)</option>`+projs.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join("");
+  }
+
+  // Render
+  function render(){
+    const rows=filtered();
+    countPill.textContent=`${rows.length} / ${ALL.length}`;
+    statusPill.textContent=`Geladen: ${ALL.length}`;
+    cardGridEl.innerHTML="";
+    emptyState.style.display=rows.length?"none":"block";
+
+    rows.forEach(r=>{
+      const name=(safe(r[F.fn])+" "+safe(r[F.ln])).trim()||"Unbekannt";
+      const proj=safe(r[F.proj]).trim()||"—";
+      const sum=parseEUR(r[F.sum]);
+      const st=normStatus(r[F.status]);
+      const hasBeleg=safe(r[F.beleg]).trim().startsWith("http");
+
+      const card=document.createElement("div");
+      card.className="entryCard";
+      card.setAttribute("role","button");
+      card.setAttribute("tabindex","0");
+      card.innerHTML=`
+        <div class="statusBadge ${statusCls(st)}">${esc(st)}</div>
+        <div class="cardTop">
+          <div class="iconBox">€</div>
+          <div class="cardText">
+            <div class="cardName">${esc(name)}</div>
+            <div class="cardSub">${esc(proj)}</div>
+          </div>
+        </div>
+        <div class="cardMeta">
+          <span class="metaPill">💶 <strong>${esc(fmtEUR(sum))}</strong></span>
+          ${hasBeleg?`<span class="metaPill">📎 Beleg</span>`:""}
+        </div>`;
+      card.addEventListener("click",()=>openDialog(r));
+      card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDialog(r);}});
+      cardGridEl.appendChild(card);
+    });
+  }
+
+  // Dialog
+  function openDialog(row){
+    ACTIVE_ROW=row;
+    const name=(safe(row[F.fn])+" "+safe(row[F.ln])).trim()||"Rechnung";
+    const proj=safe(row[F.proj]).trim();
+    const date=safe(row[F.date]).trim();
+    const st=normStatus(row[F.status]);
+    const sum=parseEUR(row[F.sum]);
+    const beleg=safe(row[F.beleg]).trim();
+
+    dlgTitle.textContent=name;
+    dlgSub.textContent=[proj,date].filter(Boolean).join(" · ")||"—";
+    dlgName.textContent=name;
+    dlgSum.textContent=fmtEUR(sum);
+    dlgStatus.textContent=st;
+
+    [setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.classList.remove("is-active"));
+    if(st==="Rechnung offen") setOpenBtn.classList.add("is-active");
+    else if(st==="In Prüfung") setCheckBtn.classList.add("is-active");
+    else if(st==="Bezahlt") setPaidBtn.classList.add("is-active");
+
+    if(beleg.startsWith("http")){belegLink.href=beleg;belegLink.style.display="inline-flex";}
+    else{belegLink.style.display="none";}
+
+    const fields=[
+      ["Projekt",safe(row[F.proj])],
+      ["Beleg Summe",fmtEUR(sum)],
+      ["Beleg Datum",safe(row[F.date])],
+      ["Status",st],
+      ["Erläuterung",safe(row[F.desc])],
+      ["Beleg-URL",safe(row[F.beleg])],
+      ["IBAN",safe(row[F.iban])],
+      ["Zeitstempel",safe(row[F.ts])],
+    ];
+    kvGrid.innerHTML="";
+    fields.forEach(([k,v])=>{
+      const kEl=document.createElement("div"); kEl.className="kvKey"; kEl.textContent=k;
+      const vEl=document.createElement("div"); vEl.className="kvVal";
+      const val=safe(v).trim();
+      if(val.startsWith("http")) vEl.innerHTML=`<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
+      else vEl.textContent=val||"—";
+      kvGrid.appendChild(kEl); kvGrid.appendChild(vEl);
     });
 
-    function normRole(v){ return String(v || "").replace(/\s+/g," ").trim().toLowerCase(); }
-    function setRolePill(role){
-      const r = normRole(role);
-      authRolePill.textContent = r || "unbekannt";
-      authRolePill.classList.remove("vorstand","other");
-      if (r === "vorstand") authRolePill.classList.add("vorstand");
-      else authRolePill.classList.add("other");
+    // showModal() öffnet den Dialog neu – Browser setzt scrollTop automatisch auf 0
+    dialog.showModal();
+  }
+
+  function closeDialog(){dialog.close();ACTIVE_ROW=null;}
+
+  document.getElementById("dlgCloseBtn").addEventListener("click",closeDialog);
+  document.getElementById("dlgCloseBtn2").addEventListener("click",closeDialog);
+  // Klick auf Backdrop schließt Dialog
+  dialog.addEventListener("click",e=>{
+    const r=dialog.getBoundingClientRect();
+    if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) closeDialog();
+  });
+
+  // Status ändern
+  async function setStatus(status){
+    if(!ACTIVE_ROW) return;
+    const ts=tsKey(ACTIVE_ROW);
+    [setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.disabled=true);
+    try{
+      await apiSetStatus(ts,status);
+      const i=ALL.findIndex(r=>tsKey(r)===ts);
+      if(i>=0) ALL[i][F.status]=status;
+      if(ACTIVE_ROW) ACTIVE_ROW[F.status]=status;
+      const st=normStatus(status);
+      dlgStatus.textContent=st;
+      [setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.classList.remove("is-active"));
+      if(st==="Rechnung offen") setOpenBtn.classList.add("is-active");
+      else if(st==="In Prüfung") setCheckBtn.classList.add("is-active");
+      else if(st==="Bezahlt") setPaidBtn.classList.add("is-active");
+      updateKPIs(); render();
+      showToast("Status gespeichert: "+st);
+    }catch(err){showToast("Fehler: "+err.message,true);}
+    finally{[setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.disabled=false);}
+  }
+  setOpenBtn.addEventListener("click",()=>setStatus("Rechnung offen"));
+  setCheckBtn.addEventListener("click",()=>setStatus("In Prüfung"));
+  setPaidBtn.addEventListener("click",()=>setStatus("Bezahlt"));
+
+  // Daten laden
+  async function fetchRows(){
+    statusPill.textContent="Lade…";
+    try{
+      ALL=await apiGetRows();
+      ALL=ALL.map(r=>{if(!safe(r[F.status]).trim()) r[F.status]="Rechnung offen"; return r;});
+      fillProjFilter(); updateKPIs(); render();
+    }catch(err){
+      statusPill.textContent="Fehler";
+      showToast("Laden fehlgeschlagen: "+err.message,true);
     }
-    function setCompactIdentity(displayName, email){
-      const name = (displayName || "").trim();
-      const fallback = ((email || "").split("@")[0] || "User").trim();
-      authNameInline.textContent = name || fallback;
-    }
-
-    function setAuthUI(isAuthed, email=""){
-      if (isAuthed){
-        authDot.classList.remove("warn"); authDot.classList.add("ok");
-        authState.classList.add("hidden");
-        authCompact.classList.remove("hidden");
-        authMail.textContent = (email || "").trim();
-        setAvatar(email);
-      } else {
-        authDot.classList.remove("ok"); authDot.classList.add("warn");
-        authState.classList.remove("hidden");
-        authState.textContent = "nicht eingeloggt";
-        authCompact.classList.add("hidden");
-        authMail.textContent = "";
-        setAvatar("");
-      }
-    }
-
-    function applyAccessUI(allowed){
-      CAN_VIEW = !!allowed;
-
-      navWrap.style.display = allowed ? "block" : "none";
-      belegeNavLink.style.display = allowed ? "inline-flex" : "none";
-      if (navWahlen) navWahlen.style.display = allowed ? "" : "none";
-      const navProtokoll = document.getElementById("navProtokoll");
-      if (navProtokoll) navProtokoll.style.display = allowed ? "" : "none";
-      const navZeugnisse = document.getElementById("navZeugnisse");
-      if (navZeugnisse) navZeugnisse.style.display = allowed ? "" : "none";
-
-      denyWrap.style.display = allowed ? "none" : "block";
-      kpiCard.style.display = allowed ? "block" : "none";
-      controlsCard.style.display = allowed ? "block" : "none";
-      grid.style.display = allowed ? "grid" : "none";
-
-      if (!allowed){
-        empty.style.display = "none";
-        grid.innerHTML = "";
-        ALL = [];
-        TOKEN = null;
-      }
-    }
-
-    async function requireAuth(){
-      const { data } = await sb.auth.getSession();
-      if (!data.session) throw new Error("not_logged_in");
-      return data.session;
-    }
-
-    async function loadMyProfile(session){
-      MY_ROLE = "";
-      const uid = session?.user?.id;
-      const email = session?.user?.email || "";
-
-      const { data, error } = await sb
-        .from(PROFILES_TABLE)
-        .select("role, display_name")
-        .eq("id", uid)
-        .maybeSingle();
-
-      if (error || !data){
-        setCompactIdentity("", email);
-        setRolePill("");
-        return "";
-      }
-
-      MY_ROLE = normRole(data?.role);
-      setCompactIdentity(data?.display_name, email);
-      setRolePill(MY_ROLE);
-
-      const dn = (data?.display_name || "").trim();
-      if (dn) authAvatar.textContent = initialsFromText(dn);
-
-      authBadge.title = `${(dn || email || "User")} • ${MY_ROLE || "unbekannt"}`;
-      return MY_ROLE;
-    }
-
-    async function loadFinanceToken(){
-      const { data, error } = await sb
-        .from("app_secrets")
-        .select("value")
-        .eq("key","finance_sheet_token")
-        .maybeSingle();
-
-      if (error) throw error;
-      return data?.value || "";
-    }
-
-    async function doLogout(){
-      await sb.auth.signOut();
-      window.location.href = "/login.html";
-    }
-    logoutBtn?.addEventListener("click", doLogout);
-    logoutBtn2?.addEventListener("click", doLogout);
-
-    // API
-    async function apiGetRows(){
-      const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
-      const res = await fetch(url, { method:"GET" });
-      const text = await res.text();
-      let json;
-      try { json = JSON.parse(text); }
-      catch(err){ throw new Error("API liefert kein JSON: " + text.slice(0,200)); }
-      if (!res.ok) throw new Error("API Fehler: " + res.status);
-      if (json?.error) throw new Error("API: " + json.error);
-      return Array.isArray(json.rows) ? json.rows : [];
-    }
-
-    async function apiSetStatus(timestamp, status){
-      const url = `${APP_URL}?token=${encodeURIComponent(TOKEN)}`;
-      const res = await fetch(url, {
-        method:"POST",
-        headers:{ "Content-Type":"text/plain;charset=utf-8" },
-        body: JSON.stringify({ timestamp, status, token: TOKEN })
-      });
-      const t = await res.text();
-      if (!res.ok) throw new Error("POST failed: " + res.status + " " + t.slice(0,200));
-    }
-
-    function filtered(){
-      const text = safe(q.value).trim().toLowerCase();
-      const st = safe(fStatus.value).trim();
-      const pr = safe(fProj.value).trim();
-
-      return ALL.filter(r=>{
-        const s = statusNorm(r[F.status]);
-        if (st && s !== st) return false;
-        if (pr && safe(r[F.proj]).trim() !== pr) return false;
-
-        if (text){
-          const blob = [r[F.fn], r[F.ln], r[F.proj], r[F.iban], r[F.desc]].map(safe).join(" ").toLowerCase();
-          if (!blob.includes(text)) return false;
-        }
-        return true;
-      });
-    }
-
-    function updateKPIs(){
-      const sum = (rows)=> rows.reduce((a,r)=> a + parseEUR(r[F.sum]), 0);
-
-      const open = ALL.filter(r => statusNorm(r[F.status]) === "Rechnung offen");
-      const check = ALL.filter(r => statusNorm(r[F.status]) === "In Prüfung");
-      const paid = ALL.filter(r => statusNorm(r[F.status]) === "Bezahlt");
-
-      const pl = (n) => `${n} ${n === 1 ? "Vorgang" : "Vorgänge"}`;
-
-      document.getElementById("kpiOpenSum").textContent = fmtEUR(sum(open));
-      document.getElementById("kpiOpenCount").textContent = pl(open.length);
-
-      document.getElementById("kpiCheckSum").textContent = fmtEUR(sum(check));
-      document.getElementById("kpiCheckCount").textContent = pl(check.length);
-
-      document.getElementById("kpiPaidSum").textContent = fmtEUR(sum(paid));
-      document.getElementById("kpiPaidCount").textContent = pl(paid.length);
-
-      document.getElementById("kpiTotalSum").textContent = fmtEUR(sum(ALL));
-      document.getElementById("kpiTotalCount").textContent = `${ALL.length} gesamt`;
-    }
-
-    function fillProjectFilter(){
-      const projects = uniq(ALL.map(r => r[F.proj]));
-      fProj.innerHTML = `<option value="">Projekt (alle)</option>` + projects.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
-    }
-
-    function render(){
-      if (!CAN_VIEW) return;
-
-      const rows = filtered();
-      countPill.textContent = `${rows.length} / ${ALL.length}`;
-      statusPill.textContent = `Geladen: ${ALL.length}`;
-
-      grid.innerHTML = "";
-      empty.style.display = rows.length ? "none" : "block";
-
-      rows.forEach(r=>{
-        const fn = safe(r[F.fn]).trim();
-        const ln = safe(r[F.ln]).trim();
-        const name = (fn + " " + ln).trim() || "Unbekannt";
-        const proj = safe(r[F.proj]).trim() || "—";
-        const sum = parseEUR(r[F.sum]);
-        const st = statusNorm(r[F.status]);
-        const stCls = statusClass(st);
-
-        const card = document.createElement("div");
-        card.className = "appCard";
-        card.innerHTML = `
-          <div class="statusPill ${stCls}">${esc(st)}</div>
-          <div class="cardTop">
-            <div class="iconBox">€</div>
-            <div class="cardText">
-              <div class="title">${esc(name)}</div>
-              <div class="sub">${esc(proj)}</div>
-            </div>
-          </div>
-          <div class="metaRow">
-            <span class="metaPill">💶 <strong>${esc(fmtEUR(sum))}</strong></span>
-            ${safe(r[F.beleg]).trim().startsWith("http") ? `<span class="metaPill">📎 Beleg vorhanden</span>` : ``}
-          </div>
-        `;
-        card.addEventListener("click", ()=> openModal(r));
-        grid.appendChild(card);
-      });
-    }
-
-    function openModal(row){
-      if (!CAN_VIEW) return;
-      ACTIVE_ROW = row;
-
-      const fn = safe(row[F.fn]).trim();
-      const ln = safe(row[F.ln]).trim();
-      const name = (fn + " " + ln).trim() || "Rechnung";
-
-      const proj = safe(row[F.proj]).trim();
-      const date = safe(row[F.date]).trim();
-      const st = statusNorm(row[F.status]);
-      const sum = parseEUR(row[F.sum]);
-
-      modalTitle.textContent = name;
-      modalSub.textContent = [proj, date].filter(Boolean).join(" · ") || "—";
-
-      selName.textContent = name;
-      selSum.textContent = fmtEUR(sum);
-      selStatus.textContent = st;
-
-      // Highlight active status button
-      [setOpenBtn, setCheckBtn, setPaidBtn].forEach(b => b.classList.remove("active-status"));
-      if (st === "Rechnung offen") setOpenBtn.classList.add("active-status");
-      else if (st === "In Prüfung") setCheckBtn.classList.add("active-status");
-      else if (st === "Bezahlt") setPaidBtn.classList.add("active-status");
-
-      const beleg = safe(row[F.beleg]).trim();
-      if (beleg && beleg.startsWith("http")){
-        belegLink.href = beleg;
-        belegLink.style.display = "inline-flex";
-      } else {
-        belegLink.style.display = "none";
-      }
-
-      const items = [
-        ["Projekt", safe(row[F.proj])],
-        ["Beleg Summe", fmtEUR(sum)],
-        ["Beleg Datum", safe(row[F.date])],
-        ["Status", st],
-        ["Beleg Erläuterung", safe(row[F.desc])],
-        ["Beleg hochladen", safe(row[F.beleg])],
-        ["Dein IBAN", safe(row[F.iban])],
-        ["Zeitstempel", safe(row[F.ts])]
-      ];
-
-      kv.innerHTML = "";
-      items.forEach(([k,val])=>{
-        const dk = document.createElement("div");
-        dk.className = "k";
-        dk.textContent = k;
-
-        const dv = document.createElement("div");
-        dv.className = "v";
-        const v = safe(val).trim();
-
-        if (v.startsWith("http")){
-          dv.innerHTML = `<a href="${esc(v)}" target="_blank" rel="noopener">${esc(v)}</a>`;
-        } else {
-          dv.textContent = v || "—";
-        }
-        kv.appendChild(dk);
-        kv.appendChild(dv);
-      });
-
-      modalOverlay.classList.add("show");
-      modalEl.scrollTop = 0;
-      document.body.classList.add("locked");
-    }
-
-    function closeModal(){
-      modalOverlay.classList.remove("show");
-      document.body.classList.remove("locked");
-      ACTIVE_ROW = null;
-    }
-
-    async function fetchRows(){
-      if (!CAN_VIEW) return;
-
-      statusPill.textContent = "Lade…";
-      ALL = await apiGetRows();
-
-      ALL = ALL.map(r=>{
-        if (!safe(r[F.status]).trim()) r[F.status] = "Rechnung offen";
-        return r;
-      });
-
-      fillProjectFilter();
-      updateKPIs();
-      render();
-    }
-
-    async function setStatusFor(ts, status){
-      if (!CAN_VIEW) return;
-
-      const btns = [setOpenBtn, setCheckBtn, setPaidBtn];
-      btns.forEach(b => { b.disabled = true; });
-
-      try {
-        await apiSetStatus(ts, status);
-        const i = ALL.findIndex(r => tsKey(r) === ts);
-        if (i >= 0) ALL[i][F.status] = status;
-
-        updateKPIs();
-        render();
-
-        if (ACTIVE_ROW && tsKey(ACTIVE_ROW) === ts) {
-          ACTIVE_ROW[F.status] = status;
-          const st = statusNorm(status);
-          selStatus.textContent = st;
-          // Update active button highlight
-          btns.forEach(b => b.classList.remove("active-status"));
-          if (st === "Rechnung offen") setOpenBtn.classList.add("active-status");
-          else if (st === "In Prüfung") setCheckBtn.classList.add("active-status");
-          else if (st === "Bezahlt") setPaidBtn.classList.add("active-status");
-        }
-        showToast("Status gespeichert: " + statusNorm(status));
-      } catch(err) {
-        showToast("Fehler beim Speichern: " + err.message, true);
-      } finally {
-        btns.forEach(b => { b.disabled = false; });
-      }
-    }
-
-    function exportCSV(){
-      if (!CAN_VIEW) return;
-
-      const headers = [F.ts,F.fn,F.ln,F.proj,F.sum,F.date,F.status,F.desc,F.beleg,F.iban];
-      const lines = [headers.join(";")];
-
-      const rows = filtered();
-      rows.forEach(r=>{
-        const row = headers.map(h=>{
-          const s = safe(r[h]).replaceAll('"','""');
-          return `"${s}"`;
-        });
-        lines.push(row.join(";"));
-      });
-
-      const blob = new Blob(["\uFEFF"+lines.join("\n")], {type:"text/csv;charset=utf-8"});
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `rechnungen_export_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-
-    // Events
-    [q, fStatus, fProj].forEach(elm => elm?.addEventListener("input", render));
-    reloadBtn?.addEventListener("click", fetchRows);
-    exportBtn?.addEventListener("click", exportCSV);
-
-    setOpenBtn?.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Rechnung offen"));
-    setCheckBtn?.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "In Prüfung"));
-    setPaidBtn?.addEventListener("click", ()=> ACTIVE_ROW && setStatusFor(tsKey(ACTIVE_ROW), "Bezahlt"));
-
-    closeModalBtn?.addEventListener("click", closeModal);
-    closeModalBtn2?.addEventListener("click", closeModal);
-    modalOverlay?.addEventListener("click", (e)=>{ if (e.target === modalOverlay) closeModal(); });
-    document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalOverlay.classList.contains("show")) closeModal(); });
-
-    /* ========= Init ========= */
-    (async () => {
-      applyAccessUI(false);
-
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
-      const mail = session?.user?.email || "";
-      setAuthUI(!!session, mail);
-
-      if (!session){
-        window.location.href = LOGIN_REDIRECT;
-        return;
-      }
-
-      const role = await loadMyProfile(session);
-      const allowed = (role === REQUIRED_ROLE);
-
-      if (!allowed){
-        statusPill.textContent = "Kein Zugriff";
-        applyAccessUI(false);
-        return;
-      }
-
-      applyAccessUI(true);
-
-      TOKEN = await loadFinanceToken();
-      if (!TOKEN){
-        statusPill.textContent = "Fehlt: finance_sheet_token";
-        return;
-      }
-
-      await fetchRows();
-    })();
-  </script>
+  }
+
+  // CSV Export
+  function exportCSV(){
+    const headers=[F.ts,F.fn,F.ln,F.proj,F.sum,F.date,F.status,F.desc,F.beleg,F.iban];
+    const lines=[headers.join(";")];
+    filtered().forEach(r=>lines.push(headers.map(h=>`"${safe(r[h]).replace(/"/g,'""')}"`).join(";")));
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8"}));
+    a.download=`rechnungen_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  [searchInput,filterStatus,filterProj].forEach(el=>el?.addEventListener("input",render));
+  reloadBtn?.addEventListener("click",fetchRows);
+  exportBtn?.addEventListener("click",exportCSV);
+
+  // Init
+  (async()=>{
+    applyAccess(false);
+    const {data}=await sb.auth.getSession();
+    const session=data?.session;
+    setAuthUI(!!session,session?.user?.email||"");
+    if(!session){location.href="/login.html";return;}
+
+    const uid=session.user.id, email=session.user.email||"";
+    const {data:profile}=await sb.from(PROFILES_TABLE).select("role,display_name").eq("id",uid).maybeSingle();
+
+    MY_ROLE=normRole(profile?.role);
+    const dn=(profile?.display_name||"").trim();
+    authNameInline.textContent=dn||email.split("@")[0];
+    setRolePill(MY_ROLE);
+    if(dn){authAvatar.textContent=initialsText(dn);}
+    authBadge.title=`${dn||email} · ${MY_ROLE||"unbekannt"}`;
+
+    if(MY_ROLE!==REQUIRED_ROLE){statusPill.textContent="Kein Zugriff";applyAccess(false);return;}
+
+    applyAccess(true);
+
+    const {data:secret}=await sb.from("app_secrets").select("value").eq("key","finance_sheet_token").maybeSingle();
+    TOKEN=secret?.value||"";
+    if(!TOKEN){statusPill.textContent="Token fehlt";return;}
+
+    await fetchRows();
+  })();
+</script>
 <script src="/mobile-nav.js"></script>
 </body>
 </html>
