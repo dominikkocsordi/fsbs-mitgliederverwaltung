@@ -435,6 +435,15 @@ input[type=number]::-webkit-outer-spin-button{ opacity:.5; }
       </div>
     </div>
 
+    <div class="formGroup">
+      <label class="formLabel">Stimmübertragungen</label>
+      <label class="limitToggleRow">
+        <input type="checkbox" id="delegationToggle" />
+        <span class="limitToggleLabel">Stimmübertragungen erlauben</span>
+      </label>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">Teilnehmer können angeben, dass sie übertragene Stimmen anderer Mitglieder mit abgeben.</div>
+    </div>
+
     <div class="modalActions">
       <button class="btn-secondary" id="cancelModalBtn" type="button">Abbrechen</button>
       <button class="btn-primary" id="saveSessionBtn" type="button">Abstimmung starten</button>
@@ -575,7 +584,7 @@ async function loadSessions(){
 }
 
 async function loadResults(sessionId){
-  const { data } = await sb.from("votes").select("option_index").eq("session_id", sessionId);
+  const { data } = await sb.from("votes").select("option_index, weight").eq("session_id", sessionId);
   return data || [];
 }
 
@@ -656,6 +665,9 @@ function buildSessionCard(s, isOpen, opts){
   const limitBadge = s.participant_limit
     ? `<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.25);color:rgba(249,115,22,.9);">👥 ${s.participant_limit} Teilnehmer</span>`
     : "";
+  const delegationBadge = s.allow_delegation
+    ? `<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);color:rgba(168,85,247,.9);">🔄 Stimmübertragung</span>`
+    : "";
 
   const resultsBlock = !isOpen
     ? `<div class="resultsBlock" id="results-${s.id}"><div style="color:var(--muted);font-size:13px;">Lade Ergebnisse…</div></div>`
@@ -675,6 +687,7 @@ function buildSessionCard(s, isOpen, opts){
           <span class="sessionDate">${formatDate(s.created_at)}</span>
           <span style="font-size:12px;color:var(--muted);">${opts.length} Option${opts.length !== 1 ? "en" : ""}</span>
           ${limitBadge}
+          ${delegationBadge}
         </div>
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">${optPreview}${moreOpts}</div>
       </div>
@@ -689,17 +702,18 @@ async function loadResultsAndRender(sessionId, opts, participantLimit){
   const el = document.getElementById(`results-${sessionId}`);
   if (!el) return;
 
-  const total = votes.length;
+  const totalVoters = votes.length;
+  const totalWeight = votes.reduce((s, v) => s + (v.weight ?? 1), 0);
   const counts = Array(opts.length).fill(0);
   for (const v of votes){
-    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index]++;
+    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index] += (v.weight ?? 1);
   }
 
   const limitStats = participantLimit
-    ? buildParticipantStats(total, participantLimit)
+    ? buildParticipantStats(totalVoters, participantLimit)
     : "";
 
-  if (total === 0){
+  if (totalWeight === 0){
     el.innerHTML = `<div class="resultsBlock">
       <div class="resultsTitle">Ergebnisse</div>
       <div style="font-size:14px;color:var(--muted);">Keine Stimmen abgegeben.</div>
@@ -710,7 +724,7 @@ async function loadResultsAndRender(sessionId, opts, participantLimit){
 
   let rows = "";
   for (let i = 0; i < opts.length; i++){
-    const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+    const pct = totalWeight > 0 ? Math.round((counts[i] / totalWeight) * 100) : 0;
     rows += `<div class="resultRow">
       <div class="resultLabel">
         <span class="resultLabelText">${esc(opts[i])}</span>
@@ -723,7 +737,7 @@ async function loadResultsAndRender(sessionId, opts, participantLimit){
   el.innerHTML = `<div class="resultsBlock">
     <div class="resultsTitle">Ergebnisse</div>
     ${rows}
-    <div class="totalVotes">Gesamt: ${total} Stimme${total !== 1 ? "n" : ""}</div>
+    <div class="totalVotes">Gesamt: ${totalWeight} Stimme${totalWeight !== 1 ? "n" : ""} (${totalVoters} Abstimmende)</div>
     ${limitStats}
   </div>`;
 }
@@ -749,8 +763,8 @@ function buildParticipantStats(voted, limit){
 async function loadOpenSessionStats(sessionId, limit){
   const el = document.getElementById(`openstats-${sessionId}`);
   if (!el) return;
-  const { count } = await sb.from("votes").select("*", { count:"exact", head:true }).eq("session_id", sessionId);
-  const voted = count || 0;
+  const { data } = await sb.from("votes").select("weight").eq("session_id", sessionId);
+  const voted = (data || []).length;
   el.innerHTML = buildParticipantStats(voted, limit);
 }
 
@@ -811,6 +825,7 @@ function openCreateModal(){
   document.getElementById("limitToggle").checked = false;
   document.getElementById("limitInputWrap").classList.add("hidden");
   document.getElementById("participantLimitInput").value = "";
+  document.getElementById("delegationToggle").checked = false;
   addOptionRow(); addOptionRow();
   modal.showModal();
   document.getElementById("sessionTitle").focus();
@@ -871,7 +886,8 @@ document.getElementById("saveSessionBtn").addEventListener("click", async () => 
   const saveBtn = document.getElementById("saveSessionBtn");
   saveBtn.disabled = true; saveBtn.textContent = "Erstelle…";
 
-  const { error } = await sb.from("vote_sessions").insert({ title, options: opts, participant_limit: participantLimit });
+  const allowDelegation = document.getElementById("delegationToggle").checked;
+  const { error } = await sb.from("vote_sessions").insert({ title, options: opts, participant_limit: participantLimit, allow_delegation: allowDelegation });
   saveBtn.disabled = false; saveBtn.textContent = "Abstimmung starten";
 
   if (error){ showToast("Fehler: " + error.message, true); return; }

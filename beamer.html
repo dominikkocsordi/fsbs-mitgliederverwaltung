@@ -203,8 +203,8 @@ async function refresh(){
   } else if (state === "closed"){
     if (stateChanged) setView(buildClosed(session), true);
   } else {
-    const { data: votes } = await sb.from("votes").select("option_index").eq("session_id", session.id);
-    const vHash = (votes||[]).map(v=>v.option_index).sort().join(",");
+    const { data: votes } = await sb.from("votes").select("option_index, weight").eq("session_id", session.id);
+    const vHash = (votes||[]).map(v=>v.option_index+"x"+(v.weight??1)).sort().join(",");
     if (!stateChanged && vHash === lastVoteHash) return;
     lastVoteHash = vHash;
     setView(buildResults(session, votes||[]), stateChanged);
@@ -248,14 +248,15 @@ function buildClosed(session){
 
 function buildResults(session, votes){
   const opts = session.options || [];
-  const total = votes.length;
+  const totalVoters = votes.length;
+  const totalWeight = votes.reduce((s, v) => s + (v.weight ?? 1), 0);
   const counts = Array(opts.length).fill(0);
   for (const v of votes){
-    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index]++;
+    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index] += (v.weight ?? 1);
   }
 
   const rows = opts.map((o,i) => {
-    const pct = total > 0 ? Math.round((counts[i]/total)*100) : 0;
+    const pct = totalWeight > 0 ? Math.round((counts[i]/totalWeight)*100) : 0;
     return `
       <div class="result-row">
         <div class="result-label-row">
@@ -270,7 +271,7 @@ function buildResults(session, votes){
 
   let statsHtml;
   if (session.participant_limit){
-    const notVoted = Math.max(0, session.participant_limit - total);
+    const notVoted = Math.max(0, session.participant_limit - totalVoters);
     statsHtml = `
       <div class="stats-box">
         <div class="stats-cell">
@@ -279,7 +280,7 @@ function buildResults(session, votes){
         </div>
         <div class="stats-divider"></div>
         <div class="stats-cell">
-          <div class="stats-num" style="color:rgba(34,197,94,.9);">${total}</div>
+          <div class="stats-num" style="color:rgba(34,197,94,.9);">${totalVoters}</div>
           <div class="stats-lbl">Abgestimmt</div>
         </div>
         <div class="stats-divider"></div>
@@ -287,9 +288,10 @@ function buildResults(session, votes){
           <div class="stats-num" style="color:rgba(239,68,68,.85);">${notVoted}</div>
           <div class="stats-lbl">Nicht abgestimmt</div>
         </div>
-      </div>`;
+      </div>
+      ${totalWeight !== totalVoters ? `<div class="stats-total">Gesamt: ${totalWeight} Stimme${totalWeight!==1?"n":""} (inkl. Übertragungen)</div>` : ""}`;
   } else {
-    statsHtml = `<div class="stats-total">Gesamt: ${total} Stimme${total!==1?"n":""}</div>`;
+    statsHtml = `<div class="stats-total">Gesamt: ${totalWeight} Stimme${totalWeight!==1?"n":""}${totalWeight !== totalVoters ? ` (${totalVoters} Abstimmende)` : ""}</div>`;
   }
 
   return `
