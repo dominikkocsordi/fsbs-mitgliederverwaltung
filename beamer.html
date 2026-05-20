@@ -109,6 +109,22 @@ html,body{
 .stats-lbl{ font-size:clamp(14px,1.5vw,18px); color:rgba(255,255,255,.5); margin-top:6px; }
 .stats-total{ margin-top:18px; font-size:20px; color:rgba(255,255,255,.45); }
 
+.validity-banner{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  padding:18px 28px; border-radius:20px; margin-bottom:28px;
+  font-size:clamp(22px,3vw,36px); font-weight:900; letter-spacing:.3px;
+}
+.validity-banner.valid{
+  background:rgba(34,197,94,.16); border:2px solid rgba(34,197,94,.45);
+  color:rgba(34,197,94,.95);
+  box-shadow:0 0 40px rgba(34,197,94,.18);
+}
+.validity-banner.invalid{
+  background:rgba(239,68,68,.16); border:2px solid rgba(239,68,68,.45);
+  color:rgba(239,68,68,.95);
+  box-shadow:0 0 40px rgba(239,68,68,.18);
+}
+
 .delegation-section{
   margin-top:28px; padding:20px 24px; border-radius:18px;
   background:rgba(168,85,247,.08); border:1px solid rgba(168,85,247,.22);
@@ -318,10 +334,17 @@ function buildResults(session, votes){
 
   const delegationHtml = buildDelegationSection(votes, opts);
 
+  const validityBanner = session.is_valid === true
+    ? `<div class="validity-banner valid">✅ Wahl gültig</div>`
+    : session.is_valid === false
+    ? `<div class="validity-banner invalid">❌ Wahl ungültig</div>`
+    : "";
+
   return `
     <div class="results-wrap">
       <div class="results-label">Ergebnisse</div>
       <div class="beamer-title results-title">${esc(session.title)}</div>
+      ${validityBanner}
       ${rows}
       ${statsHtml}
       ${delegationHtml}
