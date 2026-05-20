@@ -811,18 +811,13 @@ function buildAdminDelegationBlock(votes, opts){
   const entries = [];
   for (const v of votes){
     const names = Array.isArray(v.delegation_names) ? v.delegation_names : [];
-    const optLabel = opts[v.option_index] ?? "?";
     for (const name of names){
-      if (name) entries.push({ name, optLabel });
+      if (name) entries.push(name);
     }
   }
   if (entries.length === 0) return "";
-  const rows = entries.map(e =>
-    `<div class="delegRow">
-      <span class="delegName">${esc(e.name)}</span>
-      <span class="delegArrow">→</span>
-      <span class="delegOpt">${esc(e.optLabel)}</span>
-    </div>`
+  const rows = entries.map(name =>
+    `<div class="delegRow"><span class="delegName">${esc(name)}</span></div>`
   ).join("");
   return `<div class="delegBlock">
     <div class="delegBlockTitle">🔄 Stimmübertragungen (${entries.length})</div>

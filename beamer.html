@@ -355,18 +355,13 @@ function buildDelegationSection(votes, opts){
   const entries = [];
   for (const v of votes){
     const names = Array.isArray(v.delegation_names) ? v.delegation_names : [];
-    const optLabel = opts[v.option_index] ?? "?";
     for (const name of names){
-      if (name) entries.push({ name, optLabel });
+      if (name) entries.push(name);
     }
   }
   if (entries.length === 0) return "";
-  const chips = entries.map(e =>
-    `<span class="delegation-chip">
-      ${esc(e.name)}
-      <span class="delegation-arrow">→</span>
-      <span class="delegation-opt">${esc(e.optLabel)}</span>
-    </span>`
+  const chips = entries.map(name =>
+    `<span class="delegation-chip">${esc(name)}</span>`
   ).join("");
   return `<div class="delegation-section">
     <div class="delegation-heading">🔄 Stimmübertragungen (${entries.length})</div>
