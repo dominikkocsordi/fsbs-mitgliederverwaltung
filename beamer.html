@@ -108,6 +108,28 @@ html,body{
 .stats-num{ font-size:clamp(36px,5vw,56px); font-weight:900; line-height:1; }
 .stats-lbl{ font-size:clamp(14px,1.5vw,18px); color:rgba(255,255,255,.5); margin-top:6px; }
 .stats-total{ margin-top:18px; font-size:20px; color:rgba(255,255,255,.45); }
+
+.delegation-section{
+  margin-top:28px; padding:20px 24px; border-radius:18px;
+  background:rgba(168,85,247,.08); border:1px solid rgba(168,85,247,.22);
+}
+.delegation-heading{
+  font-size:16px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+  color:rgba(168,85,247,.85); margin-bottom:14px;
+}
+.delegation-grid{
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+.delegation-chip{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:7px 14px; border-radius:999px; font-size:clamp(13px,1.4vw,17px); font-weight:600;
+  background:rgba(168,85,247,.14); border:1px solid rgba(168,85,247,.28);
+  color:rgba(255,255,255,.88);
+}
+.delegation-arrow{ color:rgba(168,85,247,.7); font-size:.85em; }
+.delegation-opt{
+  color:rgba(249,115,22,.9); font-weight:700;
+}
 </style>
 </head>
 <body>
@@ -203,7 +225,7 @@ async function refresh(){
   } else if (state === "closed"){
     if (stateChanged) setView(buildClosed(session), true);
   } else {
-    const { data: votes } = await sb.from("votes").select("option_index, weight").eq("session_id", session.id);
+    const { data: votes } = await sb.from("votes").select("option_index, weight, delegation_names").eq("session_id", session.id);
     const vHash = (votes||[]).map(v=>v.option_index+"x"+(v.weight??1)).sort().join(",");
     if (!stateChanged && vHash === lastVoteHash) return;
     lastVoteHash = vHash;
@@ -294,13 +316,39 @@ function buildResults(session, votes){
     statsHtml = `<div class="stats-total">Gesamt: ${totalWeight} Stimme${totalWeight!==1?"n":""}${totalWeight !== totalVoters ? ` (${totalVoters} Abstimmende)` : ""}</div>`;
   }
 
+  const delegationHtml = buildDelegationSection(votes, opts);
+
   return `
     <div class="results-wrap">
       <div class="results-label">Ergebnisse</div>
       <div class="beamer-title results-title">${esc(session.title)}</div>
       ${rows}
       ${statsHtml}
+      ${delegationHtml}
     </div>`;
+}
+
+function buildDelegationSection(votes, opts){
+  const entries = [];
+  for (const v of votes){
+    const names = Array.isArray(v.delegation_names) ? v.delegation_names : [];
+    const optLabel = opts[v.option_index] ?? "?";
+    for (const name of names){
+      if (name) entries.push({ name, optLabel });
+    }
+  }
+  if (entries.length === 0) return "";
+  const chips = entries.map(e =>
+    `<span class="delegation-chip">
+      ${esc(e.name)}
+      <span class="delegation-arrow">→</span>
+      <span class="delegation-opt">${esc(e.optLabel)}</span>
+    </span>`
+  ).join("");
+  return `<div class="delegation-section">
+    <div class="delegation-heading">🔄 Stimmübertragungen (${entries.length})</div>
+    <div class="delegation-grid">${chips}</div>
+  </div>`;
 }
 
 refresh();
