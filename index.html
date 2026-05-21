@@ -820,9 +820,13 @@ async function loadMvWidget(){
   if (!totalEl || !splitEl || !quoteEl) return;
 
   try{
-    const res = await fetch(MV_APPS_SCRIPT_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
+    const [mvRes, { count: memberCount }] = await Promise.all([
+      fetch(MV_APPS_SCRIPT_URL, { cache: "no-store" }),
+      sb.from("members").select("*", { count: "exact", head: true }).in("status", ["Vollmitglied", "Fördermitglied"])
+    ]);
+
+    if (!mvRes.ok) throw new Error(`HTTP ${mvRes.status}`);
+    const json = await mvRes.json();
     if (!json.ok) throw new Error(json.error || "Apps Script Fehler");
 
     const rows  = json.rows;
@@ -832,11 +836,15 @@ async function loadMvWidget(){
       return s.includes("ja") || s.includes("anwesend");
     }).length;
     const no    = Math.max(0, total - yes);
-    const quote = total ? Math.round((yes / total) * 100) : 0;
 
     totalEl.textContent = String(total);
     splitEl.textContent = `${yes} / ${no}`;
-    quoteEl.textContent = `${quote}%`;
+
+    if (memberCount && memberCount > 0) {
+      quoteEl.textContent = `${Math.round((yes / memberCount) * 100)}%`;
+    } else {
+      quoteEl.textContent = `${yes} Zusagen`;
+    }
   } catch(err){
     console.warn("MV-Widget konnte nicht geladen werden:", err.message);
     totalEl.textContent = "–";

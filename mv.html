@@ -14,6 +14,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="manifest" href="/favicon/site.webmanifest">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root {
@@ -406,7 +407,7 @@
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Gesamt</div><span class="kpiDot purple"></span></div><div class="kpiValue" id="kpiTotal">—</div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Anwesend</div><span class="kpiDot ok"></span></div><div class="kpiValue" id="kpiPresent">—</div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Abwesend</div><span class="kpiDot bad"></span></div><div class="kpiValue" id="kpiAbsent">—</div></div>
-      <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Teilnahmequote</div><span class="kpiDot warn"></span></div><div class="kpiValue" id="kpiRate">—</div></div>
+      <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Quote (Vollmitgl.)</div><span class="kpiDot warn"></span></div><div class="kpiValue" id="kpiRate">—</div><div style="font-size:11px;color:rgba(255,255,255,.50);margin-top:4px;position:relative;" id="kpiRateSub"></div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Stimmübertragung</div><span class="kpiDot purple"></span></div><div class="kpiValue" id="kpiDelegation">—</div></div>
     </div>
 
@@ -456,12 +457,17 @@
 
 <script>
   /* ── Config ── */
-  // Nach dem Deployment des Apps Scripts die URL hier eintragen:
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJtYsEQbqqrp0gyfPp5caDitVndT1SwiLTSi1ybtf63_27UUv07wnlESYrP5-Cf2SEtA/exec";
-  const SHEET_ID  = "1flDSMDrAAezX2stUJmMyUyAv4wtJ3djW4i2E6kYa_8c";
+  const SHEET_ID  = "1flDSMDrAAezX2stUJmMyUyAv4wtj3djW4i2E6kYa_8c";
   const SHEET_GID = "0";
   const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
   const AUTO_REFRESH_MS = 60_000;
+
+  /* ── Supabase (für Mitgliederzahl) ── */
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  let stimmberechtigte = null; // wird beim ersten Laden gesetzt
 
   /* ── Helpers ── */
   const $ = id => document.getElementById(id);
@@ -554,13 +560,20 @@
     const total      = allRows.length;
     const present    = allRows.filter(r => isPresent(r._status)).length;
     const absent     = total - present;
-    const rate       = total ? Math.round((present / total) * 100) : 0;
     const delegation = allRows.filter(r => r._delegation && r._delegation.trim() !== "").length;
     $("kpiTotal").textContent      = total;
     $("kpiPresent").textContent    = present;
     $("kpiAbsent").textContent     = absent;
-    $("kpiRate").textContent       = `${rate}%`;
     $("kpiDelegation").textContent = delegation;
+
+    if (stimmberechtigte !== null && stimmberechtigte > 0) {
+      const rate = Math.round((present / stimmberechtigte) * 100);
+      $("kpiRate").textContent    = `${rate}%`;
+      $("kpiRateSub").textContent = `${present} / ${stimmberechtigte} Mitgl.`;
+    } else {
+      $("kpiRate").textContent    = "–";
+      $("kpiRateSub").textContent = "Mitgliederzahl lädt…";
+    }
   }
 
   /* ── Filter ── */
@@ -608,6 +621,28 @@
         <td>${delegation}</td>
       </tr>`;
     }).join("");
+  }
+
+  /* ── Stimmberechtigte Mitglieder aus Supabase ── */
+  async function loadStimmberechtigte() {
+    try {
+      const { data, error } = await sb
+        .from("members")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["Vollmitglied", "Fördermitglied"]);
+      if (error) throw error;
+      stimmberechtigte = data?.length ?? 0;
+      // Supabase gibt bei head:true keine Rows zurück – count nutzen
+      const { count, error: e2 } = await sb
+        .from("members")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["Vollmitglied", "Fördermitglied"]);
+      if (!e2) stimmberechtigte = count ?? 0;
+    } catch (err) {
+      console.warn("[MV] Mitgliederzahl konnte nicht geladen werden:", err.message);
+      stimmberechtigte = null;
+    }
+    updateKpis();
   }
 
   /* ── Load via Apps Script ── */
@@ -702,6 +737,7 @@
   exportBtn.addEventListener("click", exportCsv);
 
   /* ── Init ── */
+  loadStimmberechtigte();
   loadData();
   refreshTimer = setInterval(loadData, AUTO_REFRESH_MS);
 </script>
