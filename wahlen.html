@@ -357,6 +357,19 @@ input[type=number]::-webkit-outer-spin-button{ opacity:.5; }
 }
 .addOptionBtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.30); transform:translateY(-1px); }
 
+.presetRow{
+  display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px;
+}
+.presetLabel{ font-size:12px; color:var(--muted); white-space:nowrap; }
+.presetBtn{
+  padding:5px 13px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:.15px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+  color:rgba(255,255,255,.72); cursor:pointer;
+  transition:background .14s, border-color .14s, color .14s, transform .14s;
+}
+.presetBtn:hover{ background:rgba(249,115,22,.18); border-color:rgba(249,115,22,.40); color:rgba(255,255,255,.96); transform:translateY(-1px); }
+.presetBtn.active{ background:rgba(249,115,22,.22); border-color:rgba(249,115,22,.55); color:rgba(255,255,255,.96); }
+
 .modalActions{ display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap; }
 .modalActions button{ min-width:120px; }
 
@@ -458,6 +471,11 @@ input[type=number]::-webkit-outer-spin-button{ opacity:.5; }
 
     <div class="formGroup">
       <label class="formLabel">Optionen</label>
+      <div class="presetRow">
+        <span class="presetLabel">Voreinstellung:</span>
+        <button class="presetBtn" id="presetJaNeinEnthaltung" type="button">Ja · Nein · Enthaltung</button>
+        <button class="presetBtn" id="presetJaNein" type="button">Ja · Nein</button>
+      </div>
       <div class="optionsList" id="optionsList"></div>
       <button class="addOptionBtn" id="addOptionBtn" type="button">+ Option hinzufügen</button>
       <div style="font-size:12px;color:var(--muted);margin-top:6px;">Mindestens 2, maximal 10 Optionen.</div>
@@ -910,6 +928,22 @@ async function deleteSession(id, title){
 const modal = document.getElementById("createModal");
 let optionCount = 0;
 
+function clearPresetActive(){
+  document.querySelectorAll(".presetBtn").forEach(b => b.classList.remove("active"));
+}
+
+function applyPreset(options, sourceBtn){
+  document.getElementById("optionsList").innerHTML = "";
+  optionCount = 0;
+  options.forEach(opt => {
+    addOptionRow();
+    const rows = document.querySelectorAll(".optionRow");
+    rows[rows.length - 1].querySelector("input").value = opt;
+  });
+  clearPresetActive();
+  if (sourceBtn) sourceBtn.classList.add("active");
+}
+
 function openCreateModal(){
   optionCount = 0;
   document.getElementById("sessionTitle").value = "";
@@ -918,6 +952,7 @@ function openCreateModal(){
   document.getElementById("limitInputWrap").classList.add("hidden");
   document.getElementById("participantLimitInput").value = "";
   document.getElementById("delegationToggle").checked = false;
+  clearPresetActive();
   addOptionRow(); addOptionRow();
   modal.showModal();
   document.getElementById("sessionTitle").focus();
@@ -954,6 +989,8 @@ function refreshRemoveButtons(){
 
 document.getElementById("addOptionBtn").addEventListener("click", addOptionRow);
 document.getElementById("cancelModalBtn").addEventListener("click", () => modal.close());
+document.getElementById("presetJaNeinEnthaltung").addEventListener("click", function(){ applyPreset(["Ja","Nein","Enthaltung"], this); });
+document.getElementById("presetJaNein").addEventListener("click", function(){ applyPreset(["Ja","Nein"], this); });
 modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
 document.getElementById("limitToggle").addEventListener("change", e => {
   document.getElementById("limitInputWrap").classList.toggle("hidden", !e.target.checked);
