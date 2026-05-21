@@ -488,8 +488,8 @@ const CAND_STATUS_COL = "bewerbung_status";
 /* Einheitliche Ressorts */
 const RESSORTS = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
 
-/* MV CSV */
-const MV_CSV_URL = "https://docs.google.com/spreadsheets/d/1Awj72kMuAVG7a0dmAqXLEAN3m2lfHI4mTT0otGulx8o/export?format=csv&gid=316397747";
+/* MV – Apps Script */
+const MV_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJtYsEQbqqrp0gyfPp5caDitVndT1SwiLTSi1ybtf63_27UUv07wnlESYrP5-Cf2SEtA/exec";
 
 /* Canonical Farbmap */
 const RESSORT_COLORS = {
@@ -820,15 +820,18 @@ async function loadMvWidget(){
   if (!totalEl || !splitEl || !quoteEl) return;
 
   try{
-    const res = await fetch(MV_CSV_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error("MV CSV konnte nicht geladen werden");
+    const res = await fetch(MV_APPS_SCRIPT_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || "Apps Script Fehler");
 
-    const text = await res.text();
-    const rows = parseMvCsv(text);
-
+    const rows  = json.rows;
     const total = rows.length;
-    const yes = rows.filter(isPresent).length;
-    const no = Math.max(0, total - yes);
+    const yes   = rows.filter(r => {
+      const s = String(r.status || "").toLowerCase();
+      return s.includes("ja") || s.includes("anwesend");
+    }).length;
+    const no    = Math.max(0, total - yes);
     const quote = total ? Math.round((yes / total) * 100) : 0;
 
     totalEl.textContent = String(total);
