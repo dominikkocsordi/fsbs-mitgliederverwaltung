@@ -216,12 +216,13 @@
     /* ── KPI Grid ── */
     .kpiGrid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
+      grid-template-columns: repeat(5, minmax(0,1fr));
       gap: 10px;
       margin-bottom: 16px;
     }
-    @media (max-width: 1020px) { .kpiGrid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    @media (max-width: 640px)  { .kpiGrid { grid-template-columns: 1fr; } }
+    @media (max-width: 1100px) { .kpiGrid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 640px)  { .kpiGrid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 400px)  { .kpiGrid { grid-template-columns: 1fr; } }
 
     .kpiCard {
       position: relative;
@@ -349,7 +350,7 @@
     .muted { color: rgba(255,255,255,.55); }
     .hidden { display: none !important; }
 
-    @media (max-width: 900px) { .tableWrap { overflow-x: auto; } table { min-width: 680px; } }
+    @media (max-width: 900px) { .tableWrap { overflow-x: auto; } table { min-width: 820px; } }
     @media (max-width: 640px) {
       .top { flex-direction: column; align-items: flex-start; }
       input, select { min-width: 0; width: 100%; }
@@ -406,6 +407,7 @@
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Anwesend</div><span class="kpiDot ok"></span></div><div class="kpiValue" id="kpiPresent">—</div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Abwesend</div><span class="kpiDot bad"></span></div><div class="kpiValue" id="kpiAbsent">—</div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Teilnahmequote</div><span class="kpiDot warn"></span></div><div class="kpiValue" id="kpiRate">—</div></div>
+      <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Stimmübertragung</div><span class="kpiDot purple"></span></div><div class="kpiValue" id="kpiDelegation">—</div></div>
     </div>
 
     <!-- Controls -->
@@ -439,6 +441,7 @@
             <th>E-Mail</th>
             <th>Status</th>
             <th>Grund (bei Abwesenheit)</th>
+            <th>Stimmübertragung</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
@@ -453,7 +456,7 @@
 
 <script>
   /* ── Config ── */
-  const SHEET_ID  = "1B_uJsTFQXyp_hEJ4IA2oJO_2Y1JLYuO-ZC5c8L9Fj0M";
+  const SHEET_ID  = "1flDSMDrAAezX2stUJmMyUyAv4wtJ3djW4i2E6kYa_8c";
   const SHEET_GID = "0"; // erste Tabelle; bei Bedarf anpassen
   const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
   const AUTO_REFRESH_MS = 60_000;
@@ -509,16 +512,11 @@
     return key ? safe(row[key]).trim() : "";
   }
 
-  const resolveEmail  = row => pickCol(row, ["E-Mail","E-Mail Adresse","Email","Mail","E-Mail-Adresse"]);
-  const resolveStatus = row => pickCol(row, ["Status","Nimmst du an der MV teil?","Nimmst du an der Mitgliederversammlung teil?","Teilnahme","Anwesenheit"]);
-  const resolveReason = row => pickCol(row, [
-    "Grund",
-    "Falls nein, was ist der Grund für deine Abwesenheit?",
-    "Falls Nein, was ist der Grund für deine Abwesenheit?",
-    "Falls du nicht teilnehmen kannst, was ist der Grund?",
-    "Grund für Abwesenheit","Abwesenheitsgrund","Warum bist du abwesend?","Falls abwesend, warum?"
-  ]);
-  const resolveName   = row => {
+  const resolveEmail       = row => pickCol(row, ["E-Mail Adresse","E-Mail","Email","Mail","E-Mail-Adresse"]);
+  const resolveStatus      = row => pickCol(row, ["Nimmst du an der MV teil?","Nimmst du an der Mitgliederversammlung teil?","Status","Teilnahme","Anwesenheit"]);
+  const resolveReason      = row => pickCol(row, ["Grund für Abwesenheit","Grund","Abwesenheitsgrund","Falls nein, was ist der Grund für deine Abwesenheit?","Falls Nein, was ist der Grund für deine Abwesenheit?"]);
+  const resolveDelegation  = row => pickCol(row, ["Bestätigung zur Stimmübertragung","Stimmübertragung","Stimmrechtsübertragung"]);
+  const resolveName        = row => {
     const full = pickCol(row, ["Name","Vollständiger Name","Vor- und Nachname"]);
     if (full) return full;
     const fn = pickCol(row, ["Vorname","First Name"]);
@@ -551,14 +549,16 @@
 
   /* ── KPI update ── */
   function updateKpis() {
-    const total   = allRows.length;
-    const present = allRows.filter(r => isPresent(r._status)).length;
-    const absent  = total - present;
-    const rate    = total ? Math.round((present / total) * 100) : 0;
-    $("kpiTotal").textContent   = total;
-    $("kpiPresent").textContent = present;
-    $("kpiAbsent").textContent  = absent;
-    $("kpiRate").textContent    = `${rate}%`;
+    const total      = allRows.length;
+    const present    = allRows.filter(r => isPresent(r._status)).length;
+    const absent     = total - present;
+    const rate       = total ? Math.round((present / total) * 100) : 0;
+    const delegation = allRows.filter(r => r._delegation && r._delegation.trim() !== "").length;
+    $("kpiTotal").textContent      = total;
+    $("kpiPresent").textContent    = present;
+    $("kpiAbsent").textContent     = absent;
+    $("kpiRate").textContent       = `${rate}%`;
+    $("kpiDelegation").textContent = delegation;
   }
 
   /* ── Filter ── */
@@ -567,7 +567,7 @@
     const sf = safe(statusFilter.value);
     return allRows.filter(r => {
       if (q) {
-        const haystack = [r._name, r._email, r._status, r._reason].join(" ").toLowerCase();
+        const haystack = [r._name, r._email, r._status, r._reason, r._delegation].join(" ").toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       if (sf === "anwesend" && !isPresent(r._status)) return false;
@@ -590,16 +590,20 @@
     tableWrap.classList.remove("hidden");
 
     tbody.innerHTML = rows.map(r => {
-      const present = isPresent(r._status);
-      const reason  = !present && r._reason ? esc(r._reason) : '<span class="muted">—</span>';
-      const email   = r._email
+      const present    = isPresent(r._status);
+      const reason     = !present && r._reason ? esc(r._reason) : '<span class="muted">—</span>';
+      const email      = r._email
         ? `<a class="mailLink" href="mailto:${esc(r._email)}">${esc(r._email)}</a>`
+        : '<span class="muted">—</span>';
+      const delegation = r._delegation
+        ? `<span class="statusBadge" style="border-color:rgba(168,85,247,.30);background:linear-gradient(135deg,rgba(168,85,247,.18),rgba(124,58,237,.10));color:#e9d5ff;">${esc(r._delegation)}</span>`
         : '<span class="muted">—</span>';
       return `<tr>
         <td class="nameCell">${esc(r._name)}</td>
         <td>${email}</td>
         <td><span class="statusBadge ${present ? "ok" : "bad"}">${present ? "🟢 Anwesend" : "🔴 Abwesend"}</span></td>
         <td class="reasonText">${reason}</td>
+        <td>${delegation}</td>
       </tr>`;
     }).join("");
   }
@@ -623,10 +627,11 @@
 
       allRows = raw.map(r => ({
         ...r,
-        _name:   resolveName(r),
-        _email:  resolveEmail(r),
-        _status: resolveStatus(r),
-        _reason: resolveReason(r),
+        _name:       resolveName(r),
+        _email:      resolveEmail(r),
+        _status:     resolveStatus(r),
+        _reason:     resolveReason(r),
+        _delegation: resolveDelegation(r),
       }));
 
       const now = new Date().toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" });
@@ -651,8 +656,8 @@
   /* ── CSV Export ── */
   function exportCsv() {
     const rows = getFiltered();
-    const header = ["Name","E-Mail","Status","Grund"];
-    const lines  = [header, ...rows.map(r => [r._name, r._email, r._status, r._reason])];
+    const header = ["Name","E-Mail","Status","Grund für Abwesenheit","Bestätigung zur Stimmübertragung"];
+    const lines  = [header, ...rows.map(r => [r._name, r._email, r._status, r._reason, r._delegation])];
     const csv = lines.map(row =>
       row.map(v => `"${safe(v).replace(/"/g,'""')}"`).join(",")
     ).join("\n");
