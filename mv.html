@@ -456,8 +456,10 @@
 
 <script>
   /* ── Config ── */
+  // Nach dem Deployment des Apps Scripts die URL hier eintragen:
+  const APPS_SCRIPT_URL = "";   // z.B. "https://script.google.com/macros/s/AKfyc.../exec"
   const SHEET_ID  = "1flDSMDrAAezX2stUJmMyUyAv4wtJ3djW4i2E6kYa_8c";
-  const SHEET_GID = "0"; // erste Tabelle; bei Bedarf anpassen
+  const SHEET_GID = "0";
   const SHEET_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
   const AUTO_REFRESH_MS = 60_000;
 
@@ -608,7 +610,36 @@
     }).join("");
   }
 
-  /* ── Load data ── */
+  /* ── Load via Apps Script ── */
+  async function fetchFromAppsScript() {
+    const res = await fetch(APPS_SCRIPT_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Apps Script HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || "Apps Script Fehler");
+    return json.rows.map(r => ({
+      _name:       r.name,
+      _email:      r.email,
+      _status:     r.status,
+      _reason:     r.grund,
+      _delegation: r.delegation,
+    }));
+  }
+
+  /* ── Load via CSV export (fallback) ── */
+  async function fetchFromCsv() {
+    const res = await fetch(SHEET_CSV, { cache: "no-store" });
+    if (!res.ok) throw new Error(`CSV HTTP ${res.status}`);
+    const text = await res.text();
+    return parseCsv(text).map(r => ({
+      _name:       resolveName(r),
+      _email:      resolveEmail(r),
+      _status:     resolveStatus(r),
+      _reason:     resolveReason(r),
+      _delegation: resolveDelegation(r),
+    }));
+  }
+
+  /* ── Load data (Apps Script → CSV fallback) ── */
   async function loadData() {
     reloadBtn.disabled = true;
     loadingBox.classList.remove("hidden");
@@ -619,24 +650,15 @@
     statusPill.className = "pill status";
 
     try {
-      const res = await fetch(SHEET_CSV, { cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status} – Sheet nicht erreichbar`);
+      if (APPS_SCRIPT_URL) {
+        allRows = await fetchFromAppsScript();
+      } else {
+        allRows = await fetchFromCsv();
+      }
 
-      const text = await res.text();
-      const raw  = parseCsv(text);
-
-      allRows = raw.map(r => ({
-        ...r,
-        _name:       resolveName(r),
-        _email:      resolveEmail(r),
-        _status:     resolveStatus(r),
-        _reason:     resolveReason(r),
-        _delegation: resolveDelegation(r),
-      }));
-
-      const now = new Date().toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" });
+      const now = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
       statusPill.textContent = `${allRows.length} Einträge`;
-      subtitle.textContent = `Zuletzt aktualisiert: ${now} · aktualisiert sich automatisch`;
+      subtitle.textContent   = `Zuletzt aktualisiert: ${now} · aktualisiert sich automatisch`;
 
       updateKpis();
       loadingBox.classList.add("hidden");
@@ -645,9 +667,11 @@
       console.error("[MV]", err);
       loadingBox.classList.add("hidden");
       statusPill.textContent = "Fehler";
-      statusPill.className = "pill error";
+      statusPill.className   = "pill error";
       errorBox.classList.remove("hidden");
-      errorBox.textContent = `Fehler beim Laden: ${err.message}. Bitte stelle sicher, dass das Google Sheet öffentlich zugänglich ist (\"Jeder mit dem Link kann anzeigen\").`;
+      errorBox.innerHTML = `<strong>Fehler beim Laden:</strong> ${esc(err.message)}<br><br>
+        Bitte das Apps Script deployen (Extensions → Apps Script → Deployen → Web App → Zugriff: Jeder)
+        und die URL in <code>mv.html</code> als <code>APPS_SCRIPT_URL</code> eintragen.`;
     } finally {
       reloadBtn.disabled = false;
     }
