@@ -2,13 +2,18 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>FSBS Intern – Login</title>
+  <!-- PWA / App-Meta -->
+  <meta name="theme-color" content="#120e18">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FSBS">
+  <meta name="mobile-web-app-capable" content="yes">
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-  
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="manifest" href="/favicon/site.webmanifest">
 
@@ -167,6 +172,20 @@
 
     footer{ margin-top:14px; text-align:center; color: rgba(255,255,255,.55); font-size: 12px; }
     footer strong{ color: rgba(255,255,255,.78); font-weight: 750; }
+
+    /* Mobile optimierungen */
+    @media (max-width: 600px) {
+      body {
+        padding: 24px 14px env(safe-area-inset-bottom, 24px);
+        align-items: flex-start;
+        padding-top: max(42px, env(safe-area-inset-top, 42px));
+      }
+      .app { width: 100%; }
+      input, select { font-size: 16px !important; } /* verhindert iOS-Zoom */
+      .btn-primary, .btn-secondary { min-height: 48px; width: 100%; }
+      .row { flex-direction: column; }
+      .row button { width: 100%; }
+    }
   </style>
 </head>
 
@@ -322,6 +341,13 @@
   (async ()=>{
     await handleCallbackIfNeeded();
   })();
+
+  // PWA: Service Worker registrieren
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(console.warn);
+    });
+  }
 </script>
 </body>
 </html>

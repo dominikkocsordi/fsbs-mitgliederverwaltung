@@ -1,5 +1,5 @@
 /* ============================================================
-   MOBILE NAV — Slide-in Drawer + Global Mobile UI
+   MOBILE NAV — Slide-in Drawer + Bottom Tab Bar + Global Mobile UI
    ============================================================ */
 
 /* ---------- Hamburger (hidden on desktop) ---------- */
@@ -201,11 +201,77 @@
 .drawerLogout:hover { background: rgba(239,68,68,.20); }
 
 /* ============================================================
+   BOTTOM TAB BAR  (nur Mobile)
+   ============================================================ */
+.bottomTabBar {
+  display: none; /* Desktop: versteckt */
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 1100;
+  background: rgba(10,7,18,.96);
+  border-top: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  /* Safe area für Geräte mit Home-Indikator (iPhone X+) */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  align-items: stretch;
+}
+
+.tabItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 2px 6px;
+  min-height: 54px;
+  text-decoration: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: rgba(255,255,255,.42);
+  transition: color .15s, background .15s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.tabItem:active {
+  background: rgba(255,255,255,.05);
+}
+.tabItem.active {
+  color: #f97316;
+}
+/* Aktiver Indikator-Streifen oben */
+.tabItem.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 22%; right: 22%;
+  height: 2px;
+  background: linear-gradient(90deg, #f97316, #a855f7);
+  border-radius: 0 0 3px 3px;
+}
+
+.tabIcon {
+  font-size: 22px;
+  line-height: 1;
+}
+.tabLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  white-space: nowrap;
+}
+
+/* ============================================================
    MOBILE OVERRIDES  (≤ 768px)
    ============================================================ */
 @media (max-width: 768px) {
 
-  /* --- Nav bar: hamburger left, logout right --- */
+  /* Bottom Tab Bar sichtbar machen */
+  .bottomTabBar { display: flex; }
+
+  /* --- Nav bar: hamburger links, logout rechts --- */
   .hamburger { display: flex; }
   .navLeft { display: none !important; }
   .nav {
@@ -215,7 +281,15 @@
   }
   .navRight { margin-left: 0 !important; }
 
-  /* --- Hide desktop auth badge (info shown in drawer) --- */
+  /* --- Sticky Nav ausblenden wenn Bottom Tab Bar aktiv --- */
+  /* Weiterhin sichtbar für Logo + Logout Button */
+  .navWrap {
+    top: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .nav { padding: 6px 8px !important; }
+
+  /* --- Desktop Auth-Badge verbergen (steht im Drawer) --- */
   .authFloating { display: none !important; }
 
   /* --- Top header --- */
@@ -239,25 +313,22 @@
     padding: 4px !important;
   }
 
-  /* --- Nav wrap --- */
-  .navWrap { top: 8px !important; margin-bottom: 12px !important; }
-  .nav { padding: 6px 8px !important; }
-
-  /* --- Tap targets --- */
+  /* --- Tap-Targets (mind. 44px) --- */
   .btn-primary, .btn-secondary, .btn-danger, .iconBtn {
     min-height: 44px;
   }
   .navRight button { min-height: 38px; font-size: 13px !important; padding: 8px 14px !important; }
 
-  /* --- Body padding --- */
+  /* --- Body padding: oben + unten für Tab Bar --- */
   body {
     padding-top: 20px !important;
     padding-left: 12px !important;
     padding-right: 12px !important;
-    padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)) !important;
+    /* Tab Bar (~56px) + safe area + extra padding */
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  /* --- KPI / dashboard grid --- */
+  /* --- KPI / Dashboard-Grid --- */
   .grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
@@ -271,25 +342,29 @@
   .card { padding: 14px !important; border-radius: 18px !important; }
   .glass { border-radius: 18px !important; }
 
-  /* --- Tables: horizontal scroll --- */
-  .tableWrap { border-radius: 14px !important; }
+  /* --- Tabellen: horizontal scrollbar --- */
+  .tableWrap { border-radius: 14px !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { min-width: 600px; }
   th, td { padding: 10px 10px !important; font-size: 13px !important; }
 
-  /* --- Form fields --- */
+  /* --- Formularfelder --- */
   input, select, textarea {
-    font-size: 16px !important; /* prevents iOS zoom on focus */
+    font-size: 16px !important; /* verhindert iOS-Zoom beim Fokus */
     min-height: 44px;
   }
   textarea { min-height: unset !important; }
 
-  /* --- Modals / drawers --- */
+  /* --- Modals / Drawers --- */
   .modalCard { border-radius: 20px !important; max-height: 92vh !important; }
+
+  /* --- Smooth scroll --- */
+  html { scroll-behavior: smooth; }
 }
 
-/* Very small screens */
+/* Sehr kleine Bildschirme */
 @media (max-width: 420px) {
   .grid { grid-template-columns: 1fr !important; }
   .kpiFull { grid-column: span 1 !important; }
   h1 { font-size: 18px !important; }
+  .tabLabel { font-size: 8.5px !important; }
 }
