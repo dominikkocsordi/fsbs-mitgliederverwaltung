@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="de">
+<!--
+  ============================================================
+  FSBS Intern – Supabase E-Mail-Template (Magic Link / OTP)
+  ============================================================
+  Dieses Template im Supabase-Dashboard einfügen:
+  Authentication → Email Templates → Magic Link → HTML
+
+  Supabase-Variablen:
+    {{ .Token }}           = 8-stelliger OTP-Code
+    {{ .ConfirmationURL }} = Magic-Link URL (Fallback)
+    {{ .SiteURL }}         = https://portal.fsbs-hm.de
+  ============================================================
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <title>FSBS Intern – Login-Code</title>
+  <style>
+    /* Reset */
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    body { margin: 0 !important; padding: 0 !important; background-color: #120e18; }
+    /* Responsive */
+    @media only screen and (max-width: 600px) {
+      .wrapper { width: 100% !important; padding: 16px !important; }
+      .code-box { font-size: 32px !important; letter-spacing: 8px !important; padding: 20px 16px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#120e18; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+
+  <!-- Hintergrund -->
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+         style="background-color:#120e18; min-height:100vh;">
+    <tr>
+      <td align="center" valign="top" style="padding:40px 16px;">
+
+        <!-- Container -->
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+               class="wrapper"
+               style="width:100%; max-width:520px;">
+
+          <!-- Header: Logo + Name -->
+          <tr>
+            <td align="center" style="padding-bottom:24px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td valign="middle" style="padding-right:12px;">
+                    <!-- Logo-Box -->
+                    <div style="
+                      width:52px; height:52px; border-radius:14px;
+                      background:rgba(255,255,255,.10);
+                      border:1px solid rgba(255,255,255,.18);
+                      display:inline-flex; align-items:center; justify-content:center;
+                      padding:6px; vertical-align:middle;
+                    ">
+                      <img src="https://portal.fsbs-hm.de/logo.png"
+                           alt="FSBS"
+                           width="40" height="40"
+                           style="border-radius:10px; display:block; width:40px; height:40px; object-fit:cover;" />
+                    </div>
+                  </td>
+                  <td valign="middle">
+                    <div style="font-size:22px; font-weight:800; color:rgba(255,255,255,.95); letter-spacing:.3px; line-height:1.1;">
+                      FSBS Intern
+                    </div>
+                    <div style="font-size:13px; color:rgba(255,255,255,.50); margin-top:3px;">
+                      Fachschaft Business School e.V.
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Haupt-Card -->
+          <tr>
+            <td>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                     style="
+                       background:rgba(255,255,255,.08);
+                       border:1px solid rgba(255,255,255,.14);
+                       border-radius:24px;
+                       overflow:hidden;
+                     ">
+
+                <!-- Farbiger Top-Streifen -->
+                <tr>
+                  <td style="
+                    height:4px;
+                    background:linear-gradient(90deg, #f97316, #a855f7, #3b82f6);
+                    border-radius:24px 24px 0 0;
+                  "></td>
+                </tr>
+
+                <!-- Card-Inhalt -->
+                <tr>
+                  <td style="padding:32px 32px 28px;">
+
+                    <!-- Eyebrow-Pill -->
+                    <div style="text-align:center; margin-bottom:20px;">
+                      <span style="
+                        display:inline-block;
+                        padding:7px 14px;
+                        border-radius:999px;
+                        background:rgba(249,115,22,.14);
+                        border:1px solid rgba(249,115,22,.28);
+                        color:rgba(249,115,22,.95);
+                        font-size:12px;
+                        font-weight:700;
+                        letter-spacing:.3px;
+                      ">🔐 Login-Anfrage</span>
+                    </div>
+
+                    <!-- Überschrift -->
+                    <h1 style="
+                      margin:0 0 8px;
+                      font-size:22px;
+                      font-weight:800;
+                      color:rgba(255,255,255,.96);
+                      text-align:center;
+                      letter-spacing:.2px;
+                    ">Dein Login-Code</h1>
+
+                    <p style="
+                      margin:0 0 28px;
+                      font-size:14px;
+                      color:rgba(255,255,255,.58);
+                      text-align:center;
+                      line-height:1.5;
+                    ">
+                      Gib diesen Code in der App ein.<br>
+                      Gültig für <strong style="color:rgba(255,255,255,.75);">60 Minuten</strong>.
+                    </p>
+
+                    <!-- OTP-Code Box -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding-bottom:28px;">
+                          <div style="
+                            display:inline-block;
+                            padding:20px 28px;
+                            border-radius:18px;
+                            background:linear-gradient(135deg, rgba(249,115,22,.15), rgba(168,85,247,.12));
+                            border:1px solid rgba(249,115,22,.30);
+                          ">
+                            <div style="
+                              font-size:38px;
+                              font-weight:900;
+                              letter-spacing:10px;
+                              color:#ffffff;
+                              font-family:'Courier New',Courier,monospace;
+                              text-align:center;
+                              line-height:1;
+                              /* Gradient-Text Fallback für Email-Clients */
+                              background:linear-gradient(135deg,#f97316,#a855f7);
+                              -webkit-background-clip:text;
+                              -webkit-text-fill-color:transparent;
+                              background-clip:text;
+                            " class="code-box">{{ .Token }}</div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Schritt-Anleitung -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                           style="
+                             background:rgba(255,255,255,.05);
+                             border:1px solid rgba(255,255,255,.09);
+                             border-radius:14px;
+                             margin-bottom:24px;
+                           ">
+                      <tr>
+                        <td style="padding:16px 18px;">
+                          <div style="font-size:13px; color:rgba(255,255,255,.55); line-height:1.8;">
+                            <div style="margin-bottom:4px;">
+                              <span style="color:rgba(249,115,22,.90); font-weight:700;">1</span>
+                              &nbsp; App auf dem Homescreen öffnen
+                            </div>
+                            <div style="margin-bottom:4px;">
+                              <span style="color:rgba(249,115,22,.90); font-weight:700;">2</span>
+                              &nbsp; Den 8-stelligen Code oben eingeben
+                            </div>
+                            <div>
+                              <span style="color:rgba(249,115,22,.90); font-weight:700;">3</span>
+                              &nbsp; Fertig – du bist eingeloggt ✓
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Divider -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                           style="margin-bottom:20px;">
+                      <tr>
+                        <td style="border-top:1px solid rgba(255,255,255,.08); padding:0;"></td>
+                      </tr>
+                    </table>
+
+                    <!-- Alternativ: Magic Link Button (für Desktop) -->
+                    <p style="
+                      margin:0 0 14px;
+                      font-size:12px;
+                      color:rgba(255,255,255,.38);
+                      text-align:center;
+                    ">
+                      Oder direkt über den Browser einloggen:
+                    </p>
+
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center">
+                          <a href="{{ .ConfirmationURL }}"
+                             style="
+                               display:inline-block;
+                               padding:13px 28px;
+                               border-radius:14px;
+                               background:rgba(255,255,255,.10);
+                               border:1px solid rgba(255,255,255,.16);
+                               color:rgba(255,255,255,.80);
+                               text-decoration:none;
+                               font-size:14px;
+                               font-weight:600;
+                               letter-spacing:.2px;
+                             ">
+                            Im Browser öffnen →
+                          </a>
+                        </td>
+                      </tr>
+                    </table>
+
+                  </td>
+                </tr>
+
+                <!-- Card Footer -->
+                <tr>
+                  <td style="
+                    padding:16px 32px 20px;
+                    border-top:1px solid rgba(255,255,255,.07);
+                    text-align:center;
+                  ">
+                    <p style="
+                      margin:0;
+                      font-size:12px;
+                      color:rgba(255,255,255,.28);
+                      line-height:1.5;
+                    ">
+                      Falls du keinen Login angefragt hast, ignoriere diese E-Mail.<br>
+                      Dein Konto bleibt sicher.
+                    </p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top:24px;">
+              <p style="
+                margin:0;
+                font-size:12px;
+                color:rgba(255,255,255,.28);
+                text-align:center;
+              ">
+                <strong style="color:rgba(255,255,255,.42);">Fachschaft Business School e.V.</strong>
+                &nbsp;·&nbsp; portal.fsbs-hm.de
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

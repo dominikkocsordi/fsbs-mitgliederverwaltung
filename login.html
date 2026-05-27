@@ -136,9 +136,9 @@
 
     /* OTP Code Input – große Ziffern */
     #otpInput{
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 800;
-      letter-spacing: 12px;
+      letter-spacing: 8px;
       text-align: center;
       padding: 16px;
     }
@@ -278,7 +278,7 @@
           </button>
 
           <p class="note">
-            Du bekommst einen <strong>6-stelligen Code</strong> per E-Mail.
+            Du bekommst einen <strong>8-stelligen Code</strong> per E-Mail.
             Den Code gibst du dann hier ein – du musst die App nicht verlassen.
           </p>
 
@@ -303,10 +303,10 @@
           <div class="divider">oder Code manuell eingeben</div>
 
           <div>
-            <label for="otpInput">6-stelliger Code aus der E-Mail</label>
+            <label for="otpInput">8-stelliger Code aus der E-Mail</label>
             <input id="otpInput" type="text"
                    inputmode="numeric" pattern="[0-9]*"
-                   maxlength="6" placeholder="000000"
+                   maxlength="8" placeholder="00000000"
                    autocomplete="one-time-code" />
           </div>
 
@@ -444,8 +444,8 @@
   /* --- OTP verifizieren --- */
   async function verifyOtp(){
     const token = otpEl.value.trim().replace(/\D/g, "");
-    if (token.length !== 6){
-      return setMsg(msg2El, "Bitte den 6-stelligen Code eingeben.", "bad");
+    if (token.length !== 8){
+      return setMsg(msg2El, "Bitte den 8-stelligen Code eingeben.", "bad");
     }
 
     btnVerify.disabled = true;
@@ -531,13 +531,13 @@
 
   /* OTP-Feld: nur Zahlen, automatisch senden bei 6 Stellen */
   otpEl.addEventListener("input", () => {
-    const clean = otpEl.value.replace(/\D/g, "").slice(0, 6);
+    const clean = otpEl.value.replace(/\D/g, "").slice(0, 8);
     otpEl.value  = clean;
-    btnVerify.disabled = clean.length !== 6;
-    if (clean.length === 6) btnVerify.focus();
+    btnVerify.disabled = clean.length !== 8;
+    if (clean.length === 8) btnVerify.focus();
   });
   otpEl.addEventListener("keydown", e => {
-    if (e.key === "Enter" && otpEl.value.trim().length === 6) verifyOtp();
+    if (e.key === "Enter" && otpEl.value.trim().length === 8) verifyOtp();
   });
 
   btnVerify.addEventListener("click", verifyOtp);
