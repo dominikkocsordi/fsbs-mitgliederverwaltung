@@ -46,6 +46,12 @@
     bar.className = 'bottomTabBar';
     bar.setAttribute('aria-label', 'Hauptnavigation');
 
+    /* ── Liquid Glass sliding pill (sits behind all tab items) ── */
+    var pill = document.createElement('div');
+    pill.className = 'liquidPill';
+    pill.id = 'liquidPill';
+    bar.appendChild(pill);
+
     TABS.forEach(function (tab) {
       var isActive = !tab.isMehr &&
         (page === tab.href || (page === '' && tab.href === 'index.html'));
@@ -55,6 +61,7 @@
         btn.type = 'button';
         btn.className = 'tabItem';
         btn.setAttribute('aria-label', 'Weiteres Menü öffnen');
+        btn.setAttribute('data-mehr', 'true');
         btn.innerHTML =
           '<span class="tabIcon">' + tab.icon + '</span>' +
           '<span class="tabLabel">' + tab.label + '</span>';
@@ -78,6 +85,41 @@
     /* Tab Bar wird an body gehängt — nach mobileScrollWrap,
        damit sie letzter flex-Child ist (= immer unten) */
     document.body.appendChild(bar);
+
+    /* ── Pill positioning helpers ── */
+    function movePill(target) {
+      if (!target) { pill.style.opacity = '0'; return; }
+      var barRect  = bar.getBoundingClientRect();
+      var tRect    = target.getBoundingClientRect();
+      var inset    = 8; /* horizontal padding inside tab width */
+      pill.style.left    = (tRect.left - barRect.left + inset) + 'px';
+      pill.style.width   = (tRect.width - inset * 2) + 'px';
+      pill.style.opacity = '1';
+    }
+
+    /* Place pill over active tab once layout is committed */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        movePill(bar.querySelector('.tabItem.active'));
+      });
+    });
+
+    /* Keep pill in sync after orientation change */
+    window.addEventListener('orientationchange', function () {
+      setTimeout(function () {
+        movePill(bar.querySelector('.tabItem.active'));
+      }, 350);
+    }, { passive: true });
+    window.addEventListener('resize', function () {
+      movePill(bar.querySelector('.tabItem.active'));
+    }, { passive: true });
+
+    /* Slide pill on tap (before page navigates away) */
+    bar.querySelectorAll('a.tabItem').forEach(function (a) {
+      a.addEventListener('click', function () {
+        movePill(a);
+      });
+    });
 
     /* Keyboard-Handling: Tab Bar verstecken wenn Tastatur offen */
     var hidden = false;
