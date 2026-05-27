@@ -133,7 +133,7 @@
 .drawerLogout:active { background: rgba(239,68,68,.22); }
 
 /* ============================================================
-   BOTTOM TAB BAR
+   BOTTOM TAB BAR — Apple Liquid Glass (iOS 26 style)
    Standardmäßig: position fixed (Desktop/Fallback)
    Im App-Shell-Modus (body.mobileShell): position static
    ============================================================ */
@@ -142,34 +142,85 @@
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 1100;
-  background: rgba(9, 6, 16, 0.97);
-  border-top: 1px solid rgba(255,255,255,.09);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+
+  /* ── Liquid Glass core ── */
+  /* Barely-there fill — the blur does all the heavy lifting   */
+  background: rgba(10, 6, 20, 0.46);
+  border-top: none;
+  /* Heavy blur + saturation boost = true frosted-glass look   */
+  -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.14);
+  backdrop-filter: blur(52px) saturate(220%) brightness(1.14);
+
+  /* Layered shadow stack:
+     1 – bright top specular (light hitting the glass edge)
+     2 – thin full-perimeter glass border
+     3 – soft upward ambient shadow beneath content
+     4 – faint iridescent rim at the very bottom                */
+  box-shadow:
+    inset 0 1px 0      rgba(255,255,255,.30),
+    inset 0 0 0 0.5px  rgba(255,255,255,.09),
+    0 -8px 32px        rgba(0,0,0,.18),
+    0 -1px 0           rgba(255,255,255,.04);
+
+  /* Floating glass panel: rounded top corners */
+  border-radius: 28px 28px 0 0;
+  overflow: hidden;
+
   padding-bottom: env(safe-area-inset-bottom, 0px);
   align-items: stretch;
 }
 
+/* ── Individual tab ── */
 .tabItem {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 4px; padding: 10px 4px 8px; min-height: 56px;
+  gap: 3px; padding: 10px 4px 8px; min-height: 58px;
   text-decoration: none; border: none; background: none;
   cursor: pointer; font-family: inherit;
-  color: rgba(255,255,255,.38);
+  color: rgba(255,255,255,.40);
   -webkit-tap-highlight-color: transparent;
   position: relative; -webkit-user-select: none; user-select: none;
+  transition: color .18s ease;
 }
-.tabItem:active { background: rgba(255,255,255,.06); }
+/* Pressed state: brief glass ripple */
+.tabItem:active::after {
+  content: '';
+  position: absolute;
+  inset: 5px 8px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.08);
+  pointer-events: none;
+}
+
+/* ── Active tab: glass-pill capsule ── */
 .tabItem.active { color: #f97316; }
 .tabItem.active::before {
-  content: ''; position: absolute;
-  top: 0; left: 18%; right: 18%; height: 2.5px;
-  background: linear-gradient(90deg, #f97316, #a855f7);
-  border-radius: 0 0 4px 4px;
+  content: '';
+  position: absolute;
+  inset: 5px 8px;
+  border-radius: 18px;
+  /* Orange→purple gradient pill, very subtle fill */
+  background: linear-gradient(
+    155deg,
+    rgba(249,115,22,.18) 0%,
+    rgba(168,85,247,.13) 100%
+  );
+  /* Glass-pill edges */
+  border: 0.5px solid rgba(255,255,255,.22);
+  box-shadow:
+    inset 0 1px 0  rgba(255,255,255,.28),   /* inner top specular  */
+    inset 0 -1px 0 rgba(0,0,0,.10),         /* inner bottom depth  */
+    0 0 18px       rgba(249,115,22,.22),    /* orange ambient glow */
+    0 2px 10px     rgba(0,0,0,.24);         /* pill depth shadow   */
+  z-index: 0;
 }
-.tabIcon  { font-size: 23px; line-height: 1; }
-.tabLabel { font-size: 10px; font-weight: 700; letter-spacing: .15px; white-space: nowrap; }
+
+/* Keep icon + label above the ::before pill layer */
+.tabIcon  { font-size: 22px; line-height: 1; position: relative; z-index: 1; }
+.tabLabel {
+  font-size: 10px; font-weight: 700; letter-spacing: .15px;
+  white-space: nowrap; position: relative; z-index: 1;
+}
 
 /* ============================================================
    APP-SHELL LAYOUT  (body.mobileShell)
@@ -201,7 +252,8 @@
   padding: max(14px, env(safe-area-inset-top, 14px)) 14px 20px;
 }
 
-/* Tab Bar im App-Shell: kein fixed mehr, einfacher flex-Child */
+/* Tab Bar im App-Shell: kein fixed mehr, einfacher flex-Child
+   Liquid Glass bleibt erhalten; nur position wird auf static umgestellt */
 .mobileShell .bottomTabBar {
   display: flex;
   position: static !important;
