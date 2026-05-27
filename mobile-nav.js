@@ -2,9 +2,32 @@
   'use strict';
 
   /* ============================================================
-     BOTTOM TAB BAR
+     APP-SHELL LAYOUT
+     Verschiebt den gesamten Seiteninhalt in einen Scroll-Container.
+     Die Tab Bar wird NICHT mehr mit position:fixed gerendert,
+     sondern als normaler letzter flex-Child des body.
+     → Kein Springen mehr, weil kein fixed-Element existiert.
      ============================================================ */
+  function applyAppShell() {
+    if (!window.matchMedia('(max-width: 768px)').matches) return;
 
+    var wrap = document.createElement('div');
+    wrap.className = 'mobileScrollWrap';
+    wrap.id = 'mobileScrollWrap';
+
+    /* Alle aktuellen body-Kinder in den Scroll-Wrapper verschieben */
+    /* (Snapshot nötig, da childNodes live ist) */
+    Array.from(document.body.childNodes).forEach(function (n) {
+      wrap.appendChild(n);
+    });
+
+    document.body.appendChild(wrap);
+    document.body.classList.add('mobileShell');
+  }
+
+  /* ============================================================
+     TABS
+     ============================================================ */
   var TABS = [
     { href: 'index.html',       icon: '🏠', label: 'Dashboard'   },
     { href: 'members.html',     icon: '👥', label: 'Mitglieder'  },
@@ -14,8 +37,7 @@
   ];
 
   function currentPage() {
-    var p = window.location.pathname;
-    return p.split('/').pop() || 'index.html';
+    return window.location.pathname.split('/').pop() || 'index.html';
   }
 
   function buildTabBar(openFn) {
@@ -53,19 +75,23 @@
       }
     });
 
+    /* Tab Bar wird an body gehängt — nach mobileScrollWrap,
+       damit sie letzter flex-Child ist (= immer unten) */
     document.body.appendChild(bar);
 
-    /* Tastatur-Handling: Tab Bar verstecken wenn Tastatur offen
-       (verhindert Layout-Chaos auf iOS wenn Inputs fokussiert sind) */
-    function hideBar()  { bar.style.setProperty('display', 'none',  'important'); }
-    function showBar()  { bar.style.removeProperty('display'); }
-
+    /* Keyboard-Handling: Tab Bar verstecken wenn Tastatur offen */
+    var hidden = false;
     document.addEventListener('focusin', function (e) {
-      if (e.target.matches('input, textarea, select')) hideBar();
+      if (e.target.matches('input, textarea, select') && !hidden) {
+        hidden = true;
+        bar.style.setProperty('display', 'none', 'important');
+      }
     });
     document.addEventListener('focusout', function () {
-      // Kleines Delay damit Blur nicht mit nächstem Fokus konkurriert
-      setTimeout(showBar, 120);
+      if (hidden) {
+        hidden = false;
+        setTimeout(function () { bar.style.removeProperty('display'); }, 150);
+      }
     });
 
     return bar;
@@ -74,11 +100,15 @@
   /* ============================================================
      DRAWER
      ============================================================ */
-
   function initMobileNav() {
-    var hamburger = document.getElementById('hamburger');
-    var navLeft   = document.querySelector('.navLeft');
-    var navRight  = document.querySelector('.navRight');
+
+    /* 1. App-Shell zuerst aufbauen */
+    applyAppShell();
+
+    var scrollWrap = document.getElementById('mobileScrollWrap');
+    var hamburger  = document.getElementById('hamburger');
+    var navLeft    = document.querySelector('.navLeft');
+    var navRight   = document.querySelector('.navRight');
 
     var openDrawer, closeDrawer;
 
@@ -101,11 +131,10 @@
         );
       }).join('');
 
-      /* Overlay */
+      /* Overlay + Drawer an body hängen (außerhalb des scrollWrap → fixed funktioniert) */
       var overlay = document.createElement('div');
       overlay.className = 'mobileOverlay';
 
-      /* Drawer */
       var drawer = document.createElement('div');
       drawer.className = 'mobileDrawer';
       drawer.setAttribute('role', 'dialog');
@@ -139,27 +168,23 @@
       document.body.appendChild(overlay);
       document.body.appendChild(drawer);
 
-      /* Link-Sichtbarkeit mit navLeft synchron halten */
+      /* Links/User synchron halten */
       function syncLinks() {
         var dLinks = drawer.querySelectorAll('.drawerLink');
         navLinks.forEach(function (nl, i) {
           if (dLinks[i]) dLinks[i].style.display = nl.style.display || '';
         });
       }
-
-      /* Nutzer-Info aus Auth-Badge übernehmen */
       function syncUser() {
-        var nameEl  = document.getElementById('authNameInline');
-        var roleEl  = document.getElementById('authRolePill');
-        var avatEl  = document.getElementById('authAvatar');
-        var name    = nameEl ? nameEl.textContent.trim() : '';
+        var nameEl = document.getElementById('authNameInline');
+        var roleEl = document.getElementById('authRolePill');
+        var avatEl = document.getElementById('authAvatar');
+        var name   = nameEl ? nameEl.textContent.trim() : '';
         if (!name) return;
-
         var du = document.getElementById('drawerUser');
         var dn = document.getElementById('drawerNameEl');
         var dr = document.getElementById('drawerRoleEl');
         var da = document.getElementById('drawerAvatarEl');
-
         if (du) du.style.display = '';
         if (dn) dn.textContent = name;
         if (dr) dr.textContent = roleEl ? roleEl.textContent.trim() : '';
@@ -168,7 +193,6 @@
           if (avatEl && avatEl.style.background) da.style.background = avatEl.style.background;
         }
       }
-
       var mo = new MutationObserver(function () { syncLinks(); syncUser(); });
       mo.observe(navLeft, { subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
       ['authNameInline', 'authRolePill', 'authAvatar'].forEach(function (id) {
@@ -183,46 +207,43 @@
         syncLinks(); syncUser();
         drawer.classList.add('open');
         overlay.classList.add('open');
-        document.body.style.overflow = 'hidden';
+        /* Scroll im Content-Bereich sperren */
+        if (scrollWrap) scrollWrap.style.overflow = 'hidden';
+        else document.body.style.overflow = 'hidden';
         var first = drawer.querySelector('.drawerLink:not([style*="none"])');
         if (first) setTimeout(function () { first.focus(); }, 50);
       };
-
       closeDrawer = function () {
         drawer.classList.remove('open');
         overlay.classList.remove('open');
-        document.body.style.overflow = '';
+        /* Scroll wieder freigeben */
+        if (scrollWrap) scrollWrap.style.overflow = '';
+        else document.body.style.overflow = '';
       };
 
       hamburger.addEventListener('click', function (e) {
         e.stopPropagation();
         drawer.classList.contains('open') ? closeDrawer() : openDrawer();
       });
-
       overlay.addEventListener('click', closeDrawer);
-
       var closeBtn = document.getElementById('drawerClose');
       if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
-
-      drawer.querySelectorAll('.drawerLink').forEach(function (link) {
-        link.addEventListener('click', closeDrawer);
+      drawer.querySelectorAll('.drawerLink').forEach(function (l) {
+        l.addEventListener('click', closeDrawer);
       });
-
       document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
       });
 
-      /* Swipe nach links = Drawer schließen */
+      /* Swipe links → schließen */
       var tx = 0;
-      drawer.addEventListener('touchstart', function (e) {
-        tx = e.touches[0].clientX;
-      }, { passive: true });
+      drawer.addEventListener('touchstart', function (e) { tx = e.touches[0].clientX; }, { passive: true });
       drawer.addEventListener('touchend', function (e) {
         if (tx - e.changedTouches[0].clientX > 55) closeDrawer();
       }, { passive: true });
     }
 
-    /* Tab Bar bauen */
+    /* 2. Tab Bar bauen (wird nach scrollWrap an body gehängt) */
     buildTabBar(openDrawer);
   }
 
