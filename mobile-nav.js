@@ -86,16 +86,9 @@
        damit sie letzter flex-Child ist (= immer unten) */
     document.body.appendChild(bar);
 
-    /* ─────────────────────────────────────────────────────────
-       LIQUID MORPH PILL
-       Stretch-then-snap: pill instantly spans old→new tab,
-       then spring-snaps to the target shape.
-       This produces the iOS 26 "liquid drop" morphing effect.
-       ───────────────────────────────────────────────────────── */
-    var pillLeft  = 0;
-    var pillWidth = 0;
+    /* ── Pill: sauberer Slide, kein Stretch ── */
     var pillReady = false;
-    var INSET     = 8; /* px of horizontal padding inside each tab */
+    var INSET = 5; /* px Abstand innen pro Seite */
 
     function pillTarget(item) {
       var barRect = bar.getBoundingClientRect();
@@ -106,89 +99,49 @@
       };
     }
 
-    function placePillSilent(left, width) {
-      pill.style.transition   = 'none';
-      pill.style.left         = left  + 'px';
-      pill.style.width        = width + 'px';
-      pill.style.borderRadius = '18px';
-      pill.style.opacity      = '1';
-      pillLeft  = left;
-      pillWidth = width;
-    }
-
-    function movePill(target) {
+    function movePill(target, instant) {
       if (!target) { pill.style.opacity = '0'; return; }
-
       var t = pillTarget(target);
 
-      /* First call — silent placement, bar entrance handles visual */
-      if (!pillReady) {
-        placePillSilent(t.left, t.width);
+      if (instant || !pillReady) {
+        /* Erste Platzierung: sofort, ohne Animation */
+        pill.style.transition = 'none';
+        pill.style.left       = t.left  + 'px';
+        pill.style.width      = t.width + 'px';
+        pill.style.opacity    = '1';
         pillReady = true;
-        return;
+      } else {
+        /* Tab-Wechsel: einfacher, sauberer Slide */
+        pill.style.transition =
+          'left   .26s cubic-bezier(.4,0,.2,1),' +
+          'width  .26s cubic-bezier(.4,0,.2,1),' +
+          'opacity .18s ease';
+        pill.style.left    = t.left  + 'px';
+        pill.style.width   = t.width + 'px';
+        pill.style.opacity = '1';
       }
-
-      /* Already placed — liquid stretch-morph to new position */
-      var fromRight    = pillLeft + pillWidth;
-      var toRight      = t.left   + t.width;
-      var goingRight   = t.left   > pillLeft;
-
-      /* Stretch bounds: span from leading edge of origin to trailing edge of target */
-      var sLeft  = Math.min(pillLeft, t.left);
-      var sRight = Math.max(fromRight, toRight);
-      var sWidth = sRight - sLeft;
-
-      /* While stretched, squish the trailing corners — gives the
-         "liquid blob pulling itself forward" look                */
-      var squish = Math.max(5, 18 - Math.round(sWidth / 18));
-      var squishRadius = goingRight
-        ? (squish + 'px 18px 18px ' + squish + 'px')   /* left corners squish */
-        : ('18px ' + squish + 'px ' + squish + 'px 18px'); /* right corners squish */
-
-      /* Phase 1: instant stretch */
-      pill.style.transition    = 'none';
-      pill.style.left          = sLeft  + 'px';
-      pill.style.width         = sWidth + 'px';
-      pill.style.borderRadius  = squishRadius;
-
-      /* Phase 2: spring-snap to target (double-rAF ensures Phase 1 painted) */
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          pill.style.transition =
-            'left          .40s cubic-bezier(.34,1.56,.64,1),' +
-            'width         .40s cubic-bezier(.34,1.56,.64,1),' +
-            'border-radius .22s ease .04s';
-          pill.style.left         = t.left  + 'px';
-          pill.style.width        = t.width + 'px';
-          pill.style.borderRadius = '18px';
-          pillLeft  = t.left;
-          pillWidth = t.width;
-        });
-      });
     }
 
-    /* Place pill once layout is ready */
+    /* Pill beim Seitenload platzieren (nach Layout-Commit) */
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        movePill(bar.querySelector('.tabItem.active'));
+        movePill(bar.querySelector('.tabItem.active'), true);
       });
     });
 
-    /* Re-sync after orientation flip / resize */
+    /* Nach Orientierungswechsel neu ausrichten */
     window.addEventListener('orientationchange', function () {
       setTimeout(function () {
-        var active = bar.querySelector('.tabItem.active');
-        if (active) { placePillSilent(pillTarget(active).left, pillTarget(active).width); }
-      }, 380);
+        movePill(bar.querySelector('.tabItem.active'), true);
+      }, 350);
     }, { passive: true });
     window.addEventListener('resize', function () {
-      var active = bar.querySelector('.tabItem.active');
-      if (active) { placePillSilent(pillTarget(active).left, pillTarget(active).width); }
+      movePill(bar.querySelector('.tabItem.active'), true);
     }, { passive: true });
 
-    /* Trigger morph on tab tap (pill starts moving before page unloads) */
+    /* Pill beim Tap sofort Richtung Ziel bewegen */
     bar.querySelectorAll('a.tabItem').forEach(function (a) {
-      a.addEventListener('click', function () { movePill(a); });
+      a.addEventListener('click', function () { movePill(a, false); });
     });
 
     /* Keyboard-Handling: Tab Bar verstecken wenn Tastatur offen */

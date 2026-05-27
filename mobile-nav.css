@@ -169,13 +169,15 @@
 /* ── Aktiv-Kapsel (Position + Breite via JS) ── */
 .liquidPill {
   position: absolute;
-  top: 7px; bottom: 7px;
+  /* 5 px Abstand oben/unten → füllt den Bar besser aus, wirkt mittig */
+  top: 5px; bottom: 5px;
   left: 0; width: 0;
   opacity: 0;
-  border-radius: 16px;
+  border-radius: 18px;
   pointer-events: none;
   z-index: 1;
-  will-change: left, width, border-radius, opacity;
+  /* JS schreibt transition direkt auf das Element */
+  will-change: left, width, opacity;
 
   background: linear-gradient(
     140deg,
@@ -187,12 +189,6 @@
     inset 0 1px 0  rgba(255,255,255,.30),
     0 0 24px       rgba(249,115,22,.34),
     0 3px 14px     rgba(0,0,0,.30);
-
-  transition:
-    left          .40s cubic-bezier(.34,1.56,.64,1),
-    width         .40s cubic-bezier(.34,1.56,.64,1),
-    border-radius .18s ease,
-    opacity       .22s ease;
 
   animation: lgGlow 3.5s ease-in-out 2s infinite;
 }
