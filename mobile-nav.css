@@ -143,79 +143,95 @@
   bottom: 0; left: 0; right: 0;
   z-index: 1100;
 
-  /* Liquid Glass: semi-transparent fill + extreme blur/saturation */
-  background: rgba(10, 6, 20, 0.46);
+  /* ── Ultra-transparent Liquid Glass ──
+     Almost no fill — the blur IS the material.              */
+  background: rgba(8, 4, 18, 0.36);
   border-top: none;
-  -webkit-backdrop-filter: blur(52px) saturate(220%) brightness(1.14);
-  backdrop-filter: blur(52px) saturate(220%) brightness(1.14);
+  -webkit-backdrop-filter: blur(56px) saturate(230%) brightness(1.16);
+  backdrop-filter: blur(56px) saturate(230%) brightness(1.16);
 
   /* Shadow stack:
-     ① bright top specular  ② thin glass rim  ③ upward haze  ④ iridescent base */
+     ① crisp top specular line (light hitting glass edge)
+     ② hairline glass rim all around
+     ③ soft content shadow beneath bar
+     ④ subtle iridescent base rim                            */
   box-shadow:
-    inset 0 1px 0      rgba(255,255,255,.30),
-    inset 0 0 0 0.5px  rgba(255,255,255,.09),
-    0 -8px 32px        rgba(0,0,0,.18),
-    0 -1px 0           rgba(255,255,255,.04);
+    inset 0 1px 0      rgba(255,255,255,.34),
+    inset 0 0 0 0.5px  rgba(255,255,255,.10),
+    0 -10px 40px       rgba(0,0,0,.20),
+    0 -1px 0           rgba(255,255,255,.05);
 
   border-radius: 28px 28px 0 0;
   overflow: hidden;
   padding-bottom: env(safe-area-inset-bottom, 0px);
   align-items: stretch;
 
-  /* ① Bar glides up from below on load */
-  animation: lgBarUp .55s cubic-bezier(.34,1.15,.64,1) both;
+  /* Bar glides up on load with spring */
+  animation: lgBarUp .60s cubic-bezier(.34,1.15,.64,1) both;
 }
 
-/* ② Shimmer — light sweeping across the glass periodically */
+/* Shimmer — single light ray sweeping across the glass */
 .bottomTabBar::before {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(
     108deg,
-    transparent 20%,
-    rgba(255,255,255,.055) 44%,
-    rgba(255,255,255,.10)  50%,
-    rgba(255,255,255,.055) 56%,
-    transparent 80%
+    transparent 15%,
+    rgba(255,255,255,.04) 42%,
+    rgba(255,255,255,.11) 50%,
+    rgba(255,255,255,.04) 58%,
+    transparent 85%
   );
-  animation: lgShimmer 9s ease-in-out infinite;
+  animation: lgShimmer 10s ease-in-out infinite;
   pointer-events: none;
   z-index: 0;
   will-change: transform;
 }
 
-/* ── Sliding Liquid Glass pill (position set via JS) ── */
+/* ──────────────────────────────────────────────────────────
+   LIQUID MORPH PILL
+   JS controls left/width/border-radius.
+   CSS provides the glass look + glow breath.
+   ────────────────────────────────────────────────────────── */
 .liquidPill {
   position: absolute;
   top: 6px; bottom: 6px;
-  left: 0; width: 0;          /* JS writes the real values */
+  left: 0; width: 0;              /* JS sets real values     */
+  opacity: 0;                     /* JS fades in after place */
   border-radius: 18px;
   pointer-events: none;
   z-index: 1;
-  will-change: left, width;
+  will-change: left, width, border-radius, opacity;
 
+  /* Real glass look: top half bright, bottom half tinted     */
   background: linear-gradient(
-    155deg,
-    rgba(249,115,22,.20) 0%,
-    rgba(168,85,247,.14) 100%
+    165deg,
+    rgba(255,255,255,.18)  0%,
+    rgba(255,255,255,.08) 55%,
+    rgba(249,115,22,.14)  100%
   );
-  border: 0.5px solid rgba(255,255,255,.24);
+  /* Pill's own micro-blur adds depth over the bar's blur     */
+  -webkit-backdrop-filter: blur(6px) brightness(1.20);
+  backdrop-filter: blur(6px) brightness(1.20);
+  border: 0.5px solid rgba(255,255,255,.30);
+
+  /* Shadow: bright inner top edge + orange ambient glow      */
   box-shadow:
-    inset 0 1.5px 0 rgba(255,255,255,.32),
-    inset 0 -1px 0  rgba(0,0,0,.12),
-    0 0 20px        rgba(249,115,22,.28),
-    0 3px 14px      rgba(0,0,0,.28);
+    inset 0 1.5px 0 rgba(255,255,255,.50),
+    inset 0 -1px 0  rgba(0,0,0,.10),
+    0 0 20px        rgba(249,115,22,.22),
+    0 4px 18px      rgba(0,0,0,.32);
 
-  /* ③ Spring-slide transition between tabs */
+  /* JS overrides these during morph; defaults for glow breath */
   transition:
-    left  .42s cubic-bezier(.34,1.56,.64,1),
-    width .42s cubic-bezier(.34,1.56,.64,1);
+    left          .38s cubic-bezier(.34,1.56,.64,1),
+    width         .38s cubic-bezier(.34,1.56,.64,1),
+    border-radius .20s ease,
+    opacity       .24s ease;
 
-  /* ④ Pill springs into existence on load, then glow breathes */
-  animation:
-    lgPillIn .52s cubic-bezier(.34,1.56,.64,1) both,
-    lgGlow   3.2s ease-in-out                  2.5s infinite;
+  /* Glow breathes after bar finishes entering */
+  animation: lgGlow 3.4s ease-in-out 2.2s infinite;
 }
 
 /* ── Individual tab ── */
@@ -225,33 +241,29 @@
   gap: 3px; padding: 10px 4px 8px; min-height: 58px;
   text-decoration: none; border: none; background: none;
   cursor: pointer; font-family: inherit;
-  color: rgba(255,255,255,.40);
+  color: rgba(255,255,255,.42);
   -webkit-tap-highlight-color: transparent;
   position: relative; -webkit-user-select: none; user-select: none;
-  /* ⑤ Press sinks into the glass */
-  transition: color .18s ease, transform .12s ease;
+  transition: color .16s ease, transform .12s ease;
   z-index: 2;
 }
+/* Press: sink into the glass surface */
 .tabItem:active {
-  transform: scale(0.84);
-  transition: color .18s ease, transform .06s ease;
+  transform: scale(0.82);
+  transition: transform .05s ease;
 }
 
-/* Active: accent color + ⑥ icon spring + label fade */
+/* Active: accent color + icon spring + label fade */
 .tabItem.active { color: #f97316; }
-.tabItem.active .tabIcon {
-  animation: lgIconPop .46s cubic-bezier(.34,1.56,.64,1) both;
-}
-.tabItem.active .tabLabel {
-  animation: lgLabelIn .30s ease .08s both;
-}
+.tabItem.active .tabIcon  { animation: lgIconPop  .44s cubic-bezier(.34,1.56,.64,1) both; }
+.tabItem.active .tabLabel { animation: lgLabelIn  .28s ease .10s both; }
 
 .tabIcon  { font-size: 22px; line-height: 1; display: block; }
 .tabLabel { font-size: 10px; font-weight: 700; letter-spacing: .15px; white-space: nowrap; }
 
-/* ────────────────────────────────────────────────────────────
+/* ════════════════════════════════════════════════════════════
    Liquid Glass Keyframes
-   ──────────────────────────────────────────────────────────── */
+   ════════════════════════════════════════════════════════════ */
 
 /* Bar entrance */
 @keyframes lgBarUp {
@@ -259,45 +271,41 @@
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Shimmer sweep */
+/* Single shimmer sweep */
 @keyframes lgShimmer {
-  0%        { transform: translateX(-140%) skewX(-10deg); opacity: 0; }
-  6%        { opacity: 1; }
-  36%       { transform: translateX(140%) skewX(-10deg);  opacity: 1; }
-  38%, 100% { transform: translateX(140%) skewX(-10deg);  opacity: 0; }
-}
-
-/* Pill spring-in */
-@keyframes lgPillIn {
-  0%   { transform: scaleX(.42) scaleY(.52); opacity: 0; }
-  55%  { transform: scaleX(1.09) scaleY(1.06); opacity: 1; }
-  78%  { transform: scaleX(.97) scaleY(.98); }
-  100% { transform: scaleX(1)   scaleY(1);   opacity: 1; }
+  0%        { transform: translateX(-150%) skewX(-12deg); opacity: 0; }
+  7%        { opacity: 1; }
+  34%       { transform: translateX(150%) skewX(-12deg);  opacity: 1; }
+  36%, 100% { transform: translateX(150%) skewX(-12deg);  opacity: 0; }
 }
 
 /* Pill glow breath */
 @keyframes lgGlow {
-  0%, 100% { box-shadow:
-    inset 0 1.5px 0 rgba(255,255,255,.32),
-    inset 0 -1px 0  rgba(0,0,0,.12),
-    0 0 20px        rgba(249,115,22,.28),
-    0 3px 14px      rgba(0,0,0,.28); }
-  50%       { box-shadow:
-    inset 0 1.5px 0 rgba(255,255,255,.38),
-    inset 0 -1px 0  rgba(0,0,0,.12),
-    0 0 32px        rgba(249,115,22,.42),
-    0 3px 20px      rgba(0,0,0,.32); }
+  0%, 100% {
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,.50),
+      inset 0 -1px 0  rgba(0,0,0,.10),
+      0 0 20px        rgba(249,115,22,.22),
+      0 4px 18px      rgba(0,0,0,.32);
+  }
+  50% {
+    box-shadow:
+      inset 0 1.5px 0 rgba(255,255,255,.58),
+      inset 0 -1px 0  rgba(0,0,0,.10),
+      0 0 34px        rgba(249,115,22,.38),
+      0 4px 22px      rgba(0,0,0,.36);
+  }
 }
 
-/* Icon spring */
+/* Icon spring bounce */
 @keyframes lgIconPop {
   0%   { transform: scale(1)    translateY(0);   }
-  38%  { transform: scale(1.34) translateY(-4px); }
-  68%  { transform: scale(0.88) translateY(0);   }
+  36%  { transform: scale(1.36) translateY(-4px); }
+  66%  { transform: scale(0.87) translateY(0);   }
   100% { transform: scale(1)    translateY(0);   }
 }
 
-/* Label fade-up */
+/* Label slide-up fade */
 @keyframes lgLabelIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0);   }
