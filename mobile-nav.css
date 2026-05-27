@@ -288,7 +288,7 @@
   display: flex;
   position: static !important;
   flex: 0 0 auto;
-  width: auto;
+  width: calc(100% - 24px);
   margin: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
   padding-bottom: 0;
 }
