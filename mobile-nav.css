@@ -133,181 +133,126 @@
 .drawerLogout:active { background: rgba(239,68,68,.22); }
 
 /* ============================================================
-   BOTTOM TAB BAR — Apple Liquid Glass (iOS 26 style)
-   Standardmäßig: position fixed (Desktop/Fallback)
-   Im App-Shell-Modus (body.mobileShell): position static
+   BOTTOM TAB BAR — Floating Pill Nav
+   Schwebende Kapsel, nicht randlos — klar sichtbar & modern.
    ============================================================ */
 .bottomTabBar {
   display: none;
   position: fixed;
-  bottom: 0; left: 0; right: 0;
+  /* Floating: Seitenabstand + Abstand zum Bildschirmrand */
+  left: 12px; right: 12px;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   z-index: 1100;
 
-  /* ── Ultra-transparent Liquid Glass ──
-     Almost no fill — the blur IS the material.              */
-  background: rgba(8, 4, 18, 0.36);
-  border-top: none;
-  -webkit-backdrop-filter: blur(56px) saturate(230%) brightness(1.16);
-  backdrop-filter: blur(56px) saturate(230%) brightness(1.16);
+  /* Sichtbares dunkles Glas — klare Trennung vom Seiteninhalt */
+  background: rgba(20, 13, 38, 0.92);
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  backdrop-filter: blur(36px) saturate(180%);
 
-  /* Shadow stack:
-     ① crisp top specular line (light hitting glass edge)
-     ② hairline glass rim all around
-     ③ soft content shadow beneath bar
-     ④ subtle iridescent base rim                            */
+  /* Kapsel-Form */
+  border-radius: 26px;
+  border: 1px solid rgba(255,255,255,.14);
   box-shadow:
-    inset 0 1px 0      rgba(255,255,255,.34),
-    inset 0 0 0 0.5px  rgba(255,255,255,.10),
-    0 -10px 40px       rgba(0,0,0,.20),
-    0 -1px 0           rgba(255,255,255,.05);
+    inset 0 1px 0   rgba(255,255,255,.20),   /* oberer Specular  */
+    0 10px 40px     rgba(0,0,0,.55),          /* Tiefenschatten   */
+    0 2px 10px      rgba(0,0,0,.30),          /* Nah-Schatten     */
+    0 0 0 1px       rgba(255,255,255,.04);    /* äußerer Rim      */
 
-  border-radius: 28px 28px 0 0;
+  padding: 0 4px;
   overflow: hidden;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
   align-items: stretch;
 
-  /* Bar glides up on load with spring */
-  animation: lgBarUp .60s cubic-bezier(.34,1.15,.64,1) both;
+  /* Bar fliegt von unten rein */
+  animation: lgBarUp .45s cubic-bezier(.34,1.15,.64,1) both;
 }
 
-/* Shimmer — single light ray sweeping across the glass */
-.bottomTabBar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    108deg,
-    transparent 15%,
-    rgba(255,255,255,.04) 42%,
-    rgba(255,255,255,.11) 50%,
-    rgba(255,255,255,.04) 58%,
-    transparent 85%
-  );
-  animation: lgShimmer 10s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 0;
-  will-change: transform;
-}
-
-/* ──────────────────────────────────────────────────────────
-   LIQUID MORPH PILL
-   JS controls left/width/border-radius.
-   CSS provides the glass look + glow breath.
-   ────────────────────────────────────────────────────────── */
+/* ── Aktiv-Kapsel (Position + Breite via JS) ── */
 .liquidPill {
   position: absolute;
-  top: 6px; bottom: 6px;
-  left: 0; width: 0;              /* JS sets real values     */
-  opacity: 0;                     /* JS fades in after place */
-  border-radius: 18px;
+  top: 7px; bottom: 7px;
+  left: 0; width: 0;
+  opacity: 0;
+  border-radius: 16px;
   pointer-events: none;
   z-index: 1;
   will-change: left, width, border-radius, opacity;
 
-  /* Real glass look: top half bright, bottom half tinted     */
   background: linear-gradient(
-    165deg,
-    rgba(255,255,255,.18)  0%,
-    rgba(255,255,255,.08) 55%,
-    rgba(249,115,22,.14)  100%
+    140deg,
+    rgba(249,115,22,.32) 0%,
+    rgba(168,85,247,.24) 100%
   );
-  /* Pill's own micro-blur adds depth over the bar's blur     */
-  -webkit-backdrop-filter: blur(6px) brightness(1.20);
-  backdrop-filter: blur(6px) brightness(1.20);
-  border: 0.5px solid rgba(255,255,255,.30);
-
-  /* Shadow: bright inner top edge + orange ambient glow      */
+  border: 1px solid rgba(249,115,22,.38);
   box-shadow:
-    inset 0 1.5px 0 rgba(255,255,255,.50),
-    inset 0 -1px 0  rgba(0,0,0,.10),
-    0 0 20px        rgba(249,115,22,.22),
-    0 4px 18px      rgba(0,0,0,.32);
+    inset 0 1px 0  rgba(255,255,255,.30),
+    0 0 24px       rgba(249,115,22,.34),
+    0 3px 14px     rgba(0,0,0,.30);
 
-  /* JS overrides these during morph; defaults for glow breath */
   transition:
-    left          .38s cubic-bezier(.34,1.56,.64,1),
-    width         .38s cubic-bezier(.34,1.56,.64,1),
-    border-radius .20s ease,
-    opacity       .24s ease;
+    left          .40s cubic-bezier(.34,1.56,.64,1),
+    width         .40s cubic-bezier(.34,1.56,.64,1),
+    border-radius .18s ease,
+    opacity       .22s ease;
 
-  /* Glow breathes after bar finishes entering */
-  animation: lgGlow 3.4s ease-in-out 2.2s infinite;
+  animation: lgGlow 3.5s ease-in-out 2s infinite;
 }
 
-/* ── Individual tab ── */
+/* ── Tab-Item ── */
 .tabItem {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 3px; padding: 10px 4px 8px; min-height: 58px;
+  gap: 3px; padding: 10px 4px; min-height: 58px;
   text-decoration: none; border: none; background: none;
   cursor: pointer; font-family: inherit;
-  color: rgba(255,255,255,.42);
+  color: rgba(255,255,255,.48);
   -webkit-tap-highlight-color: transparent;
   position: relative; -webkit-user-select: none; user-select: none;
-  transition: color .16s ease, transform .12s ease;
+  transition: color .15s ease, transform .10s ease;
   z-index: 2;
 }
-/* Press: sink into the glass surface */
+/* Ins Glas drücken */
 .tabItem:active {
-  transform: scale(0.82);
+  transform: scale(0.84);
   transition: transform .05s ease;
 }
 
-/* Active: accent color + icon spring + label fade */
-.tabItem.active { color: #f97316; }
-.tabItem.active .tabIcon  { animation: lgIconPop  .44s cubic-bezier(.34,1.56,.64,1) both; }
-.tabItem.active .tabLabel { animation: lgLabelIn  .28s ease .10s both; }
+/* Aktiver Tab: leuchtendes Orange */
+.tabItem.active { color: #fb923c; }
+.tabItem.active .tabIcon  { animation: lgIconPop .42s cubic-bezier(.34,1.56,.64,1) both; }
+.tabItem.active .tabLabel { animation: lgLabelIn .26s ease .08s both; }
 
 .tabIcon  { font-size: 22px; line-height: 1; display: block; }
-.tabLabel { font-size: 10px; font-weight: 700; letter-spacing: .15px; white-space: nowrap; }
+.tabLabel { font-size: 10px; font-weight: 700; letter-spacing: .2px; white-space: nowrap; }
 
 /* ════════════════════════════════════════════════════════════
-   Liquid Glass Keyframes
+   Keyframes
    ════════════════════════════════════════════════════════════ */
-
-/* Bar entrance */
 @keyframes lgBarUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from { transform: translateY(calc(100% + 24px)); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
-
-/* Single shimmer sweep */
-@keyframes lgShimmer {
-  0%        { transform: translateX(-150%) skewX(-12deg); opacity: 0; }
-  7%        { opacity: 1; }
-  34%       { transform: translateX(150%) skewX(-12deg);  opacity: 1; }
-  36%, 100% { transform: translateX(150%) skewX(-12deg);  opacity: 0; }
-}
-
-/* Pill glow breath */
 @keyframes lgGlow {
   0%, 100% {
     box-shadow:
-      inset 0 1.5px 0 rgba(255,255,255,.50),
-      inset 0 -1px 0  rgba(0,0,0,.10),
-      0 0 20px        rgba(249,115,22,.22),
-      0 4px 18px      rgba(0,0,0,.32);
+      inset 0 1px 0 rgba(255,255,255,.28),
+      0 0 22px rgba(249,115,22,.30),
+      0 3px 14px rgba(0,0,0,.28);
   }
   50% {
     box-shadow:
-      inset 0 1.5px 0 rgba(255,255,255,.58),
-      inset 0 -1px 0  rgba(0,0,0,.10),
-      0 0 34px        rgba(249,115,22,.38),
-      0 4px 22px      rgba(0,0,0,.36);
+      inset 0 1px 0 rgba(255,255,255,.34),
+      0 0 34px rgba(249,115,22,.46),
+      0 3px 18px rgba(0,0,0,.34);
   }
 }
-
-/* Icon spring bounce */
 @keyframes lgIconPop {
   0%   { transform: scale(1)    translateY(0);   }
-  36%  { transform: scale(1.36) translateY(-4px); }
-  66%  { transform: scale(0.87) translateY(0);   }
+  36%  { transform: scale(1.32) translateY(-3px); }
+  68%  { transform: scale(0.90) translateY(0);   }
   100% { transform: scale(1)    translateY(0);   }
 }
-
-/* Label slide-up fade */
 @keyframes lgLabelIn {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(3px); }
   to   { opacity: 1; transform: translateY(0);   }
 }
 
@@ -341,14 +286,15 @@
   padding: max(14px, env(safe-area-inset-top, 14px)) 14px 20px;
 }
 
-/* Tab Bar im App-Shell: kein fixed mehr, einfacher flex-Child
-   Liquid Glass + Animationen bleiben erhalten */
+/* Tab Bar im App-Shell: kein fixed mehr, einfacher flex-Child.
+   Floating-Pill bleibt sichtbar — Seitenabstand + Bodenabstand via margin */
 .mobileShell .bottomTabBar {
   display: flex;
   position: static !important;
   flex: 0 0 auto;
-  width: 100%;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  width: auto;
+  margin: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0;
 }
 
 /* ============================================================
@@ -385,7 +331,8 @@
     padding-top:    max(14px, env(safe-area-inset-top, 14px)) !important;
     padding-left:   14px !important;
     padding-right:  14px !important;
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    /* Floating bar: 10px gap + ~58px Höhe + 16px extra */
+    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* Cards */
