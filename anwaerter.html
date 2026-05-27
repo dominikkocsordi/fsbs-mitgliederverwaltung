@@ -516,39 +516,126 @@
     }
     .mailToggle.on .mailToggleIcon{ left:auto; right: 6px; }
 
-    /* ✅ Mobile: switch to card list (no ugly wide table) */
+    /* ══════════════════════════════════════════
+       MOBILE KARTEN-LAYOUT  (≤ 720px)
+       Jede Tabellenzeile → kompakte App-Karte
+       ══════════════════════════════════════════ */
     @media (max-width: 720px){
-      .tableWrap{ background: transparent; border: none; }
-      table{ min-width: 0; width:100%; border-spacing: 0 10px; border-collapse: separate; }
+
+      /* Tabelle ohne eigenes Styling */
+      .tableWrap{
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+      table{ width:100%; border-collapse:separate; border-spacing: 0 10px; min-width:0 !important; }
       thead{ display:none; }
 
+      /* ── Jede Zeile = App-Karte mit CSS Grid ── */
       tbody tr{
-        display:block;
-        margin-bottom: 12px;
-        border-radius: 18px;
-        background: rgba(255,255,255,.06);
-        border: 1px solid rgba(255,255,255,.12);
-        overflow:hidden;
+        display: grid !important;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto auto;
+        grid-template-areas:
+          "name    ressort"
+          "email   status"
+          "actions actions";
+        column-gap: 10px;
+        row-gap: 0;
+        padding: 14px !important;
+        border-radius: 20px !important;
+        background: rgba(255,255,255,.07) !important;
+        border: 1px solid rgba(255,255,255,.10) !important;
+        box-shadow: 0 6px 20px rgba(0,0,0,.20);
+        overflow: visible !important;
       }
-      tbody td{
-        display:block;
-        border: none !important;
-        padding: 12px 12px;
-      }
-      tbody td + td{ border-top: 1px solid rgba(255,255,255,.08) !important; }
 
-      .nameCell{ min-width: 0; }
-      .nameMeta strong{ max-width: 240px; }
-      .mobileRow{
-        display:flex;
-        justify-content:space-between;
-        gap:10px;
-        align-items:center;
-        flex-wrap:wrap;
+      /* Alle td: kein Border, kein extra Padding */
+      tbody td{
+        display: block !important;
+        border: none !important;
+        padding: 0 0 8px !important;
+        background: none !important;
+        overflow: hidden;
       }
-      .actions{ gap:8px; }
-      .btn-mini{ width: 100%; justify-content:center; }
-      .actions button{ width: 100%; }
+
+      /* Name (col 1, row 1) */
+      tbody td:nth-child(1){
+        grid-area: name;
+        padding-bottom: 6px !important;
+      }
+      .nameCell{ min-width: 0; gap: 10px; }
+      .avatarSmall{ width: 40px !important; height: 40px !important; border-radius: 12px !important; flex-shrink: 0; }
+      .nameMeta strong{ font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+      .miniLink a{ font-size: 11px; }
+
+      /* Ressort-Pill (col 2, row 1) */
+      tbody td:nth-child(2){
+        grid-area: ressort;
+        padding-bottom: 6px !important;
+        display: flex !important;
+        align-items: flex-start;
+        justify-content: flex-end;
+      }
+      .ressortPill{ font-size: 11px !important; padding: 4px 8px !important; }
+
+      /* Email (col 1, row 2) */
+      tbody td:nth-child(3){
+        grid-area: email;
+        font-size: 12px !important;
+        color: rgba(255,255,255,.55) !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-bottom: 4px !important;
+      }
+
+      /* Telefon: versteckt */
+      tbody td:nth-child(4){ display: none !important; }
+
+      /* Status-Pill (col 2, row 2) */
+      tbody td:nth-child(5){
+        grid-area: status;
+        display: flex !important;
+        align-items: flex-start;
+        justify-content: flex-end;
+        padding-bottom: 4px !important;
+      }
+      .statusPill{ font-size: 11px !important; padding: 4px 8px !important; }
+
+      /* Mail-Toggle: versteckt (Platz sparen) */
+      tbody td:nth-child(6){ display: none !important; }
+
+      /* Aktionen (ganzte Breite, row 3) */
+      tbody td:nth-child(7){
+        grid-area: actions;
+        padding-top: 12px !important;
+        padding-bottom: 0 !important;
+        border-top: 1px solid rgba(255,255,255,.08) !important;
+        margin-top: 6px;
+      }
+
+      /* ── Buttons: horizontal, gleich breit ── */
+      .actions{
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 7px !important;
+      }
+      .actions button, .btn-mini{
+        flex: 1 !important;
+        width: auto !important;
+        font-size: 12px !important;
+        padding: 10px 4px !important;
+        min-height: 40px !important;
+        border-radius: 12px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     }
 
     /* ===== Modal ===== */
