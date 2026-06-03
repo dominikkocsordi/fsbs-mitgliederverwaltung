@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      /* Deep Dark Theme aus SwiftUI */
       --bg1: #061827; --bg2: #0A2235; --bg3: #04111C;
       --red-light: #FF8A8A; --red-deep: #FF4D4D;
       --green-light: #9FE34B; --green-deep: #3BD68A;
@@ -21,128 +20,44 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { min-height: 100%; font-family: system-ui, -apple-system, sans-serif; background: var(--bg1); color: var(--text); overflow-x: hidden; }
     
-    /* Background Gradient */
-    .bg-gradient {
-      position: fixed; inset: 0; z-index: -2;
-      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-    }
+    .bg-gradient { position: fixed; inset: 0; z-index: -2; background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3)); }
     .radial-glow {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       width: 1000px; height: 1000px; border-radius: 50%; z-index: -1;
       background: radial-gradient(circle, var(--glow-color, transparent) 0%, transparent 60%);
       opacity: 0.15; transition: background 1s ease;
     }
-
-    .wrap {
-      width: 100%; max-width: 520px; margin: 0 auto; padding: 40px 16px 60px;
-      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
-      justify-content: center;
-    }
-
-    /* Glass Cards */
-    .glass {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 22px; padding: 30px 24px; width: 100%;
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 20px 55px rgba(0,0,0,.50);
-      animation: fadeUp 0.4s ease forwards;
-    }
-
-    /* Code Input */
+    .wrap { width: 100%; max-width: 520px; margin: 0 auto; padding: 40px 16px 60px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; justify-content: center; }
+    .glass { background: var(--glass); border: 1px solid var(--border); border-radius: 22px; padding: 30px 24px; width: 100%; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 55px rgba(0,0,0,.50); animation: fadeUp 0.4s ease forwards; }
     .code-container { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
-    .code-input {
-      width: 50px; height: 60px; font-size: 24px; font-weight: 800; text-align: center;
-      background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2);
-      color: white; border-radius: 12px; outline: none; transition: 0.2s;
-    }
+    .code-input { width: 50px; height: 60px; font-size: 24px; font-weight: 800; text-align: center; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2); color: white; border-radius: 12px; outline: none; transition: 0.2s; }
     .code-input:focus { border-color: var(--accent1); background: rgba(255,255,255,.12); transform: translateY(-2px); }
-
-    /* Buttons & Options */
-    .btnPrimary {
-      width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 16px; cursor: pointer;
-      transition: transform .15s; margin-top: 20px;
-      box-shadow: 0 8px 24px rgba(249,115,22,0.2);
-    }
-    .btnPrimary:active { transform: scale(0.98); }
+    .btnPrimary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent1), var(--accent2)); color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 16px; cursor: pointer; transition: transform .15s; margin-top: 20px; box-shadow: 0 8px 24px rgba(249,115,22,0.2); }
     .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    .optBtn {
-      width: 100%; padding: 16px; background: rgba(255,255,255,.05); border: 1.5px solid var(--border);
-      border-radius: 16px; color: white; font-size: 16px; font-weight: 600; text-align: left;
-      cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
-    }
-    .optBtn.selected {
-      background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(168,85,247,.15));
-      border-color: var(--accent1); box-shadow: 0 8px 24px rgba(249,115,22,.2);
-    }
-
-    /* Stimmübertragungen (Sleek Dark Mode Design) */
-    .delegationSection {
-      margin-top: 20px; padding: 18px; border-radius: 16px;
-      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
-    }
-    .delegationTitle {
-      font-size: 15px; font-weight: 700; color: white; margin-bottom: 12px;
-    }
-    .delegationCountRow {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
-    }
+    .optBtn { width: 100%; padding: 16px; background: rgba(255,255,255,.05); border: 1.5px solid var(--border); border-radius: 16px; color: white; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .optBtn.selected { background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(168,85,247,.15)); border-color: var(--accent1); box-shadow: 0 8px 24px rgba(249,115,22,.2); }
+    
+    .delegationSection { margin-top: 20px; padding: 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); }
+    .delegationTitle { font-size: 15px; font-weight: 700; color: white; margin-bottom: 12px; }
+    .delegationCountRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .delegationCountRow label { font-size: 14px; color: var(--muted); font-weight: 500; }
     .countStepper { display: flex; align-items: center; gap: 12px; }
-    .stepBtn {
-      width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.08);
-      border: 1px solid var(--border); color: white; font-size: 18px; font-weight: 700;
-      cursor: pointer; display: grid; place-items: center; transition: 0.15s;
-    }
-    .stepBtn:hover { background: rgba(255,255,255,.15); }
+    .stepBtn { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.08); border: 1px solid var(--border); color: white; font-size: 18px; font-weight: 700; cursor: pointer; display: grid; place-items: center; transition: 0.15s; }
     .stepBtn:disabled { opacity: 0.3; cursor: not-allowed; }
     .countDisplay { min-width: 20px; text-align: center; font-size: 18px; font-weight: 800; }
-    
     .delegationNames { display: flex; flex-direction: column; gap: 10px; }
-    .delegationNameInput {
-      background: rgba(255,255,255,.06); border: 1px solid var(--border);
-      color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 14px; width: 100%;
-      transition: 0.2s;
-    }
-    .delegationNameInput:focus { border-color: var(--accent1); background: rgba(255,255,255,.1); }
-    
-    /* THEATRICAL ANIMATIONS */
-    .anim-container {
-      position: relative; width: 340px; height: 340px; display: flex; justify-content: center; align-items: center;
-      margin: 0 auto 40px; display: none;
-    }
-    
-    .loader-ring {
-      position: absolute; width: 100%; height: 100%; border-radius: 50%;
-      border: 10px solid transparent; border-top-color: var(--anim-color-light);
-      border-right-color: var(--anim-color-deep);
-      opacity: 0; transform: scale(1) rotate(-90deg);
-    }
-    
-    .ambient-glow {
-      position: absolute; width: 440px; height: 440px; border-radius: 50%;
-      background: radial-gradient(circle, var(--anim-color-deep) 0%, transparent 60%);
-      opacity: 0; transform: scale(0.5); pointer-events: none;
-    }
-    .white-flash {
-      position: absolute; width: 200px; height: 200px; border-radius: 50%;
-      background: white; opacity: 0; transform: scale(0.2); filter: blur(2px);
-    }
-    .shockwave {
-      position: absolute; width: 200px; height: 200px; border-radius: 50%;
-      border: 4px solid var(--anim-color-light); opacity: 0; transform: scale(0.5);
-    }
-    .main-icon {
-      position: absolute; width: 140px; height: 140px; opacity: 0; transform: scale(0);
-      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 20px var(--anim-color-deep));
-    }
-    .main-icon svg { width: 100%; height: 100%; }
+    .delegationNameInput { background: rgba(255,255,255,.06); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 14px; width: 100%; }
 
+    .anim-container { position: relative; width: 340px; height: 340px; display: flex; justify-content: center; align-items: center; margin: 0 auto 40px; display: none; }
+    .loader-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 10px solid transparent; border-top-color: var(--anim-color-light); border-right-color: var(--anim-color-deep); opacity: 0; transform: scale(1) rotate(-90deg); }
+    .ambient-glow { position: absolute; width: 440px; height: 440px; border-radius: 50%; background: radial-gradient(circle, var(--anim-color-deep) 0%, transparent 60%); opacity: 0; transform: scale(0.5); pointer-events: none; }
+    .white-flash { position: absolute; width: 200px; height: 200px; border-radius: 50%; background: white; opacity: 0; transform: scale(0.2); filter: blur(2px); }
+    .shockwave { position: absolute; width: 200px; height: 200px; border-radius: 50%; border: 4px solid var(--anim-color-light); opacity: 0; transform: scale(0.5); }
+    .main-icon { position: absolute; width: 140px; height: 140px; opacity: 0; transform: scale(0); filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 20px var(--anim-color-deep)); }
+    .main-icon svg { width: 100%; height: 100%; }
     .anim-text { text-align: center; opacity: 0; transform: translateY(30px); }
     .anim-title { font-size: 40px; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 8px; }
     .anim-sub { font-size: 16px; font-weight: 600; letter-spacing: 4px; color: rgba(255,255,255,0.7); }
-
     @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulseAmbient { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
   </style>
@@ -162,11 +77,26 @@
 
   const wrap = document.getElementById("mainWrap");
   let currentSession = null;
-  let voterCode = null; // Standardmäßig null für offene Wahlen ohne Gruppe
+  let voterCode = null;
 
   function getToken() { return new URLSearchParams(location.search).get("s"); }
+  
+  function getVoterToken(sessionToken) {
+    const key = "vt_" + sessionToken;
+    let vt = sessionStorage.getItem(key);
+    if (!vt) { vt = crypto.randomUUID(); sessionStorage.setItem(key, vt); }
+    return vt;
+  }
 
-  // --- 1. THEATRICAL ANIMATION ORCHESTRATOR ---
+  function showBlockedState() {
+    wrap.innerHTML = `
+      <div class="glass" style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:10px;">🔒</div>
+        <h2 style="font-size:24px; font-weight:800; color:var(--red-light);">Bereits abgestimmt</h2>
+        <p style="color:var(--muted); font-size:14px; margin-top:8px;">Du hast an dieser Abstimmung bereits teilgenommen.</p>
+      </div>`;
+  }
+
   function playTheatricalAnimation(type, callback) {
     const isTxtOpen = type === 'open';
     wrap.innerHTML = `
@@ -184,8 +114,7 @@
       <div class="anim-text" id="aText">
         <div class="anim-title">${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
         <div class="anim-sub">${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
-      </div>
-    `;
+      </div>`;
 
     const root = document.documentElement;
     if(type === 'open') {
@@ -215,34 +144,24 @@
     }, 2700);
 
     setTimeout(() => {
-      flash.style.opacity = "1";
-      flash.style.transition = "transform 0.5s ease-out, opacity 0.5s ease-out";
+      flash.style.opacity = "1"; flash.style.transition = "transform 0.5s ease-out, opacity 0.5s ease-out";
       setTimeout(() => { flash.style.transform = "scale(4)"; flash.style.opacity = "0"; }, 50);
-
-      shock.style.opacity = "1";
-      shock.style.transition = "transform 0.8s ease-out, opacity 0.8s ease-out";
+      shock.style.opacity = "1"; shock.style.transition = "transform 0.8s ease-out, opacity 0.8s ease-out";
       setTimeout(() => { shock.style.transform = "scale(3.5)"; shock.style.opacity = "0"; }, 50);
 
-      icon.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-      icon.style.opacity = "1";
-      icon.style.transform = "scale(1)";
-
-      glow.style.transition = "opacity 0.5s ease";
-      glow.style.opacity = "0.5";
-      glow.style.transform = "scale(1)";
+      icon.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)"; icon.style.opacity = "1"; icon.style.transform = "scale(1)";
+      glow.style.transition = "opacity 0.5s ease"; glow.style.opacity = "0.5"; glow.style.transform = "scale(1)";
       glow.style.animation = "pulseAmbient 3s infinite ease-in-out 0.4s";
 
       setTimeout(() => {
         text.style.transition = "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease";
-        text.style.opacity = "1";
-        text.style.transform = "translateY(0)";
+        text.style.opacity = "1"; text.style.transform = "translateY(0)";
       }, 100);
 
       if(callback) setTimeout(callback, 2500);
     }, 3000);
   }
 
-  // --- 2. CODE ACCESS SECURITY ---
   function showCodeEntry() {
     wrap.innerHTML = `
       <div class="glass" style="text-align:center;">
@@ -257,8 +176,7 @@
         </div>
         <div id="codeError" style="color:var(--red-light); font-size:14px; min-height:20px; margin-top:10px;"></div>
         <button class="btnPrimary" id="verifyBtn">Code verifizieren</button>
-      </div>
-    `;
+      </div>`;
 
     const inputs = document.querySelectorAll('.code-input');
     inputs.forEach((input, index) => {
@@ -278,15 +196,17 @@
       const btn = document.getElementById('verifyBtn');
       btn.disabled = true; btn.textContent = "Prüfe...";
       
+      // Filtert, ob der Code in IRGENDEINER der erlaubten Gruppen der Wahl existiert
       const { data: codeData, error: codeErr } = await sb.from("voter_codes")
-        .select("*").eq("group_id", currentSession.group_id).eq("code", code).maybeSingle();
+        .select("*").in("group_id", currentSession.group_ids || []).eq("code", code).maybeSingle();
         
       if(!codeData || codeErr) {
-        document.getElementById('codeError').textContent = "Code ungültig.";
+        document.getElementById('codeError').textContent = "Code für diese Wahl nicht berechtigt.";
         btn.disabled = false; btn.textContent = "Code verifizieren";
         return;
       }
 
+      // Prüft ob der Code in dieser Wahl bereits verwendet wurde
       const { data: voteData } = await sb.from("votes")
         .select("id").eq("session_id", currentSession.id).eq("voter_code", code).maybeSingle();
 
@@ -301,7 +221,6 @@
     });
   }
 
-  // --- 3. VOTING INTERFACE ---
   function showVotingOptions() {
     const opts = currentSession.options || [];
     const allowDelegation = !!currentSession.allow_delegation;
@@ -326,22 +245,17 @@
       <div class="glass" style="animation: fadeUp 0.6s ease;">
         <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
         <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
-        
         <div id="optList">
           ${opts.map((o, i) => `
             <button class="optBtn" data-i="${i}">
               <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
               ${o}
-            </button>
-          `).join('')}
+            </button>`).join('')}
         </div>
-
         ${delegationHtml}
-
         <button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>
         <div id="vMsg" style="margin-top:12px; font-size:13px; color:var(--red-light); text-align:center;"></div>
-      </div>
-    `;
+      </div>`;
 
     const submitBtn = document.getElementById("submitVote");
     const vMsg = document.getElementById("vMsg");
@@ -349,9 +263,7 @@
     function updateSubmitLabel() {
       if (selected === null) return;
       const total = 1 + delegationCount;
-      submitBtn.textContent = total > 1
-        ? `„${opts[selected]}“ wählen (${total} Stimmen)`
-        : `„${opts[selected]}“ wählen`;
+      submitBtn.textContent = total > 1 ? `„${opts[selected]}“ wählen (${total} Stimmen)` : `„${opts[selected]}“ wählen`;
     }
 
     function updateDelegationNames() {
@@ -361,17 +273,11 @@
       const currentCount = existing.length;
       if (delegationCount > currentCount) {
         for (let i = currentCount; i < delegationCount; i++) {
-          const inp = document.createElement("input");
-          inp.type = "text";
-          inp.className = "delegationNameInput";
-          inp.placeholder = `Name der ${i + 1}. übertragenden Person`;
-          inp.maxLength = 80;
-          container.appendChild(inp);
+          const inp = document.createElement("input"); inp.type = "text"; inp.className = "delegationNameInput";
+          inp.placeholder = `Name der ${i + 1}. übertragenden Person`; inp.maxLength = 80; container.appendChild(inp);
         }
       } else {
-        for (let i = currentCount; i > delegationCount; i--) {
-          container.removeChild(container.lastChild);
-        }
+        for (let i = currentCount; i > delegationCount; i--) { container.removeChild(container.lastChild); }
       }
       document.getElementById("stepMinus").disabled = delegationCount <= 0;
       document.getElementById("countDisplay").textContent = delegationCount;
@@ -379,31 +285,16 @@
     }
 
     if (allowDelegation) {
-      document.getElementById("stepPlus").addEventListener("click", () => {
-        if (delegationCount >= 9) return;
-        delegationCount++;
-        updateDelegationNames();
-      });
-      document.getElementById("stepMinus").addEventListener("click", () => {
-        if (delegationCount <= 0) return;
-        delegationCount--;
-        updateDelegationNames();
-      });
+      document.getElementById("stepPlus").addEventListener("click", () => { if (delegationCount >= 9) return; delegationCount++; updateDelegationNames(); });
+      document.getElementById("stepMinus").addEventListener("click", () => { if (delegationCount <= 0) return; delegationCount--; updateDelegationNames(); });
     }
 
     document.querySelectorAll(".optBtn").forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll(".optBtn").forEach(b => {
-          b.classList.remove('selected');
-          b.querySelector('.radio-circle').style.borderColor = "var(--border)";
-          b.querySelector('.radio-circle').innerHTML = "";
-        });
-        btn.classList.add('selected');
-        btn.querySelector('.radio-circle').style.borderColor = "var(--accent1)";
+        document.querySelectorAll(".optBtn").forEach(b => { b.classList.remove('selected'); b.querySelector('.radio-circle').style.borderColor = "var(--border)"; b.querySelector('.radio-circle').innerHTML = ""; });
+        btn.classList.add('selected'); btn.querySelector('.radio-circle').style.borderColor = "var(--accent1)";
         btn.querySelector('.radio-circle').innerHTML = '<div style="width:12px; height:12px; background:var(--accent1); border-radius:50%;"></div>';
-        selected = parseInt(btn.dataset.i);
-        submitBtn.disabled = false;
-        updateSubmitLabel();
+        selected = parseInt(btn.dataset.i); submitBtn.disabled = false; updateSubmitLabel();
       });
     });
 
@@ -414,49 +305,51 @@
       if (allowDelegation && delegationCount > 0) {
         const inputs = document.querySelectorAll(".delegationNameInput");
         const names = Array.from(inputs).map(i => i.value.trim());
-        if (names.some(n => !n)) {
-          vMsg.textContent = "Bitte alle Namen der übertragenden Personen eintragen.";
-          return;
-        }
+        if (names.some(n => !n)) { vMsg.textContent = "Bitte alle Namen der übertragenden Personen eintragen."; return; }
         delegationNames = names;
       }
 
-      submitBtn.disabled = true; submitBtn.textContent = "Wird verschlüsselt...";
-      vMsg.textContent = "";
+      submitBtn.disabled = true; submitBtn.textContent = "Wird gespeichert...";
 
-      const fallbackToken = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+      const vToken = getVoterToken(currentSession.token);
       const weight = 1 + delegationCount;
 
       const { error } = await sb.from("votes").insert({
         session_id: currentSession.id,
         option_index: selected,
         voter_code: voterCode,     
-        voter_token: fallbackToken, 
+        voter_token: vToken, 
         weight: weight,
         delegation_names: delegationNames
       });
 
       if(error) {
-        alert("Fehler bei der Abgabe: " + error.message + " (" + error.code + ")");
-        submitBtn.disabled = false;
-        updateSubmitLabel();
+        if(error.code === "23505") {
+          sessionStorage.setItem("voted_" + currentSession.token, "1");
+          showBlockedState();
+        } else {
+          alert("Fehler bei der Abgabe: " + error.message);
+          submitBtn.disabled = false; updateSubmitLabel();
+        }
         return;
       }
 
+      sessionStorage.setItem("voted_" + currentSession.token, "1");
       wrap.innerHTML = `
         <div class="glass" style="text-align:center;">
           <div style="font-size:40px; margin-bottom:10px;">✅</div>
           <h2 style="font-size:24px; font-weight:800;">Stimme erfasst</h2>
           <p style="color:var(--muted); font-size:14px;">Danke für deine Teilnahme.</p>
-        </div>
-      `;
+        </div>`;
     });
   }
 
-  // --- BOOTSTRAP ---
   (async () => {
     const token = getToken();
     if (!token) return wrap.innerHTML = '<div class="glass">Ungültiger Link.</div>';
+
+    // Lokaler Schnell-Check gegen doppeltes Abstimmen
+    if (sessionStorage.getItem("voted_" + token)) { return showBlockedState(); }
 
     const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
     if (error || !data) return wrap.innerHTML = '<div class="glass">Abstimmung nicht gefunden.</div>';
@@ -465,9 +358,17 @@
     if (data.status !== "open") {
       playTheatricalAnimation('closed');
     } else {
-      if(data.group_id) {
+      // Prüfen, ob die Wahl Gruppen-beschränkt ist (Array nicht leer)
+      if(data.group_ids && data.group_ids.length > 0) {
         showCodeEntry();
       } else {
+        // Offene Wahl: Prüfen, ob der anonyme Browser-Token schon in der DB existiert
+        const vToken = getVoterToken(data.token);
+        const { data: existingVote } = await sb.from("votes").select("id").eq("session_id", data.id).eq("voter_token", vToken).maybeSingle();
+        if (existingVote) {
+          sessionStorage.setItem("voted_" + token, "1");
+          return showBlockedState();
+        }
         voterCode = null;
         playTheatricalAnimation('open', showVotingOptions);
       }
