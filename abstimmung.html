@@ -81,9 +81,28 @@
   </div>
 
 <script>
+  // Falls das Skript komplett abstürzt, zeigt dieser Block das Problem SOFORT auf dem Display
+  window.onerror = function(msg, url, lineNo, columnNo, error) {
+    var wrap = document.getElementById("mainWrap");
+    if(wrap) {
+      wrap.innerHTML = '<div class="glass" style="text-align:center;">' +
+        '<div style="font-size:40px; margin-bottom:10px;">⚠️</div>' +
+        '<h2 style="font-size:20px; font-weight:800; color:var(--red-light); margin-bottom:8px;">System-Fehler</h2>' +
+        '<p style="color:var(--muted); font-size:13px;">' + msg + '</p>' +
+        '<p style="color:var(--muted); font-size:11px; margin-top:8px;">Zeile: ' + lineNo + '</p></div>';
+    }
+    return false;
+  };
+
   const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
   const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  let sb;
+  try {
+      sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch(e) {
+      throw new Error("Datenbank-Treiber fehlt. Evtl. blockiert ein Adblocker die Supabase-Verbindung.");
+  }
 
   const wrap = document.getElementById("mainWrap");
   let currentSession = null;
@@ -95,7 +114,6 @@
     const key = "vt_" + sessionToken;
     let vt = sessionStorage.getItem(key);
     if (!vt) { 
-      // Absturzsicherer Fallback für alte Browser oder http:// Verbindungen
       vt = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') 
             ? crypto.randomUUID() 
             : Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -104,33 +122,40 @@
     return vt;
   }
 
+  function escapeHTML(str) {
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   function showBlockedState() {
-    wrap.innerHTML = `
-      <div class="glass" style="text-align:center;">
-        <div style="font-size:40px; margin-bottom:10px;">🔒</div>
-        <h2 style="font-size:24px; font-weight:800; color:var(--red-light);">Bereits abgestimmt</h2>
-        <p style="color:var(--muted); font-size:14px; margin-top:8px;">Du hast an dieser Abstimmung bereits teilgenommen.</p>
-      </div>`;
+    wrap.innerHTML = '<div class="glass" style="text-align:center;">' +
+      '<div style="font-size:40px; margin-bottom:10px;">🔒</div>' +
+      '<h2 style="font-size:24px; font-weight:800; color:var(--red-light);">Bereits abgestimmt</h2>' +
+      '<p style="color:var(--muted); font-size:14px; margin-top:8px;">Du hast an dieser Abstimmung bereits teilgenommen.</p>' +
+      '</div>';
   }
 
   function playTheatricalAnimation(type, callback) {
     const isTxtOpen = type === 'open';
-    wrap.innerHTML = `
-      <div class="anim-container" id="animBox" style="display:flex;">
-        <div class="ambient-glow" id="aGlow"></div>
-        <div class="loader-ring" id="aLoader"></div>
-        <div class="white-flash" id="aFlash"></div>
-        <div class="shockwave" id="aShock"></div>
-        <div class="main-icon" id="aIcon">
-          ${isTxtOpen 
-            ? '<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
-            : '<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>'}
-        </div>
-      </div>
-      <div class="anim-text" id="aText">
-        <div class="anim-title">${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
-        <div class="anim-sub">${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
-      </div>`;
+    const titleText = isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen';
+    const subText = isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN';
+    
+    const iconGreen = '<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
+    const iconRed = '<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>';
+    const iconSvg = isTxtOpen ? iconGreen : iconRed;
+
+    wrap.innerHTML = '<div class="anim-container" id="animBox" style="display:flex;">' +
+      '<div class="ambient-glow" id="aGlow"></div>' +
+      '<div class="loader-ring" id="aLoader"></div>' +
+      '<div class="white-flash" id="aFlash"></div>' +
+      '<div class="shockwave" id="aShock"></div>' +
+      '<div class="main-icon" id="aIcon">' + iconSvg + '</div>' +
+      '</div>' +
+      '<div class="anim-text" id="aText">' +
+      '<div class="anim-title">' + titleText + '</div>' +
+      '<div class="anim-sub">' + subText + '</div>' +
+      '</div>';
 
     const root = document.documentElement;
     if(type === 'open') {
@@ -162,10 +187,13 @@
     setTimeout(() => {
       flash.style.opacity = "1"; flash.style.transition = "transform 0.5s ease-out, opacity 0.5s ease-out";
       setTimeout(() => { flash.style.transform = "scale(4)"; flash.style.opacity = "0"; }, 50);
+
       shock.style.opacity = "1"; shock.style.transition = "transform 0.8s ease-out, opacity 0.8s ease-out";
       setTimeout(() => { shock.style.transform = "scale(3.5)"; shock.style.opacity = "0"; }, 50);
 
-      icon.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)"; icon.style.opacity = "1"; icon.style.transform = "scale(1)";
+      icon.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+      icon.style.opacity = "1"; icon.style.transform = "scale(1)";
+      
       glow.style.transition = "opacity 0.5s ease"; glow.style.opacity = "0.5"; glow.style.transform = "scale(1)";
       glow.style.animation = "pulseAmbient 3s infinite ease-in-out 0.4s";
 
@@ -179,20 +207,19 @@
   }
 
   function showCodeEntry() {
-    wrap.innerHTML = `
-      <div class="glass" style="text-align:center;">
-        <h2 style="font-size:24px; font-weight:800; margin-bottom: 8px;">Wahl-Zugang</h2>
-        <p style="color:var(--muted); font-size:14px; margin-bottom: 24px;">Bitte gib deinen 5-stelligen Code ein.</p>
-        <div class="code-container" id="codeInputs">
-          <input type="text" maxlength="1" class="code-input" autofocus>
-          <input type="text" maxlength="1" class="code-input">
-          <input type="text" maxlength="1" class="code-input">
-          <input type="text" maxlength="1" class="code-input">
-          <input type="text" maxlength="1" class="code-input">
-        </div>
-        <div id="codeError" style="color:var(--red-light); font-size:14px; min-height:20px; margin-top:10px;"></div>
-        <button class="btnPrimary" id="verifyBtn">Code verifizieren</button>
-      </div>`;
+    wrap.innerHTML = '<div class="glass" style="text-align:center;">' +
+      '<h2 style="font-size:24px; font-weight:800; margin-bottom: 8px;">Wahl-Zugang</h2>' +
+      '<p style="color:var(--muted); font-size:14px; margin-bottom: 24px;">Bitte gib deinen 5-stelligen Code ein.</p>' +
+      '<div class="code-container" id="codeInputs">' +
+      '<input type="text" maxlength="1" class="code-input" autofocus>' +
+      '<input type="text" maxlength="1" class="code-input">' +
+      '<input type="text" maxlength="1" class="code-input">' +
+      '<input type="text" maxlength="1" class="code-input">' +
+      '<input type="text" maxlength="1" class="code-input">' +
+      '</div>' +
+      '<div id="codeError" style="color:var(--red-light); font-size:14px; min-height:20px; margin-top:10px;"></div>' +
+      '<button class="btnPrimary" id="verifyBtn">Code verifizieren</button>' +
+      '</div>';
 
     const inputs = document.querySelectorAll('.code-input');
     inputs.forEach((input, index) => {
@@ -213,10 +240,10 @@
       btn.disabled = true; btn.textContent = "Prüfe...";
       
       const { data: codeData, error: codeErr } = await sb.from("voter_codes")
-        .select("*").in("group_id", currentSession.group_ids || []).eq("code", code).maybeSingle();
+        .select("*").in("group_id", currentSession.activeGroups).eq("code", code).maybeSingle();
         
       if(!codeData || codeErr) {
-        document.getElementById('codeError').textContent = "Code für diese Wahl nicht berechtigt.";
+        document.getElementById('codeError').textContent = "Dieser Code ist für diese Wahl nicht gültig.";
         btn.disabled = false; btn.textContent = "Code verifizieren";
         return;
       }
@@ -241,35 +268,36 @@
     let selected = null;
     let delegationCount = 0;
 
-    const delegationHtml = allowDelegation ? `
-      <div class="delegationSection" id="delegationSection">
-        <div class="delegationTitle">🔄 Stimmübertragungen</div>
-        <div class="delegationCountRow">
-          <label>Anzahl übertragener Stimmen:</label>
-          <div class="countStepper">
-            <button class="stepBtn" id="stepMinus" type="button" disabled>−</button>
-            <span class="countDisplay" id="countDisplay">0</span>
-            <button class="stepBtn" id="stepPlus" type="button">+</button>
-          </div>
-        </div>
-        <div class="delegationNames" id="delegationNames"></div>
-      </div>` : "";
+    let delegationHtml = "";
+    if (allowDelegation) {
+        delegationHtml = '<div class="delegationSection" id="delegationSection">' +
+          '<div class="delegationTitle">🔄 Stimmübertragungen</div>' +
+          '<div class="delegationCountRow">' +
+          '<label>Anzahl übertragener Stimmen:</label>' +
+          '<div class="countStepper">' +
+          '<button class="stepBtn" id="stepMinus" type="button" disabled>−</button>' +
+          '<span class="countDisplay" id="countDisplay">0</span>' +
+          '<button class="stepBtn" id="stepPlus" type="button">+</button>' +
+          '</div></div>' +
+          '<div class="delegationNames" id="delegationNames"></div></div>';
+    }
 
-    wrap.innerHTML = `
-      <div class="glass" style="animation: fadeUp 0.6s ease;">
-        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
-        <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
-        <div id="optList">
-          ${opts.map((o, i) => `
-            <button class="optBtn" data-i="${i}">
-              <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
-              ${o}
-            </button>`).join('')}
-        </div>
-        ${delegationHtml}
-        <button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>
-        <div id="vMsg" style="margin-top:12px; font-size:13px; color:var(--red-light); text-align:center;"></div>
-      </div>`;
+    let optsHtml = "";
+    for (let i = 0; i < opts.length; i++) {
+        optsHtml += '<button class="optBtn" data-i="' + i + '">' +
+          '<div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>' +
+          escapeHTML(opts[i]) +
+          '</button>';
+    }
+
+    wrap.innerHTML = '<div class="glass" style="animation: fadeUp 0.6s ease;">' +
+      '<h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">' + escapeHTML(currentSession.title) + '</h2>' +
+      '<p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>' +
+      '<div id="optList">' + optsHtml + '</div>' +
+      delegationHtml +
+      '<button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>' +
+      '<div id="vMsg" style="margin-top:12px; font-size:13px; color:var(--red-light); text-align:center;"></div>' +
+      '</div>';
 
     const submitBtn = document.getElementById("submitVote");
     const vMsg = document.getElementById("vMsg");
@@ -277,7 +305,8 @@
     function updateSubmitLabel() {
       if (selected === null) return;
       const total = 1 + delegationCount;
-      submitBtn.textContent = total > 1 ? `„${opts[selected]}“ wählen (${total} Stimmen)` : `„${opts[selected]}“ wählen`;
+      const optText = opts[selected];
+      submitBtn.textContent = total > 1 ? '„' + optText + '“ wählen (' + total + ' Stimmen)' : '„' + optText + '“ wählen';
     }
 
     function updateDelegationNames() {
@@ -287,11 +316,17 @@
       const currentCount = existing.length;
       if (delegationCount > currentCount) {
         for (let i = currentCount; i < delegationCount; i++) {
-          const inp = document.createElement("input"); inp.type = "text"; inp.className = "delegationNameInput";
-          inp.placeholder = `Name der ${i + 1}. übertragenden Person`; inp.maxLength = 80; container.appendChild(inp);
+          const inp = document.createElement("input"); 
+          inp.type = "text"; 
+          inp.className = "delegationNameInput";
+          inp.placeholder = "Name der " + (i + 1) + ". übertragenden Person"; 
+          inp.maxLength = 80; 
+          container.appendChild(inp);
         }
       } else {
-        for (let i = currentCount; i > delegationCount; i--) { container.removeChild(container.lastChild); }
+        for (let i = currentCount; i > delegationCount; i--) { 
+          container.removeChild(container.lastChild); 
+        }
       }
       document.getElementById("stepMinus").disabled = delegationCount <= 0;
       document.getElementById("countDisplay").textContent = delegationCount;
@@ -305,10 +340,17 @@
 
     document.querySelectorAll(".optBtn").forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll(".optBtn").forEach(b => { b.classList.remove('selected'); b.querySelector('.radio-circle').style.borderColor = "var(--border)"; b.querySelector('.radio-circle').innerHTML = ""; });
-        btn.classList.add('selected'); btn.querySelector('.radio-circle').style.borderColor = "var(--accent1)";
+        document.querySelectorAll(".optBtn").forEach(b => { 
+            b.classList.remove('selected'); 
+            b.querySelector('.radio-circle').style.borderColor = "var(--border)"; 
+            b.querySelector('.radio-circle').innerHTML = ""; 
+        });
+        btn.classList.add('selected'); 
+        btn.querySelector('.radio-circle').style.borderColor = "var(--accent1)";
         btn.querySelector('.radio-circle').innerHTML = '<div style="width:12px; height:12px; background:var(--accent1); border-radius:50%;"></div>';
-        selected = parseInt(btn.dataset.i); submitBtn.disabled = false; updateSubmitLabel();
+        selected = parseInt(btn.getAttribute('data-i')); 
+        submitBtn.disabled = false; 
+        updateSubmitLabel();
       });
     });
 
@@ -349,16 +391,15 @@
       }
 
       sessionStorage.setItem("voted_" + currentSession.token, "1");
-      wrap.innerHTML = `
-        <div class="glass" style="text-align:center;">
-          <div style="font-size:40px; margin-bottom:10px;">✅</div>
-          <h2 style="font-size:24px; font-weight:800;">Stimme erfasst</h2>
-          <p style="color:var(--muted); font-size:14px;">Danke für deine Teilnahme.</p>
-        </div>`;
+      wrap.innerHTML = '<div class="glass" style="text-align:center;">' +
+        '<div style="font-size:40px; margin-bottom:10px;">✅</div>' +
+        '<h2 style="font-size:24px; font-weight:800;">Stimme erfasst</h2>' +
+        '<p style="color:var(--muted); font-size:14px;">Danke für deine Teilnahme.</p>' +
+        '</div>';
     });
   }
 
-  // Umschließender Try-Catch-Block fängt alle Skript-Fehler beim Laden ab
+  // --- HAUPT-LOGIK MIT FEHLER-CATCHER ---
   (async () => {
     try {
         const token = getToken();
@@ -374,10 +415,7 @@
 
         const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
         
-        if (error) {
-            wrap.innerHTML = `<div class="glass" style="text-align:center;">Datenbank-Fehler:<br><span style="font-size:12px; color:var(--red-light);">${error.message}</span></div>`;
-            return;
-        }
+        if (error) throw new Error(error.message);
         if (!data) {
             wrap.innerHTML = '<div class="glass" style="text-align:center;">Abstimmung nicht gefunden.<br><span style="font-size:12px; color:var(--muted);">Der Link ist veraltet oder ungültig.</span></div>';
             return;
@@ -385,15 +423,24 @@
         
         currentSession = data;
 
+        // Bestimme die aktiven Gruppen rückwärtskompatibel (group_ids Array oder altes group_id Feld)
+        let activeGroups = [];
+        if (data.group_ids && data.group_ids.length > 0) {
+            activeGroups = data.group_ids;
+        } else if (data.group_id) {
+            activeGroups = [data.group_id];
+        }
+        currentSession.activeGroups = activeGroups;
+
         if (data.status !== "open") {
             playTheatricalAnimation('closed');
         } else {
-            if(data.group_ids && data.group_ids.length > 0) {
+            if(activeGroups.length > 0) {
                 showCodeEntry();
             } else {
                 const vToken = getVoterToken(data.token);
-                // Keine Gruppe -> Check in Datenbank ob dieser anonyme Browser schon gevotet hat
-                const { data: existingVote, error: vErr } = await sb.from("votes").select("id").eq("session_id", data.id).eq("voter_token", vToken).maybeSingle();
+                const { data: existingVote, error: vErr } = await sb.from("votes")
+                    .select("id").eq("session_id", data.id).eq("voter_token", vToken).maybeSingle();
                 
                 if (existingVote) {
                     sessionStorage.setItem("voted_" + token, "1");
@@ -404,14 +451,12 @@
                 playTheatricalAnimation('open', showVotingOptions);
             }
         }
-    } catch (err) {
-        wrap.innerHTML = `
-            <div class="glass" style="text-align:center;">
-                <div style="font-size:30px; margin-bottom:10px;">⚠️</div>
-                <h3 style="margin-bottom:10px;">Fehler beim Laden</h3>
-                <p style="color:var(--red-light); font-size:13px;">${err.message}</p>
-            </div>
-        `;
+    } catch(err) {
+        wrap.innerHTML = '<div class="glass" style="text-align:center;">' +
+            '<div style="font-size:30px; margin-bottom:10px;">⚠️</div>' +
+            '<h3 style="margin-bottom:10px;">Fehler beim Laden</h3>' +
+            '<p style="color:var(--red-light); font-size:13px;">' + err.message + '</p>' +
+            '</div>';
     }
   })();
 </script>
