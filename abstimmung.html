@@ -57,7 +57,7 @@
     }
     .code-input:focus { border-color: var(--accent1); background: rgba(255,255,255,.12); transform: translateY(-2px); }
 
-    /* Buttons & Options (wie gehabt, aber an Dark Mode angepasst) */
+    /* Buttons & Options */
     .btnPrimary {
       width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent1), var(--accent2));
       color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 16px; cursor: pointer;
@@ -134,7 +134,7 @@
 
   const wrap = document.getElementById("mainWrap");
   let currentSession = null;
-  let voterCode = "";
+  let voterCode = null; // Standardmäßig null für Abwärtskompatibilität bei Wahlen ohne Gruppe
 
   // Helper: Get URL Param
   function getToken() { return new URLSearchParams(location.search).get("s"); }
@@ -148,14 +148,14 @@
         <div class="white-flash" id="aFlash"></div>
         <div class="shockwave" id="aShock"></div>
         <div class="main-icon" id="aIcon">
-          ${type === 'open' 
+          \${type === 'open' 
             ? `<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`
             : `<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>`}
         </div>
       </div>
       <div class="anim-text" id="aText">
-        <div class="anim-title">${type === 'open' ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
-        <div class="anim-sub">${type === 'open' ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
+        <div class="anim-title">\${type === 'open' ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
+        <div class="anim-sub">\${type === 'open' ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
       </div>
     `;
 
@@ -279,7 +279,7 @@
         return;
       }
 
-      voterCode = code; // Save for voting
+      voterCode = code; // Speichert den Code für die Abgabe
       // Proceed to Theatrical Opening
       playTheatricalAnimation('open', showVotingOptions);
     });
@@ -292,14 +292,14 @@
 
     wrap.innerHTML = `
       <div class="glass" style="animation: fadeUp 0.6s ease;">
-        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
+        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">\${currentSession.title}</h2>
         <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
         
         <div id="optList">
-          ${opts.map((o, i) => `
-            <button class="optBtn" data-i="${i}">
+          \${opts.map((o, i) => `
+            <button class="optBtn" data-i="\${i}">
               <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
-              ${o}
+              \${o}
             </button>
           `).join('')}
         </div>
@@ -328,15 +328,20 @@
       const btn = document.getElementById('submitVote');
       btn.disabled = true; btn.textContent = "Wird verschlüsselt...";
 
+      // Generiert einen anonymen Token, um NOT NULL-Felder in alten Tabellen-Schemata zu bedienen
+      const fallbackToken = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+
       const { error } = await sb.from("votes").insert({
         session_id: currentSession.id,
         option_index: selected,
-        voter_code: voterCode,
+        voter_code: voterCode,     // Der 5-stellige Code (bzw. null bei offener Wahl)
+        voter_token: fallbackToken, // Generiert zur Sicherheit einen Token, falls Pflichtfeld
         weight: 1
       });
 
       if(error) {
-        alert("Fehler bei der Abgabe.");
+        // Gibt jetzt das exakte DB-Problem aus, um das Debuggen zum Kinderspiel zu machen!
+        alert("Fehler bei der Abgabe: " + error.message + " (" + error.code + ")");
         btn.disabled = false; btn.textContent = "Stimme abgeben";
         return;
       }
@@ -364,8 +369,8 @@
       if(data.group_id) {
         showCodeEntry();
       } else {
-        // Fallback falls keine Gruppe gesetzt ist (öffentliche Wahl)
-        voterCode = "OPEN";
+        // Ohne Gruppe setzen wir voterCode explizit auf null statt "OPEN"
+        voterCode = null;
         playTheatricalAnimation('open', showVotingOptions);
       }
     }
