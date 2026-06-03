@@ -27,37 +27,47 @@
       background: radial-gradient(circle, var(--glow-color, transparent) 0%, transparent 60%);
       opacity: 0.15; transition: background 1s ease;
     }
+
     .wrap { width: 100%; max-width: 520px; margin: 0 auto; padding: 40px 16px 60px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; justify-content: center; }
     .glass { background: var(--glass); border: 1px solid var(--border); border-radius: 22px; padding: 30px 24px; width: 100%; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 20px 55px rgba(0,0,0,.50); animation: fadeUp 0.4s ease forwards; }
     .code-container { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
     .code-input { width: 50px; height: 60px; font-size: 24px; font-weight: 800; text-align: center; background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2); color: white; border-radius: 12px; outline: none; transition: 0.2s; }
     .code-input:focus { border-color: var(--accent1); background: rgba(255,255,255,.12); transform: translateY(-2px); }
+
     .btnPrimary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent1), var(--accent2)); color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 16px; cursor: pointer; transition: transform .15s; margin-top: 20px; box-shadow: 0 8px 24px rgba(249,115,22,0.2); }
+    .btnPrimary:active { transform: scale(0.98); }
     .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
     .optBtn { width: 100%; padding: 16px; background: rgba(255,255,255,.05); border: 1.5px solid var(--border); border-radius: 16px; color: white; font-size: 16px; font-weight: 600; text-align: left; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     .optBtn.selected { background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(168,85,247,.15)); border-color: var(--accent1); box-shadow: 0 8px 24px rgba(249,115,22,.2); }
-    
+
     .delegationSection { margin-top: 20px; padding: 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); }
     .delegationTitle { font-size: 15px; font-weight: 700; color: white; margin-bottom: 12px; }
     .delegationCountRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .delegationCountRow label { font-size: 14px; color: var(--muted); font-weight: 500; }
     .countStepper { display: flex; align-items: center; gap: 12px; }
     .stepBtn { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.08); border: 1px solid var(--border); color: white; font-size: 18px; font-weight: 700; cursor: pointer; display: grid; place-items: center; transition: 0.15s; }
+    .stepBtn:hover { background: rgba(255,255,255,.15); }
     .stepBtn:disabled { opacity: 0.3; cursor: not-allowed; }
     .countDisplay { min-width: 20px; text-align: center; font-size: 18px; font-weight: 800; }
+    
     .delegationNames { display: flex; flex-direction: column; gap: 10px; }
-    .delegationNameInput { background: rgba(255,255,255,.06); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 14px; width: 100%; }
-
+    .delegationNameInput { background: rgba(255,255,255,.06); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 14px; width: 100%; transition: 0.2s; }
+    .delegationNameInput:focus { border-color: var(--accent1); background: rgba(255,255,255,.1); }
+    
     .anim-container { position: relative; width: 340px; height: 340px; display: flex; justify-content: center; align-items: center; margin: 0 auto 40px; display: none; }
     .loader-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 10px solid transparent; border-top-color: var(--anim-color-light); border-right-color: var(--anim-color-deep); opacity: 0; transform: scale(1) rotate(-90deg); }
+    
     .ambient-glow { position: absolute; width: 440px; height: 440px; border-radius: 50%; background: radial-gradient(circle, var(--anim-color-deep) 0%, transparent 60%); opacity: 0; transform: scale(0.5); pointer-events: none; }
     .white-flash { position: absolute; width: 200px; height: 200px; border-radius: 50%; background: white; opacity: 0; transform: scale(0.2); filter: blur(2px); }
     .shockwave { position: absolute; width: 200px; height: 200px; border-radius: 50%; border: 4px solid var(--anim-color-light); opacity: 0; transform: scale(0.5); }
     .main-icon { position: absolute; width: 140px; height: 140px; opacity: 0; transform: scale(0); filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 20px var(--anim-color-deep)); }
     .main-icon svg { width: 100%; height: 100%; }
+
     .anim-text { text-align: center; opacity: 0; transform: translateY(30px); }
     .anim-title { font-size: 40px; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 8px; }
     .anim-sub { font-size: 16px; font-weight: 600; letter-spacing: 4px; color: rgba(255,255,255,0.7); }
+
     @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulseAmbient { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
   </style>
@@ -80,7 +90,7 @@
   let voterCode = null;
 
   function getToken() { return new URLSearchParams(location.search).get("s"); }
-  
+
   function getVoterToken(sessionToken) {
     const key = "vt_" + sessionToken;
     let vt = sessionStorage.getItem(key);
@@ -106,14 +116,14 @@
         <div class="white-flash" id="aFlash"></div>
         <div class="shockwave" id="aShock"></div>
         <div class="main-icon" id="aIcon">
-          ${isTxtOpen 
+          \${isTxtOpen 
             ? '<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
             : '<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>'}
         </div>
       </div>
       <div class="anim-text" id="aText">
-        <div class="anim-title">${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
-        <div class="anim-sub">${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
+        <div class="anim-title">\${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
+        <div class="anim-sub">\${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
       </div>`;
 
     const root = document.documentElement;
@@ -196,7 +206,6 @@
       const btn = document.getElementById('verifyBtn');
       btn.disabled = true; btn.textContent = "Prüfe...";
       
-      // Filtert, ob der Code in IRGENDEINER der erlaubten Gruppen der Wahl existiert
       const { data: codeData, error: codeErr } = await sb.from("voter_codes")
         .select("*").in("group_id", currentSession.group_ids || []).eq("code", code).maybeSingle();
         
@@ -206,7 +215,6 @@
         return;
       }
 
-      // Prüft ob der Code in dieser Wahl bereits verwendet wurde
       const { data: voteData } = await sb.from("votes")
         .select("id").eq("session_id", currentSession.id).eq("voter_code", code).maybeSingle();
 
@@ -243,16 +251,16 @@
 
     wrap.innerHTML = `
       <div class="glass" style="animation: fadeUp 0.6s ease;">
-        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
+        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">\${currentSession.title}</h2>
         <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
         <div id="optList">
-          ${opts.map((o, i) => `
-            <button class="optBtn" data-i="${i}">
+          \${opts.map((o, i) => `
+            <button class="optBtn" data-i="\${i}">
               <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
-              ${o}
+              \${o}
             </button>`).join('')}
         </div>
-        ${delegationHtml}
+        \${delegationHtml}
         <button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>
         <div id="vMsg" style="margin-top:12px; font-size:13px; color:var(--red-light); text-align:center;"></div>
       </div>`;
@@ -263,7 +271,7 @@
     function updateSubmitLabel() {
       if (selected === null) return;
       const total = 1 + delegationCount;
-      submitBtn.textContent = total > 1 ? `„${opts[selected]}“ wählen (${total} Stimmen)` : `„${opts[selected]}“ wählen`;
+      submitBtn.textContent = total > 1 ? `„\${opts[selected]}“ wählen (\${total} Stimmen)` : `„\${opts[selected]}“ wählen`;
     }
 
     function updateDelegationNames() {
@@ -274,7 +282,7 @@
       if (delegationCount > currentCount) {
         for (let i = currentCount; i < delegationCount; i++) {
           const inp = document.createElement("input"); inp.type = "text"; inp.className = "delegationNameInput";
-          inp.placeholder = `Name der ${i + 1}. übertragenden Person`; inp.maxLength = 80; container.appendChild(inp);
+          inp.placeholder = `Name der \${i + 1}. übertragenden Person`; inp.maxLength = 80; container.appendChild(inp);
         }
       } else {
         for (let i = currentCount; i > delegationCount; i--) { container.removeChild(container.lastChild); }
@@ -348,7 +356,6 @@
     const token = getToken();
     if (!token) return wrap.innerHTML = '<div class="glass">Ungültiger Link.</div>';
 
-    // Lokaler Schnell-Check gegen doppeltes Abstimmen
     if (sessionStorage.getItem("voted_" + token)) { return showBlockedState(); }
 
     const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
@@ -358,11 +365,9 @@
     if (data.status !== "open") {
       playTheatricalAnimation('closed');
     } else {
-      // Prüfen, ob die Wahl Gruppen-beschränkt ist (Array nicht leer)
       if(data.group_ids && data.group_ids.length > 0) {
         showCodeEntry();
       } else {
-        // Offene Wahl: Prüfen, ob der anonyme Browser-Token schon in der DB existiert
         const vToken = getVoterToken(data.token);
         const { data: existingVote } = await sb.from("votes").select("id").eq("session_id", data.id).eq("voter_token", vToken).maybeSingle();
         if (existingVote) {
