@@ -94,7 +94,13 @@
   function getVoterToken(sessionToken) {
     const key = "vt_" + sessionToken;
     let vt = sessionStorage.getItem(key);
-    if (!vt) { vt = crypto.randomUUID(); sessionStorage.setItem(key, vt); }
+    if (!vt) { 
+      // Absturzsicherer Fallback für alte Browser oder http:// Verbindungen
+      vt = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') 
+            ? crypto.randomUUID() 
+            : Math.random().toString(36).substring(2) + Date.now().toString(36);
+      sessionStorage.setItem(key, vt); 
+    }
     return vt;
   }
 
@@ -116,14 +122,14 @@
         <div class="white-flash" id="aFlash"></div>
         <div class="shockwave" id="aShock"></div>
         <div class="main-icon" id="aIcon">
-          \${isTxtOpen 
+          ${isTxtOpen 
             ? '<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
             : '<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>'}
         </div>
       </div>
       <div class="anim-text" id="aText">
-        <div class="anim-title">\${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
-        <div class="anim-sub">\${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
+        <div class="anim-title">${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
+        <div class="anim-sub">${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
       </div>`;
 
     const root = document.documentElement;
@@ -251,16 +257,16 @@
 
     wrap.innerHTML = `
       <div class="glass" style="animation: fadeUp 0.6s ease;">
-        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">\${currentSession.title}</h2>
+        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
         <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
         <div id="optList">
-          \${opts.map((o, i) => `
-            <button class="optBtn" data-i="\${i}">
+          ${opts.map((o, i) => `
+            <button class="optBtn" data-i="${i}">
               <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
-              \${o}
+              ${o}
             </button>`).join('')}
         </div>
-        \${delegationHtml}
+        ${delegationHtml}
         <button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>
         <div id="vMsg" style="margin-top:12px; font-size:13px; color:var(--red-light); text-align:center;"></div>
       </div>`;
@@ -271,7 +277,7 @@
     function updateSubmitLabel() {
       if (selected === null) return;
       const total = 1 + delegationCount;
-      submitBtn.textContent = total > 1 ? `„\${opts[selected]}“ wählen (\${total} Stimmen)` : `„\${opts[selected]}“ wählen`;
+      submitBtn.textContent = total > 1 ? `„${opts[selected]}“ wählen (${total} Stimmen)` : `„${opts[selected]}“ wählen`;
     }
 
     function updateDelegationNames() {
@@ -282,7 +288,7 @@
       if (delegationCount > currentCount) {
         for (let i = currentCount; i < delegationCount; i++) {
           const inp = document.createElement("input"); inp.type = "text"; inp.className = "delegationNameInput";
-          inp.placeholder = `Name der \${i + 1}. übertragenden Person`; inp.maxLength = 80; container.appendChild(inp);
+          inp.placeholder = `Name der ${i + 1}. übertragenden Person`; inp.maxLength = 80; container.appendChild(inp);
         }
       } else {
         for (let i = currentCount; i > delegationCount; i--) { container.removeChild(container.lastChild); }
@@ -336,7 +342,7 @@
           sessionStorage.setItem("voted_" + currentSession.token, "1");
           showBlockedState();
         } else {
-          alert("Fehler bei der Abgabe: " + error.message);
+          vMsg.textContent = "Fehler bei der Abgabe: " + error.message;
           submitBtn.disabled = false; updateSubmitLabel();
         }
         return;
@@ -352,31 +358,60 @@
     });
   }
 
+  // Umschließender Try-Catch-Block fängt alle Skript-Fehler beim Laden ab
   (async () => {
-    const token = getToken();
-    if (!token) return wrap.innerHTML = '<div class="glass">Ungültiger Link.</div>';
-
-    if (sessionStorage.getItem("voted_" + token)) { return showBlockedState(); }
-
-    const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
-    if (error || !data) return wrap.innerHTML = '<div class="glass">Abstimmung nicht gefunden.</div>';
-    currentSession = data;
-
-    if (data.status !== "open") {
-      playTheatricalAnimation('closed');
-    } else {
-      if(data.group_ids && data.group_ids.length > 0) {
-        showCodeEntry();
-      } else {
-        const vToken = getVoterToken(data.token);
-        const { data: existingVote } = await sb.from("votes").select("id").eq("session_id", data.id).eq("voter_token", vToken).maybeSingle();
-        if (existingVote) {
-          sessionStorage.setItem("voted_" + token, "1");
-          return showBlockedState();
+    try {
+        const token = getToken();
+        if (!token) {
+            wrap.innerHTML = '<div class="glass" style="text-align:center;">Ungültiger Link.<br><span style="font-size:12px; color:var(--muted);">Es wurde kein Token in der URL gefunden.</span></div>';
+            return;
         }
-        voterCode = null;
-        playTheatricalAnimation('open', showVotingOptions);
-      }
+
+        if (sessionStorage.getItem("voted_" + token)) { 
+            showBlockedState();
+            return; 
+        }
+
+        const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
+        
+        if (error) {
+            wrap.innerHTML = `<div class="glass" style="text-align:center;">Datenbank-Fehler:<br><span style="font-size:12px; color:var(--red-light);">${error.message}</span></div>`;
+            return;
+        }
+        if (!data) {
+            wrap.innerHTML = '<div class="glass" style="text-align:center;">Abstimmung nicht gefunden.<br><span style="font-size:12px; color:var(--muted);">Der Link ist veraltet oder ungültig.</span></div>';
+            return;
+        }
+        
+        currentSession = data;
+
+        if (data.status !== "open") {
+            playTheatricalAnimation('closed');
+        } else {
+            if(data.group_ids && data.group_ids.length > 0) {
+                showCodeEntry();
+            } else {
+                const vToken = getVoterToken(data.token);
+                // Keine Gruppe -> Check in Datenbank ob dieser anonyme Browser schon gevotet hat
+                const { data: existingVote, error: vErr } = await sb.from("votes").select("id").eq("session_id", data.id).eq("voter_token", vToken).maybeSingle();
+                
+                if (existingVote) {
+                    sessionStorage.setItem("voted_" + token, "1");
+                    showBlockedState();
+                    return;
+                }
+                voterCode = null;
+                playTheatricalAnimation('open', showVotingOptions);
+            }
+        }
+    } catch (err) {
+        wrap.innerHTML = `
+            <div class="glass" style="text-align:center;">
+                <div style="font-size:30px; margin-bottom:10px;">⚠️</div>
+                <h3 style="margin-bottom:10px;">Fehler beim Laden</h3>
+                <p style="color:var(--red-light); font-size:13px;">${err.message}</p>
+            </div>
+        `;
     }
   })();
 </script>
