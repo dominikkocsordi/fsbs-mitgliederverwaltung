@@ -3,1053 +3,310 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FSBS">
-<link rel="stylesheet" href="/mobile-nav.css">
 <title>Abstimmungen · FSBS</title>
-<meta name="theme-color" content="#120e18">
-<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="manifest" href="/favicon/site.webmanifest">
+<meta name="theme-color" content="#061827">
+<link rel="stylesheet" href="/mobile-nav.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
-  --accent1:#f97316; --accent2:#a855f7;
-  --glass: rgba(255,255,255,.08);
-  --border: rgba(255,255,255,.18);
+  /* Deep Dark macOS UI Design */
+  --bg1: #061827; --bg2: #0A2235; --bg3: #04111C;
+  --accent1: #f97316; --accent2: #a855f7;
+  --glass: rgba(255,255,255,.05);
+  --border: rgba(255,255,255,.12);
   --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.65);
+  --muted: rgba(255,255,255,.60);
   --shadow: 0 20px 55px rgba(0,0,0,.50);
-  --ok: rgba(34,197,94,.95);
-  --bad: rgba(239,68,68,.95);
-  --danger1: #fb7185; --danger2: #e11d48;
+  --ok: #3BD68A; --bad: #FF4D4D;
 }
 *{ box-sizing:border-box; margin:0; padding:0; }
 html, body{ min-height:100%; }
 html{
-  background:
-    radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-    radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-    radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-    linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+  background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
   background-attachment: fixed;
 }
-@supports (-webkit-touch-callout: none){ html{ background-attachment:scroll; } }
 body{
-  font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color: var(--text); background: transparent;
-  display:flex; justify-content:center; align-items:flex-start;
-  padding:42px 16px 60px; overflow-x:hidden;
-  animation: pageIn .38s ease both;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text); padding:42px 16px 60px;
 }
-@keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-@media (prefers-reduced-motion: reduce){ body{ animation:none !important; } }
 
-.app{ width:100%; max-width:1200px; }
-
-.top{
-  display:flex; align-items:flex-end; justify-content:space-between;
-  gap:16px; margin-bottom:14px; flex-wrap:wrap;
-}
-h1{ font-size:32px; letter-spacing:.4px; }
-.subtitle{ margin-top:6px; color:var(--muted); font-size:14px; }
-.brandLeft{ display:flex; align-items:center; gap:12px; }
-.brandLogo{
-  width:60px; height:60px; border-radius:14px; padding:6px;
-  display:grid; place-items:center; text-decoration:none; flex:0 0 auto;
-  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
-  box-shadow:0 16px 44px rgba(0,0,0,.30);
-  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-  transition:transform .16s ease, filter .16s ease, background .16s ease;
-}
-.brandLogo:hover{ transform:translateY(-1px); filter:brightness(1.05); background:rgba(255,255,255,.12); }
-.brandLogo img{ width:100%; height:100%; border-radius:10px; object-fit:cover; display:block; }
-@media (max-width:640px){
-  .brandLogo{ width:32px; height:32px; border-radius:12px; padding:5px; }
-  .brandLogo img{ border-radius:9px; }
-}
+.app{ width:100%; max-width:1200px; margin: 0 auto; }
+.top{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; }
+h1{ font-size:32px; font-weight:800; letter-spacing:.4px; }
+.subtitle{ color:var(--muted); font-size:14px; margin-top:6px; }
 
 .glass{
-  background:rgba(255,255,255,.10); border:1px solid var(--border);
+  background:var(--glass); border:1px solid var(--border);
   border-radius:22px; box-shadow:var(--shadow);
-  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
 }
 
 button{
   border:none; cursor:pointer; border-radius:14px; padding:12px 18px;
-  font-weight:600; font-family:inherit; font-size:inherit; touch-action:manipulation;
-  transition:transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease;
+  font-weight:600; font-family:inherit; font-size:14px;
+  transition:transform .16s ease, filter .16s ease;
 }
-button:active{ transform:translateY(0px) scale(.98); }
-button:disabled{ cursor:not-allowed !important; opacity:.45 !important; transform:none !important; filter:none !important; }
-
-.btn-primary{
-  background:linear-gradient(135deg, var(--accent1), var(--accent2));
-  color:#0f0b16; font-weight:700;
-  box-shadow:0 12px 30px rgba(168,85,247,.25);
-}
-.btn-primary:hover{ transform:translateY(-2px); filter:brightness(1.05); }
-
-.btn-secondary{
-  background:rgba(255,255,255,.14); color:var(--text);
-  border:1px solid var(--border);
-}
-.btn-secondary:hover{ transform:translateY(-2px); background:rgba(255,255,255,.18); }
-
-.btn-danger{
-  background:linear-gradient(135deg, rgba(251,113,133,.22), rgba(225,29,72,.18));
-  color:var(--danger1); border:1px solid rgba(251,113,133,.28);
-}
-.btn-danger:hover{ transform:translateY(-2px); filter:brightness(1.1); }
-
+button:active{ transform:scale(.98); }
+.btn-primary{ background:linear-gradient(135deg, var(--accent1), var(--accent2)); color:#000; font-weight:700; }
+.btn-primary:hover{ filter:brightness(1.1); }
+.btn-secondary{ background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover{ background:rgba(255,255,255,.12); }
+.btn-danger{ background:rgba(255,77,77,.15); color:var(--bad); border:1px solid rgba(255,77,77,.3); }
 .btn-sm{ padding:8px 14px; font-size:13px; border-radius:12px; }
 
-.hidden{ display:none !important; }
-
-/* Auth badge */
-.authFloating{
-  border-radius:999px; padding:10px 12px;
-  display:flex; align-items:center; gap:10px;
-  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
-  box-shadow:0 18px 55px rgba(0,0,0,.40);
-  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-  user-select:none; max-width:min(560px,100%);
-}
-.dot{ width:10px; height:10px; border-radius:999px; background:rgba(255,255,255,.35); }
-.dot.ok{ background:var(--ok); box-shadow:0 0 0 2px rgba(34,197,94,.20),0 0 18px rgba(34,197,94,.55),0 0 42px rgba(34,197,94,.30); }
-.authAvatar{
-  width:30px; height:30px; border-radius:999px;
-  display:grid; place-items:center;
-  font-weight:800; font-size:12px; letter-spacing:.3px;
-  color:rgba(255,255,255,.92); border:1px solid rgba(255,255,255,.18);
-  box-shadow:0 12px 28px rgba(0,0,0,.25); background:rgba(255,255,255,.10); flex:0 0 auto;
-}
-.authInfo{ display:flex; flex-direction:column; line-height:1.1; min-width:0; flex:1 1 auto; }
-.authState{ font-size:13px; font-weight:750; letter-spacing:.25px; }
-.authTopLine{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; }
-.authCompact{ display:flex; align-items:center; gap:8px; min-width:0; }
-.authNameInline{
-  font-size:13px; font-weight:850; letter-spacing:.15px; color:rgba(255,255,255,.92);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px;
-}
-.rolePill{
-  display:inline-flex; align-items:center; padding:6px 10px; border-radius:999px;
-  border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08);
-  color:rgba(255,255,255,.86); font-weight:900; font-size:11px; letter-spacing:.10px;
-  line-height:1; white-space:nowrap;
-}
-.rolePill.vorstand{ border-color:rgba(56,189,248,.40); background:rgba(56,189,248,.12); }
-.rolePill.ressortleiter{ border-color:rgba(251,146,60,.35); background:rgba(251,146,60,.12); }
-.authChevron{
-  border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06);
-  color:rgba(255,255,255,.85); width:30px; height:26px; border-radius:999px;
-  padding:0; display:grid; place-items:center; cursor:pointer;
-  transition:transform .15s ease, background .15s ease;
-}
-.authChevron:hover{ background:rgba(255,255,255,.10); transform:translateY(-1px); }
-.authDetails{
-  margin-top:8px; padding-top:8px;
-  border-top:1px solid rgba(255,255,255,.10);
-  display:flex; gap:8px; align-items:center; min-width:0;
-}
-.authMail{ font-size:11px; color:rgba(255,255,255,.58); word-break:break-all; }
-
-/* Nav */
-.navWrap{ margin-bottom:16px; position:sticky; top:14px; z-index:6; }
-.nav{ display:flex; gap:2px; align-items:center; padding:5px 6px; overflow-x:auto; scrollbar-width:none; }
-.nav::-webkit-scrollbar{ display:none; }
-.navLeft{ display:flex; gap:2px; align-items:center; flex:1; min-width:0; }
-.navRight{ flex:0 0 auto; padding-left:6px; border-left:1px solid rgba(255,255,255,.08); margin-left:4px; }
-.navLink{
-  display:inline-flex; align-items:center; gap:5px;
-  padding:7px 13px; border-radius:999px;
-  text-decoration:none; font-size:13px; font-weight:600;
-  color:rgba(255,255,255,.65); border:1px solid transparent;
-  white-space:nowrap; user-select:none;
-  transition:background .14s, border-color .14s, color .14s, transform .14s;
-}
-.navLink:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.13); color:rgba(255,255,255,.92); transform:translateY(-1px); }
-.navLink.active{
-  background:linear-gradient(135deg, rgba(249,115,22,.22), rgba(168,85,247,.16));
-  border-color:rgba(249,115,22,.32); color:rgba(255,255,255,.96);
-  box-shadow:0 3px 14px rgba(249,115,22,.18);
-}
-
-/* Page layout */
-.pageHeader{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:16px; margin-bottom:20px; flex-wrap:wrap;
-}
-.pageTitle{ font-size:22px; font-weight:800; }
-.pageSub{ font-size:13px; color:var(--muted); margin-top:4px; }
-
-/* Session list */
+.pageHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; margin-top:30px; }
 .sessionList{ display:flex; flex-direction:column; gap:14px; }
-
 .sessionCard{
-  padding:20px; border-radius:20px;
-  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
-  box-shadow:0 12px 36px rgba(0,0,0,.30);
-  transition:transform .16s ease, box-shadow .16s ease;
+  padding:20px; border-radius:20px; background:rgba(255,255,255,.03);
+  border:1px solid var(--border); backdrop-filter:blur(14px);
+  transition:transform .16s ease;
 }
-.sessionCard:hover{ transform:translateY(-2px); box-shadow:0 18px 48px rgba(0,0,0,.38); }
+.sessionCard:hover{ transform:translateY(-2px); background:rgba(255,255,255,.05); }
+.sessionCardTop{ display:flex; justify-content:space-between; gap:12px; }
+.sessionCardTitle{ font-size:18px; font-weight:800; margin-bottom:6px; }
 
-.sessionCardTop{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.sessionCardInfo{ flex:1 1 auto; min-width:0; }
-.sessionCardTitle{ font-size:18px; font-weight:800; letter-spacing:.2px; margin-bottom:6px; }
-.sessionCardMeta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+/* Status Badges */
+.statusBadge{ padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
+.statusBadge.open{ background:rgba(59,214,138,.15); color:var(--ok); border:1px solid rgba(59,214,138,.3); }
+.statusBadge.closed{ background:rgba(255,255,255,.08); color:var(--muted); border:1px solid var(--border); }
 
-.statusBadge{
-  display:inline-flex; align-items:center; gap:5px;
-  padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:.2px;
-}
-.statusBadge.open{
-  background:rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.35);
-  color:rgba(34,197,94,.95);
-}
-.statusBadge.closed{
-  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
-  color:rgba(255,255,255,.55);
-}
-.validityBadge{
-  display:inline-flex; align-items:center; gap:5px;
-  padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:.2px;
-}
-.validityBadge.valid{
-  background:rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.35);
-  color:rgba(34,197,94,.95);
-}
-.validityBadge.invalid{
-  background:rgba(239,68,68,.18); border:1px solid rgba(239,68,68,.35);
-  color:rgba(239,68,68,.95);
-}
-
-.btn-valid{
-  background:rgba(34,197,94,.14); color:rgba(34,197,94,.9);
-  border:1px solid rgba(34,197,94,.28);
-}
-.btn-valid:hover{ background:rgba(34,197,94,.24); transform:translateY(-2px); }
-.btn-invalid-mark{
-  background:rgba(239,68,68,.14); color:rgba(239,68,68,.9);
-  border:1px solid rgba(239,68,68,.28);
-}
-.btn-invalid-mark:hover{ background:rgba(239,68,68,.24); transform:translateY(-2px); }
-.sessionDate{ font-size:12px; color:var(--muted); }
-
-.sessionCardActions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; flex:0 0 auto; }
-
-/* Results */
-.resultsBlock{ margin-top:18px; border-top:1px solid rgba(255,255,255,.10); padding-top:16px; }
-.resultsTitle{ font-size:13px; font-weight:700; color:var(--muted); margin-bottom:12px; letter-spacing:.3px; text-transform:uppercase; }
-.resultRow{ margin-bottom:10px; }
-.resultLabel{ display:flex; justify-content:space-between; align-items:center; font-size:14px; font-weight:600; margin-bottom:5px; }
-.resultLabelText{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; padding-right:10px; }
-.resultCount{ font-size:13px; color:var(--muted); white-space:nowrap; }
-.resultBar{ height:8px; border-radius:999px; background:rgba(255,255,255,.10); overflow:hidden; }
-.resultBarFill{ height:100%; border-radius:999px; background:linear-gradient(90deg, var(--accent1), var(--accent2)); transition:width .5s ease; }
-.totalVotes{ font-size:12px; color:var(--muted); margin-top:10px; }
-
-.delegBlock{
-  margin-top:14px; padding:12px 14px; border-radius:14px;
-  background:rgba(168,85,247,.08); border:1px solid rgba(168,85,247,.20);
-}
-.delegBlockTitle{
-  font-size:12px; font-weight:700; letter-spacing:.3px; text-transform:uppercase;
-  color:rgba(168,85,247,.85); margin-bottom:8px;
-}
-.delegRow{
-  display:flex; align-items:center; gap:7px; font-size:13px;
-  padding:4px 0; border-bottom:1px solid rgba(255,255,255,.06);
-}
-.delegRow:last-child{ border-bottom:none; }
-.delegName{ font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.delegArrow{ color:rgba(168,85,247,.6); flex:0 0 auto; }
-.delegOpt{ color:rgba(249,115,22,.9); font-weight:700; flex:0 0 auto; max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-
-/* Empty state */
-.emptyState{ text-align:center; padding:60px 20px; }
-.emptyIcon{ font-size:48px; margin-bottom:16px; }
-.emptyTitle{ font-size:18px; font-weight:700; margin-bottom:8px; }
-.emptySub{ font-size:14px; color:var(--muted); }
-
-/* Toast */
-.toast{
-  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-  background:rgba(34,197,94,.20); border:1px solid rgba(34,197,94,.40);
-  color:rgba(255,255,255,.92); padding:12px 22px; border-radius:999px;
-  font-size:14px; font-weight:600; letter-spacing:.2px;
-  box-shadow:0 12px 32px rgba(0,0,0,.35); z-index:999;
-  transition:transform .3s ease, opacity .3s ease; opacity:0; pointer-events:none;
-}
-.toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
-.toast.error{ background:rgba(239,68,68,.20); border-color:rgba(239,68,68,.40); }
-
-/* Modal */
-dialog{
-  background:transparent; border:none; padding:0; max-width:520px; width:calc(100% - 32px);
-  margin:auto;
-}
-dialog::backdrop{ background:rgba(0,0,0,.6); backdrop-filter:blur(4px); }
-.modalBox{
-  background:rgba(22,16,34,.95); border:1px solid rgba(255,255,255,.18);
-  border-radius:22px; box-shadow:0 30px 80px rgba(0,0,0,.60);
-  padding:24px; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-}
+/* Modals */
+dialog{ background:transparent; border:none; padding:0; max-width:520px; width:calc(100% - 32px); margin:auto; }
+dialog::backdrop{ background:rgba(0,0,0,.7); backdrop-filter:blur(8px); }
+.modalBox{ background:var(--bg2); border:1px solid var(--border); border-radius:22px; padding:24px; color:white; }
 .modalTitle{ font-size:20px; font-weight:800; margin-bottom:20px; }
 
-.formGroup{ margin-bottom:14px; }
+.formGroup{ margin-bottom:16px; }
 .formLabel{ font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
-input[type=text], input[type=number]{
-  background:rgba(255,255,255,.12); border:1px solid var(--border);
-  color:var(--text); padding:12px 14px; border-radius:14px; outline:none;
-  font-size:15px; font-family:inherit; width:100%;
-  transition:background .15s, border-color .15s, transform .15s;
+input[type=text], input[type=number], select {
+  background:rgba(255,255,255,.05); border:1px solid var(--border); color:white;
+  padding:12px 14px; border-radius:14px; width:100%; font-size:15px; outline:none;
 }
-input[type=text]::placeholder, input[type=number]::placeholder{ color:rgba(255,255,255,.35); }
-input[type=text]:focus, input[type=number]:focus{
-  border-color:rgba(249,115,22,.55); background:rgba(255,255,255,.16); transform:translateY(-1px);
-}
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button{ opacity:.5; }
-
-.limitToggleRow{
-  display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:14px;
-  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12);
-  cursor:pointer; user-select:none;
-}
-.limitToggleRow input[type=checkbox]{
-  width:17px; height:17px; cursor:pointer; accent-color:var(--accent1); flex:0 0 auto;
-}
-.limitToggleLabel{ font-size:14px; font-weight:600; }
-
-.participantStats{
-  margin-top:12px; padding:14px 16px; border-radius:16px;
-  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10);
-  display:flex; flex-direction:column; gap:8px;
-}
-.participantStatsRow{
-  display:flex; justify-content:space-between; align-items:center; font-size:13px;
-}
-.statsLabel{ color:var(--muted); }
-.statsValueGreen{ font-weight:700; color:rgba(34,197,94,.9); }
-.statsValueRed{ font-weight:700; color:rgba(239,68,68,.82); }
-.statsValueNeutral{ font-weight:700; }
+input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,255,.08); }
 
 .optionsList{ display:flex; flex-direction:column; gap:8px; }
-.optionRow{ display:flex; gap:8px; align-items:center; }
+.optionRow{ display:flex; gap:8px; }
 .optionRow input{ flex:1; }
-.optionRemove{
-  width:34px; height:34px; border-radius:10px; padding:0; font-size:16px;
-  background:rgba(239,68,68,.15); color:var(--danger1);
-  border:1px solid rgba(239,68,68,.25); flex:0 0 auto;
-}
-.optionRemove:hover{ background:rgba(239,68,68,.25); transform:scale(1.05); }
+.optionRemove{ background:rgba(255,77,77,.15); color:var(--bad); width:40px; border-radius:12px; }
 
-.addOptionBtn{
-  margin-top:8px; padding:9px 14px; font-size:13px; border-radius:12px;
-  background:rgba(255,255,255,.10); color:rgba(255,255,255,.75);
-  border:1px dashed rgba(255,255,255,.20);
-}
-.addOptionBtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.30); transform:translateY(-1px); }
-
-.presetRow{
-  display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px;
-}
-.presetLabel{ font-size:12px; color:var(--muted); white-space:nowrap; }
-.presetBtn{
-  padding:5px 13px; border-radius:999px; font-size:12px; font-weight:700; letter-spacing:.15px;
-  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
-  color:rgba(255,255,255,.72); cursor:pointer;
-  transition:background .14s, border-color .14s, color .14s, transform .14s;
-}
-.presetBtn:hover{ background:rgba(249,115,22,.18); border-color:rgba(249,115,22,.40); color:rgba(255,255,255,.96); transform:translateY(-1px); }
-.presetBtn.active{ background:rgba(249,115,22,.22); border-color:rgba(249,115,22,.55); color:rgba(255,255,255,.96); }
-
-.modalActions{ display:flex; gap:10px; margin-top:20px; justify-content:flex-end; flex-wrap:wrap; }
-.modalActions button{ min-width:120px; }
-
-/* Spinner */
-.spinner{
-  width:36px; height:36px; border-radius:50%;
-  border:3px solid rgba(255,255,255,.15); border-top-color:var(--accent1);
-  animation:spin .7s linear infinite; margin:0 auto 16px;
-}
-@keyframes spin{ to{transform:rotate(360deg)} }
-
-@media (max-width:640px){
-  body{ padding:24px 14px; }
-  h1{ font-size:26px; }
-  .top{ flex-direction:column; align-items:flex-start; gap:10px; }
-  .navWrap{ top:10px; }
-  .sessionCardTop{ flex-direction:column; }
-  .sessionCardActions{ width:100%; }
-  .authNameInline{ max-width:150px; }
-}
+/* Code Grid */
+.code-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+.code-badge { background: rgba(255,255,255,.08); padding: 8px; border-radius: 8px; text-align: center; font-family: monospace; font-weight: 800; font-size: 16px; border: 1px solid var(--border); }
 </style>
 </head>
 <body>
 <div class="app">
-
   <div class="top">
-    <div class="brandLeft">
-      <a class="brandLogo" href="index.html" title="FSBS Intern">
-        <img src="logo.png" alt="Fachschaft Logo"
-             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
-      </a>
-      <div>
-        <h1>Abstimmungen</h1>
-        <div class="subtitle">Wahlen verwalten</div>
-      </div>
-    </div>
-
     <div>
-      <div class="authFloating" id="authBadge" title="Login-Status">
-        <span class="dot warn" id="authDot"></span>
-        <div class="authAvatar hidden" id="authAvatar">U</div>
-        <div class="authInfo">
-          <div class="authTopLine">
-            <div class="authState" id="authState">nicht eingeloggt</div>
-            <div class="authCompact hidden" id="authCompact">
-              <span class="authNameInline" id="authNameInline">User</span>
-              <span class="rolePill" id="authRolePill">Rolle</span>
-              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
-            </div>
-          </div>
-          <div class="authDetails hidden" id="authDetails">
-            <div class="authMail" id="authMail"></div>
-          </div>
-        </div>
-      </div>
+      <h1>Abstimmungen</h1>
+      <div class="subtitle">Wahlen & Berechtigungen verwalten</div>
     </div>
   </div>
 
-  <!-- NAV -->
-  <div class="glass navWrap">
-    <div class="nav">
-      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
-        <div class="navLeft">
-        <a class="navLink" href="index.html">🏠 Dashboard</a>
-        <a class="navLink" href="members.html">👥 Mitglieder</a>
-        <a class="navLink" href="anwaerter.html">👶🏼 Anwärter</a>
-        <a class="navLink" href="bewerbungen.html">📝 Bewerbungen</a>
-        <a class="navLink" href="rechnungen.html" id="navFinanzen">💰 Finanzen</a>
-        <a class="navLink" href="mitgliederbefragung.html">📊 Befragung</a>
-        <a class="navLink active" href="wahlen.html">🗳️ Wahlen</a>
-        <a class="navLink" href="protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
-        <a class="navLink" href="zeugnisse.html" id="navZeugnisse" style="display:none;">🎓 Zeugnisse</a>
-      </div>
-      <div class="navRight">
-        <button class="btn-secondary" onclick="logout()" type="button">Logout</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN CONTENT -->
   <div id="mainContent">
-    <div style="text-align:center;padding:60px 20px;">
-      <div class="spinner"></div>
-      <div style="color:var(--muted);font-size:14px;">Lade…</div>
+    <div class="pageHeader">
+      <div style="display:flex; gap: 10px;">
+        <button class="btn-primary" onclick="openCreateModal()">+ Neue Abstimmung</button>
+        <button class="btn-secondary" onclick="openGroupModal()">👥 Gruppen & Codes</button>
+      </div>
     </div>
+    <div class="sessionList" id="sessionList">Lade...</div>
   </div>
-
 </div>
 
-<!-- Create Session Modal -->
 <dialog id="createModal">
   <div class="modalBox">
     <div class="modalTitle">Neue Abstimmung</div>
-
     <div class="formGroup">
-      <label class="formLabel" for="sessionTitle">Titel</label>
-      <input type="text" id="sessionTitle" placeholder="z.B. Wahl des Veranstaltungsorts" maxlength="120" />
+      <label class="formLabel">Titel</label>
+      <input type="text" id="sessionTitle" placeholder="z.B. Wahl des Kassenwarts">
     </div>
-
+    <div class="formGroup">
+      <label class="formLabel">Wählergruppe</label>
+      <select id="groupSelect">
+        <option value="">Wird geladen...</option>
+      </select>
+      <div style="font-size:12px; color:var(--muted); margin-top:4px;">Nur Mitglieder dieser Gruppe können per 5-stelligem Code abstimmen.</div>
+    </div>
     <div class="formGroup">
       <label class="formLabel">Optionen</label>
-      <div class="presetRow">
-        <span class="presetLabel">Voreinstellung:</span>
-        <button class="presetBtn" id="presetJaNeinEnthaltung" type="button">Ja · Nein · Enthaltung</button>
-        <button class="presetBtn" id="presetJaNein" type="button">Ja · Nein</button>
-      </div>
       <div class="optionsList" id="optionsList"></div>
-      <button class="addOptionBtn" id="addOptionBtn" type="button">+ Option hinzufügen</button>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px;">Mindestens 2, maximal 10 Optionen.</div>
+      <button class="btn-secondary btn-sm" onclick="addOptionRow()" style="margin-top:8px;">+ Option</button>
     </div>
-
-    <div class="formGroup">
-      <label class="formLabel">Teilnehmerlimit (optional)</label>
-      <label class="limitToggleRow">
-        <input type="checkbox" id="limitToggle" />
-        <span class="limitToggleLabel">Maximale Teilnehmerzahl festlegen</span>
-      </label>
-      <div id="limitInputWrap" class="hidden" style="margin-top:10px;">
-        <input type="number" id="participantLimitInput" placeholder="z.B. 32" min="1" max="9999" />
-        <div style="font-size:12px;color:var(--muted);margin-top:6px;">Stimmen und Nein-Stimmen werden anhand dieser Zahl berechnet.</div>
-      </div>
-    </div>
-
-    <div class="formGroup">
-      <label class="formLabel">Stimmübertragungen</label>
-      <label class="limitToggleRow">
-        <input type="checkbox" id="delegationToggle" />
-        <span class="limitToggleLabel">Stimmübertragungen erlauben</span>
-      </label>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px;">Teilnehmer können angeben, dass sie übertragene Stimmen anderer Mitglieder mit abgeben.</div>
-    </div>
-
-    <div class="modalActions">
-      <button class="btn-secondary" id="cancelModalBtn" type="button">Abbrechen</button>
-      <button class="btn-primary" id="saveSessionBtn" type="button">Abstimmung starten</button>
+    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+      <button class="btn-secondary" onclick="document.getElementById('createModal').close()">Abbrechen</button>
+      <button class="btn-primary" id="saveSessionBtn">Abstimmung starten</button>
     </div>
   </div>
 </dialog>
 
-<!-- Toast -->
-<div class="toast" id="toast"></div>
+<dialog id="groupModal">
+  <div class="modalBox" style="max-width: 600px;">
+    <div class="modalTitle">Gruppen & Codes</div>
+    
+    <div class="formGroup" style="display:flex; gap:10px;">
+      <input type="text" id="newGroupName" placeholder="Neue Gruppe (z.B. VV 2026)">
+      <input type="number" id="newGroupCount" placeholder="Anzahl Codes" style="width: 120px;" min="1" max="200">
+      <button class="btn-primary" onclick="createGroupAndCodes()">Erstellen</button>
+    </div>
+    
+    <div class="formGroup">
+      <label class="formLabel">Bestehende Gruppen</label>
+      <select id="viewGroupSelect" onchange="loadCodesForGroup()"></select>
+    </div>
+    
+    <div id="codesContainer" class="code-grid"></div>
+    
+    <div style="display:flex; justify-content:flex-end; margin-top:20px;">
+      <button class="btn-secondary" onclick="document.getElementById('groupModal').close()">Schließen</button>
+    </div>
+  </div>
+</dialog>
 
 <script>
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const LOGIN_PAGE = "login.html";
 
-/* ---- Helpers ---- */
-function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
-
-let toastTimer;
-function showToast(msg, isError = false){
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.toggle("error", isError);
-  t.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
-}
-
-function formatDate(iso){
-  if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
-    + " " + d.toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" });
-}
-
-function shareUrl(token){
-  return location.origin + location.pathname.replace("wahlen.html","") + "abstimmung.html?s=" + token;
-}
-
-/* ---- Auth UI ---- */
-const authBadge   = document.getElementById("authBadge");
-const authDot     = document.getElementById("authDot");
-const authState   = document.getElementById("authState");
-const authMail    = document.getElementById("authMail");
-const authAvatar  = document.getElementById("authAvatar");
-const authCompact = document.getElementById("authCompact");
-const authNameInline = document.getElementById("authNameInline");
-const authRolePill   = document.getElementById("authRolePill");
-const authToggle  = document.getElementById("authToggle");
-const authDetails = document.getElementById("authDetails");
-
-function closeAuthDetails(){ authDetails.classList.add("hidden"); }
-authToggle?.addEventListener("click", e => { e.stopPropagation(); authDetails.classList.toggle("hidden"); });
-document.addEventListener("click", e => { if (!authBadge.contains(e.target)) closeAuthDetails(); });
-
-function hashString(str){
-  let h = 2166136261;
-  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function initialsFromEmail(email){
-  const e=(email||"").trim().toLowerCase();
-  if(!e) return "U";
-  const local=e.split("@")[0]||"u";
-  const parts=local.split(/[.\-_]+/).filter(Boolean);
-  const a=(parts[0]?.[0]||local[0]||"u").toUpperCase();
-  const b=(parts[1]?.[0]||local[1]||"").toUpperCase();
-  return (a+b).trim()||a;
-}
-function setAvatar(email){
-  const e=(email||"").trim().toLowerCase();
-  if(!e){ authAvatar.classList.add("hidden"); return; }
-  const h=hashString(e); const hue=h%360; const hue2=(hue+38)%360;
-  authAvatar.textContent=initialsFromEmail(e);
-  authAvatar.classList.remove("hidden");
-  authAvatar.style.background=`linear-gradient(135deg, hsla(${hue},85%,55%,.55), hsla(${hue2},85%,55%,.35))`;
-}
-function normRole(v){ return (v||"").trim().toLowerCase(); }
-function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; return "Unbekannt"; }
-function setRolePill(role){
-  const r=normRole(role);
-  authRolePill.textContent=roleLabel(r);
-  authRolePill.classList.remove("vorstand","ressortleiter");
-  if(r==="vorstand") authRolePill.classList.add("vorstand");
-  else authRolePill.classList.add("ressortleiter");
-}
-function setAuthUI(isAuthed, email=""){
-  if(isAuthed){
-    authDot.classList.remove("warn"); authDot.classList.add("ok");
-    authState.classList.add("hidden"); authCompact.classList.remove("hidden");
-    closeAuthDetails(); authMail.textContent=(email||"").trim(); setAvatar(email);
-  } else {
-    authDot.classList.remove("ok"); authDot.classList.add("warn");
-    authState.classList.remove("hidden"); authState.textContent="nicht eingeloggt";
-    authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent=""; setAvatar("");
-  }
-}
-
-async function requireAuthOrRedirect(){
-  const { data } = await sb.auth.getSession();
-  if (!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); }
-  return data.session;
-}
-
-async function loadMyProfile(session){
-  const uid = session?.user?.id;
-  const email = session?.user?.email || "";
-  const { data, error } = await sb.from("profiles").select("role,display_name").eq("id", uid).maybeSingle();
-  if (error || !data){ throw new Error("kein_profil"); }
-  setAuthUI(true, email);
-  const name = (data.display_name || "").trim();
-  authNameInline.textContent = name || email.split("@")[0];
-  setRolePill(data.role);
-  const isVorstand = normRole(data.role) === "vorstand";
-  const navFinanzen  = document.getElementById("navFinanzen");
-  const navProtokoll = document.getElementById("navProtokoll");
-  const navZeugnisse = document.getElementById("navZeugnisse");
-  if (navFinanzen)  navFinanzen.classList.toggle("hidden", !isVorstand);
-  if (navProtokoll) navProtokoll.style.display = isVorstand ? "" : "none";
-  if (navZeugnisse) navZeugnisse.style.display = isVorstand ? "" : "none";
-  return data;
-}
-
-async function logout(){
-  await sb.auth.signOut();
-  window.location.replace(LOGIN_PAGE);
-}
-
-/* ---- Session rendering ---- */
 let allSessions = [];
+let allGroups = [];
+let optionCount = 0;
 
-async function loadSessions(){
-  const { data, error } = await sb.from("vote_sessions").select("*").order("created_at", { ascending:false });
-  if (error){ renderError("Fehler beim Laden der Abstimmungen: " + error.message); return; }
+// --- INITIAL LOAD ---
+async function init() {
+  await loadGroups();
+  await loadSessions();
+}
+
+async function loadGroups() {
+  const { data } = await sb.from("voter_groups").select("*").order("created_at", { ascending: false });
+  allGroups = data || [];
+  
+  // Populate dropdowns
+  const selCreate = document.getElementById("groupSelect");
+  const selView = document.getElementById("viewGroupSelect");
+  
+  const optionsHtml = allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  selCreate.innerHTML = `<option value="" disabled selected>Bitte wählen</option>` + optionsHtml;
+  selView.innerHTML = `<option value="" disabled selected>Gruppe wählen</option>` + optionsHtml;
+}
+
+// --- SESSIONS ---
+async function loadSessions() {
+  const { data } = await sb.from("vote_sessions").select("*, voter_groups(name)").order("created_at", { ascending: false });
   allSessions = data || [];
   renderSessions();
 }
 
-async function loadResults(sessionId){
-  const { data } = await sb.from("votes").select("option_index, weight, delegation_names").eq("session_id", sessionId);
-  return data || [];
-}
-
-function renderError(msg){
-  document.getElementById("mainContent").innerHTML =
-    `<div style="text-align:center;padding:60px 20px;color:rgba(239,68,68,.85);font-size:15px;">⚠️ ${esc(msg)}</div>`;
-}
-
-function renderSessions(){
-  const el = document.getElementById("mainContent");
-
-  let html = `<div class="pageHeader">
-    <div>
-      <div class="pageTitle">Abstimmungen</div>
-      <div class="pageSub">${allSessions.length} Abstimmung${allSessions.length !== 1 ? "en" : ""} gesamt</div>
-    </div>
-    <button class="btn-primary" id="openCreateBtn" type="button">+ Neue Abstimmung</button>
-  </div>
-  <div class="sessionList" id="sessionList">`;
-
-  if (allSessions.length === 0){
-    html += `<div class="glass emptyState">
-      <div class="emptyIcon">🗳️</div>
-      <div class="emptyTitle">Noch keine Abstimmungen</div>
-      <div class="emptySub">Erstelle eine neue Abstimmung, um loszulegen.</div>
-    </div>`;
-  } else {
-    for (const s of allSessions){
-      const isOpen = s.status === "open";
-      const opts = Array.isArray(s.options) ? s.options : [];
-      html += buildSessionCard(s, isOpen, opts);
-    }
-  }
-
-  html += `</div>`;
-  el.innerHTML = html;
-
-  document.getElementById("openCreateBtn")?.addEventListener("click", openCreateModal);
-
-  for (const s of allSessions){
-    const isOpen = s.status === "open";
-    document.getElementById(`btn-copy-${s.id}`)?.addEventListener("click", () => copyLink(s.token));
-    document.getElementById(`btn-beamer-${s.id}`)?.addEventListener("click", () => openBeamer());
-    document.getElementById(`btn-close-${s.id}`)?.addEventListener("click", () => closeSession(s.id));
-    document.getElementById(`btn-release-${s.id}`)?.addEventListener("click", () => releaseResults(s.id));
-    document.getElementById(`btn-hide-results-${s.id}`)?.addEventListener("click", () => hideResults(s.id));
-    document.getElementById(`btn-valid-${s.id}`)?.addEventListener("click", () => setValidity(s.id, true));
-    document.getElementById(`btn-invalid-${s.id}`)?.addEventListener("click", () => setValidity(s.id, false));
-    document.getElementById(`btn-validity-reset-${s.id}`)?.addEventListener("click", () => setValidity(s.id, null));
-    document.getElementById(`btn-delete-${s.id}`)?.addEventListener("click", () => deleteSession(s.id, s.title));
-    if (!isOpen){
-      loadResultsAndRender(s.id, s.options, s.participant_limit);
-    } else if (s.participant_limit) {
-      loadOpenSessionStats(s.id, s.participant_limit);
-    }
-  }
-}
-
-function buildSessionCard(s, isOpen, opts){
-  const statusBadge = isOpen
-    ? `<span class="statusBadge open">● Offen</span>`
-    : `<span class="statusBadge closed">● Geschlossen</span>`;
-
-  const validityBtns = !isOpen ? (
-    s.is_valid === true ? `
-      <button class="btn-secondary btn-sm" id="btn-validity-reset-${s.id}" type="button" style="border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.55);">↩ Gültigkeit zurücksetzen</button>
-    ` : s.is_valid === false ? `
-      <button class="btn-secondary btn-sm" id="btn-validity-reset-${s.id}" type="button" style="border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.55);">↩ Gültigkeit zurücksetzen</button>
-    ` : `
-      <button class="btn-valid btn-sm" id="btn-valid-${s.id}" type="button">✅ Gültig</button>
-      <button class="btn-invalid-mark btn-sm" id="btn-invalid-${s.id}" type="button">❌ Ungültig</button>
-    `
-  ) : "";
-
-  const actions = isOpen ? `
-    <button class="btn-secondary btn-sm" id="btn-copy-${s.id}" type="button">🔗 Link kopieren</button>
-    <button class="btn-secondary btn-sm" id="btn-beamer-${s.id}" type="button">📺 Beamer</button>
-    <button class="btn-secondary btn-sm" id="btn-close-${s.id}" type="button" style="border-color:rgba(249,115,22,.30);color:rgba(249,115,22,.85);">🔒 Schließen</button>
-    <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️</button>
-  ` : s.results_visible ? `
-    <button class="btn-secondary btn-sm" id="btn-beamer-${s.id}" type="button">📺 Beamer</button>
-    <button class="btn-secondary btn-sm" id="btn-hide-results-${s.id}" type="button" style="border-color:rgba(168,85,247,.30);color:rgba(168,85,247,.85);">🙈 Ergebnisse verbergen</button>
-    ${validityBtns}
-    <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️ Löschen</button>
-  ` : `
-    <button class="btn-secondary btn-sm" id="btn-beamer-${s.id}" type="button">📺 Beamer</button>
-    <button class="btn-primary btn-sm" id="btn-release-${s.id}" type="button">📊 Ergebnisse freigeben</button>
-    ${validityBtns}
-    <button class="btn-danger btn-sm" id="btn-delete-${s.id}" type="button">🗑️ Löschen</button>
-  `;
-
-  const optPreview = opts.slice(0, 3).map(o => `<span style="font-size:12px;color:var(--muted);">${esc(o)}</span>`).join(" · ");
-  const moreOpts = opts.length > 3 ? `<span style="font-size:12px;color:var(--muted);">+${opts.length - 3} weitere</span>` : "";
-  const limitBadge = s.participant_limit
-    ? `<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(249,115,22,.15);border:1px solid rgba(249,115,22,.25);color:rgba(249,115,22,.9);">👥 ${s.participant_limit} Teilnehmer</span>`
-    : "";
-  const delegationBadge = s.allow_delegation
-    ? `<span style="font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.25);color:rgba(168,85,247,.9);">🔄 Stimmübertragung</span>`
-    : "";
-  const validityBadge = s.is_valid === true
-    ? `<span class="validityBadge valid">✅ Gültig</span>`
-    : s.is_valid === false
-    ? `<span class="validityBadge invalid">❌ Ungültig</span>`
-    : "";
-
-  const resultsBlock = !isOpen
-    ? `<div class="resultsBlock" id="results-${s.id}"><div style="color:var(--muted);font-size:13px;">Lade Ergebnisse…</div></div>`
-    : `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);">
-        <div style="font-size:13px;color:var(--muted);">
-          Share-Link: <code style="font-size:12px;color:rgba(249,115,22,.85);word-break:break-all;">${esc(shareUrl(s.token))}</code>
+function renderSessions() {
+  const list = document.getElementById("sessionList");
+  if (allSessions.length === 0) return list.innerHTML = `<div class="glass" style="text-align:center;">Keine Abstimmungen vorhanden.</div>`;
+  
+  list.innerHTML = allSessions.map(s => `
+    <div class="sessionCard">
+      <div class="sessionCardTop">
+        <div>
+          <div class="sessionCardTitle">${s.title}</div>
+          <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+            <span class="statusBadge ${s.status === 'open' ? 'open' : 'closed'}">${s.status === 'open' ? '● Offen' : '● Geschlossen'}</span>
+            <span style="font-size:12px; color:var(--muted);">Gruppe: <b>${s.voter_groups ? s.voter_groups.name : 'Keine'}</b></span>
+          </div>
         </div>
-        ${s.participant_limit ? `<div id="openstats-${s.id}"></div>` : ""}
-       </div>`;
-
-  return `<div class="sessionCard">
-    <div class="sessionCardTop">
-      <div class="sessionCardInfo">
-        <div class="sessionCardTitle">${esc(s.title)}</div>
-        <div class="sessionCardMeta">
-          ${statusBadge}
-          <span class="sessionDate">${formatDate(s.created_at)}</span>
-          <span style="font-size:12px;color:var(--muted);">${opts.length} Option${opts.length !== 1 ? "en" : ""}</span>
-          ${limitBadge}
-          ${delegationBadge}
-          ${validityBadge}
+        <div style="display:flex; gap:8px;">
+          ${s.status === 'open' ? `<button class="btn-secondary btn-sm" onclick="closeSession('${s.id}')">🔒 Schließen</button>` : ''}
+          <button class="btn-danger btn-sm" onclick="deleteSession('${s.id}')">🗑️</button>
         </div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">${optPreview}${moreOpts}</div>
       </div>
-      <div class="sessionCardActions">${actions}</div>
     </div>
-    ${resultsBlock}
-  </div>`;
+  `).join('');
 }
 
-async function loadResultsAndRender(sessionId, opts, participantLimit){
-  const votes = await loadResults(sessionId);
-  const el = document.getElementById(`results-${sessionId}`);
-  if (!el) return;
-
-  const totalVoters = votes.length;
-  const totalWeight = votes.reduce((s, v) => s + (v.weight ?? 1), 0);
-  const counts = Array(opts.length).fill(0);
-  for (const v of votes){
-    if (v.option_index >= 0 && v.option_index < opts.length) counts[v.option_index] += (v.weight ?? 1);
-  }
-
-  const limitStats = participantLimit
-    ? buildParticipantStats(totalVoters, participantLimit)
-    : "";
-
-  if (totalWeight === 0){
-    el.innerHTML = `<div class="resultsBlock">
-      <div class="resultsTitle">Ergebnisse</div>
-      <div style="font-size:14px;color:var(--muted);">Keine Stimmen abgegeben.</div>
-      ${limitStats}
-    </div>`;
-    return;
-  }
-
-  let rows = "";
-  for (let i = 0; i < opts.length; i++){
-    const pct = totalWeight > 0 ? Math.round((counts[i] / totalWeight) * 100) : 0;
-    rows += `<div class="resultRow">
-      <div class="resultLabel">
-        <span class="resultLabelText">${esc(opts[i])}</span>
-        <span class="resultCount">${counts[i]} Stimme${counts[i] !== 1 ? "n" : ""} (${pct}%)</span>
-      </div>
-      <div class="resultBar"><div class="resultBarFill" style="width:${pct}%"></div></div>
-    </div>`;
-  }
-
-  const delegationHtml = buildAdminDelegationBlock(votes, opts);
-
-  el.innerHTML = `<div class="resultsBlock">
-    <div class="resultsTitle">Ergebnisse</div>
-    ${rows}
-    <div class="totalVotes">Gesamt: ${totalWeight} Stimme${totalWeight !== 1 ? "n" : ""} (${totalVoters} Abstimmende)</div>
-    ${limitStats}
-    ${delegationHtml}
-  </div>`;
-}
-
-function buildAdminDelegationBlock(votes, opts){
-  const entries = [];
-  for (const v of votes){
-    const names = Array.isArray(v.delegation_names) ? v.delegation_names : [];
-    for (const name of names){
-      if (name) entries.push(name);
-    }
-  }
-  if (entries.length === 0) return "";
-  const rows = entries.map(name =>
-    `<div class="delegRow"><span class="delegName">${esc(name)}</span></div>`
-  ).join("");
-  return `<div class="delegBlock">
-    <div class="delegBlockTitle">🔄 Stimmübertragungen (${entries.length})</div>
-    ${rows}
-  </div>`;
-}
-
-function buildParticipantStats(voted, limit){
-  const notVoted = Math.max(0, limit - voted);
-  return `<div class="participantStats">
-    <div class="participantStatsRow">
-      <span class="statsLabel">Festgelegte Teilnehmerzahl</span>
-      <span class="statsValueNeutral">${limit}</span>
-    </div>
-    <div class="participantStatsRow">
-      <span class="statsLabel">Haben abgestimmt</span>
-      <span class="statsValueGreen">${voted}</span>
-    </div>
-    <div class="participantStatsRow">
-      <span class="statsLabel">Haben nicht abgestimmt</span>
-      <span class="statsValueRed">${notVoted}</span>
-    </div>
-  </div>`;
-}
-
-async function loadOpenSessionStats(sessionId, limit){
-  const el = document.getElementById(`openstats-${sessionId}`);
-  if (!el) return;
-  const { data } = await sb.from("votes").select("weight").eq("session_id", sessionId);
-  const voted = (data || []).length;
-  el.innerHTML = buildParticipantStats(voted, limit);
-}
-
-/* ---- Beamer / Results release ---- */
-function openBeamer(){
-  window.open("beamer.html", "_blank", "noopener,noreferrer");
-}
-
-async function releaseResults(id){
-  const { error } = await sb.from("vote_sessions").update({ results_visible: true }).eq("id", id);
-  if (error){ showToast("Fehler: " + error.message, true); return; }
-  showToast("Ergebnisse freigegeben – Beamer zeigt jetzt die Resultate.");
-  await loadSessions();
-}
-
-async function hideResults(id){
-  const { error } = await sb.from("vote_sessions").update({ results_visible: false }).eq("id", id);
-  if (error){ showToast("Fehler: " + error.message, true); return; }
-  showToast("Ergebnisse verborgen.");
-  await loadSessions();
-}
-
-async function setValidity(id, value){
-  const { error } = await sb.from("vote_sessions").update({ is_valid: value }).eq("id", id);
-  if (error){ showToast("Fehler: " + error.message, true); return; }
-  if (value === true) showToast("Wahl als gültig markiert.");
-  else if (value === false) showToast("Wahl als ungültig markiert.");
-  else showToast("Gültigkeitsstatus zurückgesetzt.");
-  await loadSessions();
-}
-
-/* ---- Actions ---- */
-async function copyLink(token){
-  const url = shareUrl(token);
-  try {
-    await navigator.clipboard.writeText(url);
-    showToast("Link in Zwischenablage kopiert!");
-  } catch {
-    showToast(url, false);
-  }
-}
-
-async function closeSession(id){
-  if (!confirm("Abstimmung schließen? Das kann nicht rückgängig gemacht werden.")) return;
-  const { error } = await sb.from("vote_sessions").update({ status:"closed" }).eq("id", id);
-  if (error){ showToast("Fehler: " + error.message, true); return; }
-  showToast("Abstimmung geschlossen.");
-  await loadSessions();
-}
-
-async function deleteSession(id, title){
-  if (!confirm(`Abstimmung „${title}" und alle Stimmen löschen?`)) return;
-  const { error } = await sb.from("vote_sessions").delete().eq("id", id);
-  if (error){ showToast("Fehler: " + error.message, true); return; }
-  showToast("Abstimmung gelöscht.");
-  await loadSessions();
-}
-
-/* ---- Create Modal ---- */
-const modal = document.getElementById("createModal");
-let optionCount = 0;
-
-function clearPresetActive(){
-  document.querySelectorAll(".presetBtn").forEach(b => b.classList.remove("active"));
-}
-
-function applyPreset(options, sourceBtn){
-  document.getElementById("optionsList").innerHTML = "";
-  optionCount = 0;
-  options.forEach(opt => {
-    addOptionRow();
-    const rows = document.querySelectorAll(".optionRow");
-    rows[rows.length - 1].querySelector("input").value = opt;
-  });
-  clearPresetActive();
-  if (sourceBtn) sourceBtn.classList.add("active");
-}
-
-function openCreateModal(){
-  optionCount = 0;
+// --- CREATE SESSION ---
+function openCreateModal() {
   document.getElementById("sessionTitle").value = "";
   document.getElementById("optionsList").innerHTML = "";
-  document.getElementById("limitToggle").checked = false;
-  document.getElementById("limitInputWrap").classList.add("hidden");
-  document.getElementById("participantLimitInput").value = "";
-  document.getElementById("delegationToggle").checked = false;
-  clearPresetActive();
+  optionCount = 0;
   addOptionRow(); addOptionRow();
-  modal.showModal();
-  document.getElementById("sessionTitle").focus();
+  document.getElementById("createModal").showModal();
 }
 
-function addOptionRow(){
-  if (optionCount >= 10) return;
-  optionCount++;
-  const i = optionCount;
-  const row = document.createElement("div");
-  row.className = "optionRow";
-  row.dataset.optId = i;
-  row.innerHTML = `<input type="text" placeholder="Option ${i}" maxlength="120" />
-    <button class="optionRemove" type="button" title="Entfernen" ${optionCount <= 2 ? "disabled" : ""}>✕</button>`;
-  row.querySelector(".optionRemove").addEventListener("click", () => {
-    if (document.querySelectorAll(".optionRow").length <= 2) return;
-    row.remove();
-    optionCount = document.querySelectorAll(".optionRow").length;
-    document.getElementById("addOptionBtn").disabled = optionCount >= 10;
-    refreshRemoveButtons();
-  });
-  document.getElementById("optionsList").appendChild(row);
-  document.getElementById("addOptionBtn").disabled = optionCount >= 10;
-  refreshRemoveButtons();
+function addOptionRow() {
+  const div = document.createElement("div"); div.className = "optionRow";
+  div.innerHTML = `<input type="text" placeholder="Option"><button class="optionRemove" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById("optionsList").appendChild(div);
 }
-
-function refreshRemoveButtons(){
-  const rows = document.querySelectorAll(".optionRow");
-  rows.forEach(r => {
-    const btn = r.querySelector(".optionRemove");
-    if (btn) btn.disabled = rows.length <= 2;
-  });
-}
-
-document.getElementById("addOptionBtn").addEventListener("click", addOptionRow);
-document.getElementById("cancelModalBtn").addEventListener("click", () => modal.close());
-document.getElementById("presetJaNeinEnthaltung").addEventListener("click", function(){ applyPreset(["Ja","Nein","Enthaltung"], this); });
-document.getElementById("presetJaNein").addEventListener("click", function(){ applyPreset(["Ja","Nein"], this); });
-modal.addEventListener("click", e => { if (e.target === modal) modal.close(); });
-document.getElementById("limitToggle").addEventListener("change", e => {
-  document.getElementById("limitInputWrap").classList.toggle("hidden", !e.target.checked);
-  if (!e.target.checked) document.getElementById("participantLimitInput").value = "";
-});
 
 document.getElementById("saveSessionBtn").addEventListener("click", async () => {
   const title = document.getElementById("sessionTitle").value.trim();
-  if (!title){ showToast("Bitte einen Titel eingeben.", true); return; }
-
-  const opts = Array.from(document.querySelectorAll(".optionRow input"))
-    .map(i => i.value.trim()).filter(Boolean);
-  if (opts.length < 2){ showToast("Mindestens 2 Optionen benötigt.", true); return; }
-
-  let participantLimit = null;
-  if (document.getElementById("limitToggle").checked) {
-    const raw = parseInt(document.getElementById("participantLimitInput").value, 10);
-    if (!isNaN(raw) && raw >= 1) participantLimit = raw;
-    else { showToast("Bitte eine gültige Teilnehmerzahl (≥ 1) eingeben.", true); return; }
-  }
-
-  const saveBtn = document.getElementById("saveSessionBtn");
-  saveBtn.disabled = true; saveBtn.textContent = "Erstelle…";
-
-  const allowDelegation = document.getElementById("delegationToggle").checked;
-  const { error } = await sb.from("vote_sessions").insert({ title, options: opts, participant_limit: participantLimit, allow_delegation: allowDelegation });
-  saveBtn.disabled = false; saveBtn.textContent = "Abstimmung starten";
-
-  if (error){ showToast("Fehler: " + error.message, true); return; }
-  modal.close();
-  showToast("Abstimmung erstellt!");
+  const groupId = document.getElementById("groupSelect").value;
+  const opts = Array.from(document.querySelectorAll(".optionRow input")).map(i => i.value.trim()).filter(Boolean);
+  
+  if (!title || !groupId || opts.length < 2) return alert("Bitte Titel, Gruppe und mind. 2 Optionen eingeben.");
+  
+  document.getElementById("saveSessionBtn").textContent = "Speichere...";
+  await sb.from("vote_sessions").insert({ title, options: opts, group_id: groupId });
+  
+  document.getElementById("createModal").close();
+  document.getElementById("saveSessionBtn").textContent = "Abstimmung starten";
   await loadSessions();
 });
 
-/* ---- Init ---- */
-(async () => {
-  try {
-    const session = await requireAuthOrRedirect();
-    const profile = await loadMyProfile(session);
-    if (normRole(profile.role) !== "vorstand"){
-      document.getElementById("mainContent").innerHTML = `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – diese Seite ist nur für den Vorstand.</div>`;
-      return;
-    }
-    await loadSessions();
-  } catch(e){
-    if (e?.message === "kein_profil"){
-      setAuthUI(false);
-      document.getElementById("mainContent").innerHTML = `<div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
-    }
-  }
-})();
-</script>
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(console.warn);
-  });
+async function closeSession(id) {
+  await sb.from("vote_sessions").update({ status: "closed" }).eq("id", id);
+  loadSessions();
 }
+async function deleteSession(id) {
+  if(confirm("Löschen?")) { await sb.from("vote_sessions").delete().eq("id", id); loadSessions(); }
+}
+
+// --- GROUP & CODE MANAGEMENT ---
+function openGroupModal() {
+  document.getElementById("groupModal").showModal();
+  document.getElementById("codesContainer").innerHTML = "";
+}
+
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Keine Verwechslung I/1, O/0
+  let code = '';
+  for(let i=0; i<5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+async function createGroupAndCodes() {
+  const name = document.getElementById("newGroupName").value.trim();
+  const count = parseInt(document.getElementById("newGroupCount").value);
+  
+  if(!name || !count || count < 1) return alert("Name und Anzahl eingeben.");
+  
+  // 1. Gruppe erstellen
+  const { data: groupData } = await sb.from("voter_groups").insert({ name }).select().single();
+  
+  // 2. Codes generieren
+  const codesToInsert = Array.from({length: count}).map(() => ({
+    group_id: groupData.id,
+    code: generateCode()
+  }));
+  
+  await sb.from("voter_codes").insert(codesToInsert);
+  
+  document.getElementById("newGroupName").value = "";
+  document.getElementById("newGroupCount").value = "";
+  await loadGroups();
+  document.getElementById("viewGroupSelect").value = groupData.id;
+  loadCodesForGroup();
+}
+
+async function loadCodesForGroup() {
+  const groupId = document.getElementById("viewGroupSelect").value;
+  if(!groupId) return;
+  
+  const { data } = await sb.from("voter_codes").select("code").eq("group_id", groupId);
+  const container = document.getElementById("codesContainer");
+  
+  container.innerHTML = data.map(c => `<div class="code-badge">${c.code}</div>`).join('');
+}
+
+init();
 </script>
-<script src="/mobile-nav.js"></script>
 </body>
 </html>
