@@ -62,12 +62,13 @@
       width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent1), var(--accent2));
       color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 16px; cursor: pointer;
       transition: transform .15s; margin-top: 20px;
+      box-shadow: 0 8px 24px rgba(249,115,22,0.2);
     }
     .btnPrimary:active { transform: scale(0.98); }
-    .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
     .optBtn {
-      width: 100%; padding: 16px; background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.1);
+      width: 100%; padding: 16px; background: rgba(255,255,255,.05); border: 1.5px solid var(--border);
       border-radius: 16px; color: white; font-size: 16px; font-weight: 600; text-align: left;
       cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
     }
@@ -75,6 +76,36 @@
       background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(168,85,247,.15));
       border-color: var(--accent1); box-shadow: 0 8px 24px rgba(249,115,22,.2);
     }
+
+    /* Stimmübertragungen (Sleek Dark Mode Design) */
+    .delegationSection {
+      margin-top: 20px; padding: 18px; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border);
+    }
+    .delegationTitle {
+      font-size: 15px; font-weight: 700; color: white; margin-bottom: 12px;
+    }
+    .delegationCountRow {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;
+    }
+    .delegationCountRow label { font-size: 14px; color: var(--muted); font-weight: 500; }
+    .countStepper { display: flex; align-items: center; gap: 12px; }
+    .stepBtn {
+      width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.08);
+      border: 1px solid var(--border); color: white; font-size: 18px; font-weight: 700;
+      cursor: pointer; display: grid; place-items: center; transition: 0.15s;
+    }
+    .stepBtn:hover { background: rgba(255,255,255,.15); }
+    .stepBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .countDisplay { min-width: 20px; text-align: center; font-size: 18px; font-weight: 800; }
+    
+    .delegationNames { display: flex; flex-direction: column; gap: 10px; }
+    .delegationNameInput {
+      background: rgba(255,255,255,.06); border: 1px solid var(--border);
+      color: white; padding: 12px; border-radius: 12px; outline: none; font-size: 14px; width: 100%;
+      transition: 0.2s;
+    }
+    .delegationNameInput:focus { border-color: var(--accent1); background: rgba(255,255,255,.1); }
     
     /* THEATRICAL ANIMATIONS */
     .anim-container {
@@ -82,7 +113,6 @@
       margin: 0 auto 40px; display: none;
     }
     
-    /* Phase 1: Loader */
     .loader-ring {
       position: absolute; width: 100%; height: 100%; border-radius: 50%;
       border: 10px solid transparent; border-top-color: var(--anim-color-light);
@@ -90,7 +120,6 @@
       opacity: 0; transform: scale(1) rotate(-90deg);
     }
     
-    /* Phase 2: Elements */
     .ambient-glow {
       position: absolute; width: 440px; height: 440px; border-radius: 50%;
       background: radial-gradient(circle, var(--anim-color-deep) 0%, transparent 60%);
@@ -110,7 +139,6 @@
     }
     .main-icon svg { width: 100%; height: 100%; }
 
-    /* The Text */
     .anim-text { text-align: center; opacity: 0; transform: translateY(30px); }
     .anim-title { font-size: 40px; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 8px; }
     .anim-sub { font-size: 16px; font-weight: 600; letter-spacing: 4px; color: rgba(255,255,255,0.7); }
@@ -134,13 +162,13 @@
 
   const wrap = document.getElementById("mainWrap");
   let currentSession = null;
-  let voterCode = null; // Standardmäßig null für Abwärtskompatibilität bei Wahlen ohne Gruppe
+  let voterCode = null; // Standardmäßig null für offene Wahlen ohne Gruppe
 
-  // Helper: Get URL Param
   function getToken() { return new URLSearchParams(location.search).get("s"); }
 
   // --- 1. THEATRICAL ANIMATION ORCHESTRATOR ---
   function playTheatricalAnimation(type, callback) {
+    const isTxtOpen = type === 'open';
     wrap.innerHTML = `
       <div class="anim-container" id="animBox" style="display:flex;">
         <div class="ambient-glow" id="aGlow"></div>
@@ -148,14 +176,14 @@
         <div class="white-flash" id="aFlash"></div>
         <div class="shockwave" id="aShock"></div>
         <div class="main-icon" id="aIcon">
-          \${type === 'open' 
-            ? `<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`
-            : `<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>`}
+          ${isTxtOpen 
+            ? '<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>'}
         </div>
       </div>
       <div class="anim-text" id="aText">
-        <div class="anim-title">\${type === 'open' ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
-        <div class="anim-sub">\${type === 'open' ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
+        <div class="anim-title">${isTxtOpen ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
+        <div class="anim-sub">${isTxtOpen ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
       </div>
     `;
 
@@ -177,30 +205,24 @@
     const glow = document.getElementById("aGlow");
     const text = document.getElementById("aText");
 
-    // Phase 1: Anticipation (0 - 2.7s)
     loader.style.transition = "opacity 0.15s ease-out, transform 2.7s ease-in-out";
     setTimeout(() => { loader.style.opacity = "1"; loader.style.transform = "scale(1) rotate(450deg)"; }, 50);
 
-    // Phase 1.5: Inhale (2.7s)
     setTimeout(() => {
       loader.style.transition = "transform 0.3s ease-in, opacity 0.3s ease-in";
       loader.style.transform = "scale(0.01) rotate(500deg)";
       loader.style.opacity = "0";
     }, 2700);
 
-    // Phase 2: The Drop (3.0s)
     setTimeout(() => {
-      // Flash
       flash.style.opacity = "1";
       flash.style.transition = "transform 0.5s ease-out, opacity 0.5s ease-out";
       setTimeout(() => { flash.style.transform = "scale(4)"; flash.style.opacity = "0"; }, 50);
 
-      // Shockwave
       shock.style.opacity = "1";
       shock.style.transition = "transform 0.8s ease-out, opacity 0.8s ease-out";
       setTimeout(() => { shock.style.transform = "scale(3.5)"; shock.style.opacity = "0"; }, 50);
 
-      // Icon & Glow
       icon.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
       icon.style.opacity = "1";
       icon.style.transform = "scale(1)";
@@ -210,20 +232,17 @@
       glow.style.transform = "scale(1)";
       glow.style.animation = "pulseAmbient 3s infinite ease-in-out 0.4s";
 
-      // Text gleitet hoch
       setTimeout(() => {
         text.style.transition = "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease";
         text.style.opacity = "1";
         text.style.transform = "translateY(0)";
       }, 100);
 
-      // Finish & Callback
       if(callback) setTimeout(callback, 2500);
-
     }, 3000);
   }
 
-  // --- 2. CODE ENTRY UI ---
+  // --- 2. CODE ACCESS SECURITY ---
   function showCodeEntry() {
     wrap.innerHTML = `
       <div class="glass" style="text-align:center;">
@@ -259,7 +278,6 @@
       const btn = document.getElementById('verifyBtn');
       btn.disabled = true; btn.textContent = "Prüfe...";
       
-      // 1. Check if Code exists in Group
       const { data: codeData, error: codeErr } = await sb.from("voter_codes")
         .select("*").eq("group_id", currentSession.group_id).eq("code", code).maybeSingle();
         
@@ -269,7 +287,6 @@
         return;
       }
 
-      // 2. Check if Code already used for THIS session
       const { data: voteData } = await sb.from("votes")
         .select("id").eq("session_id", currentSession.id).eq("voter_code", code).maybeSingle();
 
@@ -279,88 +296,170 @@
         return;
       }
 
-      voterCode = code; // Speichert den Code für die Abgabe
-      // Proceed to Theatrical Opening
+      voterCode = code; 
       playTheatricalAnimation('open', showVotingOptions);
     });
   }
 
-  // --- 3. VOTING OPTIONS UI ---
+  // --- 3. VOTING INTERFACE ---
   function showVotingOptions() {
     const opts = currentSession.options || [];
+    const allowDelegation = !!currentSession.allow_delegation;
     let selected = null;
+    let delegationCount = 0;
+
+    const delegationHtml = allowDelegation ? `
+      <div class="delegationSection" id="delegationSection">
+        <div class="delegationTitle">🔄 Stimmübertragungen</div>
+        <div class="delegationCountRow">
+          <label>Anzahl übertragener Stimmen:</label>
+          <div class="countStepper">
+            <button class="stepBtn" id="stepMinus" type="button" disabled>−</button>
+            <span class="countDisplay" id="countDisplay">0</span>
+            <button class="stepBtn" id="stepPlus" type="button">+</button>
+          </div>
+        </div>
+        <div class="delegationNames" id="delegationNames"></div>
+      </div>` : "";
 
     wrap.innerHTML = `
       <div class="glass" style="animation: fadeUp 0.6s ease;">
-        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">\${currentSession.title}</h2>
+        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
         <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
         
         <div id="optList">
-          \${opts.map((o, i) => `
-            <button class="optBtn" data-i="\${i}">
+          ${opts.map((o, i) => `
+            <button class="optBtn" data-i="${i}">
               <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
-              \${o}
+              ${o}
             </button>
           `).join('')}
         </div>
 
+        ${delegationHtml}
+
         <button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>
+        <div id="vMsg" style="margin-top:12px; font-size:13px; color:var(--red-light); text-align:center;"></div>
       </div>
     `;
 
-    document.querySelectorAll('.optBtn').forEach(btn => {
+    const submitBtn = document.getElementById("submitVote");
+    const vMsg = document.getElementById("vMsg");
+
+    function updateSubmitLabel() {
+      if (selected === null) return;
+      const total = 1 + delegationCount;
+      submitBtn.textContent = total > 1
+        ? `„${opts[selected]}“ wählen (${total} Stimmen)`
+        : `„${opts[selected]}“ wählen`;
+    }
+
+    function updateDelegationNames() {
+      if (!allowDelegation) return;
+      const container = document.getElementById("delegationNames");
+      const existing = container.querySelectorAll(".delegationNameInput");
+      const currentCount = existing.length;
+      if (delegationCount > currentCount) {
+        for (let i = currentCount; i < delegationCount; i++) {
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.className = "delegationNameInput";
+          inp.placeholder = `Name der ${i + 1}. übertragenden Person`;
+          inp.maxLength = 80;
+          container.appendChild(inp);
+        }
+      } else {
+        for (let i = currentCount; i > delegationCount; i--) {
+          container.removeChild(container.lastChild);
+        }
+      }
+      document.getElementById("stepMinus").disabled = delegationCount <= 0;
+      document.getElementById("countDisplay").textContent = delegationCount;
+      updateSubmitLabel();
+    }
+
+    if (allowDelegation) {
+      document.getElementById("stepPlus").addEventListener("click", () => {
+        if (delegationCount >= 9) return;
+        delegationCount++;
+        updateDelegationNames();
+      });
+      document.getElementById("stepMinus").addEventListener("click", () => {
+        if (delegationCount <= 0) return;
+        delegationCount--;
+        updateDelegationNames();
+      });
+    }
+
+    document.querySelectorAll(".optBtn").forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.optBtn').forEach(b => {
+        document.querySelectorAll(".optBtn").forEach(b => {
           b.classList.remove('selected');
           b.querySelector('.radio-circle').style.borderColor = "var(--border)";
           b.querySelector('.radio-circle').innerHTML = "";
         });
         btn.classList.add('selected');
         btn.querySelector('.radio-circle').style.borderColor = "var(--accent1)";
-        btn.querySelector('.radio-circle').innerHTML = `<div style="width:12px; height:12px; background:var(--accent1); border-radius:50%;"></div>`;
+        btn.querySelector('.radio-circle').innerHTML = '<div style="width:12px; height:12px; background:var(--accent1); border-radius:50%;"></div>';
         selected = parseInt(btn.dataset.i);
-        document.getElementById('submitVote').disabled = false;
+        submitBtn.disabled = false;
+        updateSubmitLabel();
       });
     });
 
-    document.getElementById('submitVote').addEventListener('click', async () => {
+    submitBtn.addEventListener('click', async () => {
       if (selected === null) return;
-      const btn = document.getElementById('submitVote');
-      btn.disabled = true; btn.textContent = "Wird verschlüsselt...";
 
-      // Generiert einen anonymen Token, um NOT NULL-Felder in alten Tabellen-Schemata zu bedienen
+      let delegationNames = null;
+      if (allowDelegation && delegationCount > 0) {
+        const inputs = document.querySelectorAll(".delegationNameInput");
+        const names = Array.from(inputs).map(i => i.value.trim());
+        if (names.some(n => !n)) {
+          vMsg.textContent = "Bitte alle Namen der übertragenden Personen eintragen.";
+          return;
+        }
+        delegationNames = names;
+      }
+
+      submitBtn.disabled = true; submitBtn.textContent = "Wird verschlüsselt...";
+      vMsg.textContent = "";
+
       const fallbackToken = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+      const weight = 1 + delegationCount;
 
       const { error } = await sb.from("votes").insert({
         session_id: currentSession.id,
         option_index: selected,
-        voter_code: voterCode,     // Der 5-stellige Code (bzw. null bei offener Wahl)
-        voter_token: fallbackToken, // Generiert zur Sicherheit einen Token, falls Pflichtfeld
-        weight: 1
+        voter_code: voterCode,     
+        voter_token: fallbackToken, 
+        weight: weight,
+        delegation_names: delegationNames
       });
 
       if(error) {
-        // Gibt jetzt das exakte DB-Problem aus, um das Debuggen zum Kinderspiel zu machen!
         alert("Fehler bei der Abgabe: " + error.message + " (" + error.code + ")");
-        btn.disabled = false; btn.textContent = "Stimme abgeben";
+        submitBtn.disabled = false;
+        updateSubmitLabel();
         return;
       }
 
-      wrap.innerHTML = `<div class="glass" style="text-align:center;">
-        <div style="font-size:40px; margin-bottom:10px;">✅</div>
-        <h2 style="font-size:24px; font-weight:800;">Stimme erfasst</h2>
-        <p style="color:var(--muted); font-size:14px;">Danke für deine Teilnahme.</p>
-      </div>`;
+      wrap.innerHTML = `
+        <div class="glass" style="text-align:center;">
+          <div style="font-size:40px; margin-bottom:10px;">✅</div>
+          <h2 style="font-size:24px; font-weight:800;">Stimme erfasst</h2>
+          <p style="color:var(--muted); font-size:14px;">Danke für deine Teilnahme.</p>
+        </div>
+      `;
     });
   }
 
   // --- BOOTSTRAP ---
   (async () => {
     const token = getToken();
-    if (!token) return wrap.innerHTML = `<div class="glass">Ungültiger Link.</div>`;
+    if (!token) return wrap.innerHTML = '<div class="glass">Ungültiger Link.</div>';
 
     const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
-    if (error || !data) return wrap.innerHTML = `<div class="glass">Abstimmung nicht gefunden.</div>`;
+    if (error || !data) return wrap.innerHTML = '<div class="glass">Abstimmung nicht gefunden.</div>';
     currentSession = data;
 
     if (data.status !== "open") {
@@ -369,7 +468,6 @@
       if(data.group_id) {
         showCodeEntry();
       } else {
-        // Ohne Gruppe setzen wir voterCode explizit auf null statt "OPEN"
         voterCode = null;
         playTheatricalAnimation('open', showVotingOptions);
       }
