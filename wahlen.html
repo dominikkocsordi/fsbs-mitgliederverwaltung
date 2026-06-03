@@ -9,7 +9,6 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  /* Deep Dark macOS UI Design */
   --bg1: #061827; --bg2: #0A2235; --bg3: #04111C;
   --accent1: #f97316; --accent2: #a855f7;
   --glass: rgba(255,255,255,.05);
@@ -21,31 +20,17 @@
 }
 *{ box-sizing:border-box; margin:0; padding:0; }
 html, body{ min-height:100%; }
-html{
-  background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-  background-attachment: fixed;
-}
-body{
-  font-family: system-ui, -apple-system, sans-serif;
-  color: var(--text); padding:42px 16px 60px;
-}
+html{ background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3)); background-attachment: fixed; }
+body{ font-family: system-ui, -apple-system, sans-serif; color: var(--text); padding:42px 16px 60px; }
 
 .app{ width:100%; max-width:1200px; margin: 0 auto; }
 .top{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; }
 h1{ font-size:32px; font-weight:800; letter-spacing:.4px; }
 .subtitle{ color:var(--muted); font-size:14px; margin-top:6px; }
 
-.glass{
-  background:var(--glass); border:1px solid var(--border);
-  border-radius:22px; box-shadow:var(--shadow);
-  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-}
+.glass{ background:var(--glass); border:1px solid var(--border); border-radius:22px; box-shadow:var(--shadow); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
 
-button{
-  border:none; cursor:pointer; border-radius:14px; padding:12px 18px;
-  font-weight:600; font-family:inherit; font-size:14px;
-  transition:transform .16s ease, filter .16s ease;
-}
+button{ border:none; cursor:pointer; border-radius:14px; padding:12px 18px; font-weight:600; font-family:inherit; font-size:14px; transition:transform .16s ease, filter .16s ease; }
 button:active{ transform:scale(.98); }
 .btn-primary{ background:linear-gradient(135deg, var(--accent1), var(--accent2)); color:#000; font-weight:700; }
 .btn-primary:hover{ filter:brightness(1.1); }
@@ -56,21 +41,15 @@ button:active{ transform:scale(.98); }
 
 .pageHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; margin-top:30px; }
 .sessionList{ display:flex; flex-direction:column; gap:14px; }
-.sessionCard{
-  padding:20px; border-radius:20px; background:rgba(255,255,255,.03);
-  border:1px solid var(--border); backdrop-filter:blur(14px);
-  transition:transform .16s ease;
-}
+.sessionCard{ padding:20px; border-radius:20px; background:rgba(255,255,255,.03); border:1px solid var(--border); backdrop-filter:blur(14px); transition:transform .16s ease; }
 .sessionCard:hover{ transform:translateY(-2px); background:rgba(255,255,255,.05); }
 .sessionCardTop{ display:flex; justify-content:space-between; gap:12px; }
 .sessionCardTitle{ font-size:18px; font-weight:800; margin-bottom:6px; }
 
-/* Status Badges */
 .statusBadge{ padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
 .statusBadge.open{ background:rgba(59,214,138,.15); color:var(--ok); border:1px solid rgba(59,214,138,.3); }
 .statusBadge.closed{ background:rgba(255,255,255,.08); color:var(--muted); border:1px solid var(--border); }
 
-/* Modals */
 dialog{ background:transparent; border:none; padding:0; max-width:520px; width:calc(100% - 32px); margin:auto; }
 dialog::backdrop{ background:rgba(0,0,0,.7); backdrop-filter:blur(8px); }
 .modalBox{ background:var(--bg2); border:1px solid var(--border); border-radius:22px; padding:24px; color:white; }
@@ -78,10 +57,7 @@ dialog::backdrop{ background:rgba(0,0,0,.7); backdrop-filter:blur(8px); }
 
 .formGroup{ margin-bottom:16px; }
 .formLabel{ font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
-input[type=text], input[type=number], select {
-  background:rgba(255,255,255,.05); border:1px solid var(--border); color:white;
-  padding:12px 14px; border-radius:14px; width:100%; font-size:15px; outline:none;
-}
+input[type=text], input[type=number], select { background:rgba(255,255,255,.05); border:1px solid var(--border); color:white; padding:12px 14px; border-radius:14px; width:100%; font-size:15px; outline:none; }
 input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,255,.08); }
 
 .optionsList{ display:flex; flex-direction:column; gap:8px; }
@@ -89,7 +65,6 @@ input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,
 .optionRow input{ flex:1; }
 .optionRemove{ background:rgba(255,77,77,.15); color:var(--bad); width:40px; border-radius:12px; }
 
-/* Code Grid */
 .code-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
 .code-badge { background: rgba(255,255,255,.08); padding: 8px; border-radius: 8px; text-align: center; font-family: monospace; font-weight: 800; font-size: 16px; border: 1px solid var(--border); }
 </style>
@@ -114,6 +89,7 @@ input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,
   </div>
 </div>
 
+<!-- Modal: Neue Abstimmung -->
 <dialog id="createModal">
   <div class="modalBox">
     <div class="modalTitle">Neue Abstimmung</div>
@@ -121,13 +97,16 @@ input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,
       <label class="formLabel">Titel</label>
       <input type="text" id="sessionTitle" placeholder="z.B. Wahl des Kassenwarts">
     </div>
+    
+    <!-- Hier ist das aktualisierte Mehrfachauswahl-Feld für Gruppen -->
     <div class="formGroup">
-      <label class="formLabel">Wählergruppe</label>
-      <select id="groupSelect">
-        <option value="">Wird geladen...</option>
-      </select>
-      <div style="font-size:12px; color:var(--muted); margin-top:4px;">Nur Mitglieder dieser Gruppe können per 5-stelligem Code abstimmen.</div>
+      <label class="formLabel">Freigeschaltete Wählergruppen (Mehrfachauswahl)</label>
+      <div id="groupsCheckboxContainer" style="display:flex; flex-direction:column; gap:8px; background:rgba(255,255,255,.05); padding:12px; border-radius:14px; border:1px solid var(--border); max-height:160px; overflow-y:auto;">
+        <!-- Dynamische Checkboxen -->
+      </div>
+      <div style="font-size:12px; color:var(--muted); margin-top:6px;">Wenn keine Gruppe angehakt wird, bleibt die Wahl für jeden offen zugänglich.</div>
     </div>
+
     <div class="formGroup">
       <label class="formLabel">Optionen</label>
       <div class="optionsList" id="optionsList"></div>
@@ -140,23 +119,20 @@ input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,
   </div>
 </dialog>
 
+<!-- Modal: Gruppenverwaltung -->
 <dialog id="groupModal">
   <div class="modalBox" style="max-width: 600px;">
     <div class="modalTitle">Gruppen & Codes</div>
-    
     <div class="formGroup" style="display:flex; gap:10px;">
       <input type="text" id="newGroupName" placeholder="Neue Gruppe (z.B. VV 2026)">
       <input type="number" id="newGroupCount" placeholder="Anzahl Codes" style="width: 120px;" min="1" max="200">
       <button class="btn-primary" onclick="createGroupAndCodes()">Erstellen</button>
     </div>
-    
     <div class="formGroup">
       <label class="formLabel">Bestehende Gruppen</label>
       <select id="viewGroupSelect" onchange="loadCodesForGroup()"></select>
     </div>
-    
     <div id="codesContainer" class="code-grid"></div>
-    
     <div style="display:flex; justify-content:flex-end; margin-top:20px;">
       <button class="btn-secondary" onclick="document.getElementById('groupModal').close()">Schließen</button>
     </div>
@@ -172,28 +148,29 @@ let allSessions = [];
 let allGroups = [];
 let optionCount = 0;
 
-// --- INITIAL LOAD ---
-async function init() {
-  await loadGroups();
-  await loadSessions();
-}
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+async function init() { await loadGroups(); await loadSessions(); }
 
 async function loadGroups() {
   const { data } = await sb.from("voter_groups").select("*").order("created_at", { ascending: false });
   allGroups = data || [];
   
-  // Populate dropdowns
-  const selCreate = document.getElementById("groupSelect");
+  // Rendert die Checkboxen
+  const container = document.getElementById("groupsCheckboxContainer");
+  container.innerHTML = allGroups.map(g => `
+    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+      <input type="checkbox" name="voterGroupCheckbox" value="\${g.id}" style="accent-color:var(--accent1); width:16px; height:16px;">
+      <span>\${esc(g.name)}</span>
+    </label>
+  `).join('');
+
   const selView = document.getElementById("viewGroupSelect");
-  
-  const optionsHtml = allGroups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-  selCreate.innerHTML = `<option value="" disabled selected>Bitte wählen</option>` + optionsHtml;
-  selView.innerHTML = `<option value="" disabled selected>Gruppe wählen</option>` + optionsHtml;
+  selView.innerHTML = `<option value="" disabled selected>Gruppe wählen</option>` + allGroups.map(g => `<option value="\${g.id}">\${esc(g.name)}</option>`).join('');
 }
 
-// --- SESSIONS ---
 async function loadSessions() {
-  const { data } = await sb.from("vote_sessions").select("*, voter_groups(name)").order("created_at", { ascending: false });
+  const { data } = await sb.from("vote_sessions").select("*").order("created_at", { ascending: false });
   allSessions = data || [];
   renderSessions();
 }
@@ -206,25 +183,24 @@ function renderSessions() {
     <div class="sessionCard">
       <div class="sessionCardTop">
         <div>
-          <div class="sessionCardTitle">${s.title}</div>
+          <div class="sessionCardTitle">\${esc(s.title)}</div>
           <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
-            <span class="statusBadge ${s.status === 'open' ? 'open' : 'closed'}">${s.status === 'open' ? '● Offen' : '● Geschlossen'}</span>
-            <span style="font-size:12px; color:var(--muted);">Gruppe: <b>${s.voter_groups ? s.voter_groups.name : 'Keine'}</b></span>
+            <span class="statusBadge \${s.status === 'open' ? 'open' : 'closed'}">\${s.status === 'open' ? '● Offen' : '● Geschlossen'}</span>
           </div>
         </div>
         <div style="display:flex; gap:8px;">
-          ${s.status === 'open' ? `<button class="btn-secondary btn-sm" onclick="closeSession('${s.id}')">🔒 Schließen</button>` : ''}
-          <button class="btn-danger btn-sm" onclick="deleteSession('${s.id}')">🗑️</button>
+          \${s.status === 'open' ? `<button class="btn-secondary btn-sm" onclick="closeSession('\${s.id}')">🔒 Schließen</button>` : ''}
+          <button class="btn-danger btn-sm" onclick="deleteSession('\${s.id}')">🗑️</button>
         </div>
       </div>
     </div>
   `).join('');
 }
 
-// --- CREATE SESSION ---
 function openCreateModal() {
   document.getElementById("sessionTitle").value = "";
   document.getElementById("optionsList").innerHTML = "";
+  document.querySelectorAll('input[name="voterGroupCheckbox"]').forEach(cb => cb.checked = false);
   optionCount = 0;
   addOptionRow(); addOptionRow();
   document.getElementById("createModal").showModal();
@@ -238,72 +214,41 @@ function addOptionRow() {
 
 document.getElementById("saveSessionBtn").addEventListener("click", async () => {
   const title = document.getElementById("sessionTitle").value.trim();
-  const groupId = document.getElementById("groupSelect").value;
   const opts = Array.from(document.querySelectorAll(".optionRow input")).map(i => i.value.trim()).filter(Boolean);
+  const checkedBoxes = document.querySelectorAll('input[name="voterGroupCheckbox"]:checked');
+  const groupIds = Array.from(checkedBoxes).map(cb => cb.value);
   
-  if (!title || !groupId || opts.length < 2) return alert("Bitte Titel, Gruppe und mind. 2 Optionen eingeben.");
+  if (!title || opts.length < 2) return alert("Bitte Titel und mindestens 2 Optionen eingeben.");
   
-  document.getElementById("saveSessionBtn").textContent = "Speichere...";
-  await sb.from("vote_sessions").insert({ title, options: opts, group_id: groupId });
+  document.getElementById("saveSessionBtn").textContent = "Erstelle...";
+  await sb.from("vote_sessions").insert({ title, options: opts, group_ids: groupIds });
   
   document.getElementById("createModal").close();
   document.getElementById("saveSessionBtn").textContent = "Abstimmung starten";
   await loadSessions();
 });
 
-async function closeSession(id) {
-  await sb.from("vote_sessions").update({ status: "closed" }).eq("id", id);
-  loadSessions();
-}
-async function deleteSession(id) {
-  if(confirm("Löschen?")) { await sb.from("vote_sessions").delete().eq("id", id); loadSessions(); }
-}
+async function closeSession(id) { await sb.from("vote_sessions").update({ status: "closed" }).eq("id", id); loadSessions(); }
+async function deleteSession(id) { if(confirm("Löschen?")) { await sb.from("vote_sessions").delete().eq("id", id); loadSessions(); } }
 
-// --- GROUP & CODE MANAGEMENT ---
-function openGroupModal() {
-  document.getElementById("groupModal").showModal();
-  document.getElementById("codesContainer").innerHTML = "";
-}
-
-function generateCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Keine Verwechslung I/1, O/0
-  let code = '';
-  for(let i=0; i<5; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-  return code;
-}
+function openGroupModal() { document.getElementById("groupModal").showModal(); document.getElementById("codesContainer").innerHTML = ""; }
+function generateCode() { const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c = ''; for(let i=0; i<5; i++) c += chars.charAt(Math.floor(Math.random() * chars.length)); return c; }
 
 async function createGroupAndCodes() {
   const name = document.getElementById("newGroupName").value.trim();
   const count = parseInt(document.getElementById("newGroupCount").value);
-  
-  if(!name || !count || count < 1) return alert("Name und Anzahl eingeben.");
-  
-  // 1. Gruppe erstellen
-  const { data: groupData } = await sb.from("voter_groups").insert({ name }).select().single();
-  
-  // 2. Codes generieren
-  const codesToInsert = Array.from({length: count}).map(() => ({
-    group_id: groupData.id,
-    code: generateCode()
-  }));
-  
-  await sb.from("voter_codes").insert(codesToInsert);
-  
-  document.getElementById("newGroupName").value = "";
-  document.getElementById("newGroupCount").value = "";
-  await loadGroups();
-  document.getElementById("viewGroupSelect").value = groupData.id;
-  loadCodesForGroup();
+  if(!name || !count || count < 1) return alert("Eingaben prüfen.");
+  const { data: gData } = await sb.from("voter_groups").insert({ name }).select().single();
+  const ins = Array.from({length: count}).map(() => ({ group_id: gData.id, code: generateCode() }));
+  await sb.from("voter_codes").insert(ins);
+  document.getElementById("newGroupName").value = ""; document.getElementById("newGroupCount").value = "";
+  await loadGroups(); document.getElementById("viewGroupSelect").value = gData.id; loadCodesForGroup();
 }
 
 async function loadCodesForGroup() {
-  const groupId = document.getElementById("viewGroupSelect").value;
-  if(!groupId) return;
-  
-  const { data } = await sb.from("voter_codes").select("code").eq("group_id", groupId);
-  const container = document.getElementById("codesContainer");
-  
-  container.innerHTML = data.map(c => `<div class="code-badge">${c.code}</div>`).join('');
+  const gId = document.getElementById("viewGroupSelect").value; if(!gId) return;
+  const { data } = await sb.from("voter_codes").select("code").eq("group_id", gId);
+  document.getElementById("codesContainer").innerHTML = data.map(c => `<div class="code-badge">\${c.code}</div>`).join('');
 }
 
 init();
