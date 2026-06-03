@@ -4,385 +4,371 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Abstimmung · FSBS</title>
-  <meta name="theme-color" content="#120e18">
-  <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+  <meta name="theme-color" content="#061827">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{
-      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
-      --accent1:#f97316; --accent2:#a855f7;
-      --border: rgba(255,255,255,.18);
+    :root {
+      /* Deep Dark Theme aus SwiftUI */
+      --bg1: #061827; --bg2: #0A2235; --bg3: #04111C;
+      --red-light: #FF8A8A; --red-deep: #FF4D4D;
+      --green-light: #9FE34B; --green-deep: #3BD68A;
+      --accent1: #f97316; --accent2: #a855f7;
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.65);
-      --shadow: 0 20px 55px rgba(0,0,0,.50);
-      --ok: rgba(34,197,94,.95);
+      --glass: rgba(255,255,255,.05);
+      --border: rgba(255,255,255,.12);
     }
-    *{ box-sizing:border-box; }
-    html,body{ min-height:100%; margin:0; }
-    html{
-      background:
-        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-      background-attachment: fixed;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100%; font-family: system-ui, -apple-system, sans-serif; background: var(--bg1); color: var(--text); overflow-x: hidden; }
+    
+    /* Background Gradient */
+    .bg-gradient {
+      position: fixed; inset: 0; z-index: -2;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
     }
-    @supports (-webkit-touch-callout:none){ html{ background-attachment:scroll; } }
-    body{
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color: var(--text);
-      display:flex; justify-content:center; align-items:flex-start;
-      padding: 40px 16px 60px;
-      animation: pageIn .35s ease both;
-    }
-    @keyframes pageIn{ from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-    .wrap{ width:100%; max-width:520px; }
-
-    .brand{
-      display:flex; align-items:center; gap:12px; margin-bottom:24px;
-    }
-    .brandLogo{
-      width:44px; height:44px; border-radius:12px; padding:5px;
-      display:grid; place-items:center;
-      background:rgba(255,255,255,.10); border:1px solid var(--border);
-      backdrop-filter:blur(18px); flex:0 0 auto;
-    }
-    .brandLogo img{ width:100%; height:100%; border-radius:8px; object-fit:cover; display:block; }
-    .brandTitle{ font-size:15px; font-weight:700; color:var(--muted); }
-
-    .glass{
-      background:rgba(255,255,255,.10); border:1px solid var(--border);
-      border-radius:22px; box-shadow:var(--shadow);
-      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
-      padding:24px;
+    .radial-glow {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 1000px; height: 1000px; border-radius: 50%; z-index: -1;
+      background: radial-gradient(circle, var(--glow-color, transparent) 0%, transparent 60%);
+      opacity: 0.15; transition: background 1s ease;
     }
 
-    .sessionTitle{
-      font-size:22px; font-weight:800; letter-spacing:.2px;
-      margin:0 0 6px;
-    }
-    .sessionSub{
-      font-size:13px; color:var(--muted); margin-bottom:24px;
+    .wrap {
+      width: 100%; max-width: 520px; margin: 0 auto; padding: 40px 16px 60px;
+      display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+      justify-content: center;
     }
 
-    .options{ display:flex; flex-direction:column; gap:10px; }
-
-    .optBtn{
-      width:100%; padding:16px 18px;
-      background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.16);
-      border-radius:16px; color:var(--text);
-      font-size:15px; font-weight:600; text-align:left;
-      cursor:pointer;
-      transition: background .15s, border-color .15s, transform .12s;
-      display:flex; align-items:center; gap:12px;
-    }
-    .optBtn:hover{ background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.28); transform:translateY(-1px); }
-    .optBtn.selected{
-      background:linear-gradient(135deg,rgba(249,115,22,.22),rgba(168,85,247,.18));
-      border-color:rgba(249,115,22,.55);
-      box-shadow:0 8px 24px rgba(249,115,22,.18);
-    }
-    .optBtn.selected .optCheck{ opacity:1; }
-    .optCheck{
-      width:20px; height:20px; border-radius:50%; flex:0 0 auto;
-      border:2px solid rgba(249,115,22,.8);
-      background:linear-gradient(135deg,var(--accent1),var(--accent2));
-      display:grid; place-items:center; opacity:0;
-      transition:opacity .15s;
-      font-size:11px; color:#0f0b16; font-weight:900;
+    /* Glass Cards */
+    .glass {
+      background: var(--glass); border: 1px solid var(--border);
+      border-radius: 22px; padding: 30px 24px; width: 100%;
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 20px 55px rgba(0,0,0,.50);
+      animation: fadeUp 0.4s ease forwards;
     }
 
-    .submitRow{ margin-top:20px; }
-    .btnPrimary{
-      width:100%; padding:15px;
-      background:linear-gradient(135deg,var(--accent1),var(--accent2));
-      color:#0f0b16; font-weight:800; font-size:15px;
-      border:none; border-radius:16px; cursor:pointer;
-      box-shadow:0 12px 30px rgba(168,85,247,.25);
-      transition:transform .15s,filter .15s,opacity .15s;
+    /* Code Input */
+    .code-container { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+    .code-input {
+      width: 50px; height: 60px; font-size: 24px; font-weight: 800; text-align: center;
+      background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.2);
+      color: white; border-radius: 12px; outline: none; transition: 0.2s;
     }
-    .btnPrimary:hover{ transform:translateY(-2px); filter:brightness(1.05); }
-    .btnPrimary:disabled{ opacity:.45; cursor:not-allowed; transform:none; filter:none; }
+    .code-input:focus { border-color: var(--accent1); background: rgba(255,255,255,.12); transform: translateY(-2px); }
 
-    .stateBox{
-      text-align:center; padding:40px 20px;
+    /* Buttons & Options (wie gehabt, aber an Dark Mode angepasst) */
+    .btnPrimary {
+      width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      color: #000; font-weight: 800; font-size: 16px; border: none; border-radius: 16px; cursor: pointer;
+      transition: transform .15s; margin-top: 20px;
     }
-    .stateIcon{ font-size:52px; margin-bottom:16px; }
-    .stateTitle{ font-size:20px; font-weight:800; margin-bottom:8px; }
-    .stateSub{ font-size:14px; color:var(--muted); line-height:1.5; }
+    .btnPrimary:active { transform: scale(0.98); }
+    .btnPrimary:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .spinner{
-      width:36px; height:36px; border-radius:50%;
-      border:3px solid rgba(255,255,255,.15);
-      border-top-color:var(--accent1);
-      animation:spin .7s linear infinite; margin:0 auto 16px;
+    .optBtn {
+      width: 100%; padding: 16px; background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.1);
+      border-radius: 16px; color: white; font-size: 16px; font-weight: 600; text-align: left;
+      cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
     }
-    @keyframes spin{ to{transform:rotate(360deg)} }
+    .optBtn.selected {
+      background: linear-gradient(135deg, rgba(249,115,22,.15), rgba(168,85,247,.15));
+      border-color: var(--accent1); box-shadow: 0 8px 24px rgba(249,115,22,.2);
+    }
+    
+    /* THEATRICAL ANIMATIONS */
+    .anim-container {
+      position: relative; width: 340px; height: 340px; display: flex; justify-content: center; align-items: center;
+      margin: 0 auto 40px; display: none;
+    }
+    
+    /* Phase 1: Loader */
+    .loader-ring {
+      position: absolute; width: 100%; height: 100%; border-radius: 50%;
+      border: 10px solid transparent; border-top-color: var(--anim-color-light);
+      border-right-color: var(--anim-color-deep);
+      opacity: 0; transform: scale(1) rotate(-90deg);
+    }
+    
+    /* Phase 2: Elements */
+    .ambient-glow {
+      position: absolute; width: 440px; height: 440px; border-radius: 50%;
+      background: radial-gradient(circle, var(--anim-color-deep) 0%, transparent 60%);
+      opacity: 0; transform: scale(0.5); pointer-events: none;
+    }
+    .white-flash {
+      position: absolute; width: 200px; height: 200px; border-radius: 50%;
+      background: white; opacity: 0; transform: scale(0.2); filter: blur(2px);
+    }
+    .shockwave {
+      position: absolute; width: 200px; height: 200px; border-radius: 50%;
+      border: 4px solid var(--anim-color-light); opacity: 0; transform: scale(0.5);
+    }
+    .main-icon {
+      position: absolute; width: 140px; height: 140px; opacity: 0; transform: scale(0);
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35)) drop-shadow(0 0 20px var(--anim-color-deep));
+    }
+    .main-icon svg { width: 100%; height: 100%; }
 
-    .delegationSection{
-      margin-top:20px; padding:16px; border-radius:16px;
-      background:rgba(168,85,247,.08); border:1px solid rgba(168,85,247,.22);
-    }
-    .delegationTitle{
-      font-size:14px; font-weight:700; color:rgba(168,85,247,.9);
-      margin-bottom:12px; display:flex; align-items:center; gap:7px;
-    }
-    .delegationCountRow{
-      display:flex; align-items:center; gap:12px; margin-bottom:12px;
-    }
-    .delegationCountRow label{ font-size:13px; color:var(--muted); font-weight:600; }
-    .countStepper{
-      display:flex; align-items:center; gap:8px;
-    }
-    .stepBtn{
-      width:32px; height:32px; border-radius:10px; padding:0;
-      background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.20);
-      color:var(--text); font-size:18px; font-weight:700; line-height:1;
-      cursor:pointer; display:grid; place-items:center;
-      transition:background .13s, transform .12s;
-    }
-    .stepBtn:hover{ background:rgba(255,255,255,.20); transform:scale(1.06); }
-    .stepBtn:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
-    .countDisplay{
-      min-width:28px; text-align:center; font-size:18px; font-weight:800;
-    }
-    .delegationNames{ display:flex; flex-direction:column; gap:8px; }
-    .delegationNameInput{
-      background:rgba(255,255,255,.10); border:1px solid rgba(168,85,247,.30);
-      color:var(--text); padding:10px 12px; border-radius:12px; outline:none;
-      font-size:14px; font-family:inherit; width:100%;
-      transition:background .15s, border-color .15s;
-    }
-    .delegationNameInput:focus{ border-color:rgba(168,85,247,.65); background:rgba(255,255,255,.15); }
-    .delegationNameInput::placeholder{ color:rgba(255,255,255,.30); }
+    /* The Text */
+    .anim-text { text-align: center; opacity: 0; transform: translateY(30px); }
+    .anim-title { font-size: 40px; font-weight: 900; color: white; line-height: 1.1; margin-bottom: 8px; }
+    .anim-sub { font-size: 16px; font-weight: 600; letter-spacing: 4px; color: rgba(255,255,255,0.7); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseAmbient { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
   </style>
 </head>
 <body>
-<div class="wrap">
+  <div class="bg-gradient"></div>
+  <div class="radial-glow" id="bgGlow"></div>
 
-  <div class="brand">
-    <div class="brandLogo">
-      <img src="logo.png" alt="FSBS" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
-    </div>
-    <div class="brandTitle">Fachschaft Business School e.V.</div>
+  <div class="wrap" id="mainWrap">
+    <div id="loadingState" style="text-align:center; color: var(--muted);">Lade Abstimmung...</div>
   </div>
 
-  <div class="glass" id="card">
-    <div class="stateBox" id="stateLoading">
-      <div class="spinner"></div>
-      <div class="stateSub">Lade Abstimmung…</div>
-    </div>
-  </div>
-
-</div>
 <script>
   const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
   const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const card = document.getElementById("card");
+  const wrap = document.getElementById("mainWrap");
+  let currentSession = null;
+  let voterCode = "";
 
-  function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+  // Helper: Get URL Param
+  function getToken() { return new URLSearchParams(location.search).get("s"); }
 
-  function showState(icon, title, sub){
-    card.innerHTML = `<div class="stateBox">
-      <div class="stateIcon">${icon}</div>
-      <div class="stateTitle">${esc(title)}</div>
-      <div class="stateSub">${esc(sub)}</div>
-    </div>`;
-  }
-
-  function getToken(){
-    return new URLSearchParams(location.search).get("s") || "";
-  }
-
-  function getVoterToken(sessionToken){
-    const key = "vt_" + sessionToken;
-    let vt = sessionStorage.getItem(key);
-    if (!vt){ vt = crypto.randomUUID(); sessionStorage.setItem(key, vt); }
-    return vt;
-  }
-
-  function alreadyVoted(sessionToken){
-    return !!sessionStorage.getItem("voted_" + sessionToken);
-  }
-
-  function markVoted(sessionToken){
-    sessionStorage.setItem("voted_" + sessionToken, "1");
-  }
-
-  function renderVoting(session){
-    const opts = session.options || [];
-    const sessionToken = session.token;
-    const allowDelegation = !!session.allow_delegation;
-    let selected = null;
-    let delegationCount = 0;
-
-    const delegationHtml = allowDelegation ? `
-      <div class="delegationSection" id="delegationSection">
-        <div class="delegationTitle">🔄 Stimmübertragungen</div>
-        <div class="delegationCountRow">
-          <label>Anzahl übertragener Stimmen:</label>
-          <div class="countStepper">
-            <button class="stepBtn" id="stepMinus" type="button" disabled>−</button>
-            <span class="countDisplay" id="countDisplay">0</span>
-            <button class="stepBtn" id="stepPlus" type="button">+</button>
-          </div>
+  // --- 1. THEATRICAL ANIMATION ORCHESTRATOR ---
+  function playTheatricalAnimation(type, callback) {
+    wrap.innerHTML = `
+      <div class="anim-container" id="animBox" style="display:flex;">
+        <div class="ambient-glow" id="aGlow"></div>
+        <div class="loader-ring" id="aLoader"></div>
+        <div class="white-flash" id="aFlash"></div>
+        <div class="shockwave" id="aShock"></div>
+        <div class="main-icon" id="aIcon">
+          ${type === 'open' 
+            ? `<svg viewBox="0 0 24 24" fill="url(#gradGreen)"><defs><linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--green-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`
+            : `<svg viewBox="0 0 24 24" fill="url(#gradRed)"><defs><linearGradient id="gradRed" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="white"/><stop offset="100%" stop-color="var(--red-light)"/></linearGradient></defs><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>`}
         </div>
-        <div class="delegationNames" id="delegationNames"></div>
-      </div>` : "";
-
-    card.innerHTML = `
-      <h1 class="sessionTitle">${esc(session.title)}</h1>
-      <div class="sessionSub">Wähle eine Option und bestätige.</div>
-      <div class="options" id="opts">
-        ${opts.map((o, i) => `
-          <button class="optBtn" data-i="${i}" type="button">
-            <span class="optCheck">✓</span>
-            ${esc(o)}
-          </button>
-        `).join("")}
       </div>
-      ${delegationHtml}
-      <div class="submitRow">
-        <button class="btnPrimary" id="submitBtn" disabled type="button">Option wählen</button>
+      <div class="anim-text" id="aText">
+        <div class="anim-title">${type === 'open' ? 'Wahl eröffnet' : 'Wahl geschlossen'}</div>
+        <div class="anim-sub">${type === 'open' ? 'STIMMABGABE FREIGEGEBEN' : 'KEINE WEITEREN STIMMEN'}</div>
       </div>
-      <div id="vMsg" style="margin-top:12px;font-size:13px;color:rgba(255,255,255,.6);text-align:center;min-height:18px;"></div>
     `;
 
-    const submitBtn = document.getElementById("submitBtn");
-    const vMsg = document.getElementById("vMsg");
-
-    function updateSubmitLabel(){
-      if (selected === null) return;
-      const total = 1 + delegationCount;
-      submitBtn.textContent = total > 1
-        ? `„${opts[selected]}" wählen (${total} Stimmen)`
-        : `„${opts[selected]}" wählen`;
+    const root = document.documentElement;
+    if(type === 'open') {
+      root.style.setProperty('--anim-color-light', 'var(--green-light)');
+      root.style.setProperty('--anim-color-deep', 'var(--green-deep)');
+      document.getElementById("bgGlow").style.setProperty('--glow-color', 'var(--green-deep)');
+    } else {
+      root.style.setProperty('--anim-color-light', 'var(--red-light)');
+      root.style.setProperty('--anim-color-deep', 'var(--red-deep)');
+      document.getElementById("bgGlow").style.setProperty('--glow-color', 'var(--red-deep)');
     }
 
-    function updateDelegationNames(){
-      if (!allowDelegation) return;
-      const container = document.getElementById("delegationNames");
-      const existing = container.querySelectorAll(".delegationNameInput");
-      const currentCount = existing.length;
-      if (delegationCount > currentCount){
-        for (let i = currentCount; i < delegationCount; i++){
-          const inp = document.createElement("input");
-          inp.type = "text";
-          inp.className = "delegationNameInput";
-          inp.placeholder = `Name der ${i + 1}. übertragenden Person`;
-          inp.maxLength = 80;
-          container.appendChild(inp);
-        }
-      } else {
-        for (let i = currentCount; i > delegationCount; i--){
-          container.removeChild(container.lastChild);
-        }
-      }
-      document.getElementById("stepMinus").disabled = delegationCount <= 0;
-      document.getElementById("countDisplay").textContent = delegationCount;
-      updateSubmitLabel();
-    }
+    const loader = document.getElementById("aLoader");
+    const flash = document.getElementById("aFlash");
+    const shock = document.getElementById("aShock");
+    const icon = document.getElementById("aIcon");
+    const glow = document.getElementById("aGlow");
+    const text = document.getElementById("aText");
 
-    if (allowDelegation){
-      document.getElementById("stepPlus").addEventListener("click", () => {
-        if (delegationCount >= 9) return;
-        delegationCount++;
-        updateDelegationNames();
+    // Phase 1: Anticipation (0 - 2.7s)
+    loader.style.transition = "opacity 0.15s ease-out, transform 2.7s ease-in-out";
+    setTimeout(() => { loader.style.opacity = "1"; loader.style.transform = "scale(1) rotate(450deg)"; }, 50);
+
+    // Phase 1.5: Inhale (2.7s)
+    setTimeout(() => {
+      loader.style.transition = "transform 0.3s ease-in, opacity 0.3s ease-in";
+      loader.style.transform = "scale(0.01) rotate(500deg)";
+      loader.style.opacity = "0";
+    }, 2700);
+
+    // Phase 2: The Drop (3.0s)
+    setTimeout(() => {
+      // Flash
+      flash.style.opacity = "1";
+      flash.style.transition = "transform 0.5s ease-out, opacity 0.5s ease-out";
+      setTimeout(() => { flash.style.transform = "scale(4)"; flash.style.opacity = "0"; }, 50);
+
+      // Shockwave
+      shock.style.opacity = "1";
+      shock.style.transition = "transform 0.8s ease-out, opacity 0.8s ease-out";
+      setTimeout(() => { shock.style.transform = "scale(3.5)"; shock.style.opacity = "0"; }, 50);
+
+      // Icon & Glow
+      icon.style.transition = "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+      icon.style.opacity = "1";
+      icon.style.transform = "scale(1)";
+
+      glow.style.transition = "opacity 0.5s ease";
+      glow.style.opacity = "0.5";
+      glow.style.transform = "scale(1)";
+      glow.style.animation = "pulseAmbient 3s infinite ease-in-out 0.4s";
+
+      // Text gleitet hoch
+      setTimeout(() => {
+        text.style.transition = "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease";
+        text.style.opacity = "1";
+        text.style.transform = "translateY(0)";
+      }, 100);
+
+      // Finish & Callback
+      if(callback) setTimeout(callback, 2500);
+
+    }, 3000);
+  }
+
+  // --- 2. CODE ENTRY UI ---
+  function showCodeEntry() {
+    wrap.innerHTML = `
+      <div class="glass" style="text-align:center;">
+        <h2 style="font-size:24px; font-weight:800; margin-bottom: 8px;">Wahl-Zugang</h2>
+        <p style="color:var(--muted); font-size:14px; margin-bottom: 24px;">Bitte gib deinen 5-stelligen Code ein.</p>
+        <div class="code-container" id="codeInputs">
+          <input type="text" maxlength="1" class="code-input" autofocus>
+          <input type="text" maxlength="1" class="code-input">
+          <input type="text" maxlength="1" class="code-input">
+          <input type="text" maxlength="1" class="code-input">
+          <input type="text" maxlength="1" class="code-input">
+        </div>
+        <div id="codeError" style="color:var(--red-light); font-size:14px; min-height:20px; margin-top:10px;"></div>
+        <button class="btnPrimary" id="verifyBtn">Code verifizieren</button>
+      </div>
+    `;
+
+    const inputs = document.querySelectorAll('.code-input');
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        input.value = input.value.toUpperCase();
+        if (input.value && index < inputs.length - 1) inputs[index + 1].focus();
       });
-      document.getElementById("stepMinus").addEventListener("click", () => {
-        if (delegationCount <= 0) return;
-        delegationCount--;
-        updateDelegationNames();
-      });
-    }
-
-    card.querySelectorAll(".optBtn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        card.querySelectorAll(".optBtn").forEach(b => b.classList.remove("selected"));
-        btn.classList.add("selected");
-        selected = parseInt(btn.dataset.i);
-        submitBtn.disabled = false;
-        updateSubmitLabel();
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && index > 0) inputs[index - 1].focus();
       });
     });
 
-    submitBtn.addEventListener("click", async () => {
-      if (selected === null) return;
-
-      let delegationNames = null;
-      if (allowDelegation && delegationCount > 0){
-        const inputs = document.querySelectorAll(".delegationNameInput");
-        const names = Array.from(inputs).map(i => i.value.trim());
-        if (names.some(n => !n)){
-          vMsg.textContent = "Bitte alle Namen der übertragenden Personen eintragen.";
-          return;
-        }
-        delegationNames = names;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Speichere…";
-      vMsg.textContent = "";
-
-      const voterToken = getVoterToken(sessionToken);
-      const weight = 1 + delegationCount;
-
-      const { error } = await sb.from("votes").insert({
-        session_id: session.id,
-        option_index: selected,
-        voter_token: voterToken,
-        weight,
-        delegation_names: delegationNames,
-      });
-
-      if (error){
-        if (error.code === "23505"){
-          markVoted(sessionToken);
-          showState("🔒", "Bereits abgestimmt", "Du hast für diese Abstimmung bereits eine Stimme abgegeben.");
-        } else {
-          submitBtn.disabled = false;
-          updateSubmitLabel();
-          vMsg.textContent = "Fehler: " + error.message;
-        }
+    document.getElementById('verifyBtn').addEventListener('click', async () => {
+      const code = Array.from(inputs).map(i => i.value).join('');
+      if(code.length !== 5) return;
+      
+      const btn = document.getElementById('verifyBtn');
+      btn.disabled = true; btn.textContent = "Prüfe...";
+      
+      // 1. Check if Code exists in Group
+      const { data: codeData, error: codeErr } = await sb.from("voter_codes")
+        .select("*").eq("group_id", currentSession.group_id).eq("code", code).maybeSingle();
+        
+      if(!codeData || codeErr) {
+        document.getElementById('codeError').textContent = "Code ungültig.";
+        btn.disabled = false; btn.textContent = "Code verifizieren";
         return;
       }
 
-      markVoted(sessionToken);
-      const msg = weight > 1
-        ? `Danke für deine Teilnahme. Deine Stimme und ${delegationCount} übertragene Stimme${delegationCount !== 1 ? "n" : ""} wurden anonym gespeichert.`
-        : "Danke für deine Teilnahme. Deine Stimme wurde anonym gespeichert.";
-      showState("✅", "Stimme erfasst!", msg);
+      // 2. Check if Code already used for THIS session
+      const { data: voteData } = await sb.from("votes")
+        .select("id").eq("session_id", currentSession.id).eq("voter_code", code).maybeSingle();
+
+      if(voteData) {
+        document.getElementById('codeError').textContent = "Mit diesem Code wurde bereits abgestimmt.";
+        btn.disabled = false; btn.textContent = "Code verifizieren";
+        return;
+      }
+
+      voterCode = code; // Save for voting
+      // Proceed to Theatrical Opening
+      playTheatricalAnimation('open', showVotingOptions);
     });
   }
 
+  // --- 3. VOTING OPTIONS UI ---
+  function showVotingOptions() {
+    const opts = currentSession.options || [];
+    let selected = null;
+
+    wrap.innerHTML = `
+      <div class="glass" style="animation: fadeUp 0.6s ease;">
+        <h2 style="font-size:26px; font-weight:800; margin-bottom: 6px;">${currentSession.title}</h2>
+        <p style="color:var(--muted); font-size:14px; margin-bottom: 30px;">Wähle eine Option und bestätige.</p>
+        
+        <div id="optList">
+          ${opts.map((o, i) => `
+            <button class="optBtn" data-i="${i}">
+              <div style="width:24px; height:24px; border-radius:50%; border:2px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="radio-circle"></div>
+              ${o}
+            </button>
+          `).join('')}
+        </div>
+
+        <button class="btnPrimary" id="submitVote" disabled>Stimme abgeben</button>
+      </div>
+    `;
+
+    document.querySelectorAll('.optBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.optBtn').forEach(b => {
+          b.classList.remove('selected');
+          b.querySelector('.radio-circle').style.borderColor = "var(--border)";
+          b.querySelector('.radio-circle').innerHTML = "";
+        });
+        btn.classList.add('selected');
+        btn.querySelector('.radio-circle').style.borderColor = "var(--accent1)";
+        btn.querySelector('.radio-circle').innerHTML = `<div style="width:12px; height:12px; background:var(--accent1); border-radius:50%;"></div>`;
+        selected = parseInt(btn.dataset.i);
+        document.getElementById('submitVote').disabled = false;
+      });
+    });
+
+    document.getElementById('submitVote').addEventListener('click', async () => {
+      if (selected === null) return;
+      const btn = document.getElementById('submitVote');
+      btn.disabled = true; btn.textContent = "Wird verschlüsselt...";
+
+      const { error } = await sb.from("votes").insert({
+        session_id: currentSession.id,
+        option_index: selected,
+        voter_code: voterCode,
+        weight: 1
+      });
+
+      if(error) {
+        alert("Fehler bei der Abgabe.");
+        btn.disabled = false; btn.textContent = "Stimme abgeben";
+        return;
+      }
+
+      wrap.innerHTML = `<div class="glass" style="text-align:center;">
+        <div style="font-size:40px; margin-bottom:10px;">✅</div>
+        <h2 style="font-size:24px; font-weight:800;">Stimme erfasst</h2>
+        <p style="color:var(--muted); font-size:14px;">Danke für deine Teilnahme.</p>
+      </div>`;
+    });
+  }
+
+  // --- BOOTSTRAP ---
   (async () => {
     const token = getToken();
-    if (!token){ showState("❌", "Kein Link", "Bitte den Link vom Vorstand verwenden."); return; }
+    if (!token) return wrap.innerHTML = `<div class="glass">Ungültiger Link.</div>`;
 
-    if (alreadyVoted(token)){
-      showState("🔒", "Bereits abgestimmt", "Du hast für diese Abstimmung bereits eine Stimme abgegeben.");
-      return;
+    const { data, error } = await sb.from("vote_sessions").select("*").eq("token", token).maybeSingle();
+    if (error || !data) return wrap.innerHTML = `<div class="glass">Abstimmung nicht gefunden.</div>`;
+    currentSession = data;
+
+    if (data.status !== "open") {
+      playTheatricalAnimation('closed');
+    } else {
+      if(data.group_id) {
+        showCodeEntry();
+      } else {
+        // Fallback falls keine Gruppe gesetzt ist (öffentliche Wahl)
+        voterCode = "OPEN";
+        playTheatricalAnimation('open', showVotingOptions);
+      }
     }
-
-    const { data, error } = await sb
-      .from("vote_sessions")
-      .select("*")
-      .eq("token", token)
-      .maybeSingle();
-
-    if (error || !data){
-      showState("❌", "Abstimmung nicht gefunden", "Der Link ist ungültig oder die Abstimmung wurde gelöscht.");
-      return;
-    }
-
-    if (data.status !== "open"){
-      showState("🔒", "Abstimmung geschlossen", "Diese Abstimmung wurde bereits beendet.");
-      return;
-    }
-
-    renderVoting(data);
   })();
 </script>
 </body>
