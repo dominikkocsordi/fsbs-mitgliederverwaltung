@@ -612,7 +612,6 @@
 
         const meta = statusMeta(stRaw);
 
-        // ✅ mail toggle only when eligible + CAN_EDIT
         const mailEligible = (fullAlready || rejectedAlready);
         const mailCanToggle = CAN_EDIT && mailEligible;
 
