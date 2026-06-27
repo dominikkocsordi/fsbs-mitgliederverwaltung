@@ -20,6 +20,332 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ============================================================
+       Anwärter-page local styles — all following the design system
+       ============================================================ */
+
+    /* Filter bar */
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 160px 160px 180px auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .filters .wide {
+      grid-column: 1 / 2;
+    }
+    .filters .right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: 1fr 1fr auto;
+        grid-template-rows: auto auto auto;
+      }
+      .filters .wide { grid-column: 1 / -1; }
+      .filters .right { grid-column: 1 / -1; justify-content: space-between; }
+    }
+    @media (max-width: 640px) {
+      .filters {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .filters .wide { grid-column: 1 / -1; }
+      .filters .right { grid-column: 1 / -1; }
+    }
+
+    /* Mini dashboard */
+    .miniDash {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .dashCard {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 16px;
+      flex: 1 1 160px;
+      min-width: 140px;
+    }
+    .dashLabel {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+    .dashHint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 3px;
+    }
+    .dashValue {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: 0.2px;
+      flex: 0 0 auto;
+    }
+
+    /* Table-specific cells */
+    .nameCell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatarSmall {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text);
+      flex: 0 0 auto;
+      overflow: hidden;
+    }
+    .avatarSmall img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+    .nameMeta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nameMeta strong {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .miniLink {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .miniLink a {
+      color: rgba(249,115,22,0.9);
+      text-decoration: none;
+    }
+    .miniLink a:hover { text-decoration: underline; }
+
+    /* Ressort pill */
+    .ressortPill {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.18);
+      white-space: nowrap;
+    }
+
+    /* Status pill */
+    .statusPill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.18);
+      white-space: nowrap;
+    }
+    .statusDot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+
+    /* Mail toggle switch */
+    .mailToggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 13px;
+      cursor: default;
+      user-select: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .mailToggle.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .mailToggle:not(.disabled) {
+      cursor: pointer;
+    }
+    .mailToggle:not(.disabled):hover {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(249,115,22,0.35);
+    }
+    .mailKnob {
+      width: 30px;
+      height: 16px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      position: relative;
+      transition: background 0.18s ease;
+      flex: 0 0 auto;
+    }
+    .mailKnob::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.75);
+      top: 2px;
+      left: 2px;
+      transition: left 0.18s ease, background 0.18s ease;
+    }
+    .mailToggle.on .mailKnob {
+      background: rgba(34,197,94,0.55);
+      border-color: rgba(34,197,94,0.35);
+    }
+    .mailToggle.on .mailKnob::after {
+      left: 16px;
+      background: rgba(34,197,94,0.95);
+    }
+
+    /* Action buttons in table */
+    .btn-mini {
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 10px;
+    }
+    .btn-done {
+      background: linear-gradient(135deg, rgba(34,197,94,0.85), rgba(16,185,129,0.75));
+      color: #0f1f14;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(34,197,94,0.20);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    }
+    .btn-done:not(:disabled):hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+    .btn-done:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Empty state */
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Modal overlay (div-based, same visual as dialog) */
+    .modalOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.60);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .modalOverlay.show {
+      display: flex;
+      animation: overlayFadeIn 0.2s ease both;
+    }
+    @keyframes overlayFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .modal {
+      width: min(600px, 100%);
+      max-height: calc(100dvh - 36px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      animation: modalIn 0.20s ease both;
+      padding: 28px 28px 24px;
+      position: relative;
+    }
+    @media (max-width: 640px) {
+      .modalOverlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .modal {
+        width: 100%;
+        border-radius: 26px 26px 0 0;
+        max-height: calc(100dvh - 40px);
+        animation: modalInMobile 0.28s cubic-bezier(0.32, 0.94, 0.6, 1) both;
+      }
+    }
+
+    /* Modal header row */
+    .modalHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    /* Photo preview in modal */
+    .photoPreview {
+      width: 90px;
+      height: 90px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      overflow: hidden;
+    }
+    .photoPreview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+    }
+
+    /* Row layout helper */
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .spacer { flex: 1 1 auto; }
+  </style>
 </head>
 
 <body>
@@ -38,7 +364,7 @@
         </div>
       </div>
 
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="brandRight" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="pill" id="statusPill">–</div>
 
         <div class="authFloating" title="Login-Status" id="authBadge">
