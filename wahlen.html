@@ -7,67 +7,7 @@
 <meta name="theme-color" content="#061827">
 <link rel="stylesheet" href="/mobile-nav.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<style>
-:root{
-  --bg1: #061827; --bg2: #0A2235; --bg3: #04111C;
-  --accent1: #f97316; --accent2: #a855f7;
-  --glass: rgba(255,255,255,.05);
-  --border: rgba(255,255,255,.12);
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.60);
-  --shadow: 0 20px 55px rgba(0,0,0,.50);
-  --ok: #3BD68A; --bad: #FF4D4D;
-}
-*{ box-sizing:border-box; margin:0; padding:0; }
-html, body{ min-height:100%; }
-html{ background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3)); background-attachment: fixed; }
-body{ font-family: system-ui, -apple-system, sans-serif; color: var(--text); padding:42px 16px 60px; }
-
-.app{ width:100%; max-width:1200px; margin: 0 auto; }
-.top{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; }
-h1{ font-size:32px; font-weight:800; letter-spacing:.4px; }
-.subtitle{ color:var(--muted); font-size:14px; margin-top:6px; }
-
-.glass{ background:var(--glass); border:1px solid var(--border); border-radius:22px; box-shadow:var(--shadow); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
-
-button{ border:none; cursor:pointer; border-radius:14px; padding:12px 18px; font-weight:600; font-family:inherit; font-size:14px; transition:transform .16s ease, filter .16s ease; }
-button:active{ transform:scale(.98); }
-.btn-primary{ background:linear-gradient(135deg, var(--accent1), var(--accent2)); color:#000; font-weight:700; }
-.btn-primary:hover{ filter:brightness(1.1); }
-.btn-secondary{ background:rgba(255,255,255,.08); color:var(--text); border:1px solid var(--border); }
-.btn-secondary:hover{ background:rgba(255,255,255,.12); }
-.btn-danger{ background:rgba(255,77,77,.15); color:var(--bad); border:1px solid rgba(255,77,77,.3); }
-.btn-sm{ padding:8px 14px; font-size:13px; border-radius:12px; }
-
-.pageHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; margin-top:30px; }
-.sessionList{ display:flex; flex-direction:column; gap:14px; }
-.sessionCard{ padding:20px; border-radius:20px; background:rgba(255,255,255,.03); border:1px solid var(--border); backdrop-filter:blur(14px); transition:transform .16s ease; }
-.sessionCard:hover{ transform:translateY(-2px); background:rgba(255,255,255,.05); }
-.sessionCardTop{ display:flex; justify-content:space-between; gap:12px; }
-.sessionCardTitle{ font-size:18px; font-weight:800; margin-bottom:6px; }
-
-.statusBadge{ padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; }
-.statusBadge.open{ background:rgba(59,214,138,.15); color:var(--ok); border:1px solid rgba(59,214,138,.3); }
-.statusBadge.closed{ background:rgba(255,255,255,.08); color:var(--muted); border:1px solid var(--border); }
-
-dialog{ background:transparent; border:none; padding:0; max-width:520px; width:calc(100% - 32px); margin:auto; }
-dialog::backdrop{ background:rgba(0,0,0,.7); backdrop-filter:blur(8px); }
-.modalBox{ background:var(--bg2); border:1px solid var(--border); border-radius:22px; padding:24px; color:white; }
-.modalTitle{ font-size:20px; font-weight:800; margin-bottom:20px; }
-
-.formGroup{ margin-bottom:16px; }
-.formLabel{ font-size:13px; font-weight:600; color:var(--muted); margin-bottom:6px; display:block; }
-input[type=text], input[type=number], select { background:rgba(255,255,255,.05); border:1px solid var(--border); color:white; padding:12px 14px; border-radius:14px; width:100%; font-size:15px; outline:none; }
-input:focus, select:focus{ border-color:var(--accent1); background:rgba(255,255,255,.08); }
-
-.optionsList{ display:flex; flex-direction:column; gap:8px; }
-.optionRow{ display:flex; gap:8px; }
-.optionRow input{ flex:1; }
-.optionRemove{ background:rgba(255,77,77,.15); color:var(--bad); width:40px; border-radius:12px; }
-
-.code-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
-.code-badge { background: rgba(255,255,255,.08); padding: 8px; border-radius: 8px; text-align: center; font-family: monospace; font-weight: 800; font-size: 16px; border: 1px solid var(--border); }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">

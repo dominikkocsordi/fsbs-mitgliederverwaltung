@@ -19,232 +19,12 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
-  <style>
-    :root{
-      --bg1:#120e18; --bg2:#1a1424; --bg3:#1f162c;
-      --accent1:#f97316; --accent2:#a855f7;
-      --glass: rgba(255,255,255,.08);
-      --border: rgba(255,255,255,.18);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.65);
-      --shadow: 0 20px 55px rgba(0,0,0,.45);
-      --ok: rgba(34,197,94,.95);
-      --bad: rgba(239,68,68,.95);
-    }
-
-    *{box-sizing:border-box}
-    html, body{min-height:100%}
-
-    html{
-      background:
-        radial-gradient(900px 500px at 15% 10%, rgba(249,115,22,.25), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(168,85,247,.22), transparent 60%),
-        radial-gradient(800px 450px at 60% 90%, rgba(124,58,237,.18), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
-      background-attachment: fixed;
-    }
-
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color: var(--text);
-      background: transparent;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 42px 16px;
-      padding-top: max(42px, env(safe-area-inset-top, 42px));
-      padding-bottom: max(32px, env(safe-area-inset-bottom, 32px));
-      min-height: 100dvh;
-    }
-
-    .app{ width: min(520px, 100%); }
-
-    .top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:14px;
-      margin-bottom:14px;
-    }
-
-    .brandLeft{ display:flex; align-items:center; gap:12px; min-width:0; }
-
-    .brandLogo{
-      width: 52px; height: 52px; border-radius: 14px; padding: 6px;
-      display:grid; place-items:center;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.18);
-      box-shadow: 0 16px 44px rgba(0,0,0,.30);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      flex:0 0 auto;
-      transition: transform .16s ease, filter .16s ease, background .16s ease;
-      text-decoration:none;
-      color: rgba(255,255,255,.92);
-      font-weight:850;
-    }
-    .brandLogo:hover{ transform: translateY(-1px); filter: brightness(1.05); background: rgba(255,255,255,.12); }
-    .brandLogo img{ width:100%; height:100%; border-radius: 10px; object-fit:cover; display:block; }
-
-    .titles h1{ margin:0; font-size:22px; letter-spacing:.25px; line-height:1.15; }
-    .subtitle{ margin-top:4px; color:var(--muted); font-size:13px; }
-
-    .glass{
-      background: rgba(255,255,255,.10);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-    }
-    .card{ padding:22px; }
-
-    .badge{
-      display:inline-flex; align-items:center; gap:8px;
-      font-size:12px; padding:8px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(0,0,0,.15);
-      color: var(--muted);
-      white-space:nowrap;
-      flex-shrink:0;
-    }
-    .dot{ width:9px; height:9px; border-radius:50%; background: rgba(255,255,255,.35); box-shadow: 0 0 0 3px rgba(255,255,255,.06); }
-    .dot.ok{ background: var(--ok); box-shadow: 0 0 0 3px rgba(34,197,94,.18); }
-    .dot.bad{ background: var(--bad); box-shadow: 0 0 0 3px rgba(239,68,68,.18); }
-
-    label{ display:block; font-size:12px; color: var(--muted); margin-bottom:6px; font-weight:600; }
-
-    input{
-      width:100%;
-      padding: 14px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.12);
-      border: 1px solid rgba(255,255,255,.16);
-      color: var(--text);
-      outline:none;
-      font-size: 16px; /* verhindert iOS-Zoom */
-      font-family: inherit;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-    }
-    input:focus{
-      border-color: rgba(249,115,22,.55);
-      background: rgba(255,255,255,.16);
-      transform: translateY(-1px);
-    }
-    input::placeholder{ color: rgba(255,255,255,.40); }
-
-    /* OTP Code Input – große Ziffern */
-    #otpInput{
-      font-size: 24px;
-      font-weight: 800;
-      letter-spacing: 8px;
-      text-align: center;
-      padding: 16px;
-    }
-
-    .formGrid{ display:flex; flex-direction:column; gap:14px; }
-
-    button{
-      border:none; cursor:pointer;
-      border-radius:14px;
-      padding: 14px 16px;
-      font-weight:700;
-      font-size:15px;
-      font-family: inherit;
-      width:100%;
-      min-height: 50px;
-      transition: transform .16s ease, filter .16s ease, opacity .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
-    }
-    button:active{ transform: translateY(0px) scale(.99); }
-    button:disabled{ cursor:not-allowed !important; opacity:.45 !important; transform:none !important; filter:none !important; box-shadow:none !important; }
-
-    .btn-primary{
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #0f0b16;
-      box-shadow: 0 12px 30px rgba(168,85,247,.25);
-    }
-    .btn-primary:not(:disabled):hover{
-      transform: translateY(-2px);
-      filter: brightness(1.05);
-      box-shadow: 0 18px 36px rgba(249,115,22,.25), 0 0 40px rgba(168,85,247,.25);
-    }
-
-    .btn-secondary{
-      background: rgba(255,255,255,.10);
-      color: var(--muted);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size:13px;
-      min-height: 42px;
-      padding: 10px;
-    }
-    .btn-secondary:not(:disabled):hover{
-      background: rgba(255,255,255,.15);
-      color: var(--text);
-    }
-
-    .note{ font-size:13px; color: var(--muted); line-height:1.5; }
-    .note strong{ color: rgba(255,255,255,.85); }
-
-    .msg{ margin-top:8px; font-size:13px; line-height:1.45; min-height:18px; }
-    .msg.ok{ color: rgba(34,197,94,.95); }
-    .msg.bad{ color: rgba(239,68,68,.95); }
-    .msg.info{ color: rgba(56,189,248,.95); }
-
-    footer{ margin-top:16px; text-align:center; color: rgba(255,255,255,.45); font-size: 12px; }
-    footer strong{ color: rgba(255,255,255,.70); font-weight: 750; }
-
-    /* ---- Step-Animationen ---- */
-    .step{ transition: opacity .2s ease, transform .2s ease; }
-    .step.hidden{ display:none; }
-
-    /* ---- Polling-Indicator ---- */
-    .pollWrap{
-      display:flex; align-items:center; gap:10px;
-      padding:12px 14px;
-      border-radius:14px;
-      background: rgba(56,189,248,.08);
-      border:1px solid rgba(56,189,248,.18);
-      font-size:13px;
-      color: rgba(56,189,248,.9);
-    }
-    .pollDot{
-      width:10px; height:10px; border-radius:50%;
-      background: rgba(56,189,248,.8);
-      flex-shrink:0;
-      animation: pulse 1.4s ease-in-out infinite;
-    }
-    @keyframes pulse{
-      0%,100%{ opacity:1; transform:scale(1); }
-      50%{ opacity:.4; transform:scale(.75); }
-    }
-
-    /* ---- Divider ---- */
-    .divider{
-      display:flex; align-items:center; gap:10px;
-      color: rgba(255,255,255,.28); font-size:12px;
-    }
-    .divider::before,.divider::after{
-      content:''; flex:1; height:1px;
-      background: rgba(255,255,255,.10);
-    }
-
-    /* ---- Sent-To Info ---- */
-    .sentInfo{
-      padding:10px 14px;
-      border-radius:13px;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      font-size:13px;
-      color: var(--muted);
-    }
-    .sentInfo strong{ color: var(--text); font-size:14px; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <div class="app">
-    <div class="top">
+  <main class="app">
+    <header class="top">
       <div class="brandLeft">
         <a class="brandLogo" href="index.html" title="Fachschaft Business School e.V.">
           <img src="logo.png" alt="Fachschaft Logo"
@@ -260,7 +40,7 @@
         <span class="dot bad" id="statusDot"></span>
         <span id="statusText">nicht eingeloggt</span>
       </div>
-    </div>
+    </header>
 
     <div class="glass card">
 
@@ -333,7 +113,7 @@
     <footer>
       <strong>Fachschaft Business School e.V.</strong> · portal.fsbs-hm.de
     </footer>
-  </div>
+  </main>
 
 <script>
   const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
