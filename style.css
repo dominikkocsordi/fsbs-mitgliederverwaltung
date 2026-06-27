@@ -1376,3 +1376,38 @@ hr.sep {
   }
 }
 
+/* ============================================================
+   Global Page Loader
+   ============================================================ */
+.pageLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 80px 20px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.pageLoader.hidden { display: none; }
+
+.spinnerRing {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.10);
+  border-top-color: var(--accent1);
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinnerRing { animation: none; opacity: 0.5; }
+}
+

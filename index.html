@@ -83,6 +83,12 @@
     </div>
   </nav>
 
+  <!-- Loader -->
+  <div class="pageLoader" id="pageLoader">
+    <div class="spinnerRing"></div>
+    <span>Dashboard wird geladen…</span>
+  </div>
+
   <!-- DASHBOARD -->
   <main class="grid" id="grid"></main>
 
@@ -554,6 +560,7 @@ async function logout(){
 }
 
 /* ========= Init ========= */
+const _pageLoader = document.getElementById("pageLoader");
 (async () => {
   try{
     const session = await requireAuthOrRedirect();
@@ -569,6 +576,8 @@ async function logout(){
     } else {
       setAuthUI(false);
     }
+  } finally {
+    if (_pageLoader) _pageLoader.classList.add("hidden");
   }
 })();
 

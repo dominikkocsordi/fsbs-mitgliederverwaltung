@@ -412,6 +412,12 @@
       </div>
     </div>
 
+    <!-- Loader -->
+    <div class="pageLoader" id="pageLoader">
+      <div class="spinnerRing"></div>
+      <span>Daten werden geladen…</span>
+    </div>
+
     <!-- CONTENT -->
     <div class="glass card hidden" id="contentCard">
 
@@ -561,6 +567,7 @@
 
     const statusPill = document.getElementById("statusPill");
     const contentCard = document.getElementById("contentCard");
+    const pageLoader = document.getElementById("pageLoader");
 
     const q = document.getElementById("q");
     const fRessort = document.getElementById("fRessort");
@@ -723,6 +730,7 @@
         navWrap.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
         contentCard.classList.remove("hidden");
+        pageLoader.classList.add("hidden");
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
@@ -739,6 +747,7 @@
         navWrap.classList.add("hidden");
         logoutBtn.classList.add("hidden");
         contentCard.classList.add("hidden");
+        pageLoader.classList.remove("hidden");
       }
     }
 

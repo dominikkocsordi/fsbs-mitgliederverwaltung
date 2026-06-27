@@ -83,6 +83,12 @@
     </div>
   </div>
 
+  <!-- Loader -->
+  <div class="pageLoader" id="pageLoader">
+    <div class="spinnerRing"></div>
+    <span>Daten werden geladen…</span>
+  </div>
+
   <!-- MAIN CARD -->
   <div class="glass card hidden" id="mainCard">
 
@@ -250,6 +256,7 @@ const navWrap    = document.getElementById("navWrap");
 const navFinanzen = document.getElementById("navFinanzen");
 const navWahlen  = document.getElementById("navWahlen");
 const mainCard   = document.getElementById("mainCard");
+const pageLoader = document.getElementById("pageLoader");
 
 const searchEl  = document.getElementById("search");
 const fRessort  = document.getElementById("fRessort");
@@ -426,6 +433,7 @@ function setAuthUI(isAuthed, email = ""){
 
     mainCard.classList.remove("hidden");
     navWrap.classList.remove("hidden");
+    pageLoader.classList.add("hidden");
     applyPermissions();
   } else {
     authDot.classList.remove("ok");
@@ -439,6 +447,7 @@ function setAuthUI(isAuthed, email = ""){
 
     mainCard.classList.add("hidden");
     navWrap.classList.add("hidden");
+    pageLoader.classList.remove("hidden");
   }
 }
 

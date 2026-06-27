@@ -256,6 +256,12 @@
     <div class="notice bad hidden" id="authErr" style="margin-top:12px;"></div>
   </div>
 
+  <!-- Loader -->
+  <div class="pageLoader" id="pageLoader">
+    <div class="spinnerRing"></div>
+    <span>Daten werden geladen…</span>
+  </div>
+
   <!-- MAIN -->
   <div class="glass card hidden" id="mainCard">
     <div class="row" style="gap:14px;">
@@ -475,6 +481,7 @@ const authDetails = document.getElementById("authDetails");
 
 const logoutBtn = document.getElementById("logoutBtn");
 const mainCard = document.getElementById("mainCard");
+const pageLoader = document.getElementById("pageLoader");
 const authCard = document.getElementById("authCard");
 const navWrap = document.getElementById("navWrap");
 const navFinanzen  = document.getElementById("navFinanzen");
@@ -569,6 +576,7 @@ function setAuthUI(isAuthed, email="", doPulse=false){
     mainCard.classList.remove("hidden");
     navWrap.classList.remove("hidden");
     authCard.classList.add("hidden");
+    pageLoader.classList.add("hidden");
 
     if (doPulse) pulseLogin();
   } else {
@@ -588,6 +596,7 @@ function setAuthUI(isAuthed, email="", doPulse=false){
     mainCard.classList.add("hidden");
     navWrap.classList.add("hidden");
     authCard.classList.remove("hidden");
+    pageLoader.classList.remove("hidden");
   }
 }
 

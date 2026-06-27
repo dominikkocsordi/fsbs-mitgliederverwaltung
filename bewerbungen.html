@@ -414,6 +414,12 @@
       </div>
     </div>
 
+    <!-- Loader -->
+    <div class="pageLoader" id="pageLoader">
+      <div class="spinnerRing"></div>
+      <span>Daten werden geladen…</span>
+    </div>
+
     <!-- Content -->
     <div class="glass card hidden" id="contentCard">
 
@@ -557,6 +563,7 @@
     const navWrap = document.getElementById("navWrap");
     const logoutBtn = document.getElementById("logoutBtn");
     const contentCard = document.getElementById("contentCard");
+    const pageLoader = document.getElementById("pageLoader");
     const navFinanzen = document.getElementById("navFinanzen");
     const navWahlen = document.getElementById("navWahlen");
 
@@ -707,6 +714,7 @@
         navWrap.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
         contentCard.classList.remove("hidden");
+        pageLoader.classList.add("hidden");
       } else {
         authDot.classList.remove("ok"); authDot.classList.add("warn");
         authState.classList.remove("hidden");
@@ -718,6 +726,7 @@
         navWrap.classList.add("hidden");
         logoutBtn.classList.add("hidden");
         contentCard.classList.add("hidden");
+        pageLoader.classList.remove("hidden");
       }
     }
 
@@ -1163,7 +1172,7 @@
       const st = getStatusForRow(row);
 
       const card = document.createElement("div");
-      card.className = "appCard";
+      card.className = "card-bew";
 
       card.innerHTML = `
         ${badgeHtmlForStatus(st)}

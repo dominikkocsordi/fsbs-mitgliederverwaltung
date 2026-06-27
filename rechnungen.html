@@ -402,6 +402,12 @@
     </div>
   </div>
 
+  <!-- Loader -->
+  <div class="pageLoader" id="pageLoader">
+    <div class="spinnerRing"></div>
+    <span>Daten werden geladen…</span>
+  </div>
+
   <!-- Kein Zugriff -->
   <div class="glass card" id="denyWrap" style="display:none;">
     <div class="denyBox">
@@ -624,8 +630,11 @@
   authToggle?.addEventListener("click",e=>{e.stopPropagation();authDetails.classList.toggle("hidden");});
   document.addEventListener("click",e=>{if(!authBadge?.contains(e.target))authDetails.classList.add("hidden");});
 
+  const pageLoader = document.getElementById("pageLoader");
+
   // Access
   function applyAccess(ok){
+    pageLoader.classList.add("hidden");
     navWrap.style.display=ok?"block":"none";
     if(belegeNavLink) belegeNavLink.style.display=ok?"inline-flex":"none";
     ["navWahlen","navProtokoll","navZeugnisse"].forEach(id=>{
@@ -712,7 +721,7 @@
       const hasBeleg=safe(r[F.beleg]).trim().startsWith("http");
 
       const card=document.createElement("div");
-      card.className="entryCard";
+      card.className="rCard";
       card.setAttribute("role","button");
       card.setAttribute("tabindex","0");
       card.innerHTML=`

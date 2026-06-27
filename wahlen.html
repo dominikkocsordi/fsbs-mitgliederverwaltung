@@ -190,7 +190,11 @@
         <button class="btn-secondary" onclick="openGroupModal()">👥 Gruppen & Codes</button>
       </div>
     </div>
-    <div class="sessionList" id="sessionList">Lade...</div>
+    <div class="pageLoader" id="pageLoader">
+      <div class="spinnerRing"></div>
+      <span>Abstimmungen werden geladen…</span>
+    </div>
+    <div class="sessionList" id="sessionList"></div>
   </div>
 </div>
 
@@ -277,6 +281,8 @@ async function loadGroups() {
 async function loadSessions() {
   const { data } = await sb.from("vote_sessions").select("*").order("created_at", { ascending: false });
   allSessions = data || [];
+  const pl = document.getElementById("pageLoader");
+  if (pl) pl.classList.add("hidden");
   renderSessions();
 }
 
