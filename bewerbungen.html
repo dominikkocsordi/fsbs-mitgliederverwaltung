@@ -713,8 +713,6 @@
 
         navWrap.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
-        contentCard.classList.remove("hidden");
-        pageLoader.classList.add("hidden");
       } else {
         authDot.classList.remove("ok"); authDot.classList.add("warn");
         authState.classList.remove("hidden");
@@ -884,7 +882,7 @@
     /* ========= DASHBOARD ========= */
     function makeKpi(label, value, dotClass){
       const el = document.createElement("div");
-      el.className = "kpiPill";
+      el.className = "kpiCard glass";
       el.innerHTML = `
         <div class="kpiTop">
           <div class="kpiLabel">${esc(label)}</div>
@@ -963,6 +961,8 @@
         ALL = cached;
         statusMap = new Map();
         fillFilters();
+        contentCard.classList.remove("hidden");
+        pageLoader.classList.add("hidden");
         render();
         statusPill.textContent = `Cache (${ALL.length}) · aktualisiere…`;
         refreshStatusMapFor(ALL).then(()=>render()).catch(()=>{});
@@ -989,6 +989,8 @@
         statusMap = new Map();
         statusPill.textContent = `Geladen: ${ALL.length} · Status lädt…`;
         fillFilters();
+        contentCard.classList.remove("hidden");
+        pageLoader.classList.add("hidden");
         render();
         refreshStatusMapFor(ALL).then(()=>{
           statusPill.textContent = `Geladen: ${ALL.length}`;
@@ -999,6 +1001,8 @@
       } catch(err){
         if (!cached) statusPill.textContent = "Ladefehler: " + err.message;
         else statusPill.textContent = `Cache (${ALL.length}) · Aktualisierung fehlgeschlagen`;
+        contentCard.classList.remove("hidden");
+        pageLoader.classList.add("hidden");
       }
     }
 

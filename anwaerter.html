@@ -729,8 +729,6 @@
 
         navWrap.classList.remove("hidden");
         logoutBtn.classList.remove("hidden");
-        contentCard.classList.remove("hidden");
-        pageLoader.classList.add("hidden");
       } else {
         authDot.classList.remove("ok");
         authDot.classList.add("warn");
@@ -1055,6 +1053,8 @@
       });
 
       statusPill.textContent = `Geladen: ${ALL.length}`;
+      contentCard.classList.remove("hidden");
+      pageLoader.classList.add("hidden");
       render();
     }
 

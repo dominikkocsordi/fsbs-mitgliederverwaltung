@@ -431,9 +431,7 @@ function setAuthUI(isAuthed, email = ""){
     authMail.textContent = (email || "").trim();
     setAvatar(email);
 
-    mainCard.classList.remove("hidden");
     navWrap.classList.remove("hidden");
-    pageLoader.classList.add("hidden");
     applyPermissions();
   } else {
     authDot.classList.remove("ok");
@@ -532,6 +530,8 @@ async function load(){
   members = data || [];
   refreshDropdowns();
   render();
+  mainCard.classList.remove("hidden");
+  pageLoader.classList.add("hidden");
 }
 
 /* ========= Dropdowns ========= */

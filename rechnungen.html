@@ -229,11 +229,21 @@
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
     }
+    .dlgPanel {
+      border-radius: 26px;
+      overflow: hidden;
+      animation: modalIn 0.20s ease both;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.96) translateY(8px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
     .dlgHeader {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
+      padding: 24px 24px 0;
       margin-bottom: 16px;
     }
     .dlgTitle {
@@ -244,9 +254,6 @@
       font-size: 13px;
       color: var(--muted);
       margin-top: 4px;
-    }
-    dialog > .dlgHeader {
-      padding: 28px 28px 0;
     }
 
     /* Status toggle bar */
@@ -298,7 +305,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      padding: 0 28px 14px;
+      padding: 0 24px 14px;
     }
 
     /* KV grid in detail */
@@ -306,7 +313,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding: 0 28px;
+      padding: 0 24px;
       max-height: 50vh;
       overflow-y: auto;
     }
@@ -338,7 +345,7 @@
       display: flex;
       justify-content: flex-end;
       gap: 10px;
-      padding: 14px 28px 20px;
+      padding: 14px 24px 24px;
     }
   </style>
 </head>
@@ -465,32 +472,34 @@
 
 <!-- Detail Dialog (native <dialog> – scrollTop wird bei jedem showModal() automatisch auf 0 gesetzt) -->
 <dialog id="detailDialog">
-  <div class="dlgHeader">
-    <div>
-      <h2 class="dlgTitle" id="dlgTitle">Rechnung</h2>
-      <div class="dlgSub" id="dlgSub">–</div>
+  <div class="glass dlgPanel">
+    <div class="dlgHeader">
+      <div>
+        <h2 class="dlgTitle" id="dlgTitle">Rechnung</h2>
+        <div class="dlgSub" id="dlgSub">–</div>
+      </div>
+      <button class="btn-secondary closeX" id="dlgCloseBtn" type="button" aria-label="Schließen">✕</button>
     </div>
-    <button class="btn-secondary closeX" id="dlgCloseBtn" type="button" aria-label="Schließen">✕</button>
-  </div>
 
-  <div class="statusBar">
-    <span style="font-size:12px;color:var(--muted);font-weight:700;flex:0 0 auto;">Status:</span>
-    <button class="btn-danger statusBtn" id="setOpenBtn" type="button">Rechnung offen</button>
-    <button class="btn-warn statusBtn" id="setCheckBtn" type="button">In Prüfung</button>
-    <button class="btn-ok statusBtn" id="setPaidBtn" type="button">Bezahlt ✓</button>
-    <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none;">📎 Beleg</a>
-  </div>
+    <div class="statusBar">
+      <span style="font-size:12px;color:var(--muted);font-weight:700;flex:0 0 auto;">Status:</span>
+      <button class="btn-danger statusBtn" id="setOpenBtn" type="button">Rechnung offen</button>
+      <button class="btn-warn statusBtn" id="setCheckBtn" type="button">In Prüfung</button>
+      <button class="btn-ok statusBtn" id="setPaidBtn" type="button">Bezahlt ✓</button>
+      <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none;">📎 Beleg</a>
+    </div>
 
-  <div class="summaryRow">
-    <span class="pill"><span style="color:var(--muted)">Person:&nbsp;</span><strong id="dlgName">–</strong></span>
-    <span class="pill"><span style="color:var(--muted)">Summe:&nbsp;</span><strong id="dlgSum">–</strong></span>
-    <span class="pill"><span style="color:var(--muted)">Status:&nbsp;</span><strong id="dlgStatus">–</strong></span>
-  </div>
+    <div class="summaryRow">
+      <span class="pill"><span style="color:var(--muted)">Person:&nbsp;</span><strong id="dlgName">–</strong></span>
+      <span class="pill"><span style="color:var(--muted)">Summe:&nbsp;</span><strong id="dlgSum">–</strong></span>
+      <span class="pill"><span style="color:var(--muted)">Status:&nbsp;</span><strong id="dlgStatus">–</strong></span>
+    </div>
 
-  <div class="kvGrid" id="kvGrid"></div>
+    <div class="kvGrid" id="kvGrid"></div>
 
-  <div class="dlgActions">
-    <button class="btn-secondary" id="dlgCloseBtn2" type="button">Schließen</button>
+    <div class="dlgActions">
+      <button class="btn-secondary" id="dlgCloseBtn2" type="button">Schließen</button>
+    </div>
   </div>
 </dialog>
 
@@ -634,17 +643,19 @@
 
   // Access
   function applyAccess(ok){
-    pageLoader.classList.add("hidden");
     navWrap.style.display=ok?"block":"none";
     if(belegeNavLink) belegeNavLink.style.display=ok?"inline-flex":"none";
     ["navWahlen","navProtokoll","navZeugnisse"].forEach(id=>{
       const el=document.getElementById(id); if(el) el.style.display=ok?"":"none";
     });
     denyWrap.style.display=ok?"none":"block";
-    kpiCard.style.display=ok?"block":"none";
-    controlsCard.style.display=ok?"block":"none";
-    cardGridEl.style.display=ok?"grid":"none";
-    if(!ok){cardGridEl.innerHTML="";ALL=[];}
+    if(!ok){
+      pageLoader.classList.add("hidden");
+      kpiCard.style.display="none";
+      controlsCard.style.display="none";
+      cardGridEl.style.display="none";
+      cardGridEl.innerHTML="";ALL=[];
+    }
   }
 
   async function doLogout(){await sb.auth.signOut();location.href="/login.html";}
@@ -779,12 +790,13 @@
     ];
     kvGrid.innerHTML="";
     fields.forEach(([k,v])=>{
-      const kEl=document.createElement("div"); kEl.className="kvKey"; kEl.textContent=k;
-      const vEl=document.createElement("div"); vEl.className="kvVal";
+      const row=document.createElement("div"); row.className="kvRow";
+      const kEl=document.createElement("div"); kEl.className="kvLabel"; kEl.textContent=k;
+      const vEl=document.createElement("div"); vEl.className="kvValue";
       const val=safe(v).trim();
       if(val.startsWith("http")) vEl.innerHTML=`<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
       else vEl.textContent=val||"—";
-      kvGrid.appendChild(kEl); kvGrid.appendChild(vEl);
+      row.appendChild(kEl); row.appendChild(vEl); kvGrid.appendChild(row);
     });
 
     // showModal() öffnet den Dialog neu – Browser setzt scrollTop automatisch auf 0
@@ -833,9 +845,14 @@
       ALL=await apiGetRows();
       ALL=ALL.map(r=>{if(!safe(r[F.status]).trim()) r[F.status]="Rechnung offen"; return r;});
       fillProjFilter(); updateKPIs(); render();
+      pageLoader.classList.add("hidden");
+      kpiCard.style.display="block";
+      controlsCard.style.display="block";
+      cardGridEl.style.display="grid";
     }catch(err){
       statusPill.textContent="Fehler";
       showToast("Laden fehlgeschlagen: "+err.message,true);
+      pageLoader.classList.add("hidden");
     }
   }
 
