@@ -17,7 +17,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
   <link rel="manifest" href="/favicon/site.webmanifest">
 
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -309,7 +309,7 @@
     if (e.key === "Enter") sendOtp();
   });
 
-  /* OTP-Feld: nur Zahlen, automatisch senden bei 6 Stellen */
+  /* OTP-Feld: nur Zahlen, automatisch bestätigen bei 8 Stellen */
   otpEl.addEventListener("input", () => {
     const clean = otpEl.value.replace(/\D/g, "").slice(0, 8);
     otpEl.value  = clean;

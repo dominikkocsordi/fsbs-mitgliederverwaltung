@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FSBS">
 <link rel="stylesheet" href="/mobile-nav.css">
-  <title>Anwärter</title>
+  <title>FSBS Intern – Anwärter</title>
 
   <meta name="theme-color" content="#120e18">
 
@@ -205,7 +205,6 @@
     const MEMBERS_TABLE = "members";
     const BEWERBUNG_STATUS_COL = "bewerbung_status";
 
-    // ✅ deine bool-spalte in Supabase (falls anders -> hier ändern)
     const MAIL_BOOL_COL = "mail";
 
     const RESSORTS_FIXED = [
@@ -485,10 +484,10 @@
       dashMineHint.textContent = MY_RESSORT || "–";
       if (navFinanzen) navFinanzen.style.display = CAN_EDIT ? "" : "none";
       if (navWahlen) navWahlen.style.display = CAN_EDIT ? "" : "none";
-      const navProtokoll2 = document.getElementById("navProtokoll");
-      if (navProtokoll2) navProtokoll2.style.display = CAN_EDIT ? "" : "none";
-      const navZeugnisse2 = document.getElementById("navZeugnisse");
-      if (navZeugnisse2) navZeugnisse2.style.display = CAN_EDIT ? "" : "none";
+      const navProtokoll = document.getElementById("navProtokoll");
+      if (navProtokoll) navProtokoll.style.display = CAN_EDIT ? "" : "none";
+      const navZeugnisse = document.getElementById("navZeugnisse");
+      if (navZeugnisse) navZeugnisse.style.display = CAN_EDIT ? "" : "none";
     }
 
     logoutBtn.addEventListener("click", async () => {
@@ -709,7 +708,7 @@
         return;
       }
 
-      // Nur bestätigte Anwärter zeigen — Zwischenstatus aus bewerbungen.html ausblenden
+      /* Zwischenstatus aus dem Bewerbungsprozess ausblenden */
       const BEWERBUNG_EXCLUDE = ["abgelehnt", "kennenlernen", "rueckmeldung", "prios_bestaetigt"];
       ALL = (Array.isArray(data) ? data : []).filter(r => {
         const statusRaw = normalizeStatus(r?.[BEWERBUNG_STATUS_COL]);
@@ -901,7 +900,6 @@
       }
     }
 
-    /* ✅ Event handler for mail toggle div */
     function handleMailToggleEl(el){
       const id = Number(el.dataset.id);
       const row = ALL.find(x => Number(x.id) === id);

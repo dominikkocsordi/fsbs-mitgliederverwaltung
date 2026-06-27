@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FSBS">
 <link rel="stylesheet" href="/mobile-nav.css">
-  <title>Bewerbungen</title>
+  <title>FSBS Intern – Bewerbungen</title>
 
   <meta name="theme-color" content="#120e18">
 
@@ -220,7 +220,6 @@
       consent: "Einwilligung in die Datenverarbeitung gemäß Datenschutzerklärung",
       sem: "Semester",
 
-      // ✅ NEU: Studiengang
       degree: "Studiengang (Bachelor/Master)"
     };
 
@@ -462,7 +461,6 @@
     }
 
     function getDegree(row){
-      // ✅ robust: unterstützt deinen neuen Spaltennamen + mögliche Alternativen
       const raw =
         row?.[F.degree] ??
         row?.["Studiengang"] ??
@@ -745,10 +743,9 @@
       fbSub.textContent = sub;
       setModalPhotoUI(fbPhoto, row);
 
-      // ✅ NEU: degree ist in Details sichtbar
       const fields = [
         F.ts, F.fn, F.ln,
-        F.degree,              // <--- hier rein
+        F.degree,
         F.age, F.sem, F.email, F.phone,
         F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent
       ];
@@ -832,7 +829,7 @@
       const r2 = safe(row[F.r2]).trim();
       const ressortTag = [r1, r2].filter(Boolean).join(" · ");
 
-      const degree = getDegree(row); // ✅ neu
+      const degree = getDegree(row);
       const photoUrl = getPhotoUrl(row);
       const st = getStatusForRow(row);
 
@@ -848,9 +845,9 @@
             <div class="sub">${esc(mail || "—")}</div>
             <div class="tags">
               ${ressortTag ? `<span class="tag">Ressorts: ${esc(ressortTag)}</span>` : ``}
-              ${degree ? `<span class="tag">🎓 ${esc(degree)}</span>` : ``}
-              ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ``}
-              ${photoUrl ? `<span class="tag">📷 <a href="${esc(photoUrl)}" target="_blank" rel="noopener">Foto öffnen</a></span>` : ``}
+              ${degree ? `<span class="tag">🎓 ${esc(degree)}</span>` : ""}
+              ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ""}
+              ${photoUrl ? `<span class="tag">📷 <a href="${esc(photoUrl)}" target="_blank" rel="noopener">Foto öffnen</a></span>` : ""}
             </div>
           </div>
         </div>

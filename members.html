@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FSBS">
 <link rel="stylesheet" href="/mobile-nav.css">
-<title>Mitglieder</title>
+<title>FSBS Intern – Mitglieder</title>
 
 <meta name="theme-color" content="#120e18">
 
@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
 <link rel="manifest" href="/favicon/site.webmanifest">
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <link rel="stylesheet" href="style.css">
 </head>
@@ -389,11 +389,6 @@ function setAvatar(email){
   authAvatar.classList.remove("hidden");
   authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
 }
-function pulseLogin(){
-  authDot.classList.add("pulsing");
-  setTimeout(() => authDot.classList.remove("pulsing"), 2600);
-}
-
 /* ========= Modal avatar preview ========= */
 function updateModalAvatar(){
   const pseudo = {
@@ -419,7 +414,7 @@ function setCompactIdentity(displayName, email){
   authNameInline.textContent = name || fallback;
 }
 
-function setAuthUI(isAuthed, email = "", doPulse = false){
+function setAuthUI(isAuthed, email = ""){
   if (isAuthed){
     authDot.classList.remove("warn");
     authDot.classList.add("ok");
@@ -433,8 +428,6 @@ function setAuthUI(isAuthed, email = "", doPulse = false){
     mainCard.classList.remove("hidden");
     navWrap.classList.remove("hidden");
     applyPermissions();
-
-    if (doPulse) pulseLogin();
   } else {
     authDot.classList.remove("ok");
     authDot.classList.add("warn");
@@ -786,7 +779,7 @@ async function del(pk){
   try {
     const session = await requireAuthOrRedirect();
     const mail    = session?.user?.email || "";
-    setAuthUI(true, mail, false);
+    setAuthUI(true, mail);
     await loadMyProfile(session);
     applyPermissions();
     await load();

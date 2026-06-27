@@ -263,10 +263,8 @@
 .mobileShell {
   display: flex !important;
   flex-direction: column !important;
-  /* 100dvh = dynamic viewport, schrumpft NICHT wenn URL-Bar sichtbar */
-  height: 100dvh !important;
   height: 100vh !important; /* Fallback für ältere Browser */
-  height: 100dvh !important;
+  height: 100dvh !important; /* dynamic viewport, schrumpft NICHT wenn URL-Bar sichtbar */
   overflow: hidden !important;
   padding: 0 !important;
 }
