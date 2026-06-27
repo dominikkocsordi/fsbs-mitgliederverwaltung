@@ -1010,8 +1010,9 @@
     function buildKvField(kvEl, key, row){
       const rawVal = (key === F.degree) ? getDegree(row) : safe(row[key]).trim();
 
-      const k = document.createElement("div"); k.className = "k"; k.textContent = key;
-      const v = document.createElement("div"); v.className = "v";
+      const row_ = document.createElement("div"); row_.className = "kv-row";
+      const k = document.createElement("div"); k.className = "kv-label"; k.textContent = key;
+      const v = document.createElement("div"); v.className = "kv-value";
 
       if (CAN_EDIT && (key === F.r1 || key === F.r2)){
         const sel = document.createElement("select");
@@ -1023,11 +1024,11 @@
         v.appendChild(sel);
       } else {
         if (String(rawVal).startsWith("http://") || String(rawVal).startsWith("https://") || String(rawVal).includes("drive.google.com")){
-          v.innerHTML = `<a href="${esc(rawVal)}" target="_blank" rel="noopener">${esc(rawVal)}</a>`;
+          v.innerHTML = `<a href="${esc(rawVal)}" target="_blank" rel="noopener" style="color:var(--accent1);word-break:break-all;">${esc(rawVal)}</a>`;
         } else v.textContent = rawVal || "—";
       }
 
-      kvEl.appendChild(k); kvEl.appendChild(v);
+      row_.appendChild(k); row_.appendChild(v); kvEl.appendChild(row_);
     }
 
     function dialogSupported(){ return !!(dlg && typeof dlg.showModal === "function"); }
