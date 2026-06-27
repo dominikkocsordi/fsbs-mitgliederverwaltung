@@ -16,6 +16,331 @@
   <link rel="manifest" href="/favicon/site.webmanifest">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ============================================================
+       Rechnungen-page local styles
+       ============================================================ */
+
+    /* Header right side flex wrapper */
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .spacer { flex: 1 1 auto; min-width: 0; }
+
+    /* KPI summary strip */
+    .kpiGrid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .kpi {
+      flex: 1 1 120px;
+      padding: 14px 18px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 16px;
+      min-width: 110px;
+    }
+    .kLabel {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .kValue {
+      font-size: 22px;
+      font-weight: 900;
+      margin-top: 4px;
+    }
+    .kHint {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 3px;
+    }
+
+    /* Controls row */
+    .controlsRow {
+      display: grid;
+      grid-template-columns: 1fr 180px 180px;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 700px) {
+      .controlsRow {
+        grid-template-columns: 1fr;
+      }
+    }
+    .controlsBottom {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Card grid (receipts) */
+    .cardGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 4px;
+    }
+
+    /* Individual receipt card */
+    .rCard {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      padding: 16px;
+      cursor: pointer;
+      position: relative;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+    .rCard:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(249,115,22,0.30);
+      transform: translateY(-2px);
+    }
+    .cardTop {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .cardName {
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .cardSub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .cardMeta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .cardText {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+    .metaPill {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    /* Status badge on card */
+    .statusBadge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+    .statusBadge.open   { background: rgba(249,115,22,0.22); border: 1px solid rgba(249,115,22,0.35); color: #fed7aa; }
+    .statusBadge.check  { background: rgba(56,189,248,0.20); border: 1px solid rgba(56,189,248,0.35); color: #c7f9ff; }
+    .statusBadge.paid   { background: rgba(34,197,94,0.22);  border: 1px solid rgba(34,197,94,0.35);  color: #bbf7d0; }
+
+    /* Empty state */
+    .emptyState {
+      padding: 48px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Deny box */
+    .denyBox {
+      padding: 32px;
+      text-align: center;
+    }
+
+    /* Icon box */
+    .iconBox {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(30, 22, 44, 0.96);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 14px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.40);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Dialog (detail view) */
+    dialog {
+      padding: 0;
+      border: none;
+      background: transparent;
+      width: min(680px, calc(100% - 36px));
+      max-width: calc(100% - 36px);
+    }
+    dialog::backdrop {
+      background: rgba(0,0,0,0.60);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .dlgHeader {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .dlgTitle {
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .dlgSub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    dialog > .dlgHeader {
+      padding: 28px 28px 0;
+    }
+
+    /* Status toggle bar */
+    .statusBar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 14px 28px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin: 14px 0;
+    }
+    .statusBtn {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 10px;
+    }
+    .btn-warn {
+      background: linear-gradient(135deg, rgba(56,189,248,0.85), rgba(14,165,233,0.75));
+      color: #001924;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: inherit;
+      transition: transform 0.16s ease, filter 0.16s ease;
+    }
+    .btn-warn:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .btn-ok {
+      background: linear-gradient(135deg, rgba(34,197,94,0.85), rgba(16,185,129,0.75));
+      color: #001f0f;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: inherit;
+      transition: transform 0.16s ease, filter 0.16s ease;
+    }
+    .btn-ok:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.06); }
+
+    /* Summary pill row */
+    .summaryRow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0 28px 14px;
+    }
+
+    /* KV grid in detail */
+    .kvGrid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 28px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    .kvRow {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+    }
+    .kvLabel {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.50);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .kvValue {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    /* Dialog actions */
+    .dlgActions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 14px 28px 20px;
+    }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -31,7 +356,7 @@
         <div class="subtitle">Rechnungen &amp; Auslagen</div>
       </div>
     </div>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+    <div class="brandRight" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
       <div class="pill" id="statusPill">–</div>
       <div class="authFloating" id="authBadge">
         <span class="dot" id="authDot"></span>

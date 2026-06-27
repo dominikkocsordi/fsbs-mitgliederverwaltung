@@ -21,6 +21,335 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ============================================================
+       Bewerbungen-page local styles
+       ============================================================ */
+
+    /* Filter row */
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .spacer { flex: 1 1 auto; min-width: 0; }
+
+    /* Empty state */
+    .empty {
+      padding: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* KPI mini grid above the cards */
+    .kpiGrid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .kpiGrid .kpiCard {
+      flex: 1 1 140px;
+      min-width: 120px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+    .kpiGrid .kpiTop {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .kpiDot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+    .kpiLabel {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .kpiValue {
+      font-size: 26px;
+      font-weight: 900;
+      margin-top: 6px;
+    }
+
+    /* Bewerbungs-card grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+      margin-bottom: 4px;
+    }
+
+    /* Individual application card */
+    .card-bew {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      padding: 16px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+    }
+    .card-bew:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(249,115,22,0.30);
+      transform: translateY(-2px);
+    }
+    .inner {
+      position: relative;
+      z-index: 1;
+    }
+    .title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .cornerBadge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+    }
+    .cornerBadge.ok     { background: rgba(34,197,94,0.22);  border: 1px solid rgba(34,197,94,0.35);  color: #bbf7d0; }
+    .cornerBadge.warn   { background: rgba(234,179,8,0.22);  border: 1px solid rgba(234,179,8,0.35);  color: #fde68a; }
+    .cornerBadge.amber  { background: rgba(251,146,60,0.22); border: 1px solid rgba(251,146,60,0.35); color: #fed7aa; }
+    .cornerBadge.bad    { background: rgba(239,68,68,0.20);  border: 1px solid rgba(239,68,68,0.35);  color: #fecaca; }
+    .cornerBadge.info   { background: rgba(56,189,248,0.20); border: 1px solid rgba(56,189,248,0.35); color: #c7f9ff; }
+    .cornerBadge.purple { background: rgba(168,85,247,0.20); border: 1px solid rgba(168,85,247,0.32); color: #e9d5ff; }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      overflow: hidden;
+      flex: 0 0 auto;
+    }
+    .avatar.loading {
+      opacity: 0.5;
+    }
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* Modal photo */
+    .modalPhotoWrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .modalPhoto {
+      width: 90px;
+      height: 90px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: 800;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .modalPhoto img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+    }
+
+    /* Key-value pairs in modal */
+    .kv {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .kv-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 12px;
+    }
+    .kv-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.50);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .kv-value {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Sheet drag handle */
+    .sheetHandle {
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.25);
+      margin: 0 auto 18px;
+      display: none;
+    }
+    @media (max-width: 640px) {
+      .sheetHandle { display: block; }
+    }
+
+    /* Fallback overlay (iOS dialog fallback) */
+    .fallbackOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.60);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .fallbackOverlay.show {
+      display: flex;
+    }
+    .fallbackPanel {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 26px;
+      box-shadow: 0 20px 55px rgba(0,0,0,0.50);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      padding: 28px 28px 24px;
+      width: min(640px, 100%);
+      max-height: calc(100dvh - 36px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      animation: modalIn 0.20s ease both;
+    }
+    @media (max-width: 640px) {
+      .fallbackOverlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .fallbackPanel {
+        width: 100%;
+        border-radius: 26px 26px 0 0;
+        max-height: calc(100dvh - 40px);
+      }
+    }
+
+    /* Extra action button colors */
+    .btn-amber {
+      background: linear-gradient(135deg, rgba(251,146,60,0.90), rgba(234,179,8,0.80));
+      color: #1a0f00;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(251,146,60,0.22);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: inherit;
+      transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    }
+    .btn-amber:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .btn-amber:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-info {
+      background: linear-gradient(135deg, rgba(56,189,248,0.90), rgba(14,165,233,0.80));
+      color: #001924;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(56,189,248,0.22);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: inherit;
+      transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    }
+    .btn-info:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .btn-info:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-purple {
+      background: linear-gradient(135deg, rgba(168,85,247,0.90), rgba(124,58,237,0.80));
+      color: #0f0b16;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(168,85,247,0.22);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      padding: 12px 18px;
+      font-family: inherit;
+      font-size: inherit;
+      transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+    }
+    .btn-purple:not(:disabled):hover { transform: translateY(-2px); filter: brightness(1.06); }
+    .btn-purple:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Modal actions responsive */
+    .modalActions {
+      flex-wrap: wrap;
+    }
+    .modalActions button {
+      flex: 0 0 auto;
+    }
+  </style>
 </head>
 
 <body>
@@ -38,8 +367,8 @@
         </div>
       </div>
 
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-        <div class="pill status" id="statusPill">–</div>
+      <div class="brandRight" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+        <div class="pill" id="statusPill">–</div>
 
         <div class="authFloating" id="authBadge" title="Login-Status">
           <span class="dot warn" id="authDot"></span>
