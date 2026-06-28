@@ -712,6 +712,11 @@ dialog {
   /* Do NOT set display:flex — browser owns the display value of <dialog> */
 }
 
+/* Ensure closed dialogs stay hidden — our position:fixed override can fight the UA stylesheet */
+dialog:not([open]) {
+  display: none !important;
+}
+
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
