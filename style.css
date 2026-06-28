@@ -695,11 +695,16 @@ label {
 /* ============================================================
    Dialog / Modal Elements
    ============================================================ */
+/* Closed dialogs must be hidden — older iOS Safari ignores the UA rule without this */
+dialog:not([open]) {
+  display: none !important;
+}
+
 dialog {
   border: none;
   padding: 16px;
   background: transparent;
-  /* Let the browser handle centering natively — do NOT override position or display */
+  /* Browser centres showModal() dialogs natively — no position overrides needed */
   width: min(640px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 32px);
