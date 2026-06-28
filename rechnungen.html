@@ -249,22 +249,23 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* Dialog (detail view) — positioning from style.css, only layout overrides here */
+    /* Dialog panel — centering handled by style.css dialog rule */
     .dlgPanel {
-      background: rgba(26, 18, 40, 0.94);
+      background: rgba(22, 15, 35, 0.96);
       border: 1px solid rgba(255,255,255,0.16);
       border-radius: 24px;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.60);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.65);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      overflow: hidden;
-      max-height: calc(100dvh - 48px);
+      width: 100%;
+      max-height: calc(100dvh - 32px);
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       animation: modalIn 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
     }
     @keyframes modalIn {
-      from { opacity: 0; transform: scale(0.92) translateY(16px); }
+      from { opacity: 0; transform: scale(0.94) translateY(10px); }
       to   { opacity: 1; transform: scale(1) translateY(0); }
     }
     .dlgHeader {
@@ -396,7 +397,7 @@
     }
 
     @media (max-width: 640px) {
-      .dlgPanel { border-radius: 24px 24px 0 0; max-height: calc(100dvh - 20px); }
+      .dlgPanel { border-radius: 24px 24px 0 0; max-height: calc(100dvh - 16px); }
       .dlgHeader { padding: 20px 18px 16px; }
       .statusBar, .summaryRow, .kvGrid, .dlgActions { padding-left: 18px; padding-right: 18px; }
     }
@@ -525,7 +526,7 @@
 
 <!-- Detail Dialog (native <dialog> – scrollTop wird bei jedem showModal() automatisch auf 0 gesetzt) -->
 <dialog id="detailDialog">
-  <div class="glass dlgPanel">
+  <div class="dlgPanel">
     <div class="dlgHeader">
       <div>
         <h2 class="dlgTitle" id="dlgTitle">Rechnung</h2>
