@@ -397,7 +397,8 @@
     }
 
     @media (max-width: 640px) {
-      .dlgPanel { border-radius: 24px 24px 0 0; max-height: calc(100dvh - 16px); }
+      .dlgPanel { border-radius: 24px 24px 0 0; max-height: calc(100dvh - 12px); animation: modalInMobile 0.28s cubic-bezier(0.32,0.94,0.6,1) both; }
+      @keyframes modalInMobile { from { transform: translateY(100%); } to { transform: translateY(0); } }
       .dlgHeader { padding: 20px 18px 16px; }
       .statusBar, .summaryRow, .kvGrid, .dlgActions { padding-left: 18px; padding-right: 18px; }
     }
