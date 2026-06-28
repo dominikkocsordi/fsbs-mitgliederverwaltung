@@ -699,22 +699,11 @@ dialog {
   border: none;
   padding: 16px;
   background: transparent;
-  /* Size */
+  /* Let the browser handle centering natively — do NOT override position or display */
   width: min(640px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
-  height: fit-content;
   max-height: calc(100dvh - 32px);
-  /* Centre: fixed + inset:0 + margin:auto distributes remaining space equally */
-  position: fixed;
-  inset: 0;
-  margin: auto;
   overflow: visible;
-  /* Do NOT set display:flex — browser owns the display value of <dialog> */
-}
-
-/* Ensure closed dialogs stay hidden — our position:fixed override can fight the UA stylesheet */
-dialog:not([open]) {
-  display: none !important;
 }
 
 dialog::backdrop {
@@ -746,16 +735,12 @@ dialog::backdrop {
 
 @media (max-width: 640px) {
   dialog {
-    /* Bottom-sheet on mobile: stick to bottom edge */
     padding: 0;
-    inset: unset;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: 0;
     width: 100%;
     max-width: 100%;
     max-height: calc(100dvh - env(safe-area-inset-top, 20px) - 12px);
+    /* Slide up from bottom: shift the browser's native centre-position downward */
+    margin-bottom: 0;
   }
   .dlgShell {
     border-radius: 24px 24px 0 0;
