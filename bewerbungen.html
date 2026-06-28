@@ -645,6 +645,7 @@
       const r = normRole(role);
       if (r === "vorstand") return "Vorstand";
       if (r === "ressortleiter") return "Ressortleiter";
+      if (r === "protokollfuehrer") return "Protokollführer";
       return "Unbekannt";
     }
     function hashString(str){
@@ -739,6 +740,7 @@
         .maybeSingle();
 
       MY_ROLE = normRole(data?.role);
+      if (MY_ROLE === "protokollfuehrer") { window.location.replace("protokoll.html"); return; }
       MY_RESSORT = safe(data?.ressort).trim();
       CAN_VIEW = (MY_ROLE === "vorstand" || MY_ROLE === "ressortleiter");
       CAN_EDIT = (MY_ROLE === "vorstand");

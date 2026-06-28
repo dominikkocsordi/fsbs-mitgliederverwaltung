@@ -529,6 +529,7 @@
       const r = normRole(role);
       if (r === "vorstand") return "Vorstand";
       if (r === "ressortleiter") return "Ressortleiter";
+      if (r === "protokollfuehrer") return "Protokollführer";
       return "Unbekannt";
     }
 
@@ -792,6 +793,7 @@
 
         if (res?.data){
           MY_ROLE = normRole(res.data.role);
+          if (MY_ROLE === "protokollfuehrer") { window.location.replace("protokoll.html"); return; }
           MY_RESSORT = safe(res.data.ressort).trim();
           CAN_EDIT = (MY_ROLE === "vorstand");
 

@@ -461,6 +461,11 @@ label {
   background: rgba(251, 146, 60, 0.12);
 }
 
+.rolePill.protokollfuehrer {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.12);
+}
+
 .authChevron {
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.06);

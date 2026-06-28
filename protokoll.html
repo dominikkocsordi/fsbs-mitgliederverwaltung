@@ -519,12 +519,18 @@ function setAvatar(email){
   authAvatar.style.background=`linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`;
 }
 function normRole(v){ return (v||"").trim().toLowerCase(); }
-function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; return "Unbekannt"; }
+function roleLabel(r){
+  if(r==="vorstand") return "Vorstand";
+  if(r==="ressortleiter") return "Ressortleiter";
+  if(r==="protokollfuehrer") return "Protokollführer";
+  return "Unbekannt";
+}
 function setRolePill(role){
   const r=normRole(role);
   authRolePill.textContent=roleLabel(r);
-  authRolePill.classList.remove("vorstand","ressortleiter");
+  authRolePill.classList.remove("vorstand","ressortleiter","protokollfuehrer");
   if(r==="vorstand") authRolePill.classList.add("vorstand");
+  else if(r==="protokollfuehrer") authRolePill.classList.add("protokollfuehrer");
   else authRolePill.classList.add("ressortleiter");
 }
 function setAuthUI(isAuthed, email=""){
@@ -551,13 +557,19 @@ async function loadMyProfile(session){
   const name=(data.display_name||"").trim();
   authNameInline.textContent = name||email.split("@")[0];
   setRolePill(data.role);
-  const isVorstand = normRole(data.role)==="vorstand";
+  const r = normRole(data.role);
+  const isVorstand = r === "vorstand";
+  const isPfluehrer = r === "protokollfuehrer";
   const navFinanzen = document.getElementById("navFinanzen");
   const navWahlen   = document.getElementById("navWahlen");
   const navZeugnisse = document.getElementById("navZeugnisse");
-  if(navFinanzen) navFinanzen.style.display = isVorstand ? "" : "none";
-  if(navWahlen)   navWahlen.style.display   = isVorstand ? "" : "none";
-  if(navZeugnisse) navZeugnisse.style.display = isVorstand ? "" : "none";
+  const navProtokoll = document.getElementById("navProtokoll");
+  // Protokollführer sees only the Protokoll link
+  const showAll = isVorstand;
+  if(navFinanzen)  navFinanzen.style.display  = showAll ? "" : "none";
+  if(navWahlen)    navWahlen.style.display    = showAll ? "" : "none";
+  if(navZeugnisse) navZeugnisse.style.display = showAll ? "" : "none";
+  if(navProtokoll) navProtokoll.style.display = (isVorstand || isPfluehrer) ? "" : "none";
   return { ...data, email, displayName: name||email.split("@")[0] };
 }
 async function logout(){
@@ -1224,14 +1236,15 @@ function exportToWord(){
     const session = await requireAuthOrRedirect();
     const profile = await loadMyProfile(session);
 
-    if(normRole(profile.role) !== "vorstand"){
+    const allowedRoles = ["vorstand", "protokollfuehrer"];
+    if(!allowedRoles.includes(normRole(profile.role))){
       document.getElementById("pageLoader").classList.add("hidden");
       document.getElementById("mainContent").style.display = "";
       document.getElementById("mainContent").innerHTML=
         `<div class="glass card" style="text-align:center;padding:48px 24px;">
           <div style="font-size:32px;margin-bottom:12px;">⛔</div>
           <div style="font-weight:800;font-size:16px;">Kein Zugriff</div>
-          <div style="margin-top:6px;color:var(--muted);">Diese Seite ist nur für den Vorstand.</div>
+          <div style="margin-top:6px;color:var(--muted);">Diese Seite ist nur für Vorstand und Protokollführer.</div>
         </div>`;
       return;
     }

@@ -220,6 +220,7 @@ function roleLabel(role){
   const r = normRole(role);
   if (r === "vorstand") return "Vorstand";
   if (r === "ressortleiter") return "Ressortleiter";
+  if (r === "protokollfuehrer") return "Protokollführer";
   return "Unbekannt";
 }
 
@@ -485,6 +486,7 @@ async function loadMyProfile(session){
   }
 
   MY_ROLE  = normRole(data?.role);
+  if (MY_ROLE === "protokollfuehrer") { window.location.replace("protokoll.html"); return; }
   CAN_EDIT = (MY_ROLE === "vorstand");
 
   setCompactIdentity(data?.display_name, email);
