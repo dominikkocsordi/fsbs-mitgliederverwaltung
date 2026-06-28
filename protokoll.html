@@ -744,6 +744,14 @@ function renderProtokollListItems(){
 let memberPickerData  = null;   // cached after first load
 let memberPickerOpen  = false;
 let mpFilteredData    = [];
+let pickerSelections  = new Set(); // tracks checked state across filter re-renders
+
+function syncPickerSelectionsFromDOM(){
+  document.querySelectorAll("#mpList input[type=checkbox]").forEach(cb=>{
+    if(cb.checked) pickerSelections.add(cb.value);
+    else           pickerSelections.delete(cb.value);
+  });
+}
 
 async function toggleMemberPicker(){
   const panel  = document.getElementById("memberPickerPanel");
@@ -755,10 +763,13 @@ async function toggleMemberPicker(){
   btn.classList.toggle("active", memberPickerOpen);
 
   if(memberPickerOpen){
+    // Seed picker selections from textarea so already-applied names stay checked
+    pickerSelections = getSelectedNames();
+
     if(!memberPickerData){
       const { data } = await sb.from("members")
         .select("vorname,nachname,ressort,status")
-        .not("status","ilike","aus%")   // exclude ausgetreten
+        .not("status","ilike","aus%")
         .order("nachname");
       memberPickerData = data || [];
     }
@@ -771,6 +782,8 @@ async function toggleMemberPicker(){
 
 function filterMemberPicker(q){
   if(!memberPickerData) return;
+  // Preserve current checkbox state before re-rendering
+  syncPickerSelectionsFromDOM();
   const t = q.trim().toLowerCase();
   mpFilteredData = t
     ? memberPickerData.filter(m=>
@@ -785,7 +798,7 @@ function renderMpList(){
   const countEl = document.getElementById("mpCount");
   if(!list) return;
 
-  const current = getSelectedNames();
+  const current = pickerSelections;
 
   if(mpFilteredData.length === 0){
     list.innerHTML = `<div class="mpEmpty">Keine Mitglieder gefunden</div>`;
@@ -819,36 +832,31 @@ function getSelectedNames(){
 }
 
 function updateMpCount(){
+  syncPickerSelectionsFromDOM();
   const el = document.getElementById("mpCount");
   if(!el) return;
-  const checked = document.querySelectorAll("#mpList input[type=checkbox]:checked").length;
-  el.textContent = checked > 0 ? `${checked} ausgewählt` : "";
+  el.textContent = pickerSelections.size > 0 ? `${pickerSelections.size} ausgewählt` : "";
 }
 
 function applyMemberSelection(){
-  const checkboxes = document.querySelectorAll("#mpList input[type=checkbox]");
-  const selected   = Array.from(checkboxes).filter(cb=>cb.checked).map(cb=>cb.value);
-  const ta         = document.getElementById("hdrAnw");
+  // Sync any remaining visible checkboxes before applying
+  syncPickerSelectionsFromDOM();
+  const ta = document.getElementById("hdrAnw");
   if(!ta) return;
 
-  // Merge: keep manually typed names + add selected (avoid duplicates)
-  const existing  = ta.value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
-  const unchecked = new Set(
-    Array.from(checkboxes).filter(cb=>!cb.checked).map(cb=>cb.value)
-  );
-  // Keep manually typed names that are NOT in the picker (custom entries)
+  // Keep manually typed names that are not in the picker at all
+  const existing = ta.value.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
   const allPickerNames = new Set(memberPickerData.map(m=>[m.vorname,m.nachname].filter(Boolean).join(" ")));
   const manual = existing.filter(n => !allPickerNames.has(n));
 
-  const merged = [...new Set([...selected, ...manual])].sort((a,b)=>a.localeCompare(b,"de"));
+  const merged = [...new Set([...pickerSelections, ...manual])].sort((a,b)=>a.localeCompare(b,"de"));
   ta.value = merged.join("\n");
   autoResize(ta);
   scheduleSave();
 
-  // Close picker
   memberPickerOpen = true;   // set to true so toggle closes it
   toggleMemberPicker();
-  showToast(`${selected.length} Mitglieder übernommen.`);
+  showToast(`${pickerSelections.size} Mitglieder übernommen.`);
 }
 
 /* ---- Block sync ---- */
