@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-title" content="FSBS">
   <link rel="stylesheet" href="/mobile-nav.css">
   <title>FSBS Intern – Anwesenheit MV</title>
-  <meta name="theme-color" content="#120e18">
+  <meta name="theme-color" content="#f4f4f6">
   <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
@@ -16,6 +16,7 @@
   <link rel="manifest" href="/favicon/site.webmanifest">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <script src="/theme.js"></script>
   <link rel="stylesheet" href="style.css">
 
   <style>
@@ -34,8 +35,8 @@
       flex: 1 1 130px;
       min-width: 110px;
       padding: 14px 18px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.14);
+      background: var(--surface-2);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
     }
     .kpiTop {
@@ -57,10 +58,10 @@
       border-radius: 50%;
       flex: 0 0 auto;
     }
-    .kpiDot.ok     { background: rgba(34,197,94,0.90);  box-shadow: 0 0 8px rgba(34,197,94,0.50); }
-    .kpiDot.bad    { background: rgba(239,68,68,0.90);  box-shadow: 0 0 8px rgba(239,68,68,0.50); }
-    .kpiDot.warn   { background: rgba(251,146,60,0.90); box-shadow: 0 0 8px rgba(251,146,60,0.50); }
-    .kpiDot.purple { background: rgba(168,85,247,0.90); box-shadow: 0 0 8px rgba(168,85,247,0.50); }
+    .kpiDot.ok     { background: var(--success);  box-shadow: 0 0 8px color-mix(in oklab, var(--success) 50%, transparent); }
+    .kpiDot.bad    { background: var(--danger);  box-shadow: 0 0 8px color-mix(in oklab, var(--danger) 50%, transparent); }
+    .kpiDot.warn   { background: var(--warning); box-shadow: 0 0 8px color-mix(in oklab, var(--warning) 50%, transparent); }
+    .kpiDot.purple { background: var(--chart-5); box-shadow: 0 0 8px color-mix(in oklab, var(--chart-5) 50%, transparent); }
     .kpiValue {
       font-size: 28px;
       font-weight: 900;
@@ -90,7 +91,7 @@
     .spinner {
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(255,255,255,0.20);
+      border: 2px solid var(--border-strong);
       border-top-color: var(--accent1);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
@@ -118,14 +119,14 @@
       white-space: nowrap;
     }
     .statusBadge.present {
-      background: rgba(34,197,94,0.22);
-      border: 1px solid rgba(34,197,94,0.35);
-      color: #bbf7d0;
+      background: color-mix(in oklab, var(--success) 22%, transparent);
+      border: 1px solid color-mix(in oklab, var(--success) 35%, transparent);
+      color: var(--success);
     }
     .statusBadge.absent {
-      background: rgba(239,68,68,0.20);
-      border: 1px solid rgba(239,68,68,0.35);
-      color: #fecaca;
+      background: color-mix(in oklab, var(--danger) 20%, transparent);
+      border: 1px solid color-mix(in oklab, var(--danger) 35%, transparent);
+      color: var(--danger);
     }
 
     /* Reason text */
@@ -140,7 +141,7 @@
 
     /* Mail link */
     .mailLink {
-      color: rgba(249,115,22,0.9);
+      color: var(--primary);
       text-decoration: none;
       font-size: 12px;
     }
@@ -157,7 +158,7 @@
         <img src="logo.png" alt="FSBS" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
       </a>
       <div>
-        <a href="/index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:rgba(255,255,255,.65);font-size:13px;margin-bottom:6px;transition:color .15s ease;" onmouseover="this.style.color='rgba(255,255,255,.95)'" onmouseout="this.style.color='rgba(255,255,255,.65)'">← Zurück zum Dashboard</a>
+        <a href="/index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted-foreground);font-size:13px;margin-bottom:6px;transition:color .15s ease;" onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">← Zurück zum Dashboard</a>
         <h1>Anwesenheit MV</h1>
         <div class="subtitle" id="subtitle">Lade Daten aus Google Sheet…</div>
       </div>
@@ -195,7 +196,7 @@
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Gesamt</div><span class="kpiDot purple"></span></div><div class="kpiValue" id="kpiTotal">—</div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Anwesend</div><span class="kpiDot ok"></span></div><div class="kpiValue" id="kpiPresent">—</div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Abwesend</div><span class="kpiDot bad"></span></div><div class="kpiValue" id="kpiAbsent">—</div></div>
-      <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Quote (Vollmitgl.)</div><span class="kpiDot warn"></span></div><div class="kpiValue" id="kpiRate">—</div><div style="font-size:11px;color:rgba(255,255,255,.50);margin-top:4px;position:relative;" id="kpiRateSub"></div></div>
+      <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Quote (Vollmitgl.)</div><span class="kpiDot warn"></span></div><div class="kpiValue" id="kpiRate">—</div><div style="font-size:11px;color:var(--faint-foreground);margin-top:4px;position:relative;" id="kpiRateSub"></div></div>
       <div class="kpiCard"><div class="kpiTop"><div class="kpiLabel">Stimmübertragung</div><span class="kpiDot purple"></span></div><div class="kpiValue" id="kpiDelegation">—</div></div>
     </div>
 
@@ -399,7 +400,7 @@
         ? `<a class="mailLink" href="mailto:${esc(r._email)}">${esc(r._email)}</a>`
         : '<span class="muted">—</span>';
       const delegation = r._delegation
-        ? `<span class="statusBadge" style="border-color:rgba(168,85,247,.30);background:linear-gradient(135deg,rgba(168,85,247,.18),rgba(124,58,237,.10));color:#e9d5ff;">${esc(r._delegation)}</span>`
+        ? `<span class="statusBadge" style="border-color:color-mix(in oklab, var(--chart-5) 30%, transparent);background:linear-gradient(135deg,color-mix(in oklab, var(--chart-5) 18%, transparent),color-mix(in oklab, var(--chart-5) 10%, transparent));color:var(--chart-5);">${esc(r._delegation)}</span>`
         : '<span class="muted">—</span>';
       return `<tr>
         <td class="nameCell">${esc(r._name)}</td>

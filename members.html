@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="/mobile-nav.css">
 <title>FSBS Intern – Mitglieder</title>
 
-<meta name="theme-color" content="#120e18">
+<meta name="theme-color" content="#f4f4f6">
 
 <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
@@ -19,6 +19,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 
@@ -312,18 +313,18 @@ function getStatus(m){ return m?.[DB.status] ?? ""; }
 function getRole(m)  { return m?.[DB.role]   ?? ""; }
 
 const RESSORT_COLORS = {
-  "Externe Events":   ["rgba(249,115,22,.22)", "rgba(251,146,60,.14)"],
-  "Interne Events":   ["rgba(168,85,247,.22)", "rgba(124,58,237,.14)"],
-  "Merchandise":      ["rgba(236,72,153,.22)", "rgba(168,85,247,.14)"],
-  "Kommunikation":    ["rgba(56,189,248,.20)", "rgba(168,85,247,.12)"],
-  "Sponsoring":       ["rgba(34,197,94,.22)",  "rgba(16,185,129,.14)"],
+  "Externe Events":   ["color-mix(in oklab, var(--chart-1) 22%, transparent)", "color-mix(in oklab, var(--chart-1) 12%, transparent)"],
+  "Interne Events":   ["color-mix(in oklab, var(--chart-5) 22%, transparent)", "color-mix(in oklab, var(--chart-5) 12%, transparent)"],
+  "Merchandise":      ["color-mix(in oklab, var(--chart-3) 22%, transparent)", "color-mix(in oklab, var(--chart-3) 12%, transparent)"],
+  "Kommunikation":    ["color-mix(in oklab, var(--chart-2) 22%, transparent)", "color-mix(in oklab, var(--chart-2) 12%, transparent)"],
+  "Sponsoring":       ["color-mix(in oklab, var(--chart-4) 22%, transparent)", "color-mix(in oklab, var(--chart-4) 12%, transparent)"],
 };
 function pillColorStyle(label){
   const key = (label || "").trim();
   const pair = RESSORT_COLORS[key];
-  const a = pair?.[0] ?? "rgba(255,255,255,.10)";
-  const b = pair?.[1] ?? "rgba(255,255,255,.06)";
-  return `background: linear-gradient(135deg, ${a}, ${b}); border-color: rgba(255,255,255,.18); color: rgba(255,255,255,.92);`;
+  const a = pair?.[0] ?? "var(--surface-2)";
+  const b = pair?.[1] ?? "var(--surface-1)";
+  return `background: linear-gradient(135deg, ${a}, ${b}); border-color: var(--border-color); color: var(--foreground);`;
 }
 
 function statusClass(status){
@@ -360,7 +361,7 @@ function memberAvatar(m, size=40){
   const h = hashString(getEmail(m) || getFirst(m) + getLast(m));
   const hue = h % 360;
   const hue2 = (hue + 42) % 360;
-  const style = `width:${size}px;height:${size}px;border-radius:${size<=44?'50%':'16px'};display:grid;place-items:center;font-weight:800;font-size:${size<=44?Math.round(size*0.35):Math.round(size*0.32)}px;flex:0 0 auto;border:1px solid rgba(255,255,255,.18);background:linear-gradient(135deg,hsla(${hue},70%,58%,.55),hsla(${hue2},70%,55%,.35));`;
+  const style = `width:${size}px;height:${size}px;border-radius:${size<=44?'50%':'16px'};display:grid;place-items:center;font-weight:800;font-size:${size<=44?Math.round(size*0.35):Math.round(size*0.32)}px;flex:0 0 auto;border:1px solid var(--border-color);background:linear-gradient(135deg,hsla(${hue},70%,58%,.55),hsla(${hue2},70%,55%,.35));`;
   return `<div style="${style}">${initials}</div>`;
 }
 
@@ -386,7 +387,7 @@ function setAvatar(email){
   if (!e){
     authAvatar.classList.add("hidden");
     authAvatar.textContent = "U";
-    authAvatar.style.background = "rgba(255,255,255,.10)";
+    authAvatar.style.background = "var(--secondary)";
     return;
   }
   const h = hashString(e);
@@ -798,7 +799,7 @@ async function del(pk){
       const mainCard = document.getElementById("mainCard");
       if (mainCard){
         mainCard.classList.remove("hidden");
-        mainCard.innerHTML = `<div style="padding:32px;text-align:center;color:rgba(255,255,255,.6);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
+        mainCard.innerHTML = `<div style="padding:32px;text-align:center;color:var(--muted-foreground);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
       }
     }
   }

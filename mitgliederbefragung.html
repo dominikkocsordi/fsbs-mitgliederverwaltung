@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="FSBS">
 <link rel="stylesheet" href="/mobile-nav.css">
 <title>FSBS Intern – Mitgliederbefragung</title>
-<meta name="theme-color" content="#120e18">
+<meta name="theme-color" content="#f4f4f6">
 
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
@@ -20,6 +20,7 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="style.css">
 
 <style>
@@ -40,14 +41,14 @@
     padding: 10px 14px;
     border-radius: 12px;
     font-size: 13px;
-    background: rgba(56,189,248,0.12);
-    border: 1px solid rgba(56,189,248,0.25);
-    color: rgba(125,211,252,0.95);
+    background: color-mix(in oklab, var(--info) 12%, transparent);
+    border: 1px solid color-mix(in oklab, var(--info) 25%, transparent);
+    color: var(--info);
   }
   .notice.bad {
-    background: rgba(239,68,68,0.15);
-    border-color: rgba(239,68,68,0.30);
-    color: rgba(252,165,165,0.95);
+    background: color-mix(in oklab, var(--danger) 15%, transparent);
+    border-color: color-mix(in oklab, var(--danger) 30%, transparent);
+    color: var(--danger);
   }
 
   /* Tabs */
@@ -61,21 +62,22 @@
     border-radius: 999px;
     font-size: 13px;
     font-weight: 600;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.14);
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
     color: var(--muted);
     cursor: pointer;
     font-family: inherit;
     transition: background 0.14s, color 0.14s, border-color 0.14s;
   }
   .tabBtn:hover {
-    background: rgba(255,255,255,0.14);
+    background: var(--surface-3);
     color: var(--text);
   }
   .tabBtn.active {
-    background: linear-gradient(135deg, rgba(249,115,22,0.22), rgba(168,85,247,0.16));
-    border-color: rgba(249,115,22,0.32);
-    color: var(--text);
+    background: var(--foreground);
+    border-color: transparent;
+    color: var(--background);
+    font-weight: 600;
   }
 
   /* KPI row */
@@ -89,8 +91,8 @@
     flex: 1 1 140px;
     min-width: 120px;
     padding: 14px 18px;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.14);
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
   }
   .label {
@@ -107,7 +109,7 @@
   }
   .sub {
     font-size: 12px;
-    color: rgba(255,255,255,0.45);
+    color: var(--faint-foreground);
     margin-top: 3px;
     line-height: 1.4;
   }
@@ -143,8 +145,8 @@
   }
   .item {
     padding: 10px 14px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.10);
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     font-size: 13px;
     line-height: 1.45;
@@ -170,15 +172,15 @@
     border-radius: 999px;
     font-size: 11px;
     font-weight: 700;
-    background: rgba(255,255,255,0.10);
-    border: 1px solid rgba(255,255,255,0.18);
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
     color: var(--text);
     white-space: nowrap;
   }
   .tag.p {
-    background: rgba(168,85,247,0.18);
-    border-color: rgba(168,85,247,0.32);
-    color: #e9d5ff;
+    background: color-mix(in oklab, var(--chart-5) 18%, transparent);
+    border-color: color-mix(in oklab, var(--chart-5) 32%, transparent);
+    color: var(--chart-5);
   }
 </style>
 </head>
@@ -540,7 +542,7 @@ function setAvatar(email){
   if (!e){
     authAvatar.classList.add("hidden");
     authAvatar.textContent = "U";
-    authAvatar.style.background = "rgba(255,255,255,.10)";
+    authAvatar.style.background = "var(--secondary)";
     return;
   }
   const h = hashString(e);
@@ -764,6 +766,16 @@ function applyFilters(){
   renderTextList("listOther", H.other);
 }
 
+/* Farben aus den Design-Tokens lesen (Light & Dark) */
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#888";
+}
+
+/* Diagramme beim Themenwechsel mit den neuen Token-Farben neu zeichnen */
+document.addEventListener("fsbs:themechange", () => {
+  if (VIEW_ROWS && VIEW_ROWS.length) applyFilters();
+});
+
 function renderBar(canvasId, pairs){
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
@@ -774,14 +786,15 @@ function renderBar(canvasId, pairs){
   if (charts[canvasId]) charts[canvasId].destroy();
   charts[canvasId] = new Chart(ctx, {
     type: "bar",
-    data: { labels, datasets: [{ label:"Antworten", data, borderWidth: 1, borderRadius: 10 }] },
+    data: { labels, datasets: [{ label:"Antworten", data, borderWidth: 1, borderRadius: 10,
+              backgroundColor: cssVar("--primary"), borderColor: cssVar("--primary") }] },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display:false } },
       scales: {
-        x: { ticks: { color:"rgba(255,255,255,.75)", maxRotation: 35 }, grid: { color:"rgba(255,255,255,.08)" } },
-        y: { ticks: { color:"rgba(255,255,255,.75)", precision:0 }, grid: { color:"rgba(255,255,255,.08)" } },
+        x: { ticks: { color: cssVar("--muted-foreground"), maxRotation: 35 }, grid: { color: cssVar("--border-color") } },
+        y: { ticks: { color: cssVar("--muted-foreground"), precision:0 }, grid: { color: cssVar("--border-color") } },
       }
     }
   });

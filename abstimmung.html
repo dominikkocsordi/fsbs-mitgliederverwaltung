@@ -4,8 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Abstimmung · FSBS</title>
-  <meta name="theme-color" content="#061827">
+  <meta name="theme-color" content="#f4f4f6">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/theme.js"></script>
   <link rel="stylesheet" href="style.css">
 
   <style>
@@ -13,21 +14,21 @@
        Abstimmung (Public Voting) local styles
        ============================================================ */
     :root {
-      --green-light: rgba(74, 222, 128, 0.95);
-      --green-deep:  rgba(22, 163, 74, 0.80);
-      --red-light:   rgba(248, 113, 113, 0.95);
-      --red-deep:    rgba(220, 38, 38, 0.80);
-      --glow-color:  rgba(99, 102, 241, 0.60);
+      --green-light: var(--success);
+      --green-deep:  color-mix(in oklab, var(--success) 78%, var(--foreground));
+      --red-light:   var(--danger);
+      --red-deep:    color-mix(in oklab, var(--danger) 78%, var(--foreground));
+      --glow-color:  color-mix(in oklab, var(--primary) 22%, transparent);
       --anim-color-light: var(--green-light);
       --anim-color-deep:  var(--green-deep);
     }
 
-    /* Fixed gradient background */
+    /* Ruhiger Seitenhintergrund (Basis kommt aus style.css) */
     .bg-gradient {
       position: fixed;
       inset: 0;
       z-index: -2;
-      background: linear-gradient(135deg, #0d0921, #0a1628, #130d22);
+      background: var(--background);
     }
 
     /* Radial glow effect */
@@ -35,8 +36,8 @@
       position: fixed;
       inset: 0;
       z-index: -1;
-      --glow-color: rgba(99, 102, 241, 0.60);
-      background: radial-gradient(circle at 50% 50%, var(--glow-color), transparent 65%);
+      --glow-color: color-mix(in oklab, var(--primary) 18%, transparent);
+      background: radial-gradient(circle at 50% 10%, var(--glow-color), transparent 60%);
       transition: background 1s ease;
       pointer-events: none;
     }
@@ -80,7 +81,7 @@
       padding: 14px 24px;
       margin-top: 20px;
       background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      color: #0f0b16;
+      color: var(--primary-foreground);
       font-weight: 700;
       font-size: 16px;
       border: none;
@@ -88,7 +89,7 @@
       cursor: pointer;
       font-family: inherit;
       transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
-      box-shadow: 0 12px 30px rgba(168,85,247,0.25);
+      box-shadow: 0 12px 30px color-mix(in oklab, var(--chart-5) 25%, transparent);
     }
     .btnPrimary:not(:disabled):hover {
       transform: translateY(-2px);
@@ -106,8 +107,8 @@
       gap: 14px;
       width: 100%;
       padding: 14px 18px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
+      background: var(--surface-2);
+      border: 1px solid var(--border-color);
       border-radius: 14px;
       font-size: 15px;
       font-weight: 600;
@@ -119,12 +120,12 @@
       transition: background 0.15s ease, border-color 0.15s ease;
     }
     .optBtn:hover {
-      background: rgba(255,255,255,0.13);
-      border-color: rgba(255,255,255,0.22);
+      background: var(--surface-3);
+      border-color: var(--border-strong);
     }
     .optBtn.selected {
-      background: rgba(249,115,22,0.18);
-      border-color: rgba(249,115,22,0.40);
+      background: color-mix(in oklab, var(--primary) 18%, transparent);
+      border-color: color-mix(in oklab, var(--primary) 40%, transparent);
     }
 
     /* Step buttons for delegation count */
@@ -137,8 +138,8 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.10);
+      border: 1px solid var(--border-strong);
+      background: var(--surface-2);
       color: var(--text);
       font-size: 18px;
       font-weight: 700;
@@ -149,7 +150,7 @@
       padding: 0;
       transition: background 0.14s;
     }
-    .stepBtn:hover:not(:disabled) { background: rgba(255,255,255,0.18); }
+    .stepBtn:hover:not(:disabled) { background: var(--surface-3); }
     .stepBtn:disabled { opacity: 0.35; cursor: not-allowed; }
     .countDisplay {
       font-size: 20px;
@@ -162,8 +163,8 @@
     .delegationSection {
       margin-top: 20px;
       padding: 16px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--surface-1);
+      border: 1px solid var(--border-color);
       border-radius: 14px;
     }
     .delegationTitle {
@@ -217,7 +218,7 @@
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: white;
+      background: var(--foreground);
       opacity: 0;
       transform: scale(0.5);
     }

@@ -225,6 +225,8 @@
         '</div>' +
         '<div class="drawerLinks" id="drawerLinks">' + linksHtml + '</div>' +
         '<div class="drawerFooter">' +
+          '<button class="drawerThemeBtn" id="drawerThemeBtn" type="button">' +
+            '<span id="drawerThemeLabel">Dunkles Design</span></button>' +
           '<button class="drawerLogout" type="button"' +
           (logoutAttr ? ' onclick="' + logoutAttr + '"' : '') + '>' +
           '🚪 Logout</button>' +
@@ -232,6 +234,22 @@
 
       document.body.appendChild(overlay);
       document.body.appendChild(drawer);
+
+      /* Theme-Umschalter im Drawer */
+      var themeBtn = document.getElementById('drawerThemeBtn');
+      if (themeBtn) {
+        var themeLabel = document.getElementById('drawerThemeLabel');
+        var syncTheme = function () {
+          var dark = document.documentElement.classList.contains('dark');
+          if (themeLabel) themeLabel.textContent = dark ? '☀️ Helles Design' : '🌙 Dunkles Design';
+        };
+        syncTheme();
+        document.addEventListener('fsbs:themechange', syncTheme);
+        themeBtn.addEventListener('click', function () {
+          if (window.FSBSTheme) window.FSBSTheme.toggle();
+          syncTheme();
+        });
+      }
 
       /* Links/User synchron halten */
       function syncLinks() {
