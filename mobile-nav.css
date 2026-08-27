@@ -316,28 +316,31 @@
   .themeToggle { min-height: 40px; width: 40px; }
   .siteHeader button { min-height: 40px; }
 
-  /* Cards */
-  .card  { padding: 16px !important; border-radius: 20px !important; }
-  .glass { border-radius: 20px !important; }
+  /* Karten */
+  .card, .glass { padding: 16px; }
 
-  /* KPI-Grid */
-  .grid    { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-  .kpi     { grid-column: span 1 !important; padding: 14px !important; }
-  .kpiBig  { grid-column: span 1 !important; }
-  .kpiFull { grid-column: 1 / -1 !important; }
-  .kpiValue { font-size: 24px !important; }
+  /* Kennzahlen: zwei nebeneinander */
+  .kpiGrid, .kpis, .miniDash, .statGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .kpi, .kpiCard, .dashCard, .stat { padding: 14px 16px; }
+  .kpiValue, .kValue, .dashValue, .stat__value, .kpi .value { font-size: 23px; }
+
+  /* Karten-Raster einspaltig */
+  .grid, .cardGrid { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Filter: Suche voll, Auswahlfelder nebeneinander */
+  .filterBar .searchInput, .filters .wide { flex: 1 1 100%; }
+  .filterBar select, .filters select, .controlsRow select { flex: 1 1 calc(50% - 5px); min-width: 0; }
 
   /* Tabellen */
-  .tableWrap { border-radius: 14px !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
   table { min-width: 580px; }
-  th, td { padding: 10px !important; font-size: 13px !important; }
+  th, td { padding: 10px 12px; font-size: 13px; }
 
   /* Formular */
-  input, select, textarea { font-size: 16px !important; min-height: 44px; }
-  textarea { min-height: unset !important; }
-
-  /* Modals */
-  .modalCard { border-radius: 20px !important; max-height: 90dvh !important; }
+  input, select, textarea { font-size: 16px; min-height: 44px; }
+  textarea { min-height: 84px; }
 }
 
 @media (max-width: 390px) {

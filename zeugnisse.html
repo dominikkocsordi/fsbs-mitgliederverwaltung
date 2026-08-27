@@ -64,7 +64,6 @@
         <a class="navLink" href="bewerbungen.html">📝 Bewerbungen</a>
         <a class="navLink" href="rechnungen.html" id="navFinanzen" style="display:none;">💰 Finanzen</a>
         <a class="navLink" href="mitgliederbefragung.html">📊 Befragung</a>
-        <a class="navLink" href="wahlen.html" id="navWahlen" style="display:none;">🗳️ Wahlen</a>
         <a class="navLink" href="protokoll.html" id="navProtokoll" style="display:none;">📋 Protokoll</a>
         <a class="navLink active" href="zeugnisse.html" id="navZeugnisse">🎓 Zeugnisse</a>
       </div>
@@ -138,7 +137,7 @@ async function loadMyProfile(session){
   authNameInline.textContent=(data.display_name||"").trim()||email.split("@")[0];
   setRolePill(data.role);
   const isVorstand=normRole(data.role)==="vorstand";
-  ["navFinanzen","navWahlen","navProtokoll"].forEach(id=>{
+  ["navFinanzen","navProtokoll"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display=isVorstand?"":"none";
   });
   return { ...data, email };
