@@ -64,7 +64,10 @@
   flex: 0 0 auto;
 }
 .drawerLogo { display: flex; align-items: center; gap: 10px; }
-.drawerLogoImg { width: 34px; height: 34px; border-radius: 10px; object-fit: cover; }
+.drawerLogoImg { height: 24px; width: auto; display: block; }
+.drawerLogoImg--dark { display: none; }
+:root.dark .drawerLogoImg--light { display: none; }
+:root.dark .drawerLogoImg--dark { display: block; }
 .drawerAppName {
   font-family: var(--font-display);
   font-size: 15px; font-weight: 600; letter-spacing: -0.02em;
@@ -255,7 +258,7 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  padding: max(14px, env(safe-area-inset-top, 14px)) 14px 20px;
+  padding: 0;
 }
 
 .mobileShell .bottomTabBar {
@@ -274,53 +277,44 @@
 
   .bottomTabBar { display: flex; }
 
-  /* Desktop-Nav verstecken */
+  /* Desktop-Navigation & Login-Badge verstecken — unten übernimmt die Tab-Bar */
+  .siteNav   { display: none !important; }
   .navWrap   { display: none !important; }
   .hamburger { display: none !important; }
   .authFloating { display: none !important; }
+  .siteActions .navRight { display: none !important; }
 
-  /* Kopfzeile rechts: nur der Theme-Umschalter bleibt */
-  .brandRight {
-    display: flex !important;
-    width: auto !important;
-    flex: 0 0 auto;
-    margin-left: auto;
-    justify-content: flex-end !important;
+  /* Kopfzeile kompakt */
+  .siteHeaderInner {
+    height: 56px;
+    padding: 0 14px;
+    gap: 10px;
   }
-  .brandRight > *:not(.themeToggle) { display: none !important; }
+  .siteLogoImg { height: 24px; }
+  /* Seitenkopf kompakt */
+  .pageHead {
+    margin-bottom: 20px !important;
+    padding-bottom: 16px !important;
+    gap: 6px !important;
+  }
+  h1 { font-size: 26px !important; }
+  .pageHeadMeta, .subtitle { font-size: 12px !important; }
 
-  /* Titelbereich darf schrumpfen statt zu überlappen */
-  .brandLeft { flex: 1 1 auto; min-width: 0; }
-  .brandLeft > div { min-width: 0; }
-  .top h1, .top .subtitle {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* Inhalt */
+  .app, .appMain {
+    padding: 20px 14px calc(84px + env(safe-area-inset-bottom, 0px)) !important;
   }
-
-  /* Header kompakt */
-  .top {
-    flex-direction: row !important; align-items: center !important;
-    gap: 10px !important; margin-bottom: 14px !important; flex-wrap: nowrap !important;
+  .mobileShell .app, .mobileShell .appMain {
+    padding-bottom: 24px !important;
   }
-  h1        { font-size: 20px !important; letter-spacing: -.02em !important; }
-  .subtitle { font-size: 11px !important; margin-top: 2px !important; }
-  .brandLogo {
-    width: 36px !important; height: 36px !important;
-    border-radius: 11px !important; padding: 4px !important;
+  .siteHeader {
+    padding-top: env(safe-area-inset-top, 0px);
   }
 
   /* Tap-Targets */
   .btn-primary, .btn-secondary, .btn-danger, .iconBtn, button { min-height: 44px; }
   .themeToggle { min-height: 40px; width: 40px; }
-
-  /* Body-Padding (Fallback wenn kein App-Shell) */
-  body {
-    padding-top:    max(14px, env(safe-area-inset-top, 14px)) !important;
-    padding-left:   14px !important;
-    padding-right:  14px !important;
-    padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
-  }
+  .siteHeader button { min-height: 40px; }
 
   /* Cards */
   .card  { padding: 16px !important; border-radius: 20px !important; }

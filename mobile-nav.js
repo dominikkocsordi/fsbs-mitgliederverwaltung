@@ -208,9 +208,11 @@
       drawer.innerHTML =
         '<div class="drawerHeader">' +
           '<div class="drawerLogo">' +
-            '<img class="drawerLogoImg" src="/logo.png" alt="FSBS"' +
+            '<img class="drawerLogoImg drawerLogoImg--light" src="/logo-mark-light.png" alt="FSBS"' +
             ' onerror="this.style.display=\'none\'">' +
-            '<span class="drawerAppName">FSBS Intern</span>' +
+            '<img class="drawerLogoImg drawerLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true"' +
+            ' onerror="this.style.display=\'none\'">' +
+            '<span class="drawerAppName">Intern</span>' +
           '</div>' +
           '<button class="drawerClose" id="drawerClose" type="button" aria-label="Schließen">✕</button>' +
         '</div>' +

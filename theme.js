@@ -89,8 +89,8 @@
   function mount() {
     if (document.getElementById('themeToggle')) return;
 
-    /* Bevorzugt: rechte Seite der Kopfzeile */
-    var host = document.querySelector('.brandRight');
+    /* Bevorzugt: Aktionsbereich der App-Shell */
+    var host = document.querySelector('.siteActions') || document.querySelector('.brandRight');
     if (host) { host.appendChild(build(false)); return; }
 
     /* Sonst: letzte Spalte der .top-Leiste */

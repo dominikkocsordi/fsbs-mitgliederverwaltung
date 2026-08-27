@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Abstimmungen · FSBS</title>
 <meta name="theme-color" content="#f4f4f6">
-<link rel="stylesheet" href="/mobile-nav.css">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/app-shell.js"></script>
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/mobile-nav.css">
 
 <style>
   /* ============================================================
@@ -178,9 +179,35 @@
 <body>
 <div class="app">
   <div class="top">
-    <div>
-      <h1>Abstimmungen</h1>
-      <div class="subtitle">Wahlen & Berechtigungen verwalten</div>
+    <div class="brandLeft">
+      <a class="brandLogo" href="/index.html" title="FSBS Intern">
+        <img src="logo.png" alt="FSBS" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Abstimmungen</h1>
+        <div class="subtitle">Wahlen &amp; Berechtigungen verwalten</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap">
+    <div class="nav">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+      <div class="navLeft">
+        <a class="navLink" href="/index.html">🏠 Dashboard</a>
+        <a class="navLink" href="/members.html">👥 Mitglieder</a>
+        <a class="navLink" href="/anwaerter.html">👶🏼 Anwärter</a>
+        <a class="navLink" href="/bewerbungen.html">📝 Bewerbungen</a>
+        <a class="navLink" href="/rechnungen.html">💰 Finanzen</a>
+        <a class="navLink" href="/mitgliederbefragung.html">📊 Befragung</a>
+        <a class="navLink active" href="/wahlen.html">🗳️ Wahlen</a>
+        <a class="navLink" href="/protokoll.html">📋 Protokoll</a>
+        <a class="navLink" href="/zeugnisse.html">🎓 Zeugnisse</a>
+      </div>
+      <div class="navRight">
+        <button class="btn-secondary" onclick="window.location.href='/login.html'" type="button">Logout</button>
+      </div>
     </div>
   </div>
 
@@ -270,13 +297,13 @@ async function loadGroups() {
   const container = document.getElementById("groupsCheckboxContainer");
   container.innerHTML = allGroups.map(g => `
     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-      <input type="checkbox" name="voterGroupCheckbox" value="\${g.id}" style="accent-color:var(--accent1); width:16px; height:16px;">
-      <span>\${esc(g.name)}</span>
+      <input type="checkbox" name="voterGroupCheckbox" value="${g.id}" style="accent-color:var(--accent1); width:16px; height:16px;">
+      <span>${esc(g.name)}</span>
     </label>
   `).join('');
 
   const selView = document.getElementById("viewGroupSelect");
-  selView.innerHTML = `<option value="" disabled selected>Gruppe wählen</option>` + allGroups.map(g => `<option value="\${g.id}">\${esc(g.name)}</option>`).join('');
+  selView.innerHTML = `<option value="" disabled selected>Gruppe wählen</option>` + allGroups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
 }
 
 async function loadSessions() {
@@ -295,14 +322,14 @@ function renderSessions() {
     <div class="sessionCard">
       <div class="sessionCardTop">
         <div>
-          <div class="sessionCardTitle">\${esc(s.title)}</div>
+          <div class="sessionCardTitle">${esc(s.title)}</div>
           <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
-            <span class="statusBadge \${s.status === 'open' ? 'open' : 'closed'}">\${s.status === 'open' ? '● Offen' : '● Geschlossen'}</span>
+            <span class="statusBadge ${s.status === 'open' ? 'open' : 'closed'}">${s.status === 'open' ? '● Offen' : '● Geschlossen'}</span>
           </div>
         </div>
         <div style="display:flex; gap:8px;">
-          \${s.status === 'open' ? `<button class="btn-secondary btn-sm" onclick="closeSession('\${s.id}')">🔒 Schließen</button>` : ''}
-          <button class="btn-danger btn-sm" onclick="deleteSession('\${s.id}')">🗑️</button>
+          ${s.status === 'open' ? `<button class="btn-secondary btn-sm" onclick="closeSession('${s.id}')">🔒 Schließen</button>` : ''}
+          <button class="btn-danger btn-sm" onclick="deleteSession('${s.id}')">🗑️</button>
         </div>
       </div>
     </div>
@@ -360,10 +387,11 @@ async function createGroupAndCodes() {
 async function loadCodesForGroup() {
   const gId = document.getElementById("viewGroupSelect").value; if(!gId) return;
   const { data } = await sb.from("voter_codes").select("code").eq("group_id", gId);
-  document.getElementById("codesContainer").innerHTML = data.map(c => `<div class="code-badge">\${c.code}</div>`).join('');
+  document.getElementById("codesContainer").innerHTML = data.map(c => `<div class="code-badge">${c.code}</div>`).join('');
 }
 
 init();
 </script>
+<script src="/mobile-nav.js"></script>
 </body>
 </html>

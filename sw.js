@@ -3,7 +3,7 @@
    Offline-Support & PWA-Installierung
    ============================================================ */
 
-const CACHE = 'fsbs-v2';
+const CACHE = 'fsbs-v3';
 
 /* Statische App-Shell – bei Installation vorher cachen */
 const PRECACHE = [
@@ -21,9 +21,12 @@ const PRECACHE = [
   '/abstimmung.html',
   '/style.css',
   '/theme.js',
+  '/app-shell.js',
   '/mobile-nav.css',
   '/mobile-nav.js',
   '/logo.png',
+  '/logo-mark-light.png',
+  '/logo-mark-dark.png',
   '/logo2.png',
   '/favicon/site.webmanifest',
   '/favicon/apple-touch-icon.png',

@@ -264,10 +264,8 @@ body {
   font-family: var(--font-sans);
   color: var(--foreground);
   background: transparent;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 16px 64px;
+  display: block;
+  padding: 0;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -304,7 +302,15 @@ body {
 
 .app {
   width: 100%;
-  max-width: 1200px;
+  max-width: 64rem;      /* wie max-w-5xl in der Referenz */
+  margin: 0 auto;
+  padding: 32px 16px 72px;
+}
+
+@media (min-width: 641px) {
+  .app {
+    padding: 56px 24px 96px;
+  }
 }
 
 h1, h2, h3, h4 {
@@ -376,8 +382,294 @@ textarea:focus-visible,
 }
 
 /* ============================================================
-   Top Bar / Brand Elements
+   Site-Shell — Sticky Header, Navigation, Seitenkopf
    ============================================================ */
+.siteHeader {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid color-mix(in oklab, var(--border-color) 70%, transparent);
+  background: color-mix(in oklab, var(--background) 72%, transparent);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.siteHeaderInner {
+  max-width: 64rem;
+  margin: 0 auto;
+  height: 64px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (min-width: 641px) {
+  .siteHeaderInner {
+    height: 80px;
+    padding: 0 24px;
+    gap: 24px;
+  }
+}
+
+.siteLogo {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity 0.25s ease;
+}
+
+.siteLogo:hover { opacity: 0.7; }
+
+.siteLogoImg {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+
+@media (min-width: 641px) {
+  .siteLogoImg { height: 34px; }
+}
+
+.siteLogoImg--dark { display: none; }
+
+:root.dark .siteLogoImg--light { display: none; }
+:root.dark .siteLogoImg--dark { display: block; }
+
+.siteNav {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.siteNav .navLeft {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 2px 0;
+}
+
+.siteNav .navLeft::-webkit-scrollbar { display: none; }
+
+.siteActions {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (min-width: 641px) {
+  .siteActions { gap: 8px; }
+}
+
+.siteActions .navRight {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.siteActions .navRight button,
+.siteActions .btn-secondary {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--muted-foreground);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.siteActions .navRight button:not(:disabled):hover,
+.siteActions .btn-secondary:not(:disabled):hover {
+  background: transparent;
+  color: var(--foreground);
+  transform: none;
+}
+
+/* ---------- Navigations-Pills ---------- */
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--muted-foreground);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  user-select: none;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+@media (min-width: 641px) {
+  .navLink { padding: 8px 15px; font-size: 13px; }
+}
+
+.navLink:hover {
+  color: var(--foreground);
+}
+
+.navLink.active {
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 600;
+}
+
+/* ---------- Overflow-Menü der Navigation ---------- */
+.navMore {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.navMoreBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  min-height: 0;
+}
+
+@media (min-width: 641px) {
+  .navMoreBtn { padding: 8px 15px; font-size: 13px; }
+}
+
+.navMoreBtn:hover {
+  background: transparent;
+  color: var(--foreground);
+  transform: none;
+}
+
+.navMoreBtn.active {
+  background: var(--foreground);
+  color: var(--background);
+  font-weight: 600;
+}
+
+.navMoreChevron {
+  font-size: 13px;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.navMore.open .navMoreChevron { transform: rotate(180deg); }
+
+.navMoreMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 60;
+  min-width: 208px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background: var(--popover);
+  box-shadow: var(--shadow-pop);
+  animation: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top left;
+}
+
+.navMoreMenu[hidden] { display: none; }
+
+.navLink--menu {
+  width: 100%;
+  justify-content: flex-start;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.navLink--menu:hover {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+
+/* ---------- Seitenkopf ---------- */
+.pageHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid color-mix(in oklab, var(--border-color) 80%, transparent);
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (min-width: 641px) {
+  .pageHead {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 48px;
+    padding-bottom: 40px;
+  }
+}
+
+.pageHeadMain { min-width: 0; }
+
+.pageHeadExtra {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+
+.pageHeadExtra a {
+  color: var(--muted-foreground);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.pageHeadExtra a:hover { color: var(--foreground); }
+
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4.4vw, 48px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pageHeadMeta,
+.subtitle {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+@media (min-width: 641px) {
+  .pageHeadMeta,
+  .subtitle { font-size: 14px; }
+}
+
+.pageHeadMain .subtitle { margin-top: 8px; }
+
+/* ---------- Alte Brand-Elemente (nur noch Fallback) ---------- */
 .top {
   display: flex;
   align-items: flex-end;
@@ -385,20 +677,6 @@ textarea:focus-visible,
   gap: 16px;
   margin-bottom: 18px;
   flex-wrap: wrap;
-}
-
-h1 {
-  font-size: clamp(26px, 3.4vw, 38px);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
-  margin: 0;
-}
-
-.subtitle {
-  margin-top: 7px;
-  color: var(--muted-foreground);
-  font-size: 14px;
-  letter-spacing: -0.01em;
 }
 
 .brandLeft {
@@ -417,42 +695,24 @@ h1 {
 }
 
 .brandLogo {
-  width: 58px;
-  height: 58px;
-  border-radius: var(--radius);
-  padding: 7px;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
   display: grid;
   place-items: center;
   text-decoration: none;
   flex: 0 0 auto;
-  background: var(--card);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-soft);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
   color: var(--foreground);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.02em;
-}
-
-.brandLogo:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--primary) 40%, transparent);
-  box-shadow: var(--shadow-glow);
 }
 
 .brandLogo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 10px;
-}
-
-@media (max-width: 640px) {
-  .brandLogo {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-  }
+  border-radius: 13px;
 }
 
 /* ============================================================
@@ -810,84 +1070,6 @@ label {
 }
 
 /* ============================================================
-   Navigation Wrap
-   ============================================================ */
-.navWrap {
-  margin-bottom: 18px;
-  position: sticky;
-  top: 12px;
-  z-index: 6;
-  border-radius: 999px;
-  box-shadow: var(--shadow-soft);
-}
-
-.nav {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  padding: 6px 7px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.nav::-webkit-scrollbar {
-  display: none;
-}
-
-.navLeft {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-
-.navRight {
-  flex: 0 0 auto;
-  padding-left: 8px;
-  border-left: 1px solid var(--border-color);
-  margin-left: 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.navRight .btn-secondary {
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-}
-
-.navLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--muted-foreground);
-  border: 1px solid transparent;
-  white-space: nowrap;
-  user-select: none;
-  transition: background 0.25s ease, color 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.navLink:hover {
-  background: var(--secondary);
-  color: var(--foreground);
-}
-
-.navLink.active {
-  background: var(--foreground);
-  color: var(--background);
-  border-color: transparent;
-  font-weight: 600;
-}
-
-/* ============================================================
    Grid & Layout System
    ============================================================ */
 .grid {
@@ -1101,23 +1283,13 @@ dialog::backdrop {
 }
 
 @media (max-width: 640px) {
-  body {
-    padding: 22px 14px 32px;
-  }
   .top {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  .brandRight {
-    width: 100%;
-    justify-content: flex-start;
-  }
   .authNameInline {
     max-width: 150px;
-  }
-  .navWrap {
-    top: 10px;
   }
   .kpi {
     grid-column: span 12;

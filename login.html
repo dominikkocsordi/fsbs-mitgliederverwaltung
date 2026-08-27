@@ -19,6 +19,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <script src="/app-shell.js"></script>
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="style.css">
 
@@ -27,15 +28,17 @@
        Login-page local styles — zentrierte Karte
        ============================================================ */
     body {
+      display: flex;
       align-items: center;
+      justify-content: center;
       min-height: 100dvh;
-      padding-top: 32px;
-      padding-bottom: 32px;
+      padding: 24px 16px;
     }
 
     .app {
       max-width: 460px;
       margin: 0 auto;
+      padding: 0;
     }
 
     .titles { min-width: 0; }
@@ -119,9 +122,10 @@
   <main class="app">
     <header class="top">
       <div class="brandLeft">
-        <a class="brandLogo" href="index.html" title="Fachschaft Business School e.V.">
-          <img src="logo.png" alt="Fachschaft Logo"
-               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+        <a class="siteLogo" href="index.html" title="Fachschaft Business School e.V.">
+          <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
+               alt="Fachschaft Business School e.V." />
+          <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true" />
         </a>
         <div class="titles">
           <h1>FSBS Intern</h1>
