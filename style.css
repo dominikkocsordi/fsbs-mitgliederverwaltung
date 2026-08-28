@@ -370,66 +370,81 @@ textarea:focus-visible,
 }
 
 /* ============================================================
-   Site-Shell — Sticky Header, Navigation, Seitenkopf
+   3  Shell — Kopfzeile, Navigation, Seitenkopf
+   ------------------------------------------------------------
+   Alle Bedienelemente der Kopfzeile stehen auf einer Höhe
+   (--head-control) und teilen dieselbe Pillenform.
    ============================================================ */
+:root {
+  --head-height: 60px;
+  --head-control: 34px;
+}
+
+@media (min-width: 641px) {
+  :root { --head-height: 68px; }
+}
+
 .siteHeader {
   position: sticky;
   top: 0;
   z-index: 50;
-  border-bottom: 1px solid color-mix(in oklab, var(--border-color) 70%, transparent);
-  background: color-mix(in oklab, var(--background) 72%, transparent);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-bottom: 1px solid color-mix(in oklab, var(--border-color) 65%, transparent);
+  background: color-mix(in oklab, var(--background) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .siteHeaderInner {
   max-width: 64rem;
   margin: 0 auto;
-  height: 64px;
+  height: var(--head-height);
   padding: 0 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 @media (min-width: 641px) {
-  .siteHeaderInner {
-    height: 80px;
-    padding: 0 24px;
-    gap: 24px;
-  }
+  .siteHeaderInner { padding: 0 24px; gap: 18px; }
 }
 
+/* ---------- Wortmarke ---------- */
 .siteLogo {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
+  height: var(--head-control);
   text-decoration: none;
-  transition: opacity 0.25s ease;
+  transition: opacity 0.2s ease;
 }
 
-.siteLogo:hover { opacity: 0.7; }
+.siteLogo:hover { opacity: 0.65; }
 
 .siteLogoImg {
-  height: 26px;
+  height: 24px;
   width: auto;
   display: block;
 }
 
 @media (min-width: 641px) {
-  .siteLogoImg { height: 34px; }
+  .siteLogoImg { height: 28px; }
 }
 
 .siteLogoImg--dark { display: none; }
-
 :root.dark .siteLogoImg--light { display: none; }
 :root.dark .siteLogoImg--dark { display: block; }
 
+/* ---------- Navigation ---------- */
 .siteNav {
   display: flex;
   align-items: center;
   min-width: 0;
   flex: 1 1 auto;
+  margin-left: 8px;
+}
+
+@media (min-width: 641px) {
+  .siteNav { margin-left: 14px; }
 }
 
 .siteNav .navLeft {
@@ -437,83 +452,41 @@ textarea:focus-visible,
   align-items: center;
   gap: 2px;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding: 2px 0;
 }
 
-.siteNav .navLeft::-webkit-scrollbar { display: none; }
-
-.siteActions {
-  margin-left: auto;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-@media (min-width: 641px) {
-  .siteActions { gap: 8px; }
-}
-
-.siteActions .navRight {
-  border: none;
-  margin: 0;
-  padding: 0;
-}
-
-.siteActions .navRight button,
-.siteActions .btn-secondary {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  color: var(--muted-foreground);
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.siteActions .navRight button:not(:disabled):hover,
-.siteActions .btn-secondary:not(:disabled):hover {
-  background: transparent;
-  color: var(--foreground);
-  transform: none;
-}
-
-/* ---------- Navigations-Pills ---------- */
 .navLink {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
+  height: var(--head-control);
+  padding: 0 13px;
   border-radius: 999px;
+  border: 1px solid transparent;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--muted-foreground);
-  border: 1px solid transparent;
   white-space: nowrap;
   user-select: none;
-  transition: background 0.3s ease, color 0.3s ease;
-}
-
-@media (min-width: 641px) {
-  .navLink { padding: 8px 15px; font-size: 13px; }
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .navLink:hover {
+  background: var(--surface-1);
   color: var(--foreground);
 }
 
 .navLink.active {
   background: var(--foreground);
   color: var(--background);
-  font-weight: 600;
 }
 
-/* ---------- Overflow-Menü der Navigation ---------- */
+.navLink.active:hover {
+  background: color-mix(in oklab, var(--foreground) 88%, var(--background));
+  color: var(--background);
+}
+
+/* ---------- Überlauf-Menü ---------- */
 .navMore {
   position: relative;
   flex: 0 0 auto;
@@ -523,56 +496,56 @@ textarea:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 12px;
+  height: var(--head-control);
+  padding: 0 13px;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  border: 1px solid transparent;
   color: var(--muted-foreground);
-  font-size: 12px;
+  font-family: inherit;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
+  line-height: 1;
   min-height: 0;
-}
-
-@media (min-width: 641px) {
-  .navMoreBtn { padding: 8px 15px; font-size: 13px; }
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .navMoreBtn:hover {
-  background: transparent;
+  background: var(--surface-1);
   color: var(--foreground);
-  transform: none;
 }
 
-.navMoreBtn.active {
+.navMoreBtn.active,
+.navMore.open .navMoreBtn {
   background: var(--foreground);
   color: var(--background);
-  font-weight: 600;
 }
 
 .navMoreChevron {
-  font-size: 13px;
+  font-size: 11px;
   line-height: 1;
-  transition: transform 0.25s ease;
+  opacity: 0.75;
+  transition: transform 0.25s var(--ease);
 }
 
 .navMore.open .navMoreChevron { transform: rotate(180deg); }
 
 .navMoreMenu {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   left: 0;
   z-index: 60;
-  min-width: 208px;
-  padding: 6px;
+  min-width: 196px;
+  padding: 5px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  border-radius: var(--radius);
+  gap: 1px;
+  border-radius: 14px;
   border: 1px solid var(--border-color);
   background: var(--popover);
   box-shadow: var(--shadow-pop);
-  animation: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: scaleIn 0.16s var(--ease) both;
   transform-origin: top left;
 }
 
@@ -580,15 +553,199 @@ textarea:focus-visible,
 
 .navLink--menu {
   width: 100%;
+  height: 34px;
   justify-content: flex-start;
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  border-radius: 9px;
+  padding: 0 10px;
   font-size: 13px;
 }
 
 .navLink--menu:hover {
-  background: var(--secondary);
+  background: var(--surface-2);
   color: var(--foreground);
+}
+
+.navLink--menu.active {
+  background: var(--surface-2);
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* ---------- Aktionen rechts ---------- */
+.siteActions {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 14px;
+  position: relative;
+}
+
+/* feine Trennlinie zwischen Navigation und Aktionen */
+.siteActions::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+}
+
+.siteActions .navRight {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.siteActions .navRight button,
+.siteActions .btn-secondary {
+  height: var(--head-control);
+  padding: 0 13px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow: none;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 0;
+}
+
+.siteActions .navRight button:not(:disabled):hover,
+.siteActions .btn-secondary:not(:disabled):hover {
+  background: var(--surface-1);
+  color: var(--foreground);
+  transform: none;
+}
+
+.siteActions .themeToggle {
+  width: var(--head-control);
+  height: var(--head-control);
+}
+
+/* ---------- Login-Status in der Kopfzeile ---------- */
+.siteActions .authFloating,
+.authFloating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--head-control);
+  padding: 0 4px 0 6px;
+  border: none;
+  background: none;
+  border-radius: 999px;
+  user-select: none;
+  min-width: 0;
+  max-width: 260px;
+  position: relative;
+}
+
+.authFloating .dot {
+  width: 7px;
+  height: 7px;
+}
+
+/* Ist ein Profilbild da, ersetzt es den Statuspunkt */
+.authFloating:has(.authAvatar:not(.hidden)) .dot { display: none; }
+
+.authAvatar {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--secondary);
+  border: 1px solid var(--border-color);
+  color: var(--secondary-foreground);
+}
+
+.authInfo { display: flex; min-width: 0; }
+.authTopLine { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.authCompact { display: flex; align-items: center; gap: 7px; min-width: 0; }
+
+.authState {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.authNameInline {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+/* Name und Rolle erst zeigen, wenn Platz dafür da ist —
+   sonst genügt das Profilbild, die Details stehen im Aufklapper. */
+.authCompact .authNameInline { display: none; }
+.authCompact .rolePill { display: none; }
+
+@media (min-width: 1120px) {
+  .authCompact .authNameInline { display: block; }
+}
+
+@media (min-width: 1320px) {
+  .authCompact .rolePill { display: inline-flex; }
+}
+
+.authChevron {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: none;
+  background: none;
+  color: var(--faint-foreground);
+  font-size: 11px;
+  min-height: 0;
+}
+
+.authChevron:hover { background: var(--surface-2); color: var(--foreground); }
+
+.authDetails {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background: var(--popover);
+  box-shadow: var(--shadow-pop);
+}
+
+.authMail {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Statuschip einzelner Seiten (MV, Finanzen) */
+.siteActions > .pill,
+.siteActions #statusPill {
+  height: 26px;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .siteActions > .pill,
+  .siteActions #statusPill { display: none; }
 }
 
 /* ---------- Seitenkopf ---------- */
@@ -1846,89 +2003,6 @@ dialog::backdrop {
   z-index: 60;
   box-shadow: var(--shadow-soft);
 }
-
-/* ---------- 5.14 Login-Status in der Kopfzeile ---------- */
-.authFloating {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-  background: color-mix(in oklab, var(--card) 70%, transparent);
-  user-select: none;
-  max-width: min(420px, 100%);
-}
-
-.authAvatar {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 600;
-  background: var(--secondary);
-  border: 1px solid var(--border-color);
-  color: var(--secondary-foreground);
-}
-
-.authInfo { display: flex; min-width: 0; }
-.authTopLine { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.authCompact { display: flex; align-items: center; gap: 8px; min-width: 0; }
-
-.authState {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  white-space: nowrap;
-}
-
-.authNameInline {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--foreground);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 160px;
-}
-
-.authChevron {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  border: 1px solid var(--border-color);
-  background: var(--secondary);
-  color: var(--muted-foreground);
-  font-size: 12px;
-}
-
-.authChevron:hover { background: var(--accent-surface); color: var(--foreground); }
-
-.authDetails {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 60;
-  padding: 10px 12px;
-  border-radius: var(--radius-control);
-  border: 1px solid var(--border-color);
-  background: var(--popover);
-  box-shadow: var(--shadow-pop);
-}
-
-.authMail {
-  font-size: 12px;
-  color: var(--muted-foreground);
-  word-break: break-all;
-}
-
 
 /* ============================================================
    6  Alt-Klassen der Seiten
