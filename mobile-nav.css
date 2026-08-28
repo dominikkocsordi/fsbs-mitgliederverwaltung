@@ -283,7 +283,7 @@
   .siteNav   { display: none !important; }
   .navWrap   { display: none !important; }
   .hamburger { display: none !important; }
-  .authFloating { display: none !important; }
+  .authFloating, .userMenu { display: none !important; }
   .siteActions .navRight { display: none !important; }
 
   /* Kopfzeile kompakt */

@@ -75,10 +75,11 @@
     var badge = document.getElementById('authBadge') || document.querySelector('.authFloating');
     var statusPill = document.getElementById('statusPill');
     if (statusPill) actions.appendChild(statusPill);
-    if (badge) actions.appendChild(badge);
 
     var navRight = navWrap && navWrap.querySelector('.navRight');
-    if (navRight) actions.appendChild(navRight);
+    var userMenu = badge ? buildUserMenu(badge, navRight) : null;
+    if (userMenu) actions.appendChild(userMenu);
+    else if (navRight) actions.appendChild(navRight);
 
     /* ---------- 4. Seitenkopf ---------- */
     var pageHead = el('div', 'pageHead');
@@ -121,6 +122,161 @@
     if (top && top.parentNode) top.parentNode.removeChild(top);
 
     if (nav) setupOverflow(nav, navLeft);
+  }
+
+
+  /* ============================================================
+     Konto-Menü
+     ------------------------------------------------------------
+     Baut aus dem vorhandenen Login-Chip einen Auslöser mit
+     Aufklapper. Die IDs bleiben erhalten, damit das Seiten-JS
+     (Anmeldestatus, Name, Rolle, Mail, Abmelden) weiter greift.
+     ============================================================ */
+  function buildUserMenu(badge, navRight) {
+    var dot = badge.querySelector('.dot');
+    var avatar = badge.querySelector('.authAvatar');
+    var state = badge.querySelector('.authState');
+    var compact = badge.querySelector('.authCompact');
+    var name = badge.querySelector('.authNameInline');
+    var role = badge.querySelector('.rolePill');
+    var toggle = badge.querySelector('.authChevron');
+    var details = badge.querySelector('.authDetails');
+    var mail = badge.querySelector('.authMail');
+
+    if (!toggle || !details) return badge;
+
+    /* Der vorhandene Container wird selbst zum Menü — das Seiten-JS
+       prüft für "Klick nach aussen" gegen #authBadge. */
+    var wrap = badge;
+    wrap.className = 'userMenu';
+    wrap.removeAttribute('title');
+
+    /* ---- Auslöser ----
+       Frischer Button statt des alten Pfeils: Das Öffnen hängt damit
+       nicht am Seiten-Skript, das je nach Ladezustand später kommt. */
+    if (toggle.parentNode) toggle.parentNode.removeChild(toggle);
+    toggle.removeAttribute('id');
+
+    var trigger = el('button', 'userTrigger');
+    trigger.type = 'button';
+    trigger.id = 'authToggle';
+    trigger.setAttribute('aria-haspopup', 'menu');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-label', 'Konto');
+    wrap.appendChild(trigger);
+    toggle = trigger;
+
+    if (dot) toggle.appendChild(dot);
+    if (avatar) toggle.appendChild(avatar);
+
+    var label = el('span', 'userTriggerLabel');
+    if (state) label.appendChild(state);
+    if (compact) label.appendChild(compact);
+    toggle.appendChild(label);
+
+    var chev = el('span', 'userChevron');
+    chev.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"' +
+      ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+    toggle.appendChild(chev);
+
+    /* ---- Aufklapper ---- */
+    details.className = 'userPanel' + (details.classList.contains('hidden') ? ' hidden' : '');
+    details.setAttribute('role', 'menu');
+
+    var head = el('div', 'userPanelHead');
+    var pAvatar = el('div', 'userPanelAvatar');
+    pAvatar.setAttribute('aria-hidden', 'true');
+    var pText = el('div', 'userPanelText');
+    var pName = el('div', 'userPanelName');
+    pText.appendChild(pName);
+    if (mail) pText.appendChild(mail);
+    head.appendChild(pAvatar);
+    head.appendChild(pText);
+    details.insertBefore(head, details.firstChild);
+
+    if (role) {
+      var roleRow = el('div', 'userPanelRole');
+      roleRow.appendChild(role);
+      details.appendChild(roleRow);
+    }
+
+    if (navRight) {
+      details.appendChild(el('div', 'userPanelSep'));
+      navRight.classList.add('userPanelActions');
+      Array.prototype.slice.call(navRight.querySelectorAll('button')).forEach(function (btn) {
+        if (btn.querySelector('svg')) return;
+        var icon = el('span', 'userPanelIcon');
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"' +
+          ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M15 17l5-5-5-5"/><path d="M20 12H9"/>' +
+          '<path d="M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>';
+        btn.insertBefore(icon, btn.firstChild);
+      });
+      details.appendChild(navRight);
+    }
+
+    wrap.appendChild(details);
+
+    /* Reste der alten Struktur entfernen */
+    Array.prototype.slice.call(wrap.querySelectorAll('.authInfo, .authTopLine')).forEach(function (n) {
+      if (!n.querySelector('.userTrigger, .userPanel') && n.parentNode) n.parentNode.removeChild(n);
+    });
+
+    /* ---- Name und Profilbild in den Aufklapper spiegeln ---- */
+    var mirroring = false;
+
+    function mirror() {
+      if (mirroring) return;
+      mirroring = true;
+      if (name) pName.textContent = name.textContent.trim();
+      if (avatar) {
+        pAvatar.textContent = avatar.textContent.trim();
+        pAvatar.style.background = avatar.style.background || '';
+        pAvatar.style.display = avatar.classList.contains('hidden') ? 'none' : '';
+      }
+      var loggedIn = !(compact && compact.classList.contains('hidden'));
+      wrap.classList.toggle('is-authed', loggedIn);
+      toggle.setAttribute('aria-expanded', String(!details.classList.contains('hidden')));
+      requestAnimationFrame(function () { mirroring = false; });
+    }
+    mirror();
+
+    /* Quellen beobachten — nicht den Aufklapper selbst, sonst
+       würde das Spiegeln sich gegenseitig auslösen. */
+    var mo = new MutationObserver(mirror);
+    [name, avatar, compact].forEach(function (n) {
+      if (n) mo.observe(n, { attributes: true, childList: true, characterData: true, subtree: true });
+    });
+    mo.observe(details, { attributes: true, attributeFilter: ['class'] });
+
+    /* ---- Öffnen und Schliessen ---- */
+    function close() {
+      details.classList.add('hidden');
+      toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    toggle.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!wrap.classList.contains('is-authed')) return;
+      var open = details.classList.contains('hidden');
+      details.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!wrap.contains(e.target)) close();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') close();
+    });
+
+    /* Nach dem Abmelden schliessen */
+    if (navRight) {
+      navRight.addEventListener('click', function () { close(); });
+    }
+
+    return wrap;
   }
 
   /* ============================================================
