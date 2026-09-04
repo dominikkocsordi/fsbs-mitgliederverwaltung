@@ -59,9 +59,16 @@
   .zHead { text-align: center; margin-bottom: 30px; }
   .zHead .siteLogoImg { height: 30px; margin: 0 auto 16px; }
 
-  /* Die Karte ist schmaler als eine Seitenspalte – die 48 px der
-     Seitenüberschrift wären hier zu laut. */
-  .zHead h1 { font-size: clamp(30px, 5vw, 38px); letter-spacing: -0.035em; }
+  /* Die Karte ist schmaler als eine Seitenspalte, und der Titel läuft über
+     mehrere Zeilen – die 48 px der Seitenüberschrift wären hier zu laut.
+     Mehrzeilig braucht er außerdem mehr Durchschuss als die 1.04 aus
+     style.css, sonst kleben die Zeilen aufeinander. */
+  .zHead h1 {
+    font-size: clamp(20px, 4.1vw, 24px);
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    text-wrap: balance;   /* gleich lange Zeilen statt einem Rest unten */
+  }
 
   /* ---------- Felder ---------- */
   .zForm .fieldGrid { gap: 15px; }
@@ -172,7 +179,7 @@
       <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
            alt="Fachschaft Business School e.V.">
       <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true">
-      <h1>Zutritt in das Fachschaftszimmer / Tiefgarage Pasing</h1>
+      <h1>Zutritt in das Fachschaftszimmer&nbsp;/ Tiefgarage Pasing</h1>
     </div>
 
     <form id="form" class="zForm" novalidate autocomplete="on">
