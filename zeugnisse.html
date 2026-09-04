@@ -66,6 +66,7 @@
         <a class="navLink" href="mitgliederbefragung.html">Befragung</a>
         <a class="navLink" href="protokoll.html" id="navProtokoll" style="display:none;">Protokoll</a>
         <a class="navLink active" href="zeugnisse.html" id="navZeugnisse">Zeugnisse</a>
+        <a class="navLink" href="zutritte-liste.html" id="navZutritte" style="display:none;">Zutritte</a>
       </div>
       <div class="navRight">
         <button class="btn-secondary" onclick="logout()" type="button">Abmelden</button>
@@ -137,7 +138,7 @@ async function loadMyProfile(session){
   authNameInline.textContent=(data.display_name||"").trim()||email.split("@")[0];
   setRolePill(data.role);
   const isVorstand=normRole(data.role)==="vorstand";
-  ["navFinanzen","navProtokoll"].forEach(id=>{
+  ["navFinanzen","navProtokoll","navZutritte"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display=isVorstand?"":"none";
   });
   return { ...data, email };

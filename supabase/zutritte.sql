@@ -89,7 +89,13 @@ create table if not exists public.zutritte (
     rolle             text,
     einwilligung_id   uuid        not null references public.zutritt_einwilligung (id),
     einwilligung_text text,
+    status            text        not null default 'offen',
+    status_am         timestamptz,
+    status_von        uuid,
     created_at        timestamptz not null default now(),
+
+    constraint zutritte_status_bekannt
+        check (status in ('offen', 'geprueft', 'rueckfrage', 'abgelehnt')),
 
     constraint zutritte_vorname_laenge  check (char_length(btrim(vorname))  between 1 and 80),
     constraint zutritte_nachname_laenge check (char_length(btrim(nachname)) between 1 and 80),
@@ -113,6 +119,21 @@ alter table public.zutritte
     add column if not exists einwilligung_id uuid references public.zutritt_einwilligung (id);
 alter table public.zutritte
     add column if not exists einwilligung_text text;
+alter table public.zutritte
+    add column if not exists status text not null default 'offen';
+alter table public.zutritte
+    add column if not exists status_am timestamptz;
+alter table public.zutritte
+    add column if not exists status_von uuid;
+
+do $$
+begin
+    if not exists (select 1 from pg_constraint where conname = 'zutritte_status_bekannt') then
+        alter table public.zutritte add constraint zutritte_status_bekannt
+            check (status in ('offen', 'geprueft', 'rueckfrage', 'abgelehnt'));
+    end if;
+end
+$$;
 
 -- Zur Pflicht wird die Spalte erst, wenn keine Einsendung ohne Einwilligung
 -- mehr offen ist – sonst bliebe das Skript an Altbeständen hängen.
@@ -170,8 +191,12 @@ begin
         raise exception 'Ohne gültige Einwilligung kein Eintrag' using errcode = '23514';
     end if;
 
-    -- Der Zeitstempel gehört der Datenbank, nicht dem Absender.
+    -- Zeitstempel und Bearbeitungsstand gehören der Datenbank, nicht dem
+    -- Absender. Neu ist neu, egal was im Aufruf stand.
     new.created_at := now();
+    new.status     := 'offen';
+    new.status_am  := null;
+    new.status_von := null;
     return new;
 end;
 $$;
@@ -182,10 +207,57 @@ create trigger zutritte_normalisieren
     for each row execute function public.zutritte_normalisieren();
 
 
--- 7 --------------------------------------------------------------------- RLS
+-- 7 ------------------------------------------------- Bearbeitungsstand-Verlauf
+-- Wer den Stand ändert und wann, hält die Datenbank selbst fest. Die Seite
+-- schickt nur den neuen Stand.
+
+create or replace function public.zutritte_status_notieren()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if new.status is distinct from old.status then
+        new.status_am  := now();
+        new.status_von := auth.uid();
+    end if;
+    return new;
+end;
+$$;
+
+drop trigger if exists zutritte_status_notieren on public.zutritte;
+create trigger zutritte_status_notieren
+    before update on public.zutritte
+    for each row execute function public.zutritte_status_notieren();
+
+
+-- 8 -------------------------------------------------------- Wer ist Vorstand
+-- Die Rolle steht in `profiles`. Als security definer liest die Funktion sie
+-- auch dann, wenn die aufrufende Person die Tabelle selbst nicht sehen darf.
+
+create or replace function public.ist_vorstand()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    select exists (
+        select 1
+          from public.profiles
+         where id = auth.uid()
+           and lower(btrim(role)) = 'vorstand'
+    );
+$$;
+
+grant execute on function public.ist_vorstand() to authenticated;
+
+
+-- 9 --------------------------------------------------------------------- RLS
 -- Das Formular läuft mit dem öffentlichen Schlüssel. Es darf die drei Listen
--- lesen und eintragen – die Einsendungen selbst nicht. Lesen darf nur, wer in
--- der App angemeldet ist.
+-- lesen und eintragen – die Einsendungen selbst nicht. Die Liste der
+-- Einsendungen sieht und bearbeitet ausschließlich der Vorstand.
 
 alter table public.zutritt_ressorts     enable row level security;
 alter table public.zutritt_rollen       enable row level security;
@@ -215,10 +287,22 @@ create policy "zutritt eintragen" on public.zutritte
 drop policy if exists "zutritte lesen" on public.zutritte;
 create policy "zutritte lesen" on public.zutritte
     for select to authenticated
-    using (true);
+    using (public.ist_vorstand());
+
+drop policy if exists "zutritte stand setzen" on public.zutritte;
+create policy "zutritte stand setzen" on public.zutritte
+    for update to authenticated
+    using (public.ist_vorstand())
+    with check (public.ist_vorstand());
 
 grant select on public.zutritt_ressorts     to anon, authenticated;
 grant select on public.zutritt_rollen       to anon, authenticated;
 grant select on public.zutritt_einwilligung to anon, authenticated;
-grant insert on public.zutritte             to anon, authenticated;
-grant select on public.zutritte             to authenticated;
+-- Eintragen darf das Formular nur die Felder, die es auch ausfüllt: der
+-- Bearbeitungsstand ist von außen nicht setzbar. Ändern lässt sich später
+-- ebenfalls nur er – Namen und Angaben bleiben, wie sie eingegangen sind.
+revoke insert, update on public.zutritte from anon, authenticated;
+grant insert (vorname, nachname, email, ressort_id, rolle_id, einwilligung_id)
+    on public.zutritte to anon, authenticated;
+grant select        on public.zutritte to authenticated;
+grant update (status) on public.zutritte to authenticated;

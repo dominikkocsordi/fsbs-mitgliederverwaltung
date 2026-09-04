@@ -68,6 +68,7 @@
         <a class="navLink" href="mitgliederbefragung.html" id="navBefragung">Befragung</a>
         <a class="navLink active" href="protokoll.html" id="navProtokoll">Protokoll</a>
         <a class="navLink" href="zeugnisse.html" id="navZeugnisse" style="display:none;">Zeugnisse</a>
+        <a class="navLink" href="zutritte-liste.html" id="navZutritte" style="display:none;">Zutritte</a>
       </div>
       <div class="navRight">
         <button class="btn-secondary" onclick="logout()" type="button">Abmelden</button>
@@ -209,6 +210,10 @@ async function loadMyProfile(session){
       ["navFinanzen","navZeugnisse","navProtokoll"].forEach(hide);
     }
   }
+  // Die Zutritte-Liste ist Vorstandssache. Anders als die übrigen Links wird
+  // sie hier ausdrücklich eingeblendet – die Logik oben blendet nur aus.
+  const navZutritte = document.getElementById("navZutritte");
+  if(navZutritte) navZutritte.style.display = (isVorstand && !isPfluehrer) ? "" : "none";
   return { ...data, email, displayName: name||email.split("@")[0] };
 }
 async function logout(){

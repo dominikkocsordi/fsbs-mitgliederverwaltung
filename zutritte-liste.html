@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<title>Zutritte · FSBS</title>
+<meta name="theme-color" content="#f4f4f6">
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/app-shell.js"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/mobile-nav.css">
+
+<style>
+  /* Nur das, was es sonst nirgends gibt. Kacheln, Tabelle, Pillen und
+     Knöpfe kommen aus style.css. */
+
+  /* Die Kennzahlen sind zugleich der Filter. */
+  .statGrid { margin-bottom: 18px; }
+
+  /* Fünf Kacheln in der Standardbreite ergeben auf dem Handy drei Reihen,
+     bevor die Liste anfängt. Schmaler und flacher passen sie in eine. */
+  @media (max-width: 719px) {
+    .statGrid { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+    .statGrid .stat { padding: 12px; gap: 2px; }
+    .statGrid .stat__value { font-size: 22px; }
+    .statGrid .stat__label { font-size: 11px; }
+  }
+  .stat--filter { cursor: pointer; text-align: left; font: inherit; color: inherit; }
+  .stat--filter.is-active {
+    border-color: color-mix(in oklab, var(--primary) 45%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
+  }
+
+  /* Die drei Knöpfe pro Zeile stehen nebeneinander und brechen nicht um. */
+  .standCell { display: flex; gap: 6px; white-space: nowrap; }
+  .standCell .btn-xs { padding: 0 10px; }
+
+  td.standTd { width: 1%; }
+  th.standTh { text-align: right; }
+  .standCell { justify-content: flex-end; }
+
+  .zeitMuted { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+
+  /* Während eine Änderung läuft, ist die Zeile kurz gedämpft. */
+  .is-saving { opacity: 0.5; pointer-events: none; }
+
+  /* Unter 720 px blendet style.css jede Tabelle aus und erwartet eine
+     Kartenliste – .memberCardGrid schaltet sich dort von selbst ein. */
+  @media (max-width: 719px) { .nurBreit { display: none; } }
+
+  #karten .memberCard { cursor: default; }
+  #karten .memberCard:hover {
+    transform: none;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-soft);
+  }
+  #karten .cardTop { margin-bottom: 10px; }
+  #karten .pillRow { margin-bottom: 12px; }
+
+  /* Drei Stände, drei gleich breite Knöpfe. */
+  .standKarte {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .standKarte button { width: 100%; }
+
+  .gate { text-align: center; padding: 64px 20px; color: var(--muted-foreground); }
+  .gate strong { display: block; font-size: 17px; color: var(--foreground); margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/index.html" title="FSBS Intern">
+        <img src="/logo.png" alt="FSBS Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';">
+      </a>
+      <div>
+        <h1>Zutritte</h1>
+        <div class="subtitle">Eingegangene Formulare</div>
+      </div>
+    </div>
+    <div>
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap">
+    <div class="nav">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+      <div class="navLeft">
+        <a class="navLink" href="/index.html">Dashboard</a>
+        <a class="navLink" href="/members.html">Mitglieder</a>
+        <a class="navLink" href="/anwaerter.html">Anwärter</a>
+        <a class="navLink" href="/bewerbungen.html">Bewerbungen</a>
+        <a class="navLink" href="/rechnungen.html" id="navFinanzen" style="display:none;">Finanzen</a>
+        <a class="navLink" href="/mitgliederbefragung.html">Befragung</a>
+        <a class="navLink" href="/protokoll.html" id="navProtokoll" style="display:none;">Protokoll</a>
+        <a class="navLink" href="/zeugnisse.html" id="navZeugnisse" style="display:none;">Zeugnisse</a>
+        <a class="navLink active" href="/zutritte-liste.html" id="navZutritte" style="display:none;">Zutritte</a>
+      </div>
+      <div class="navRight">
+        <button class="btn-secondary" onclick="logout()" type="button">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainContent">
+    <div class="pageLoader"><div class="spinnerRing"></div><span>Lade…</span></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const LOGIN_PAGE = "/login.html";
+
+const $ = (id) => document.getElementById(id);
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+let toastTimer;
+function showToast(msg, isError=false){
+  const t=$("toast");
+  t.textContent=msg; t.classList.toggle("error",isError); t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+/* ---- Auth (wie auf den übrigen Seiten) ---- */
+const authBadge=$("authBadge"), authDot=$("authDot"), authState=$("authState"),
+      authMail=$("authMail"), authAvatar=$("authAvatar"), authCompact=$("authCompact"),
+      authNameInline=$("authNameInline"), authRolePill=$("authRolePill"),
+      authToggle=$("authToggle"), authDetails=$("authDetails");
+
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+authToggle?.addEventListener("click", e=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", e=>{ if(!authBadge.contains(e.target)) closeAuthDetails(); });
+
+function hashString(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function initialsFromEmail(email){ const e=(email||"").trim().toLowerCase(); if(!e) return "U"; const local=e.split("@")[0]||"u"; const parts=local.split(/[.\-_]+/).filter(Boolean); return ((parts[0]?.[0]||local[0]||"u").toUpperCase()+(parts[1]?.[0]||local[1]||"").toUpperCase()).trim()||"U"; }
+function setAvatar(email){ const e=(email||"").trim().toLowerCase(); if(!e){ authAvatar.classList.add("hidden"); return; } const h=hashString(e); const hue=h%360; const hue2=(hue+38)%360; authAvatar.textContent=initialsFromEmail(e); authAvatar.classList.remove("hidden"); authAvatar.style.background=`linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`; }
+function normRole(v){ return (v||"").trim().toLowerCase(); }
+function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; return "Unbekannt"; }
+function setRolePill(role){ const r=normRole(role); authRolePill.textContent=roleLabel(r); authRolePill.classList.remove("vorstand","ressortleiter"); authRolePill.classList.add(r==="vorstand"?"vorstand":"ressortleiter"); }
+function setAuthUI(isAuthed, email=""){
+  if(isAuthed){ authDot.classList.remove("warn"); authDot.classList.add("ok"); authState.classList.add("hidden"); authCompact.classList.remove("hidden"); closeAuthDetails(); authMail.textContent=(email||"").trim(); setAvatar(email); }
+  else { authDot.classList.remove("ok"); authDot.classList.add("warn"); authState.classList.remove("hidden"); authState.textContent="nicht eingeloggt"; authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent=""; setAvatar(""); }
+}
+async function requireAuthOrRedirect(){ const { data }=await sb.auth.getSession(); if(!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); } return data.session; }
+async function loadMyProfile(session){
+  const uid=session?.user?.id, email=session?.user?.email||"";
+  const { data, error }=await sb.from("profiles").select("role,display_name").eq("id",uid).maybeSingle();
+  if(error||!data) throw new Error("kein_profil");
+  setAuthUI(true,email);
+  authNameInline.textContent=(data.display_name||"").trim()||email.split("@")[0];
+  setRolePill(data.role);
+  const isVorstand=normRole(data.role)==="vorstand";
+  ["navFinanzen","navProtokoll","navZeugnisse","navZutritte"].forEach(id=>{
+    const el=$(id); if(el) el.style.display=isVorstand?"":"none";
+  });
+  return { ...data, email };
+}
+async function logout(){ await sb.auth.signOut(); window.location.replace(LOGIN_PAGE); }
+
+/* ================================================================
+   Bearbeitungsstände
+   ================================================================ */
+const STAENDE = {
+  offen:      { label: "Offen",     pill: "pill--neutral", knopf: null },
+  geprueft:   { label: "Geprüft",   pill: "pill--success", knopf: "btn-success" },
+  rueckfrage: { label: "Rückfrage", pill: "pill--warning", knopf: "btn-warning" },
+  abgelehnt:  { label: "Abgelehnt", pill: "pill--danger",  knopf: "btn-danger"  }
+};
+// Reihenfolge der Knöpfe in jeder Zeile. „Offen“ ist kein Knopf, sondern das,
+// was übrig bleibt, wenn man den gesetzten Stand noch einmal anklickt.
+const KNOEPFE = ["geprueft", "rueckfrage", "abgelehnt"];
+
+let zeilen = [];
+let filter = "alle";
+let suche  = "";
+
+const zeitText = (iso) => {
+  if (!iso) return "–";
+  const d = new Date(iso);
+  return d.toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" })
+       + ", " + d.toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" });
+};
+
+const passt = (z) => {
+  if (filter !== "alle" && z.status !== filter) return false;
+  if (!suche) return true;
+  const heu = [z.vorname, z.nachname, z.email, z.ressort, z.rolle].join(" ").toLowerCase();
+  return heu.includes(suche);
+};
+
+/* ---- Gerüst einmal aufbauen ---- */
+function renderPage(){
+  $("mainContent").innerHTML = `
+    <div class="statGrid" id="statGrid"></div>
+
+    <div class="toolbar">
+      <input class="toolbar__search" id="suche" type="search" placeholder="Name, E-Mail oder Ressort suchen">
+      <button class="btn-secondary btn-sm" id="neuLaden" type="button">Aktualisieren</button>
+      <div class="toolbar__spacer"></div>
+      <span class="toolbar__count" id="anzahl"></span>
+    </div>
+
+    <div class="tableCard nurBreit">
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Person</th>
+              <th>Ressort</th>
+              <th>Rolle ab 01.10.2026</th>
+              <th>Eingegangen</th>
+              <th>Stand</th>
+              <th class="standTh">Ändern</th>
+            </tr>
+          </thead>
+          <tbody id="zeilen"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="memberCardGrid" id="karten"></div>
+    <div id="leer" hidden></div>`;
+
+  $("suche").addEventListener("input", (e) => { suche = e.target.value.trim().toLowerCase(); zeichne(); });
+  $("neuLaden").addEventListener("click", laden);
+  const standKlick = (e) => {
+    const knopf = e.target.closest("button[data-stand]");
+    if (knopf) standSetzen(knopf.dataset.id, knopf.dataset.stand);
+  };
+  $("zeilen").addEventListener("click", standKlick);
+  $("karten").addEventListener("click", standKlick);
+  $("statGrid").addEventListener("click", (e) => {
+    const kachel = e.target.closest("button[data-filter]");
+    if (kachel) { filter = kachel.dataset.filter; zeichne(); }
+  });
+}
+
+/* ---- Kennzahlen, Tabelle, Zähler ---- */
+function zeichne(){
+  const zaehler = { alle: zeilen.length };
+  for (const k of Object.keys(STAENDE)) zaehler[k] = zeilen.filter(z => z.status === k).length;
+
+  $("statGrid").innerHTML = [["alle","Alle"]].concat(Object.entries(STAENDE).map(([k,v]) => [k, v.label]))
+    .map(([k,label]) => `
+      <button type="button" class="stat stat--filter${filter===k?" is-active":""}" data-filter="${k}">
+        <div class="stat__label">${label}</div>
+        <div class="stat__value">${zaehler[k]}</div>
+      </button>`).join("");
+
+  const sichtbar = zeilen.filter(passt);
+  $("anzahl").textContent = sichtbar.length === zeilen.length
+    ? `${zeilen.length} Einträge`
+    : `${sichtbar.length} von ${zeilen.length}`;
+
+  // Ein gesetzter Stand lässt sich mit demselben Knopf wieder lösen.
+  const knoepfeFuer = (z, klasse) => KNOEPFE.map(k => {
+    const aktiv = z.status === k;
+    const ziel  = aktiv ? "offen" : k;
+    return `<button type="button" class="${klasse} ${aktiv ? STAENDE[k].knopf : "btn-ghost"}"
+                    data-id="${z.id}" data-stand="${ziel}"
+                    title="${aktiv ? "Zurück auf Offen" : STAENDE[k].label}">${STAENDE[k].label}</button>`;
+  }).join("");
+
+  $("zeilen").innerHTML = sichtbar.map(z => {
+    const stand = STAENDE[z.status] || STAENDE.offen;
+    const knoepfe = knoepfeFuer(z, "btn-xs");
+
+    return `<tr data-row="${z.id}">
+      <td>
+        <div class="nameStack">
+          <span class="nameBold">${esc(z.vorname)} ${esc(z.nachname)}</span>
+          <span class="emailMuted">${esc(z.email)}</span>
+        </div>
+      </td>
+      <td>${esc(z.ressort || "–")}</td>
+      <td>${z.rolle ? esc(z.rolle) : '<span class="zeitMuted">–</span>'}</td>
+      <td class="zeitMuted">${zeitText(z.created_at)}</td>
+      <td><span class="pill ${stand.pill}">${stand.label}</span></td>
+      <td class="standTd"><div class="standCell">${knoepfe}</div></td>
+    </tr>`;
+  }).join("");
+
+  $("karten").innerHTML = sichtbar.map(z => {
+    const stand = STAENDE[z.status] || STAENDE.offen;
+    return `<div class="memberCard" data-row="${z.id}">
+      <div class="cardTop">
+        <div class="nameStack">
+          <span class="nameBold">${esc(z.vorname)} ${esc(z.nachname)}</span>
+          <span class="emailMuted">${esc(z.email)}</span>
+        </div>
+      </div>
+      <div class="pillRow">
+        <span class="pill">${esc(z.ressort || "ohne Ressort")}</span>
+        ${z.rolle ? `<span class="pill">${esc(z.rolle)}</span>` : ""}
+        <span class="pill ${stand.pill}">${stand.label}</span>
+      </div>
+      <div class="zeitMuted">Eingegangen am ${zeitText(z.created_at)}</div>
+      <div class="standKarte">${knoepfeFuer(z, "btn-sm")}</div>
+    </div>`;
+  }).join("");
+
+  const leer = $("leer");
+  leer.hidden = sichtbar.length > 0;
+  if (!leer.hidden) {
+    leer.innerHTML = `<div class="empty">
+      <div class="empty__icon">📋</div>
+      <div class="empty__title">${zeilen.length === 0 ? "Noch nichts eingegangen" : "Nichts gefunden"}</div>
+    </div>`;
+  }
+}
+
+/* ---- Laden ---- */
+async function laden(){
+  const { data, error } = await sb.from("zutritte")
+    .select("id,vorname,nachname,email,ressort,rolle,status,status_am,created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) { console.error(error); showToast("Die Liste ließ sich nicht laden.", true); return; }
+  zeilen = data;
+  zeichne();
+}
+
+/* ---- Stand ändern ---- */
+async function standSetzen(id, neu){
+  const z = zeilen.find(x => x.id === id);
+  if (!z || z.status === neu) return;
+
+  const vorher = z.status;
+  document.querySelectorAll(`[data-row="${id}"]`).forEach(el => el.classList.add("is-saving"));
+
+  // Erst zeigen, dann bestätigen lassen – geht es schief, wird zurückgedreht.
+  z.status = neu;
+  zeichne();
+
+  const { data, error } = await sb.from("zutritte")
+    .update({ status: neu })
+    .eq("id", id)
+    .select("id,status,status_am")
+    .maybeSingle();
+
+  if (error || !data) {
+    // Kein Fehler, aber auch keine Zeile zurück: die Policy hat die Änderung
+    // verworfen. Das ist kein Absturz und gehört nicht als null ins Protokoll.
+    if (error) console.error(error);
+    z.status = vorher;
+    zeichne();
+    showToast(error ? "Der Stand ließ sich nicht speichern." : "Keine Berechtigung, den Stand zu ändern.", true);
+    return;
+  }
+
+  z.status = data.status;
+  z.status_am = data.status_am;
+  zeichne();
+  showToast(`${z.vorname} ${z.nachname}: ${STAENDE[data.status].label}`);
+}
+
+/* ---- Start ---- */
+(async () => {
+  try {
+    const session = await requireAuthOrRedirect();
+    const profile = await loadMyProfile(session);
+
+    if (normRole(profile.role) !== "vorstand") {
+      $("mainContent").innerHTML =
+        `<div class="gate"><strong>Kein Zugriff</strong>Diese Liste ist dem Vorstand vorbehalten.</div>`;
+      return;
+    }
+
+    renderPage();
+    await laden();
+  } catch (e) {
+    if (e?.message === "kein_profil") {
+      setAuthUI(false);
+      $("mainContent").innerHTML =
+        `<div class="gate"><strong>Kein Zugriff</strong>Deine E-Mail ist nicht freigeschaltet.</div>`;
+    }
+  }
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(console.warn);
+  });
+}
+</script>
+<script src="/mobile-nav.js"></script>
+</body>
+</html>
