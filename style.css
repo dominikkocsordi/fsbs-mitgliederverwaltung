@@ -2878,56 +2878,27 @@ dialog::backdrop {
 .step { transition: opacity 0.25s ease, transform 0.25s ease; }
 .step.hidden { display: none !important; }
 
-.sentInfo {
-  padding: 11px 14px;
-  border-radius: var(--radius-control);
-  background: var(--secondary);
-  border: 1px solid var(--border-color);
-  font-size: 13px;
-  color: var(--muted-foreground);
-}
-
-.sentInfo strong { color: var(--foreground); font-weight: 600; }
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--faint-foreground);
-  font-size: 12px;
-}
-
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border-color);
-}
-
+/* Wartehinweis: eine ruhige Zeile, kein farbiges Panel */
 .pollWrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border-radius: var(--radius-control);
-  background: var(--info-surface);
-  border: 1px solid color-mix(in oklab, var(--info) 25%, transparent);
+  gap: 9px;
   font-size: 13px;
-  color: var(--info);
+  color: var(--faint-foreground);
 }
 
 .pollDot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--info);
+  background: currentColor;
   flex-shrink: 0;
-  animation: pulsePoll 1.4s ease-in-out infinite;
+  animation: pulsePoll 1.6s ease-in-out infinite;
 }
 
 @keyframes pulsePoll {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.4; transform: scale(0.75); }
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
 }
 
 /* ---------- MV-Widget auf dem Dashboard ---------- */

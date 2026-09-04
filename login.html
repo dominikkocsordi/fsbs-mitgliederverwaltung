@@ -25,93 +25,111 @@
 
   <style>
     /* ============================================================
-       Login-page local styles — zentrierte Karte
+       Login — eine zentrierte Spalte, sonst nichts
        ============================================================ */
     body {
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100dvh;
-      padding: 24px 16px;
+      padding: 40px 20px;
     }
 
     .app {
-      max-width: 460px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 380px;
       padding: 0;
     }
 
-    .titles { min-width: 0; }
-
-    .top {
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
+    .loginHead {
+      margin-bottom: 26px;
     }
 
-    .top .brandRight { gap: 8px; }
+    .loginHead .siteLogo { display: inline-block; }
+    .loginHead .siteLogoImg { height: 30px; }
 
-    .glass.card {
-      padding: 28px 26px;
-      margin-bottom: 0;
+    .loginHead h1 {
+      margin: 22px 0 0;
+      font-size: 25px;
+      line-height: 1.2;
+      letter-spacing: -0.025em;
     }
 
-    #btnSend,
-    .step .btn-primary {
-      width: 100%;
-      border-radius: 999px;
-      padding: 14px 20px;
-      font-size: 15px;
+    .loginHead p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: var(--muted-foreground);
     }
 
-    @media (max-width: 640px) {
-      .glass.card { padding: 22px 20px; }
-    }
+    .glass.card { padding: 26px 24px; }
 
     .formGrid {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .note {
+    .field label { margin-bottom: 7px; }
+
+    #btnSend,
+    #btnVerify {
+      width: 100%;
+      height: 46px;
+      font-size: 15px;
+    }
+
+    #otpInput {
+      height: 54px;
+      font-family: var(--font-mono);
+      font-size: 22px;
+      letter-spacing: 0.32em;
+      text-indent: 0.32em;
+      text-align: center;
+    }
+
+    .hint {
+      margin: 0;
       font-size: 13px;
-      color: var(--muted);
       line-height: 1.5;
+      color: var(--faint-foreground);
     }
 
+    /* Sekundäraktionen als ruhige Textlinks statt zweiter Buttonreihe */
+    .textActions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .linkBtn {
+      height: auto;
+      padding: 0;
+      border: 0;
+      background: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .linkBtn:not(:disabled):hover { color: var(--foreground); }
+    .linkBtn:disabled { cursor: default; opacity: 0.55 !important; }
+
+    /* Meldungen: eine Zeile Text, keine bunte Box */
     .msg {
       font-size: 13px;
-      border-radius: 12px;
-      padding: 10px 14px;
-      display: none;
+      line-height: 1.5;
+      color: var(--muted-foreground);
     }
-    .msg.error {
-      background: color-mix(in oklab, var(--danger) 15%, transparent);
-      border: 1px solid color-mix(in oklab, var(--danger) 30%, transparent);
-      color: var(--danger);
-      display: block;
-    }
-    .msg.success {
-      background: color-mix(in oklab, var(--success) 15%, transparent);
-      border: 1px solid color-mix(in oklab, var(--success) 30%, transparent);
-      color: var(--success);
-      display: block;
-    }
-    .msg.info {
-      background: color-mix(in oklab, var(--info) 12%, transparent);
-      border: 1px solid color-mix(in oklab, var(--info) 25%, transparent);
-      color: var(--info);
-      display: block;
-    }
-    .msg:not(:empty) { display: block; }
+    .msg:empty { display: none; }
+    .msg.error   { color: var(--danger); }
+    .msg.success { color: var(--success); }
 
     footer {
-      margin-top: 28px;
-      text-align: center;
+      margin-top: 24px;
       font-size: 12px;
       color: var(--faint-foreground);
     }
@@ -120,25 +138,14 @@
 
 <body>
   <main class="app">
-    <header class="top">
-      <div class="brandLeft">
-        <a class="siteLogo" href="index.html" title="Fachschaft Business School e.V.">
-          <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
-               alt="Fachschaft Business School e.V." />
-          <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true" />
-        </a>
-        <div class="titles">
-          <h1>FSBS Intern</h1>
-          <div class="subtitle">Vorstand & Ressortleitung</div>
-        </div>
-      </div>
-
-      <div class="brandRight">
-        <div class="badge" title="Login-Status">
-          <span class="dot bad" id="statusDot"></span>
-          <span id="statusText">nicht eingeloggt</span>
-        </div>
-      </div>
+    <header class="loginHead">
+      <a class="siteLogo" href="index.html" title="Fachschaft Business School e.V.">
+        <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
+             alt="Fachschaft Business School e.V." />
+        <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true" />
+      </a>
+      <h1>Anmelden</h1>
+      <p>FSBS Intern · Vorstand &amp; Ressortleitung</p>
     </header>
 
     <div class="glass card">
@@ -146,20 +153,15 @@
       <!-- ========== SCHRITT 1: E-Mail ========== -->
       <div id="step1" class="step">
         <div class="formGrid">
-          <div>
+          <div class="field">
             <label for="email">E-Mail-Adresse</label>
             <input id="email" type="email" autocomplete="email"
                    inputmode="email" placeholder="name@domain.de" />
           </div>
 
-          <button class="btn-primary" id="btnSend" type="button">
-            📧 Login-Code senden
-          </button>
+          <button class="btn-primary" id="btnSend" type="button">Login-Code senden</button>
 
-          <p class="note">
-            Du bekommst einen <strong>8-stelligen Code</strong> per E-Mail.
-            Den Code gibst du dann hier ein – du musst die App nicht verlassen.
-          </p>
+          <p class="hint">Du erhältst einen 8-stelligen Code per E-Mail.</p>
 
           <div id="msg1" class="msg"></div>
         </div>
@@ -168,52 +170,35 @@
       <!-- ========== SCHRITT 2: OTP-Code eingeben ========== -->
       <div id="step2" class="step hidden">
         <div class="formGrid">
-
-          <div class="sentInfo">
-            📧 Code gesendet an <strong id="sentTo">–</strong>
-          </div>
-
-          <!-- Polling-Indikator: wird automatisch erkannt wenn Link in Safari geklickt -->
-          <div class="pollWrap" id="pollWrap">
-            <div class="pollDot"></div>
-            <span>Warte auf Login… (oder Code unten eingeben)</span>
-          </div>
-
-          <div class="divider">oder Code manuell eingeben</div>
-
-          <div>
-            <label for="otpInput">8-stelliger Code aus der E-Mail</label>
+          <div class="field">
+            <label for="otpInput">Code aus der E-Mail an <strong id="sentTo">–</strong></label>
             <input id="otpInput" type="text"
                    inputmode="numeric" pattern="[0-9]*"
                    maxlength="8" placeholder="00000000"
                    autocomplete="one-time-code" />
           </div>
 
-          <button class="btn-primary" id="btnVerify" type="button" disabled>
-            ✓ Einloggen
-          </button>
+          <button class="btn-primary" id="btnVerify" type="button" disabled>Einloggen</button>
 
           <div id="msg2" class="msg"></div>
 
-          <div style="display:flex;gap:8px;">
-            <button class="btn-secondary" id="btnResend" type="button" disabled>
-              Erneut senden (15s)
-            </button>
-            <button class="btn-secondary" id="btnBack" type="button">
-              ← E-Mail ändern
-            </button>
+          <!-- Polling: wird automatisch erkannt, wenn der Link in Safari geklickt wird -->
+          <div class="pollWrap" id="pollWrap">
+            <span class="pollDot"></span>
+            <span>Warte auf Bestätigung …</span>
           </div>
 
+          <div class="textActions">
+            <button class="linkBtn" id="btnResend" type="button" disabled>Erneut senden (15s)</button>
+            <button class="linkBtn" id="btnBack" type="button">E-Mail ändern</button>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <footer>
-      <strong>Fachschaft Business School e.V.</strong> · portal.fsbs-hm.de
-    </footer>
+    <footer>Fachschaft Business School e.V.</footer>
   </main>
-
 <script>
   const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
   const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
@@ -223,8 +208,6 @@
   const EMAIL_REDIRECT_TO  = "https://portal.fsbs-hm.de/login.html";
 
   /* --- DOM-Elemente --- */
-  const statusDot  = document.getElementById("statusDot");
-  const statusText = document.getElementById("statusText");
   const emailEl    = document.getElementById("email");
   const otpEl      = document.getElementById("otpInput");
   const btnSend    = document.getElementById("btnSend");
@@ -243,11 +226,6 @@
   let resendTimer  = null;
 
   /* --- Hilfsfunktionen --- */
-  function setStatus(isAuthed){
-    statusDot.classList.toggle("ok", !!isAuthed);
-    statusDot.classList.toggle("bad", !isAuthed);
-    statusText.textContent = isAuthed ? "eingeloggt" : "nicht eingeloggt";
-  }
   function setMsg(el, text, kind){
     el.textContent = text || "";
     el.className   = "msg" + (kind ? " " + kind : "");
@@ -269,7 +247,7 @@
     if (code){
       const { error } = await sb.auth.exchangeCodeForSession(location.href);
       if (error){
-        setMsg(msg1El, "Fehler beim Login-Link: " + error.message, "bad");
+        setMsg(msg1El, "Fehler beim Login-Link: " + error.message, "error");
         return;
       }
       cleanUrl();
@@ -277,21 +255,19 @@
 
     const { data: { session } } = await sb.auth.getSession();
     if (session){
-      setStatus(true);
       cleanUrl();
       window.location.replace(APP_REDIRECT);
       return;
     }
-    setStatus(false);
   }
 
   /* --- OTP senden --- */
   async function sendOtp(){
     const email = emailEl.value.trim();
-    if (!email) return setMsg(msg1El, "Bitte E-Mail eingeben.", "bad");
+    if (!email) return setMsg(msg1El, "Bitte E-Mail eingeben.", "error");
 
     btnSend.disabled = true;
-    setMsg(msg1El, "Sende Code…", null);
+    setMsg(msg1El, "Code wird gesendet …", null);
 
     const { error } = await sb.auth.signInWithOtp({
       email,
@@ -304,7 +280,7 @@
     btnSend.disabled = false;
 
     if (error){
-      setMsg(msg1El, "Fehler: " + error.message, "bad");
+      setMsg(msg1El, "Fehler: " + error.message, "error");
       return;
     }
 
@@ -314,7 +290,7 @@
     step1.classList.add("hidden");
     step2.classList.remove("hidden");
     otpEl.focus();
-    setMsg(msg2El, "Code gesendet! Schau in deine E-Mail.", "ok");
+    setMsg(msg2El, "Code gesendet – schau in dein Postfach.", "success");
 
     startResendCountdown();
     startSessionPolling();
@@ -324,11 +300,11 @@
   async function verifyOtp(){
     const token = otpEl.value.trim().replace(/\D/g, "");
     if (token.length !== 8){
-      return setMsg(msg2El, "Bitte den 8-stelligen Code eingeben.", "bad");
+      return setMsg(msg2El, "Bitte den 8-stelligen Code eingeben.", "error");
     }
 
     btnVerify.disabled = true;
-    setMsg(msg2El, "Prüfe Code…", null);
+    setMsg(msg2El, "Code wird geprüft …", null);
 
     const { data, error } = await sb.auth.verifyOtp({
       email: currentEmail,
@@ -338,14 +314,13 @@
 
     if (error){
       btnVerify.disabled = false;
-      setMsg(msg2El, "Ungültiger Code – bitte erneut prüfen.", "bad");
+      setMsg(msg2El, "Ungültiger Code – bitte erneut prüfen.", "error");
       otpEl.select();
       return;
     }
 
     stopPolling();
-    setStatus(true);
-    setMsg(msg2El, "✅ Eingeloggt! Weiterleitung…", "ok");
+    setMsg(msg2El, "Eingeloggt – einen Moment …", "success");
     setTimeout(() => window.location.replace(APP_REDIRECT), 600);
   }
 
@@ -365,8 +340,7 @@
         const { data: { session } } = await sb.auth.getSession();
         if (session){
           stopPolling();
-          setStatus(true);
-          setMsg(msg2El, "✅ Login erkannt! Weiterleitung…", "ok");
+          setMsg(msg2El, "Login erkannt – einen Moment …", "success");
           setTimeout(() => window.location.replace(APP_REDIRECT), 500);
         }
       } catch(_){}
@@ -423,17 +397,17 @@
 
   btnResend.addEventListener("click", async () => {
     btnResend.disabled = true;
-    setMsg(msg2El, "Sende erneut…", null);
+    setMsg(msg2El, "Code wird erneut gesendet …", null);
     const { error } = await sb.auth.signInWithOtp({
       email: currentEmail,
       options: { emailRedirectTo: EMAIL_REDIRECT_TO, shouldCreateUser: false }
     });
     if (error){
-      setMsg(msg2El, "Fehler: " + error.message, "bad");
+      setMsg(msg2El, "Fehler: " + error.message, "error");
       btnResend.disabled = false;
       return;
     }
-    setMsg(msg2El, "Neuer Code gesendet!", "ok");
+    setMsg(msg2El, "Neuer Code gesendet.", "success");
     startResendCountdown();
     startSessionPolling();
   });
@@ -452,6 +426,7 @@
   /* --- Init --- */
   (async () => {
     await handleCallbackIfNeeded();
+    if (!step1.classList.contains("hidden")) emailEl.focus();
   })();
 
   /* PWA: Service Worker registrieren */
