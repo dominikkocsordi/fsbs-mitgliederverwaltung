@@ -82,6 +82,9 @@ create table if not exists public.zutritte (
     id                uuid primary key default gen_random_uuid(),
     vorname           text        not null,
     nachname          text        not null,
+    -- Text, nicht Zahl: Matrikelnummern beginnen teils mit 0 (»00123456«),
+    -- und als Zahl wäre die Null beim ersten Speichern verloren.
+    matrikelnummer    text        not null,
     email             text        not null,
     ressort_id        uuid        not null references public.zutritt_ressorts (id),
     ressort           text,
@@ -99,7 +102,8 @@ create table if not exists public.zutritte (
 
     constraint zutritte_vorname_laenge  check (char_length(btrim(vorname))  between 1 and 80),
     constraint zutritte_nachname_laenge check (char_length(btrim(nachname)) between 1 and 80),
-    constraint zutritte_email_form      check (email ~* '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$')
+    constraint zutritte_email_form      check (email ~* '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'),
+    constraint zutritte_matrikel_form   check (matrikelnummer ~ '^[0-9]{4,15}$')
 );
 
 -- Eine E-Mail-Adresse trägt sich genau einmal ein. Ein zweiter Versuch endet
@@ -120,6 +124,8 @@ alter table public.zutritte
 alter table public.zutritte
     add column if not exists einwilligung_text text;
 alter table public.zutritte
+    add column if not exists matrikelnummer text;
+alter table public.zutritte
     add column if not exists status text not null default 'offen';
 alter table public.zutritte
     add column if not exists status_am timestamptz;
@@ -137,10 +143,24 @@ $$;
 
 -- Zur Pflicht wird die Spalte erst, wenn keine Einsendung ohne Einwilligung
 -- mehr offen ist – sonst bliebe das Skript an Altbeständen hängen.
+-- Auch die Matrikelnummer trägt sich nur einmal ein. Mehrere leere Felder
+-- stören einen Unique-Index nicht, er darf deshalb sofort entstehen.
+create unique index if not exists zutritte_matrikel_eindeutig
+    on public.zutritte (matrikelnummer);
+
 do $$
 begin
     if not exists (select 1 from public.zutritte where einwilligung_id is null) then
         alter table public.zutritte alter column einwilligung_id set not null;
+    end if;
+
+    if not exists (select 1 from public.zutritte where matrikelnummer is null) then
+        alter table public.zutritte alter column matrikelnummer set not null;
+
+        if not exists (select 1 from pg_constraint where conname = 'zutritte_matrikel_form') then
+            alter table public.zutritte add constraint zutritte_matrikel_form
+                check (matrikelnummer ~ '^[0-9]{4,15}$');
+        end if;
     end if;
 end
 $$;
@@ -162,6 +182,16 @@ begin
     new.vorname  := btrim(new.vorname);
     new.nachname := btrim(new.nachname);
     new.email    := lower(btrim(new.email));
+    -- Leerzeichen fallen weg, die Ziffernfolge bleibt Zeichen für Zeichen
+    -- erhalten – führende Nullen eingeschlossen.
+    new.matrikelnummer := regexp_replace(coalesce(new.matrikelnummer, ''), '\s', '', 'g');
+
+    -- Auf einer nachgerüsteten Datenbank ist die Spalte noch nullbar, solange
+    -- Zeilen von früher offenstehen. Neu herein kommt trotzdem nichts ohne
+    -- gültige Nummer.
+    if new.matrikelnummer !~ '^[0-9]{4,15}$' then
+        raise exception 'Ungültige Matrikelnummer' using errcode = '23514';
+    end if;
 
     select name into new.ressort
       from public.zutritt_ressorts
@@ -302,7 +332,7 @@ grant select on public.zutritt_einwilligung to anon, authenticated;
 -- Bearbeitungsstand ist von außen nicht setzbar. Ändern lässt sich später
 -- ebenfalls nur er – Namen und Angaben bleiben, wie sie eingegangen sind.
 revoke insert, update on public.zutritte from anon, authenticated;
-grant insert (vorname, nachname, email, ressort_id, rolle_id, einwilligung_id)
+grant insert (vorname, nachname, matrikelnummer, email, ressort_id, rolle_id, einwilligung_id)
     on public.zutritte to anon, authenticated;
 grant select        on public.zutritte to authenticated;
 grant update (status) on public.zutritte to authenticated;

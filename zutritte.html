@@ -191,6 +191,15 @@
         </div>
 
         <div class="field full">
+          <label for="matrikelnummer">Matrikelnummer</label>
+          <!-- Ausdrücklich kein type="number": das schluckt die führende Null
+               und macht aus »00123456« eine 123456. -->
+          <input id="matrikelnummer" type="text" inputmode="numeric"
+                 autocomplete="off" maxlength="20" required>
+          <div class="zErr" id="matrikelnummer-error"></div>
+        </div>
+
+        <div class="field full">
           <label for="email">E-Mail-Adresse</label>
           <input id="email" type="email" autocomplete="email" inputmode="email" maxlength="160" required>
           <div class="zErr" id="email-error"></div>
@@ -290,6 +299,18 @@
       return true;
     }
 
+    // Leerzeichen fallen weg, die Ziffernfolge bleibt Zeichen für Zeichen –
+    // führende Nullen gehören zur Nummer.
+    if (el.id === "matrikelnummer") {
+      const ziffern = el.value.replace(/\s/g, "");
+      if (ziffern === "")            { setError(el, "Bitte ausfüllen."); return false; }
+      if (!/^[0-9]+$/.test(ziffern)) { setError(el, "Die Matrikelnummer besteht nur aus Ziffern."); return false; }
+      if (ziffern.length < 4)        { setError(el, "Diese Matrikelnummer sieht zu kurz aus."); return false; }
+      if (ziffern.length > 15)       { setError(el, "Diese Matrikelnummer sieht zu lang aus."); return false; }
+      clearError(el);
+      return true;
+    }
+
     const wert = el.value.trim();
     if (wert === "") {
       setError(el, el.tagName === "SELECT" ? "Bitte auswählen." : "Bitte ausfüllen.");
@@ -304,7 +325,7 @@
   };
 
   // Die Rolle ist freiwillig und wird deshalb nie geprüft.
-  const pflicht = ["vorname", "nachname", "email", "ressort", "einwilligung"].map($);
+  const pflicht = ["vorname", "nachname", "matrikelnummer", "email", "ressort", "einwilligung"].map($);
   for (const el of pflicht) {
     el.addEventListener("input",  () => clearError(el));
     el.addEventListener("change", () => clearError(el));
@@ -396,6 +417,8 @@
     const { error } = await sb.from("zutritte").insert({
       vorname:    $("vorname").value.trim(),
       nachname:   $("nachname").value.trim(),
+      // Als Zeichenkette, nie als Zahl – sonst ist die führende Null weg.
+      matrikelnummer: $("matrikelnummer").value.replace(/\s/g, ""),
       email:      $("email").value.trim().toLowerCase(),
       ressort_id: $("ressort").value,
       rolle_id:   $("rolle").value || null,
@@ -405,8 +428,13 @@
     if (!error) { fertig(); return; }
 
     if (error.code === "23505") {
-      setError($("email"), "Diese E-Mail-Adresse ist bereits eingetragen.");
-      $("email").focus();
+      // Zwei Felder sind eindeutig – die Meldung sagt, welches davon.
+      const wo = `${error.message || ""} ${error.details || ""}`.toLowerCase();
+      const feld = wo.includes("matrikel") ? "matrikelnummer" : "email";
+      setError($(feld), feld === "matrikelnummer"
+        ? "Diese Matrikelnummer ist bereits eingetragen."
+        : "Diese E-Mail-Adresse ist bereits eingetragen.");
+      $(feld).focus();
     } else {
       console.error(error);
       showNotice("Der Eintrag ließ sich nicht speichern. Bitte später noch einmal versuchen.");

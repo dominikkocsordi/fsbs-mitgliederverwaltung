@@ -44,11 +44,19 @@
   .standCell { display: flex; gap: 6px; white-space: nowrap; }
   .standCell .btn-xs { padding: 0 10px; }
 
+  /* Sieben Spalten passen mit der Standardpolsterung nicht in die
+     Inhaltsbreite – 4 px je Seite reichen, damit nichts abgeschnitten wird. */
+  .tableCard th, .tableCard td { padding-left: 10px; padding-right: 10px; }
+
   td.standTd { width: 1%; }
   th.standTh { text-align: right; }
   .standCell { justify-content: flex-end; }
 
   .zeitMuted { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+
+  /* Die Matrikelnummer ist eine Zeichenfolge, keine Zahl: dicktengleich
+     gesetzt, damit führende Nullen auf einen Blick zu zählen sind. */
+  .matrikel { font-family: var(--font-mono); font-size: 13px; white-space: nowrap; }
 
   /* Während eine Änderung läuft, ist die Zeile kurz gedämpft. */
   .is-saving { opacity: 0.5; pointer-events: none; }
@@ -220,7 +228,7 @@ const zeitText = (iso) => {
 const passt = (z) => {
   if (filter !== "alle" && z.status !== filter) return false;
   if (!suche) return true;
-  const heu = [z.vorname, z.nachname, z.email, z.ressort, z.rolle].join(" ").toLowerCase();
+  const heu = [z.vorname, z.nachname, z.matrikelnummer, z.email, z.ressort, z.rolle].join(" ").toLowerCase();
   return heu.includes(suche);
 };
 
@@ -230,7 +238,7 @@ function renderPage(){
     <div class="statGrid" id="statGrid"></div>
 
     <div class="toolbar">
-      <input class="toolbar__search" id="suche" type="search" placeholder="Name, E-Mail oder Ressort suchen">
+      <input class="toolbar__search" id="suche" type="search" placeholder="Name, Matrikelnummer, E-Mail oder Ressort suchen">
       <button class="btn-secondary btn-sm" id="neuLaden" type="button">Aktualisieren</button>
       <div class="toolbar__spacer"></div>
       <span class="toolbar__count" id="anzahl"></span>
@@ -242,11 +250,12 @@ function renderPage(){
           <thead>
             <tr>
               <th>Person</th>
+              <th>Matrikelnr.</th>
               <th>Ressort</th>
-              <th>Rolle ab 01.10.2026</th>
+              <th>Rolle ab 01.10.26</th>
               <th>Eingegangen</th>
               <th>Stand</th>
-              <th class="standTh">Ändern</th>
+              <th class="standTh" aria-label="Bearbeitungsstand ändern"></th>
             </tr>
           </thead>
           <tbody id="zeilen"></tbody>
@@ -308,6 +317,7 @@ function zeichne(){
           <span class="emailMuted">${esc(z.email)}</span>
         </div>
       </td>
+      <td class="matrikel">${esc(z.matrikelnummer || "–")}</td>
       <td>${esc(z.ressort || "–")}</td>
       <td>${z.rolle ? esc(z.rolle) : '<span class="zeitMuted">–</span>'}</td>
       <td class="zeitMuted">${zeitText(z.created_at)}</td>
@@ -326,6 +336,7 @@ function zeichne(){
         </div>
       </div>
       <div class="pillRow">
+        <span class="pill"><span class="matrikel">${esc(z.matrikelnummer || "–")}</span></span>
         <span class="pill">${esc(z.ressort || "ohne Ressort")}</span>
         ${z.rolle ? `<span class="pill">${esc(z.rolle)}</span>` : ""}
         <span class="pill ${stand.pill}">${stand.label}</span>
@@ -348,7 +359,7 @@ function zeichne(){
 /* ---- Laden ---- */
 async function laden(){
   const { data, error } = await sb.from("zutritte")
-    .select("id,vorname,nachname,email,ressort,rolle,status,status_am,created_at")
+    .select("id,vorname,nachname,matrikelnummer,email,ressort,rolle,status,status_am,created_at")
     .order("created_at", { ascending: false });
 
   if (error) { console.error(error); showToast("Die Liste ließ sich nicht laden.", true); return; }
