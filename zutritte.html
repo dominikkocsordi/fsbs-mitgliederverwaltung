@@ -129,13 +129,42 @@
     background: color-mix(in oklab, var(--danger) 8%, transparent);
   }
 
+  /* ---------- Countdown ---------- */
+  .zClock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: -12px 0 26px;
+  }
+  .zClock[hidden] { display: none; }
+
+  .zClock > div {
+    padding: 10px 4px 8px;
+    background: var(--surface-1);
+    border-radius: var(--radius-control);
+    text-align: center;
+  }
+
+  .zClock b {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(20px, 5vw, 26px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    /* Gleich breite Ziffern: die Sekunden lassen die Karte sonst zappeln. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .zClock small { font-size: 11px; color: var(--faint-foreground); }
+
   .zSubmit { margin-top: 24px; }
   .zNotice { margin-top: 14px; }
   .zNotice[hidden] { display: none; }
 
   /* ---------- Nach dem Absenden ---------- */
-  #done { text-align: center; padding: 8px 0 6px; animation: fadeIn 0.45s var(--ease) both; }
-  #done svg { display: block; margin: 0 auto 20px; }
+  #done, #zu { text-align: center; padding: 8px 0 6px; animation: fadeIn 0.45s var(--ease) both; }
+  #done svg, #zu svg { display: block; margin: 0 auto 20px; }
+  #zu svg { color: var(--muted-foreground); }
   #done .ring { fill: none; stroke: var(--success); stroke-width: 2; opacity: 0.32; }
   #done .tick {
     fill: none;
@@ -149,17 +178,17 @@
   }
   @keyframes zDraw { to { stroke-dashoffset: 0; } }
 
-  #done h2 {
+  #done h2, #zu h2 {
     font-family: var(--font-display);
     font-size: 22px;
     font-weight: 600;
     letter-spacing: -0.025em;
     margin: 0 0 6px;
   }
-  #done p { margin: 0; color: var(--muted-foreground); font-size: 14px; }
+  #done p, #zu p { margin: 0; color: var(--muted-foreground); font-size: 14px; }
 
   @media (prefers-reduced-motion: reduce) {
-    .wrap > .glass, #done, #done .tick { animation: none; }
+    .wrap > .glass, #done, #zu, #done .tick { animation: none; }
     #done .tick { stroke-dashoffset: 0; }
   }
 
@@ -180,6 +209,13 @@
            alt="Fachschaft Business School e.V.">
       <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true">
       <h1>Zutritt in das Fachschaftszimmer&nbsp;/ Tiefgarage Pasing</h1>
+    </div>
+
+    <div class="zClock" id="clock" hidden aria-live="off">
+      <div><b id="cdT">–</b><small>Tage</small></div>
+      <div><b id="cdS">–</b><small>Stunden</small></div>
+      <div><b id="cdM">–</b><small>Minuten</small></div>
+      <div><b id="cdK">–</b><small>Sekunden</small></div>
     </div>
 
     <form id="form" class="zForm" novalidate autocomplete="on">
@@ -249,6 +285,16 @@
       <p class="notice bad zNotice" id="notice" role="alert" hidden></p>
     </form>
 
+    <div id="zu" hidden>
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3.5" y="10.5" width="17" height="10.5" rx="2.5"/>
+        <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
+      </svg>
+      <h2>Eintragung geschlossen</h2>
+      <p id="zu-text"></p>
+    </div>
+
     <div id="done" hidden>
       <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
         <circle class="ring" cx="28" cy="28" r="25"/>
@@ -281,6 +327,59 @@
     showNotice("Die Verbindung zur Datenbank kam nicht zustande. Blockiert vielleicht ein Adblocker die Seite?");
     return;
   }
+
+  /* --- Frist ------------------------------------------------------------ */
+  // Bis wann das Formular etwas entgegennimmt, steht in der Datenbank; der
+  // Vorstand stellt es dort um. Antwortet sie nicht, gilt der Wert hier:
+  // 14.09.2026, 20:00 Uhr Berliner Zeit.
+  const FRIST_FALLBACK = "2026-09-14T18:00:00Z";
+
+  const frist = { bis: new Date(FRIST_FALLBACK), geschlossen: false };
+  let ticker = null;
+
+  const berlinText = (d) => d.toLocaleString("de-DE", {
+    timeZone: "Europe/Berlin",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  }) + " Uhr";
+
+  const offen = () => !frist.geschlossen &&
+    (!frist.bis || Date.now() < frist.bis.getTime());
+
+  const schliessen = () => {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+    const vorbei = frist.bis && Date.now() >= frist.bis.getTime();
+    $("clock").hidden = true;
+    form.hidden = true;
+    $("done").hidden = true;
+    $("zu-text").textContent = vorbei
+      ? "Seit " + berlinText(frist.bis) + " nehmen wir keine Eintragungen mehr entgegen."
+      : "Zurzeit nehmen wir keine Eintragungen entgegen.";
+    $("zu").hidden = false;
+  };
+
+  const zwei = (n) => String(n).padStart(2, "0");
+
+  const uhrZeichnen = () => {
+    const rest = frist.bis.getTime() - Date.now();
+    if (rest <= 0) { schliessen(); return; }
+    const s = Math.floor(rest / 1000);
+    $("cdT").textContent = Math.floor(s / 86400);
+    $("cdS").textContent = zwei(Math.floor(s / 3600) % 24);
+    $("cdM").textContent = zwei(Math.floor(s / 60) % 60);
+    $("cdK").textContent = zwei(s % 60);
+  };
+
+  const fristLaden = async () => {
+    const { data, error } = await sb.from("zutritt_formular")
+      .select("frist,geschlossen")
+      .maybeSingle();
+    // Fehlt die Zeile, bleibt es beim Notnagel oben.
+    if (error) { console.error(error); return; }
+    if (!data) return;
+    frist.bis = data.frist ? new Date(data.frist) : null;
+    frist.geschlossen = data.geschlossen === true;
+  };
 
   /* --- Fehler an einem Feld -------------------------------------------- */
   const setError = (el, text) => {
@@ -380,6 +479,14 @@
   };
 
   (async () => {
+    await fristLaden();
+    if (!offen()) { schliessen(); return; }
+    if (frist.bis) {
+      uhrZeichnen();
+      $("clock").hidden = false;
+      ticker = setInterval(uhrZeichnen, 1000);
+    }
+
     const [ressorts, , texte] = await Promise.all([
       fuellen($("ressort"), "zutritt_ressorts"),
       fuellen($("rolle"),   "zutritt_rollen"),
@@ -409,6 +516,7 @@
     if (laeuft) return;
 
     notice.hidden = true;
+    if (!offen()) { schliessen(); return; }
 
     let erstesFehlendes = null;
     for (const el of pflicht) if (!validate(el) && !erstesFehlendes) erstesFehlendes = el;
@@ -433,6 +541,9 @@
     });
 
     if (!error) { fertig(); return; }
+
+    // Die Datenbank weist ab, was nach der Frist kommt.
+    if (error.code === "42501") { frist.geschlossen = true; schliessen(); return; }
 
     if (error.code === "23505") {
       // Zwei Felder sind eindeutig – die Meldung sagt, welches davon.

@@ -83,6 +83,17 @@
   }
   .standKarte button { width: 100%; }
 
+  /* Frist und Schalter des öffentlichen Formulars. */
+  .formKarte {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .formKarte input[type="datetime-local"] { flex: 0 1 200px; width: auto; height: 32px; font-size: 13px; }
+  .formKarte .toolbar__spacer { flex: 1 1 auto; }
+
   .gate { text-align: center; padding: 64px 20px; color: var(--muted-foreground); }
   .gate strong { display: block; font-size: 17px; color: var(--foreground); margin-bottom: 6px; }
 </style>
@@ -235,6 +246,15 @@ const passt = (z) => {
 /* ---- Gerüst einmal aufbauen ---- */
 function renderPage(){
   $("mainContent").innerHTML = `
+    <div class="glass card--tight formKarte">
+      <span class="pill" id="formPill">–</span>
+      <span class="zeitMuted" id="formFrist"></span>
+      <div class="toolbar__spacer"></div>
+      <input type="datetime-local" id="fristInput" aria-label="Frist">
+      <button class="btn-secondary btn-sm" id="fristSetzen" type="button">Frist setzen</button>
+      <button class="btn-sm" id="formToggle" type="button">–</button>
+    </div>
+
     <div class="statGrid" id="statGrid"></div>
 
     <div class="toolbar">
@@ -265,6 +285,16 @@ function renderPage(){
 
     <div class="memberCardGrid" id="karten"></div>
     <div id="leer" hidden></div>`;
+
+  $("fristSetzen").addEventListener("click", () => {
+    const wert = $("fristInput").value;
+    formSpeichern({ frist: wert ? ausBerlin(wert) : null });
+  });
+  $("formToggle").addEventListener("click", () => {
+    if (formOffen()) { formSpeichern({ geschlossen: true }); return; }
+    // Wiederöffnen: eine abgelaufene Frist würde sofort wieder zumachen.
+    formSpeichern(fristVorbei() ? { geschlossen: false, frist: null } : { geschlossen: false });
+  });
 
   $("suche").addEventListener("input", (e) => { suche = e.target.value.trim().toLowerCase(); zeichne(); });
   $("neuLaden").addEventListener("click", laden);
@@ -356,6 +386,87 @@ function zeichne(){
   }
 }
 
+/* ================================================================
+   Formular: Frist und Schalter
+   ================================================================ */
+let formular = { frist: null, geschlossen: false };
+
+const zeitBerlin = (iso) => new Date(iso).toLocaleString("de-DE", {
+  timeZone: "Europe/Berlin",
+  day: "2-digit", month: "2-digit", year: "numeric",
+  hour: "2-digit", minute: "2-digit"
+}) + " Uhr";
+
+// Der Vorstand tippt Berliner Zeit, egal wo der Rechner steht.
+const inZone = (d, zone) =>
+  new Date(d.toLocaleString("sv-SE", { timeZone: zone }).replace(" ", "T") + "Z");
+const berlinVersatz = (d) => inZone(d, "Europe/Berlin") - inZone(d, "UTC");
+
+// "2026-09-14T20:00" (Berliner Uhr) → ISO. Der zweite Durchgang fängt die
+// Zeitumstellung ab, wenn der Versatz vor und nach dem Wechsel verschieden ist.
+function ausBerlin(wert){
+  const naiv = new Date(wert.length === 16 ? wert + ":00Z" : wert + "Z");
+  const grob = new Date(naiv.getTime() - berlinVersatz(naiv));
+  return new Date(naiv.getTime() - berlinVersatz(grob)).toISOString();
+}
+
+// ISO → "2026-09-14T20:00" für das Eingabefeld.
+function nachBerlin(iso){
+  const t = new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+  return t.slice(0, 10) + "T" + t.slice(11, 16);
+}
+
+const fristVorbei = () => !!formular.frist && Date.now() >= new Date(formular.frist).getTime();
+const formOffen   = () => !formular.geschlossen && !fristVorbei();
+
+function formZeichnen(){
+  const offen = formOffen();
+
+  const pille = $("formPill");
+  pille.className = "pill " + (offen ? "pill--success" : "pill--danger");
+  pille.textContent = offen ? "Formular geöffnet" : "Formular geschlossen";
+
+  $("formFrist").textContent = formular.frist
+    ? (fristVorbei() ? "Frist abgelaufen: " : "Frist: ") + zeitBerlin(formular.frist)
+    : "Keine Frist";
+
+  const schalter = $("formToggle");
+  schalter.className = "btn-sm " + (offen ? "btn-danger" : "btn-success");
+  schalter.textContent = offen ? "Schließen" : "Öffnen";
+
+  const feld = $("fristInput");
+  if (document.activeElement !== feld) feld.value = formular.frist ? nachBerlin(formular.frist) : "";
+}
+
+async function formLaden(){
+  const { data, error } = await sb.from("zutritt_formular")
+    .select("frist,geschlossen")
+    .maybeSingle();
+  if (error || !data) { if (error) console.error(error); return; }
+  formular = { frist: data.frist, geschlossen: data.geschlossen === true };
+  formZeichnen();
+}
+
+async function formSpeichern(aenderung){
+  const { data, error } = await sb.from("zutritt_formular")
+    .update(aenderung)
+    .eq("id", true)
+    .select("frist,geschlossen")
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error(error);
+    showToast(error ? "Die Änderung ließ sich nicht speichern." : "Keine Berechtigung dafür.", true);
+    return;
+  }
+
+  formular = { frist: data.frist, geschlossen: data.geschlossen === true };
+  formZeichnen();
+  showToast(formOffen()
+    ? (formular.frist ? "Formular offen bis " + zeitBerlin(formular.frist) : "Formular offen")
+    : "Formular geschlossen");
+}
+
 /* ---- Laden ---- */
 async function laden(){
   const { data, error } = await sb.from("zutritte")
@@ -414,7 +525,10 @@ async function standSetzen(id, neu){
     }
 
     renderPage();
-    await laden();
+    await Promise.all([formLaden(), laden()]);
+    // Läuft die Frist zu, während die Liste offen ist, wechselt die Anzeige
+    // von selbst.
+    setInterval(formZeichnen, 15000);
   } catch (e) {
     if (e?.message === "kein_profil") {
       setAuthUI(false);

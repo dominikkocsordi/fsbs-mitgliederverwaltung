@@ -284,7 +284,60 @@ $$;
 grant execute on function public.ist_vorstand() to authenticated;
 
 
--- 9 --------------------------------------------------------------------- RLS
+-- 9 ---------------------------------------------------------------- Frist
+-- Eine Zeile, die sagt, ob das Formular noch etwas entgegennimmt: bis
+-- `frist` (leer = ohne Ende), sofern nicht `geschlossen`. Der Vorstand setzt
+-- beides im Portal; die Seite liest es und richtet sich danach.
+
+create table if not exists public.zutritt_formular (
+    id            boolean primary key default true check (id),
+    frist         timestamptz,
+    geschlossen   boolean     not null default false,
+    geaendert_am  timestamptz not null default now(),
+    geaendert_von uuid
+);
+
+insert into public.zutritt_formular (id, frist)
+values (true, timestamptz '2026-09-14 20:00:00+02')
+on conflict (id) do nothing;
+
+create or replace function public.zutritt_offen()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    select coalesce(
+        (select not geschlossen and (frist is null or now() < frist)
+           from public.zutritt_formular
+          where id),
+        true);
+$$;
+
+grant execute on function public.zutritt_offen() to anon, authenticated;
+
+create or replace function public.zutritt_formular_notieren()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    new.id            := true;
+    new.geaendert_am  := now();
+    new.geaendert_von := auth.uid();
+    return new;
+end;
+$$;
+
+drop trigger if exists zutritt_formular_notieren on public.zutritt_formular;
+create trigger zutritt_formular_notieren
+    before update on public.zutritt_formular
+    for each row execute function public.zutritt_formular_notieren();
+
+
+-- 10 -------------------------------------------------------------------- RLS
 -- Das Formular läuft mit dem öffentlichen Schlüssel. Es darf die drei Listen
 -- lesen und eintragen – die Einsendungen selbst nicht. Die Liste der
 -- Einsendungen sieht und bearbeitet ausschließlich der Vorstand.
@@ -292,6 +345,7 @@ grant execute on function public.ist_vorstand() to authenticated;
 alter table public.zutritt_ressorts     enable row level security;
 alter table public.zutritt_rollen       enable row level security;
 alter table public.zutritt_einwilligung enable row level security;
+alter table public.zutritt_formular     enable row level security;
 alter table public.zutritte             enable row level security;
 
 drop policy if exists "ressorts lesen" on public.zutritt_ressorts;
@@ -309,10 +363,22 @@ create policy "einwilligung lesen" on public.zutritt_einwilligung
     for select to anon, authenticated
     using (active);
 
+drop policy if exists "formular lesen" on public.zutritt_formular;
+create policy "formular lesen" on public.zutritt_formular
+    for select to anon, authenticated
+    using (true);
+
+drop policy if exists "formular stellen" on public.zutritt_formular;
+create policy "formular stellen" on public.zutritt_formular
+    for update to authenticated
+    using (public.ist_vorstand())
+    with check (public.ist_vorstand());
+
+-- Nach der Frist nimmt die Datenbank nichts mehr an, nicht erst die Seite.
 drop policy if exists "zutritt eintragen" on public.zutritte;
 create policy "zutritt eintragen" on public.zutritte
     for insert to anon, authenticated
-    with check (true);
+    with check (public.zutritt_offen());
 
 drop policy if exists "zutritte lesen" on public.zutritte;
 create policy "zutritte lesen" on public.zutritte
@@ -328,6 +394,10 @@ create policy "zutritte stand setzen" on public.zutritte
 grant select on public.zutritt_ressorts     to anon, authenticated;
 grant select on public.zutritt_rollen       to anon, authenticated;
 grant select on public.zutritt_einwilligung to anon, authenticated;
+-- Am Formularzustand darf der Vorstand nur Frist und Schalter drehen.
+revoke insert, update, delete on public.zutritt_formular from anon, authenticated;
+grant select on public.zutritt_formular to anon, authenticated;
+grant update (frist, geschlossen) on public.zutritt_formular to authenticated;
 -- Eintragen darf das Formular nur die Felder, die es auch ausfüllt: der
 -- Bearbeitungsstand ist von außen nicht setzbar. Ändern lässt sich später
 -- ebenfalls nur er – Namen und Angaben bleiben, wie sie eingegangen sind.
