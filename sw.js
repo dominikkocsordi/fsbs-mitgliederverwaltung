@@ -3,7 +3,7 @@
    Offline-Support & PWA-Installierung
    ============================================================ */
 
-const CACHE = 'fsbs-v6';
+const CACHE = 'fsbs-v7';
 
 /* Statische App-Shell – bei Installation vorher cachen */
 const PRECACHE = [
@@ -18,6 +18,7 @@ const PRECACHE = [
   '/protokoll.html',
   '/zeugnisse.html',
   '/abstimmung.html',
+  '/zutritte.html',
   '/style.css',
   '/theme.js',
   '/app-shell.js',
@@ -69,8 +70,10 @@ self.addEventListener('fetch', evt => {
   ];
   if (skipHosts.some(h => url.hostname.includes(h))) return;
 
-  /* HTML-Seiten: Network-first (immer frischer Inhalt, Fallback auf Cache) */
-  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+  /* HTML-Seiten: Network-first (immer frischer Inhalt, Fallback auf Cache).
+     Auch Aufrufe ohne Endung zählen dazu – /zutritte etwa liefert GitHub
+     Pages aus zutritte.html aus. */
+  if (request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/') {
     evt.respondWith(
       fetch(request)
         .then(res => {
