@@ -84,6 +84,44 @@
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 20%, transparent);
   }
 
+  /* ---------- Einwilligung ---------- */
+  .zConsentField { margin-top: 20px; }
+
+  .zConsent {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin: 0;
+    padding: 13px 14px;
+    background: var(--surface-1);
+    border-radius: var(--radius-control);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    cursor: pointer;
+  }
+
+  /* style.css setzt appearance:none und ein Innenmaß auf alle input – ein
+     Kästchen verliert dadurch sein Häkchen und wird 30 px breit. Für dieses
+     eine Feld holen wir die Systemdarstellung zurück. */
+  .zConsent input[type="checkbox"] {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    padding: 0;
+    -webkit-appearance: checkbox;
+    appearance: auto;
+    accent-color: var(--primary);
+  }
+
+  .zConsentField .zErr { display: none; padding-left: 14px; }
+  .zConsentField.has-error .zErr { display: block; }
+  .zConsentField.has-error .zConsent {
+    background: color-mix(in oklab, var(--danger) 8%, transparent);
+  }
+
   .zSubmit { margin-top: 24px; }
   .zNotice { margin-top: 14px; }
   .zNotice[hidden] { display: none; }
@@ -175,6 +213,17 @@
 
       </div>
 
+      <div class="zConsentField" id="einwilligung-feld">
+        <label class="zConsent" for="einwilligung">
+          <input id="einwilligung" type="checkbox" required disabled>
+          <!-- Der Wortlaut steht in der Datenbank; dieser Satz ist nur da,
+               damit vor der Antwort nichts springt. Gespeichert wird immer
+               die Fassung aus der Datenbank. -->
+          <span id="einwilligung-text">Ich bestätige, dass ich diese Angaben ausschließlich für mich selbst gemacht habe und sie wahrheitsgemäß sind. Ich stimme zu, dass meine Daten zur Dokumentation der Zutritte gespeichert, verarbeitet und an die Verwaltung der Hochschule München übertragen werden.</span>
+        </label>
+        <div class="zErr" id="einwilligung-error"></div>
+      </div>
+
       <div class="hp" aria-hidden="true">
         <label for="webseite">Webseite</label>
         <input id="webseite" type="text" tabindex="-1" autocomplete="off">
@@ -219,19 +268,28 @@
 
   /* --- Fehler an einem Feld -------------------------------------------- */
   const setError = (el, text) => {
-    el.closest(".field").classList.add("has-error");
+    el.closest(".field, .zConsentField").classList.add("has-error");
     const slot = $(el.id + "-error");
     if (slot) slot.textContent = text;
     el.setAttribute("aria-invalid", "true");
   };
   const clearError = (el) => {
-    el.closest(".field").classList.remove("has-error");
+    el.closest(".field, .zConsentField").classList.remove("has-error");
     el.removeAttribute("aria-invalid");
   };
 
   const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 
   const validate = (el) => {
+    if (el.type === "checkbox") {
+      if (!el.checked) {
+        setError(el, "Ohne diese Bestätigung können wir dich nicht eintragen.");
+        return false;
+      }
+      clearError(el);
+      return true;
+    }
+
     const wert = el.value.trim();
     if (wert === "") {
       setError(el, el.tagName === "SELECT" ? "Bitte auswählen." : "Bitte ausfüllen.");
@@ -246,11 +304,13 @@
   };
 
   // Die Rolle ist freiwillig und wird deshalb nie geprüft.
-  const pflicht = ["vorname", "nachname", "email", "ressort"].map($);
+  const pflicht = ["vorname", "nachname", "email", "ressort", "einwilligung"].map($);
   for (const el of pflicht) {
     el.addEventListener("input",  () => clearError(el));
     el.addEventListener("change", () => clearError(el));
-    el.addEventListener("blur",   () => { if (el.value.trim() !== "") validate(el); });
+    if (el.type !== "checkbox") {
+      el.addEventListener("blur", () => { if (el.value.trim() !== "") validate(el); });
+    }
   }
 
   /* --- Auswahllisten füllen -------------------------------------------- */
@@ -271,11 +331,37 @@
     return data.length;
   };
 
+  /* --- Einwilligung laden ------------------------------------------------ */
+  // Die Seite zeigt den Wortlaut, den sie hier bekommt, und schickt beim
+  // Eintragen dessen ID mit – gespeichert wird also immer genau der Satz,
+  // dem jemand zugestimmt hat. Gilt die jüngste aktive Fassung.
+  const einwilligung = { id: null };
+
+  const einwilligungLaden = async () => {
+    const { data, error } = await sb.from("zutritt_einwilligung")
+      .select("id,text")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    if (data.length === 0) return 0;
+
+    einwilligung.id = data[0].id;
+    $("einwilligung-text").textContent = data[0].text;
+    $("einwilligung").disabled = false;
+    return 1;
+  };
+
   (async () => {
-    const [ressorts] = await Promise.all([
+    const [ressorts, , texte] = await Promise.all([
       fuellen($("ressort"), "zutritt_ressorts"),
-      fuellen($("rolle"),   "zutritt_rollen")
+      fuellen($("rolle"),   "zutritt_rollen"),
+      einwilligungLaden()
     ]);
+    if (texte === 0) {
+      submit.disabled = true;
+      showNotice("Der Text der Einwilligung fehlt in der Datenbank. Ohne ihn nehmen wir nichts entgegen.");
+      return;
+    }
     // Ohne Ressorts lässt sich nichts eintragen – das sagt die Seite dann auch.
     if (ressorts === 0) {
       submit.disabled = true;
@@ -312,7 +398,8 @@
       nachname:   $("nachname").value.trim(),
       email:      $("email").value.trim().toLowerCase(),
       ressort_id: $("ressort").value,
-      rolle_id:   $("rolle").value || null
+      rolle_id:   $("rolle").value || null,
+      einwilligung_id: einwilligung.id
     });
 
     if (!error) { fertig(); return; }
