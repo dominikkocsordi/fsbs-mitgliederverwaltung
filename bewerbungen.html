@@ -143,6 +143,36 @@
      Vorbeiscrollen preisgibt. */
   .bewStand { position: absolute; top: 13px; left: 16px; }
 
+  /* Löschen sieht anders aus als Ablehnen — sonst griffe man im
+     Vorbeigehen zum falschen der beiden roten Knöpfe. */
+  .bewLoeschen {
+    margin-right: auto;
+    border-color: color-mix(in oklab, var(--danger) 40%, transparent);
+    color: var(--danger);
+  }
+  .bewLoeschen:not(:disabled):hover {
+    background: var(--danger-surface);
+    border-color: var(--danger);
+  }
+  @media (max-width: 640px) { .bewLoeschen { margin-right: 0; } }
+
+  .loeschText {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+
+  .loeschWarn {
+    margin-top: 12px;
+    padding: 11px 13px;
+    background: var(--warning-surface);
+    border-radius: var(--radius-control);
+    color: var(--foreground);
+    font-size: 13px;
+  }
+  .loeschWarn[hidden] { display: none; }
+
   /* Der Code, wie ihn der Bewerber vor sich hat: gleiche Breite je
      Zeichen, damit sich 0 und O beim Vorlesen nicht in die Quere kommen. */
   .bewCode {
@@ -350,6 +380,9 @@
     </div>
 
     <div class="modalActions" id="detailActions">
+      <!-- Steht als Erstes im Quelltext und rückt damit nach links, weg von
+           den Ständen: Ablehnen lässt sich zurücknehmen, Löschen nicht. -->
+      <button class="btn-secondary bewLoeschen" id="loeschen" type="button">Löschen</button>
       <button class="btn-secondary" id="prioSpeichern" type="button">Ressorts speichern</button>
       <button class="btn-warning" id="standRueck" type="button">Rückmeldung</button>
       <button class="btn-info" id="standKennen" type="button">Kennenlernen</button>
@@ -361,6 +394,35 @@
 </dialog>
 
 <!-- Ressort-Auswahl bei der Übernahme -->
+<dialog id="loeschDlg">
+  <div class="dlgShell" style="max-width:440px;">
+    <div class="sheetHandle" aria-hidden="true"></div>
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle">Bewerbung löschen?</h2>
+        <div class="modalSub" id="loeschDlgSub">–</div>
+      </div>
+      <button class="btn-secondary closeX" id="loeschDlgClose" type="button" aria-label="Schließen">✕</button>
+    </div>
+    <div class="modalBody">
+      <p class="loeschText">
+        Die Bewerbung samt Antworten und Foto wird entfernt. Das lässt sich
+        nicht rückgängig machen, und der Code des Bewerbers führt danach
+        ins Leere.
+      </p>
+      <p class="loeschText loeschWarn" id="loeschWarn" hidden>
+        Diese Bewerbung ist bereits als Anwärter übernommen. Der Eintrag in
+        der Anwärterliste bleibt stehen und verliert seinen Bezug — bitte
+        ihn dort zuerst entfernen, wenn er auch weg soll.
+      </p>
+    </div>
+    <div class="modalActions">
+      <button class="btn-secondary" id="loeschDlgAbbruch" type="button">Abbrechen</button>
+      <button class="btn-danger" id="loeschDlgOk" type="button">Endgültig löschen</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="ressortDlg">
   <div class="dlgShell" style="max-width:440px;">
     <div class="sheetHandle" aria-hidden="true"></div>
@@ -1003,6 +1065,69 @@ async function standSetzen(neu) {
   detailSchliessen();
   return true;
 }
+
+/* ---- Löschen ----
+   Die Einwilligung sagt zu, dass die Angaben nach dem Verfahren
+   verschwinden, wenn keine Mitgliedschaft zustande kommt. Hier steht der
+   Knopf dafür. Zuerst die Zeile, dann das Foto: Bleibt die Zeile stehen,
+   wäre ein schon gelöschtes Foto der schlechtere Zustand. */
+const loeschDlg = $("loeschDlg");
+
+$("loeschen").addEventListener("click", () => {
+  if (!AKTIV || !CAN_EDIT) return;
+  $("loeschDlgSub").textContent = `${vollerName(AKTIV)} · ${safe(AKTIV.email)}`;
+  $("loeschWarn").hidden = AKTIV.status !== "anwaerter";
+  loeschDlg.showModal();
+});
+
+const loeschAbbrechen = () => loeschDlg.close();
+$("loeschDlgClose").addEventListener("click", loeschAbbrechen);
+$("loeschDlgAbbruch").addEventListener("click", loeschAbbrechen);
+loeschDlg.addEventListener("click", (e) => { if (e.target === loeschDlg) loeschAbbrechen(); });
+
+$("loeschDlgOk").addEventListener("click", async () => {
+  if (!AKTIV || !CAN_EDIT) return;
+  const z = AKTIV;
+  const name = vollerName(z);
+  const pfad = fotoPfad(z);
+
+  const knopf = $("loeschDlgOk");
+  knopf.disabled = true;
+
+  const { error, count } = await sb.from("bewerbungen")
+    .delete({ count: "exact" })
+    .eq("id", z.id);
+
+  knopf.disabled = false;
+
+  if (error) {
+    console.error(error);
+    // 23503: An der Bewerbung hängt noch der Anwärter-Eintrag.
+    showToast(error.code === "23503"
+      ? `${name} ist als Anwärter übernommen — dort zuerst entfernen.`
+      : "Die Bewerbung ließ sich nicht löschen.", true);
+    return;
+  }
+
+  if (count === 0) {
+    showToast("Keine Berechtigung dafür.", true);
+    return;
+  }
+
+  // Das Foto liegt außerhalb der Tabelle und geht nicht von selbst mit.
+  if (pfad) {
+    const { error: fotoFehler } = await sb.storage.from(FOTO_BUCKET).remove([pfad]);
+    if (fotoFehler) console.error("Foto blieb liegen:", fotoFehler);
+    fotoLinks.delete(pfad);
+  }
+
+  zeilen = zeilen.filter((x) => x.id !== z.id);
+  loeschDlg.close();
+  detailSchliessen();
+  zeichne();
+  $("statusPill").textContent = `${zeilen.length} Bewerbungen`;
+  showToast(`${name} wurde gelöscht.`);
+});
 
 $("standRueck").addEventListener("click", async () => {
   const name = vollerName(AKTIV || {});

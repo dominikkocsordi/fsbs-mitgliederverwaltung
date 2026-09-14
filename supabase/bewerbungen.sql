@@ -753,6 +753,15 @@ create policy "bewerbungen bearbeiten" on public.bewerbungen
     using (public.ist_vorstand())
     with check (public.ist_vorstand());
 
+-- Löschen kommt in der Einwilligung vor: Wer keine Mitgliedschaft bekommt,
+-- dessen Angaben verschwinden nach dem Verfahren. Das darf nur der
+-- Vorstand, und es ist nicht rückholbar – auch der Code des Bewerbers
+-- führt danach ins Leere.
+drop policy if exists "bewerbungen entfernen" on public.bewerbungen;
+create policy "bewerbungen entfernen" on public.bewerbungen
+    for delete to authenticated
+    using (public.ist_vorstand());
+
 
 -- 13 ----------------------------------------------------------------- Rechte
 -- RLS entscheidet über die Zeilen, diese Rechte über die Spalten. Beides muss
@@ -778,6 +787,9 @@ grant select on public.bewerbungen to authenticated;
 -- Später ändern lässt sich der Bearbeitungsstand, eine Notiz und – falls im
 -- Formular etwas verrutscht ist – die beiden Ressortwünsche.
 grant update (status, notiz, ressort_1_id, ressort_2_id) on public.bewerbungen to authenticated;
+-- Wer löschen darf, entscheidet die Regel oben; ohne dieses Recht käme sie
+-- gar nicht erst zum Zuge.
+grant delete on public.bewerbungen to authenticated;
 
 
 -- 14 ------------------------------------------------ Abgeben und nachschauen
