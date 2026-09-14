@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<title>Bewerbung – Fachschaft Business School</title>
+<meta name="theme-color" content="#f4f4f6">
+<meta name="description" content="Bewirb dich bei der Fachschaft Business School e.V. der Hochschule München.">
+
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/app-shell.js"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<style>
+  /* ============================================================
+     Bewerbung — nur das Seitenlayout.
+     Karte, Felder, Knöpfe und Hinweisboxen kommen aus style.css;
+     die öffentliche Seite hat wie die Zutritte keine Navigation.
+     ============================================================ */
+  .bg-gradient { position: fixed; inset: 0; z-index: -2; background: var(--background); }
+
+  .radial-glow {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 6%,
+                color-mix(in oklab, var(--primary) 16%, transparent), transparent 58%);
+    pointer-events: none;
+  }
+
+  .wrap {
+    min-height: 100svh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Breiter als die Zutritte: Hier stehen mehrzeilige Antworten,
+     und 560 px ergäben Textfelder von der Form eines Kassenbons. */
+  .wrap > .glass {
+    width: min(680px, 100%);
+    padding: 30px 22px 26px;
+    animation: fadeIn 0.55s var(--ease) both;
+  }
+
+  @media (min-width: 641px) { .wrap > .glass { padding: 42px 40px 34px; } }
+
+  /* ---------- Kopf der Karte ---------- */
+  .bHead { text-align: center; margin-bottom: 26px; }
+  .bHead .siteLogoImg { height: 30px; margin: 0 auto 18px; }
+
+  .bHead h1 {
+    font-size: clamp(22px, 4.4vw, 28px);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  .bHead p {
+    margin: 10px auto 0;
+    max-width: 46ch;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+    text-wrap: pretty;
+  }
+
+  /* ---------- Abschnitte ---------- */
+  /* Drei Blöcke statt einer Kette aus zwanzig Feldern: Wer das
+     Formular überfliegt, sieht, wie weit es noch geht. */
+  .bSection + .bSection { margin-top: 30px; }
+
+  .bSectionHead {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .bSectionNr {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint-foreground);
+  }
+
+  .bSectionHead h2 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  /* ---------- Felder ---------- */
+  .bForm .fieldGrid { gap: 15px; }
+
+  .bOpt { float: right; font-weight: 400; color: var(--faint-foreground); }
+
+  .bHint {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--faint-foreground);
+  }
+
+  .bErr {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--danger);
+  }
+  .field:not(.has-error) .bErr { display: none; }
+  .field.has-error > label { color: var(--danger); }
+  .field.has-error input,
+  .field.has-error select,
+  .field.has-error textarea { border-color: var(--danger); }
+  .field.has-error input:focus,
+  .field.has-error select:focus,
+  .field.has-error textarea:focus {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 20%, transparent);
+  }
+
+  .bForm textarea {
+    min-height: 118px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  /* Zeichenzähler, der erst auffällt, wenn es eng wird. */
+  .bCount {
+    float: right;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint-foreground);
+  }
+  .bCount.is-near { color: var(--warning); }
+
+  /* ---------- Mehrfachauswahl & Häkchen ---------- */
+  .bChoices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .bChoice {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 9px 13px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+  }
+
+  .bChoice:has(input:checked) {
+    border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+    background: color-mix(in oklab, var(--primary) 9%, transparent);
+    color: var(--foreground);
+  }
+
+  /* style.css setzt appearance:none und ein Innenmaß auf alle input —
+     ein Kästchen verlöre dadurch sein Häkchen und würde 30 px breit.
+     Für Kästchen holen wir die Systemdarstellung zurück. */
+  .bChoice input[type="checkbox"],
+  .bConsent input[type="checkbox"] {
+    flex: none;
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    padding: 0;
+    -webkit-appearance: checkbox;
+    appearance: auto;
+    accent-color: var(--primary);
+  }
+  .bConsent input[type="checkbox"] { width: 18px; height: 18px; margin-top: 1px; }
+
+  /* ---------- Foto ---------- */
+  .bFile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    background: var(--surface-1);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-control);
+  }
+
+  .bFilePreview {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface-2);
+    color: var(--faint-foreground);
+  }
+  .bFilePreview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bFilePreview svg { width: 22px; height: 22px; }
+
+  .bFileBody { min-width: 0; flex: 1 1 auto; }
+  .bFileName {
+    font-size: 13px;
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bFile input[type="file"] { display: none; }
+
+  .field.has-error .bFile { border-color: var(--danger); }
+
+  /* ---------- Einwilligung ---------- */
+  .bConsentField { margin-top: 26px; }
+
+  .bConsent {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin: 0;
+    padding: 13px 14px;
+    background: var(--surface-1);
+    border-radius: var(--radius-control);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    cursor: pointer;
+  }
+
+  .bConsentField .bErr { display: none; padding-left: 14px; }
+  .bConsentField.has-error .bErr { display: block; }
+  .bConsentField.has-error .bConsent {
+    background: color-mix(in oklab, var(--danger) 8%, transparent);
+  }
+
+  /* ---------- Countdown ---------- */
+  .bClock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 0 0 26px;
+  }
+  .bClock[hidden] { display: none; }
+
+  .bClock > div {
+    padding: 10px 4px 8px;
+    background: var(--surface-1);
+    border-radius: var(--radius-control);
+    text-align: center;
+  }
+
+  .bClock b {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(20px, 5vw, 26px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    /* Gleich breite Ziffern: die Sekunden ließen die Karte sonst zappeln. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bClock small { font-size: 11px; color: var(--faint-foreground); }
+
+  .bSubmit { margin-top: 26px; }
+  .bNotice { margin-top: 14px; }
+  .bNotice[hidden] { display: none; }
+
+  /* ---------- Ladezustand ---------- */
+  #laden {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 0;
+    font-size: 14px;
+    color: var(--muted-foreground);
+  }
+  #laden[hidden] { display: none; }
+
+  /* ---------- Nach dem Absenden ---------- */
+  #fertig, #zu { text-align: center; padding: 8px 0 6px; animation: fadeIn 0.45s var(--ease) both; }
+  #fertig svg, #zu svg { display: block; margin: 0 auto 20px; }
+  #zu svg { color: var(--muted-foreground); }
+  #fertig .ring { fill: none; stroke: var(--success); stroke-width: 2; opacity: 0.32; }
+  #fertig .tick {
+    fill: none;
+    stroke: var(--success);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 34;
+    stroke-dashoffset: 34;
+    animation: bDraw 0.5s var(--ease) 0.14s forwards;
+  }
+  @keyframes bDraw { to { stroke-dashoffset: 0; } }
+
+  #fertig h2, #zu h2 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    margin: 0 0 6px;
+  }
+  #fertig p, #zu p {
+    margin: 0 auto;
+    max-width: 42ch;
+    color: var(--muted-foreground);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wrap > .glass, #fertig, #zu, #fertig .tick { animation: none; }
+    #fertig .tick { stroke-dashoffset: 0; }
+  }
+
+  /* Falle für automatisierte Einträge. */
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+</style>
+</head>
+
+<body>
+<div class="bg-gradient"></div>
+<div class="radial-glow"></div>
+
+<div class="wrap">
+  <div class="glass">
+
+    <div class="bHead">
+      <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
+           alt="Fachschaft Business School e.V.">
+      <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true">
+      <h1 id="titel">Bewerbung bei der Fachschaft Business School</h1>
+      <p id="intro"></p>
+    </div>
+
+    <div id="laden">
+      <span class="spinner spinner--sm"></span>
+      <span>Formular wird geladen…</span>
+    </div>
+
+    <div class="bClock" id="uhr" hidden aria-live="off">
+      <div><b id="cdT">–</b><small>Tage</small></div>
+      <div><b id="cdS">–</b><small>Stunden</small></div>
+      <div><b id="cdM">–</b><small>Minuten</small></div>
+      <div><b id="cdK">–</b><small>Sekunden</small></div>
+    </div>
+
+    <form id="form" class="bForm" novalidate autocomplete="on" hidden>
+
+      <div class="bSection">
+        <div class="bSectionHead">
+          <span class="bSectionNr">01</span>
+          <h2>Wer bist du?</h2>
+        </div>
+
+        <div class="fieldGrid">
+          <div class="field">
+            <label for="vorname">Vorname</label>
+            <input id="vorname" type="text" autocomplete="given-name" maxlength="80" required>
+            <div class="bErr" id="vorname-error"></div>
+          </div>
+
+          <div class="field">
+            <label for="nachname">Nachname</label>
+            <input id="nachname" type="text" autocomplete="family-name" maxlength="80" required>
+            <div class="bErr" id="nachname-error"></div>
+          </div>
+
+          <div class="field full">
+            <label for="email">E-Mail-Adresse</label>
+            <input id="email" type="email" autocomplete="email" inputmode="email" maxlength="160" required>
+            <div class="bHint">An diese Adresse schreiben wir dir, wie es weitergeht.</div>
+            <div class="bErr" id="email-error"></div>
+          </div>
+
+          <div class="field full">
+            <label for="telefon">Handynummer <span class="bOpt">Optional</span></label>
+            <input id="telefon" type="tel" autocomplete="tel" inputmode="tel" maxlength="40">
+            <div class="bErr" id="telefon-error"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bSection">
+        <div class="bSectionHead">
+          <span class="bSectionNr">02</span>
+          <h2>Wohin möchtest du?</h2>
+        </div>
+
+        <div class="fieldGrid">
+          <div class="field full">
+            <label for="ressort1">Ressort – Priorität 1</label>
+            <select id="ressort1" required disabled>
+              <option value="" selected hidden>Bitte auswählen</option>
+            </select>
+            <div class="bErr" id="ressort1-error"></div>
+          </div>
+
+          <div class="field full">
+            <label for="ressort2">Ressort – Priorität 2 <span class="bOpt">Optional</span></label>
+            <select id="ressort2" disabled>
+              <option value="" selected>Keine Angabe</option>
+            </select>
+            <div class="bErr" id="ressort2-error"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Die Fragen aus der Datenbank. Was hier steht, pflegt der
+           Vorstand im Portal — der Quelltext weiß nichts davon. -->
+      <div class="bSection" id="fragenAbschnitt" hidden>
+        <div class="bSectionHead">
+          <span class="bSectionNr">03</span>
+          <h2>Erzähl uns von dir</h2>
+        </div>
+        <div class="fieldGrid" id="fragen"></div>
+      </div>
+
+      <div class="bConsentField" id="einwilligung-feld">
+        <label class="bConsent" for="einwilligung">
+          <input id="einwilligung" type="checkbox" required disabled>
+          <!-- Der Wortlaut steht in der Datenbank; dieser Satz ist nur da,
+               damit vor der Antwort nichts springt. Gespeichert wird immer
+               die Fassung aus der Datenbank. -->
+          <span id="einwilligung-text">Ich willige ein, dass die Fachschaft Business School e.V. die hier angegebenen Daten zur Bearbeitung meiner Bewerbung speichert und verarbeitet.</span>
+        </label>
+        <div class="bErr" id="einwilligung-error"></div>
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="webseite">Webseite</label>
+        <input id="webseite" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <button id="submit" type="submit" class="btn-primary btn--lg btn--block bSubmit">Bewerbung absenden</button>
+      <p class="notice bad bNotice" id="notice" role="alert" hidden></p>
+    </form>
+
+    <div id="zu" hidden>
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3.5" y="10.5" width="17" height="10.5" rx="2.5"/>
+        <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
+      </svg>
+      <h2>Bewerbung geschlossen</h2>
+      <p id="zu-text"></p>
+    </div>
+
+    <div id="fertig" hidden>
+      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+        <circle class="ring" cx="28" cy="28" r="25"/>
+        <path class="tick" d="M17 29 L25 37 L39 20"/>
+      </svg>
+      <h2>Bewerbung eingegangen</h2>
+      <p id="fertig-text"></p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+
+  /* Der Ordner, in dem die Fotos landen. Er ist nicht öffentlich; wer
+     sie sehen darf, holt sich im Portal einen Link auf Zeit. */
+  const FOTO_BUCKET = "bewerbungen";
+  const FOTO_MAX = 8 * 1024 * 1024;
+
+  const $ = (id) => document.getElementById(id);
+  const form = $("form"), notice = $("notice"), submit = $("submit");
+
+  const zeigeHinweis = (text) => { notice.textContent = text; notice.hidden = false; };
+
+  let sb;
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  } catch (e) {
+    $("laden").hidden = true;
+    zeigeHinweis("Die Verbindung zur Datenbank kam nicht zustande. Blockiert vielleicht ein Adblocker die Seite?");
+    notice.hidden = false;
+    form.hidden = false;
+    submit.disabled = true;
+    return;
+  }
+
+  /* ============================================================
+     Frist
+     ============================================================ */
+  const frist = { bis: null, geschlossen: false };
+  let ticker = null;
+
+  const berlinText = (d) => d.toLocaleString("de-DE", {
+    timeZone: "Europe/Berlin",
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  }) + " Uhr";
+
+  const offen = () => !frist.geschlossen &&
+    (!frist.bis || Date.now() < frist.bis.getTime());
+
+  const schliessen = () => {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+    const vorbei = frist.bis && Date.now() >= frist.bis.getTime();
+    $("uhr").hidden = true;
+    $("laden").hidden = true;
+    form.hidden = true;
+    $("fertig").hidden = true;
+    $("zu-text").textContent = vorbei
+      ? "Seit " + berlinText(frist.bis) + " nehmen wir keine Bewerbungen mehr entgegen. Im nächsten Semester geht es weiter."
+      : "Zurzeit nehmen wir keine Bewerbungen entgegen. Schau gerne später noch einmal vorbei.";
+    $("zu").hidden = false;
+  };
+
+  const zwei = (n) => String(n).padStart(2, "0");
+
+  const uhrZeichnen = () => {
+    const rest = frist.bis.getTime() - Date.now();
+    if (rest <= 0) { schliessen(); return; }
+    const s = Math.floor(rest / 1000);
+    $("cdT").textContent = Math.floor(s / 86400);
+    $("cdS").textContent = zwei(Math.floor(s / 3600) % 24);
+    $("cdM").textContent = zwei(Math.floor(s / 60) % 60);
+    $("cdK").textContent = zwei(s % 60);
+  };
+
+  /* ============================================================
+     Fehler an einem Feld
+     ============================================================ */
+  const feldVon = (el) => el.closest(".field, .bConsentField");
+
+  const setzeFehler = (el, text) => {
+    feldVon(el)?.classList.add("has-error");
+    const slot = $(el.id + "-error");
+    if (slot) slot.textContent = text;
+    el.setAttribute("aria-invalid", "true");
+  };
+
+  const loescheFehler = (el) => {
+    feldVon(el)?.classList.remove("has-error");
+    el.removeAttribute("aria-invalid");
+  };
+
+  const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+
+  /* ============================================================
+     Die Fragen aus der Datenbank
+     ------------------------------------------------------------
+     Jede Frage wird zu einem Feld. `bau` liefert die Hülle, `lies`
+     die Antwort und `pruefe` sagt, ob sie taugt — so muss das
+     Absenden unten nicht wissen, welche Typen es gibt.
+     ============================================================ */
+  const fragen = [];
+
+  const esc = (s) => {
+    const d = document.createElement("div");
+    d.textContent = String(s ?? "");
+    return d.innerHTML;
+  };
+
+  const FOTO_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"' +
+    ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="3" y="5.5" width="18" height="14" rx="2.5"/>' +
+    '<circle cx="12" cy="12.5" r="3.2"/><path d="M8 5.5 9.2 3.5h5.6L16 5.5"/></svg>';
+
+  function frageBauen(feld) {
+    const id = "f_" + feld.feld_key;
+    const box = document.createElement("div");
+    box.className = "field full";
+
+    const pflichtHinweis = feld.pflicht ? "" : ' <span class="bOpt">Optional</span>';
+    /* Bei einer Gruppe aus Kästchen gibt es kein einzelnes Feld, auf
+       das `for` zeigen könnte — die Gruppe verweist stattdessen selbst
+       auf ihre Beschriftung. */
+    const gruppe = feld.typ === "mehrfach";
+    const label = gruppe
+      ? `<label id="${id}-label">${esc(feld.label)}${pflichtHinweis}</label>`
+      : `<label for="${id}">${esc(feld.label)}${pflichtHinweis}</label>`;
+    const hilfe = feld.hilfetext ? `<div class="bHint">${esc(feld.hilfetext)}</div>` : "";
+    const fehler = `<div class="bErr" id="${id}-error"></div>`;
+
+    let steuer = "";
+
+    switch (feld.typ) {
+      case "textarea":
+        steuer = `<textarea id="${id}" maxlength="5000" rows="5"></textarea>`;
+        break;
+
+      case "zahl":
+        steuer = `<input id="${id}" type="text" inputmode="numeric" maxlength="10"` +
+                 ` autocomplete="off">`;
+        break;
+
+      case "auswahl":
+        steuer = `<select id="${id}">` +
+          `<option value="" selected${feld.pflicht ? " hidden" : ""}>` +
+          `${feld.pflicht ? "Bitte auswählen" : "Keine Angabe"}</option>` +
+          feld.optionen.map((o) => `<option value="${esc(o)}">${esc(o)}</option>`).join("") +
+          `</select>`;
+        break;
+
+      case "mehrfach":
+        steuer = `<div class="bChoices" id="${id}" role="group" tabindex="-1"` +
+          ` aria-labelledby="${id}-label">` +
+          feld.optionen.map((o, i) =>
+            `<label class="bChoice"><input type="checkbox" value="${esc(o)}"` +
+            ` id="${id}_${i}">${esc(o)}</label>`).join("") +
+          `</div>`;
+        break;
+
+      case "ja_nein":
+        steuer = `<div class="bChoices">` +
+          `<label class="bChoice"><input type="checkbox" id="${id}">Ja</label></div>`;
+        break;
+
+      case "datei":
+        steuer =
+          `<div class="bFile">` +
+            `<div class="bFilePreview" id="${id}-vorschau">${FOTO_ICON}</div>` +
+            `<div class="bFileBody">` +
+              `<div class="bFileName" id="${id}-name">Noch keine Datei gewählt</div>` +
+              `<div class="bHint">JPG, PNG oder WEBP, bis 8 MB.</div>` +
+            `</div>` +
+            `<input id="${id}" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif">` +
+            `<button type="button" class="btn-secondary btn-sm" data-fuer="${id}">Auswählen</button>` +
+          `</div>`;
+        break;
+
+      default:
+        steuer = `<input id="${id}" type="text" maxlength="500" autocomplete="off">`;
+    }
+
+    /* Beim Häkchen gehört die Beschriftung über den Kasten, nicht
+       an ihn — `for` zeigt trotzdem auf das richtige Feld. */
+    box.innerHTML = label + steuer + hilfe + fehler;
+    return box;
+  }
+
+  function frageAnbinden(feld) {
+    const id = "f_" + feld.feld_key;
+    const el = $(id);
+    const eintrag = { feld, el, id, datei: null, pfad: null };
+
+    if (feld.typ === "datei") {
+      const knopf = document.querySelector(`[data-fuer="${id}"]`);
+      knopf?.addEventListener("click", () => el.click());
+      el.addEventListener("change", () => {
+        const datei = el.files && el.files[0];
+        eintrag.datei = datei || null;
+        eintrag.pfad = null;
+        const name = $(id + "-name");
+        const vorschau = $(id + "-vorschau");
+
+        if (!datei) {
+          name.textContent = "Noch keine Datei gewählt";
+          vorschau.innerHTML = FOTO_ICON;
+          return;
+        }
+        loescheFehler(el);
+        name.textContent = datei.name;
+        vorschau.innerHTML = "";
+        const bild = new Image();
+        bild.alt = "";
+        bild.src = URL.createObjectURL(datei);
+        bild.onload = () => URL.revokeObjectURL(bild.src);
+        vorschau.appendChild(bild);
+      });
+
+    } else if (feld.typ === "mehrfach") {
+      el.addEventListener("change", () => loescheFehler(el));
+
+    } else {
+      el.addEventListener("input", () => loescheFehler(el));
+      el.addEventListener("change", () => loescheFehler(el));
+
+      /* Der Zähler erscheint erst, wenn noch 200 Zeichen bleiben —
+         vorher sagt er nichts, was jemand wissen müsste. */
+      if (feld.typ === "textarea") {
+        const zaehler = document.createElement("span");
+        zaehler.className = "bCount";
+        zaehler.hidden = true;
+        el.closest(".field").querySelector("label").appendChild(zaehler);
+        el.addEventListener("input", () => {
+          const rest = 5000 - el.value.length;
+          zaehler.hidden = rest > 200;
+          zaehler.textContent = rest + " Zeichen frei";
+          zaehler.classList.toggle("is-near", rest <= 50);
+        });
+      }
+    }
+
+    eintrag.lies = () => {
+      switch (feld.typ) {
+        case "mehrfach":
+          return Array.from(el.querySelectorAll("input:checked")).map((c) => c.value);
+        case "ja_nein":
+          return el.checked;
+        case "datei":
+          return eintrag.pfad;
+        default:
+          return el.value.trim();
+      }
+    };
+
+    eintrag.leer = () => {
+      const w = eintrag.lies();
+      if (feld.typ === "datei") return !eintrag.datei && !eintrag.pfad;
+      if (feld.typ === "ja_nein") return w !== true;
+      if (Array.isArray(w)) return w.length === 0;
+      return String(w ?? "") === "";
+    };
+
+    eintrag.pruefe = () => {
+      if (eintrag.leer()) {
+        if (!feld.pflicht) { loescheFehler(el); return true; }
+        setzeFehler(el, feld.typ === "auswahl" || feld.typ === "mehrfach"
+          ? "Bitte auswählen."
+          : feld.typ === "datei" ? "Bitte eine Datei auswählen."
+          : feld.typ === "ja_nein" ? "Ohne diese Bestätigung geht es nicht weiter."
+          : "Bitte ausfüllen.");
+        return false;
+      }
+
+      if (feld.typ === "zahl") {
+        const roh = el.value.trim().replace(",", ".");
+        if (!/^\d+([.]\d+)?$/.test(roh)) {
+          setzeFehler(el, "Bitte nur Ziffern eintragen.");
+          return false;
+        }
+        const zahl = Number(roh);
+        if (feld.min_wert !== null && zahl < feld.min_wert) {
+          setzeFehler(el, `Bitte mindestens ${feld.min_wert} eintragen.`);
+          return false;
+        }
+        if (feld.max_wert !== null && zahl > feld.max_wert) {
+          setzeFehler(el, `Bitte höchstens ${feld.max_wert} eintragen.`);
+          return false;
+        }
+      }
+
+      if (feld.typ === "datei" && eintrag.datei) {
+        if (eintrag.datei.size > FOTO_MAX) {
+          setzeFehler(el, "Die Datei ist größer als 8 MB.");
+          return false;
+        }
+        if (!/^image\//.test(eintrag.datei.type)) {
+          setzeFehler(el, "Bitte ein Bild auswählen.");
+          return false;
+        }
+      }
+
+      loescheFehler(el);
+      return true;
+    };
+
+    fragen.push(eintrag);
+  }
+
+  /* ============================================================
+     Laden
+     ============================================================ */
+  const einwilligung = { id: null };
+
+  async function formularLaden() {
+    const { data, error } = await sb.from("bewerbung_formular")
+      .select("titel,intro,frist,geschlossen")
+      .maybeSingle();
+    if (error) { console.error(error); return; }
+    if (!data) return;
+
+    if (data.titel) $("titel").textContent = data.titel;
+    if (data.intro) $("intro").textContent = data.intro;
+    frist.bis = data.frist ? new Date(data.frist) : null;
+    frist.geschlossen = data.geschlossen === true;
+  }
+
+  async function ressortsLaden() {
+    const { data, error } = await sb.from("bewerbung_ressorts")
+      .select("id,name")
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    if (error) throw error;
+
+    for (const select of [$("ressort1"), $("ressort2")]) {
+      for (const zeile of data) {
+        const option = document.createElement("option");
+        option.value = zeile.id;
+        option.textContent = zeile.name;
+        select.append(option);
+      }
+      if (data.length > 0) select.disabled = false;
+    }
+    return data.length;
+  }
+
+  async function felderLaden() {
+    const { data, error } = await sb.from("bewerbung_felder")
+      .select("feld_key,label,typ,hilfetext,optionen,pflicht,min_wert,max_wert")
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    if (!data.length) return 0;
+
+    const ziel = $("fragen");
+    for (const feld of data) ziel.append(frageBauen(feld));
+    for (const feld of data) frageAnbinden(feld);
+    $("fragenAbschnitt").hidden = false;
+    return data.length;
+  }
+
+  async function einwilligungLaden() {
+    const { data, error } = await sb.from("bewerbung_einwilligung")
+      .select("id,text")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    if (!data.length) return 0;
+
+    einwilligung.id = data[0].id;
+    $("einwilligung-text").textContent = data[0].text;
+    $("einwilligung").disabled = false;
+    return 1;
+  }
+
+  /* Die festen Felder oben prüfen sich nach denselben Regeln. */
+  const fest = ["vorname", "nachname", "email", "ressort1", "einwilligung"].map($);
+  for (const el of fest) {
+    el.addEventListener("input", () => loescheFehler(el));
+    el.addEventListener("change", () => loescheFehler(el));
+  }
+  $("telefon").addEventListener("input", () => loescheFehler($("telefon")));
+  $("ressort2").addEventListener("change", () => loescheFehler($("ressort2")));
+
+  function festPruefen(el) {
+    if (el.type === "checkbox") {
+      if (!el.checked) {
+        setzeFehler(el, "Ohne diese Einwilligung können wir deine Bewerbung nicht annehmen.");
+        return false;
+      }
+      loescheFehler(el);
+      return true;
+    }
+
+    const wert = el.value.trim();
+    if (wert === "") {
+      setzeFehler(el, el.tagName === "SELECT" ? "Bitte auswählen." : "Bitte ausfüllen.");
+      return false;
+    }
+    if (el.id === "email" && !EMAIL.test(wert)) {
+      setzeFehler(el, "Diese E-Mail-Adresse sieht nicht vollständig aus.");
+      return false;
+    }
+    loescheFehler(el);
+    return true;
+  }
+
+  /* Zwei Wünsche, nicht zweimal derselbe — die Datenbank sagt das
+     auch, aber hier steht es am Feld statt als Fehlermeldung. */
+  $("ressort2").addEventListener("change", () => {
+    const prio2 = $("ressort2");
+    if (prio2.value && prio2.value === $("ressort1").value) {
+      setzeFehler(prio2, "Bitte ein anderes Ressort als bei Priorität 1 wählen.");
+    }
+  });
+
+  (async () => {
+    await formularLaden();
+    if (!offen()) { schliessen(); return; }
+
+    const [ressorts, , texte] = await Promise.all([
+      ressortsLaden(),
+      felderLaden(),
+      einwilligungLaden()
+    ]);
+
+    $("laden").hidden = true;
+    form.hidden = false;
+
+    if (frist.bis) {
+      uhrZeichnen();
+      $("uhr").hidden = false;
+      ticker = setInterval(uhrZeichnen, 1000);
+    }
+
+    if (texte === 0) {
+      submit.disabled = true;
+      zeigeHinweis("Der Text der Einwilligung fehlt in der Datenbank. Ohne ihn nehmen wir nichts entgegen.");
+      return;
+    }
+    if (ressorts === 0) {
+      submit.disabled = true;
+      zeigeHinweis("Es sind noch keine Ressorts hinterlegt. Bitte später noch einmal vorbeischauen.");
+    }
+  })().catch((err) => {
+    console.error(err);
+    $("laden").hidden = true;
+    form.hidden = false;
+    submit.disabled = true;
+    zeigeHinweis("Das Formular ließ sich nicht laden. Bitte die Seite neu laden.");
+  });
+
+  /* ============================================================
+     Absenden
+     ============================================================ */
+  let laeuft = false;
+
+  const endung = (datei) => {
+    const teil = (datei.name.split(".").pop() || "").toLowerCase();
+    return /^[a-z0-9]{1,5}$/.test(teil) ? teil : "jpg";
+  };
+
+  async function fotosHochladen() {
+    for (const eintrag of fragen) {
+      if (eintrag.feld.typ !== "datei" || !eintrag.datei) continue;
+
+      const name = `${crypto.randomUUID()}.${endung(eintrag.datei)}`;
+      const { error } = await sb.storage.from(FOTO_BUCKET).upload(name, eintrag.datei, {
+        contentType: eintrag.datei.type || "application/octet-stream",
+        upsert: false
+      });
+      if (error) throw error;
+      eintrag.pfad = name;
+    }
+  }
+
+  function fertigZeigen() {
+    if (ticker) { clearInterval(ticker); ticker = null; }
+    $("uhr").hidden = true;
+    form.hidden = true;
+    $("fertig-text").textContent =
+      "Danke! Wir haben deine Bewerbung erhalten und melden uns per E-Mail bei dir, sobald wir sie gesichtet haben.";
+    $("fertig").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function knopfZurueck() {
+    laeuft = false;
+    submit.disabled = false;
+    submit.textContent = "Bewerbung absenden";
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (laeuft) return;
+
+    notice.hidden = true;
+    if (!offen()) { schliessen(); return; }
+
+    let erstesFehlendes = null;
+    for (const el of fest) if (!festPruefen(el) && !erstesFehlendes) erstesFehlendes = el;
+    for (const eintrag of fragen) if (!eintrag.pruefe() && !erstesFehlendes) erstesFehlendes = eintrag.el;
+
+    const prio2 = $("ressort2");
+    if (prio2.value && prio2.value === $("ressort1").value) {
+      setzeFehler(prio2, "Bitte ein anderes Ressort als bei Priorität 1 wählen.");
+      if (!erstesFehlendes) erstesFehlendes = prio2;
+    }
+
+    if (erstesFehlendes) {
+      erstesFehlendes.focus({ preventScroll: true });
+      erstesFehlendes.scrollIntoView({ block: "center", behavior: "smooth" });
+      return;
+    }
+
+    // Automatischer Eintrag: still bestätigen, aber nichts speichern.
+    if ($("webseite").value !== "") { fertigZeigen(); return; }
+
+    laeuft = true;
+    submit.disabled = true;
+    submit.innerHTML = '<span class="spinner spinner--sm"></span>';
+
+    try {
+      await fotosHochladen();
+    } catch (err) {
+      console.error(err);
+      knopfZurueck();
+      zeigeHinweis("Das Foto ließ sich nicht hochladen. Bitte noch einmal versuchen — oder ein kleineres Bild wählen.");
+      return;
+    }
+
+    const antworten = {};
+    for (const eintrag of fragen) {
+      if (eintrag.leer()) continue;
+      antworten[eintrag.feld.feld_key] = eintrag.lies();
+    }
+
+    const { error } = await sb.from("bewerbungen").insert({
+      vorname:  $("vorname").value.trim(),
+      nachname: $("nachname").value.trim(),
+      email:    $("email").value.trim().toLowerCase(),
+      telefon:  $("telefon").value.trim() || null,
+      ressort_1_id: $("ressort1").value,
+      ressort_2_id: $("ressort2").value || null,
+      antworten,
+      einwilligung_id: einwilligung.id
+    });
+
+    if (!error) { fertigZeigen(); return; }
+
+    knopfZurueck();
+
+    // Die Datenbank weist ab, was nach der Frist kommt.
+    if (error.code === "42501") { frist.geschlossen = true; schliessen(); return; }
+
+    if (error.code === "23505") {
+      setzeFehler($("email"), "Mit dieser E-Mail-Adresse liegt uns schon eine Bewerbung vor.");
+      $("email").focus();
+      return;
+    }
+
+    if (error.code === "23514") {
+      // Der Trigger nennt das Feld im Klartext — das ist hier die
+      // hilfreichste Meldung, die wir haben.
+      zeigeHinweis(error.message || "Eine Angabe hat die Prüfung nicht bestanden.");
+      return;
+    }
+
+    console.error(error);
+    zeigeHinweis("Die Bewerbung ließ sich nicht speichern. Bitte später noch einmal versuchen.");
+  });
+})();
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(console.warn);
+  });
+}
+</script>
+</body>
+</html>

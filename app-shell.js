@@ -98,8 +98,11 @@
     return datei.indexOf('.') === -1 ? datei + '.html' : datei;
   }
 
+  /* Die Seite, auf der man gerade steht, bleibt immer in der Leiste —
+     sonst fehlte ausgerechnet der Punkt, der hervorgehoben ist. */
   function darfSehen(punkt, rolle) {
-    return punkt.rollen.indexOf(rolle) !== -1;
+    return punkt.href.split('/').pop() === seiteJetzt() ||
+           punkt.rollen.indexOf(rolle) !== -1;
   }
 
   function buildNav() {
