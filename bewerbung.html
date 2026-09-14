@@ -1291,38 +1291,37 @@
   }
 
   function standZeichnen(code, z) {
-    const abgelehnt = z.status === "abgelehnt";
-
-    /* Wie weit es ging. Bei einer Absage zählt der Stand davor — sonst
-       stünde nur die Absage da und nicht, an welcher Stelle sie kam. */
-    const gesucht = abgelehnt ? z.status_vor_absage : z.status;
-    const gefunden = SCHRITTE.findIndex((schritt) => schritt.stand === gesucht);
-    const bis = gefunden < 1 ? 1 : gefunden;
-    const letzter = SCHRITTE.length - 1;
-
     const zeilen = [];
-    for (let i = 0; i < SCHRITTE.length; i++) {
-      // Nach einer Absage kommt nichts mehr; was ausbliebe, steht nicht da.
-      if (abgelehnt && i > bis) break;
 
-      const schritt = SCHRITTE[i];
-      const erledigt = i < bis || (i === bis && (abgelehnt || bis === letzter));
-      const klasse = erledigt ? "is-done" : i === bis ? "is-current" : "is-todo";
-      const punkt = erledigt ? ICON_HAKEN : i === bis ? ICON_UHR : String(i + 1);
-
-      // Datiert ist, was die Datenbank weiß: das Eingehen und der
-      // jetzige Stand. Die Schritte dazwischen bleiben ohne Datum.
-      const datum = i === 0 ? kurzDatum(z.eingegangen_am)
-                  : (i === bis && !abgelehnt) ? kurzDatum(z.stand_seit)
-                  : "";
-
-      zeilen.push(tlZeile(klasse, punkt, schritt.titel, datum));
-    }
-
-    if (abgelehnt) {
+    if (z.status === "abgelehnt") {
+      /* Eine Absage lässt den Weg dazwischen weg: Wer sie liest, muss
+         nicht noch einmal durchgehen, was nicht daraus geworden ist. */
+      zeilen.push(tlZeile("is-done", ICON_HAKEN,
+        SCHRITTE[0].titel, kurzDatum(z.eingegangen_am)));
       zeilen.push(tlZeile("is-reject", ICON_KREUZ,
         "Leider konnten wir dir keinen Platz anbieten.",
         kurzDatum(z.stand_seit)));
+
+    } else {
+      // Wie weit es ist. Ein unbekannter Stand landet bei der Prüfung —
+      // weiter war er nicht.
+      const gefunden = SCHRITTE.findIndex((schritt) => schritt.stand === z.status);
+      const bis = gefunden < 1 ? 1 : gefunden;
+      const letzter = SCHRITTE.length - 1;
+
+      for (let i = 0; i < SCHRITTE.length; i++) {
+        const erledigt = i < bis || (i === bis && bis === letzter);
+        const klasse = erledigt ? "is-done" : i === bis ? "is-current" : "is-todo";
+        const punkt = erledigt ? ICON_HAKEN : i === bis ? ICON_UHR : String(i + 1);
+
+        // Datiert ist, was die Datenbank weiß: das Eingehen und der
+        // jetzige Stand. Die Schritte dazwischen bleiben ohne Datum.
+        const datum = i === 0 ? kurzDatum(z.eingegangen_am)
+                    : i === bis ? kurzDatum(z.stand_seit)
+                    : "";
+
+        zeilen.push(tlZeile(klasse, punkt, SCHRITTE[i].titel, datum));
+      }
     }
 
     $("tlListe").innerHTML = zeilen.join("");

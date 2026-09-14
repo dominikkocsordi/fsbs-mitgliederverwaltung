@@ -224,8 +224,8 @@ create table if not exists public.bewerbungen (
                           'prios_bestaetigt', 'anwaerter', 'abgelehnt')),
 
     -- Eine Absage kann an jeder Stelle kommen. `status_vor_absage` hält fest,
-    -- wie weit es vorher war – sonst zeigte der Zeitstrahl unter /bewerbung
-    -- nur noch die Absage und nicht mehr, an welcher Stelle sie kam.
+    -- an welcher – für den Vorstand, nicht für den Bewerber: Der sieht unter
+    -- /bewerbung nur, dass es nicht gereicht hat.
     constraint bewerbungen_absage_stand_bekannt
         check (status_vor_absage is null or status_vor_absage in
                ('offen', 'rueckmeldung', 'kennenlernen',
@@ -564,9 +564,8 @@ begin
         new.status_am  := now();
         new.status_von := auth.uid();
 
-        -- Eine Absage kann an jeder Stelle kommen. Womit sie kam, hält der
-        -- Zeitstrahl unter /bewerbung fest – dafür muss der Stand davor
-        -- erhalten bleiben. Wird eine Absage zurückgenommen, fällt er weg.
+        -- An welcher Stelle die Absage kam, bleibt so nachvollziehbar.
+        -- Wird sie zurückgenommen, fällt der Vermerk weg.
         new.status_vor_absage := case when new.status = 'abgelehnt'
                                       then old.status end;
     end if;
