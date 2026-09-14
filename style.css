@@ -1874,6 +1874,15 @@ dialog::backdrop {
   -webkit-backdrop-filter: blur(8px);
 }
 
+/* Die Hülle muss in den Dialog passen, nicht bloß auf den Bildschirm: Der
+   Dialog hat oben wie unten 16 px Innenabstand. Ohne diese Rechnung ragte
+   ein hoher Dialog unten aus seiner Hülle heraus und klebte am Fensterrand,
+   während oben eine Lücke blieb. */
+dialog > .dlgShell,
+dialog > .dlgPanel,
+dialog > .modal,
+dialog > .modalBox { max-height: calc(100dvh - 64px); }
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -2004,6 +2013,14 @@ dialog::backdrop {
     border-radius: var(--radius-modal) var(--radius-modal) 0 0;
     max-height: calc(100dvh - env(safe-area-inset-top, 20px) - 16px);
     animation: modalInMobile 0.28s var(--ease) both;
+  }
+  /* Hier hat der Dialog keinen Innenabstand mehr, den die Hülle abziehen
+     müsste — sie darf wieder so hoch werden wie er. */
+  dialog > .dlgShell,
+  dialog > .dlgPanel,
+  dialog > .modal,
+  dialog > .modalBox {
+    max-height: calc(100dvh - env(safe-area-inset-top, 20px) - 12px);
   }
   .modalDragHandle { display: block; }
   .modalHeader { padding: 14px 18px 14px; }

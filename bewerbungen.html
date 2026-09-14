@@ -221,6 +221,25 @@
   .prioRow[hidden] { display: none; }
   @media (max-width: 560px) { .prioRow { grid-template-columns: 1fr; } }
 
+  .prioSave { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+
+  /* Die fünf Bearbeitungsstände. Nebeneinander bräuchten sie 800 px und
+     hätten 700 — als Raster brechen sie in Spalten um statt zerfranst.
+     Der letzte nimmt zwei Spalten und schließt die Reihe bündig ab. */
+  .detailStaende {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    max-width: 520px;
+  }
+  .detailStaende > button { width: 100%; }
+  .detailStaende > #uebernehmen { grid-column: span 2; }
+
+  @media (max-width: 640px) {
+    .detailStaende { grid-template-columns: 1fr 1fr; max-width: none; }
+  }
+
   /* ---------- Formular-Editor ---------- */
   .editorSection + .editorSection {
     margin-top: 22px;
@@ -376,19 +395,29 @@
           <label for="prio2">Ressort – Priorität 2</label>
           <select id="prio2"></select>
         </div>
+        <!-- Der Knopf gehört zu den beiden Feldern darüber, nicht in die
+             Fußzeile: Dort stand er zwischen lauter Bearbeitungsständen. -->
+        <div class="prioSave">
+          <button class="btn-secondary btn-sm" id="prioSpeichern" type="button">
+            Ressorts speichern
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="modalActions" id="detailActions">
-      <!-- Steht als Erstes im Quelltext und rückt damit nach links, weg von
-           den Ständen: Ablehnen lässt sich zurücknehmen, Löschen nicht. -->
+    <!-- Links das Löschen, rechts die Stände als Block — so wie es der
+         Fragen-Dialog weiter unten schon hält. Die fünf Stände passen in
+         keine Zeile; als Raster stehen sie wenigstens in Spalten
+         untereinander statt zerfranst umzubrechen. -->
+    <div class="modalActions modalActions--split" id="detailActions">
       <button class="btn-secondary bewLoeschen" id="loeschen" type="button">Löschen</button>
-      <button class="btn-secondary" id="prioSpeichern" type="button">Ressorts speichern</button>
-      <button class="btn-warning" id="standRueck" type="button">Rückmeldung</button>
-      <button class="btn-info" id="standKennen" type="button">Kennenlernen</button>
-      <button class="btn-purple" id="standPrios" type="button">Prios bestätigt</button>
-      <button class="btn-danger" id="standAbgelehnt" type="button">Ablehnen</button>
-      <button class="btn-primary" id="uebernehmen" type="button">Als Anwärter übernehmen</button>
+      <div class="detailStaende">
+        <button class="btn-warning" id="standRueck" type="button">Rückmeldung</button>
+        <button class="btn-info" id="standKennen" type="button">Kennenlernen</button>
+        <button class="btn-purple" id="standPrios" type="button">Prios bestätigt</button>
+        <button class="btn-danger" id="standAbgelehnt" type="button">Ablehnen</button>
+        <button class="btn-primary" id="uebernehmen" type="button">Als Anwärter übernehmen</button>
+      </div>
     </div>
   </div>
 </dialog>
