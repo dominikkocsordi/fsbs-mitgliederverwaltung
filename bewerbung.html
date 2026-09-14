@@ -337,6 +337,217 @@
     #fertig .tick { stroke-dashoffset: 0; }
   }
 
+  /* ---------- Der Code auf der Danke-Seite ---------- */
+  .bCodeBox {
+    margin: 22px 0 20px;
+    padding: 18px 16px 16px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+
+  .bCodeLabel {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint-foreground);
+  }
+
+  .bCodeWert {
+    display: block;
+    margin: 8px 0 0;
+    font-family: var(--font-mono);
+    font-size: clamp(30px, 8vw, 40px);
+    font-weight: 600;
+    /* Der Abstand rechts gleicht den Abstand hinter dem letzten
+       Zeichen aus – sonst säße der Code sichtbar zu weit links. */
+    letter-spacing: 0.18em;
+    text-indent: 0.18em;
+    line-height: 1.1;
+  }
+
+  .bCodeHinweis {
+    margin: 12px auto 0;
+    max-width: 40ch;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  .bCodeKopie { margin-top: 12px; }
+
+  /* ---------- Stand abrufen ---------- */
+  #stand { animation: fadeIn 0.45s var(--ease) both; }
+  #stand[hidden] { display: none; }
+
+  .bStandKopf { text-align: center; margin-bottom: 22px; }
+  .bStandKopf h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .bStandKopf p {
+    margin: 0 auto;
+    max-width: 40ch;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+  }
+
+  /* Fünf Zeichen, groß genug zum Vorlesen am Telefon. */
+  #code {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Zeitstrahl ---------- */
+  .bStandKarte {
+    padding: 18px 16px 6px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+
+  .bStandKarte > h3 {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0 0 16px;
+  }
+
+  .tl { list-style: none; margin: 0; padding: 0; }
+
+  .tlItem {
+    position: relative;
+    display: grid;
+    grid-template-columns: 26px 1fr auto;
+    gap: 0 13px;
+    align-items: start;
+    padding-bottom: 22px;
+  }
+  .tlItem:last-child { padding-bottom: 14px; }
+
+  /* Die Linie zum nächsten Punkt. Sie färbt sich mit: Was hinter dir
+     liegt, ist grün — was noch kommt, bleibt grau. */
+  .tlItem:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--border-color);
+  }
+  .tlItem.is-done::before { background: color-mix(in oklab, var(--success) 55%, transparent); }
+
+  /* Das letzte Stück vor einer Absage bleibt grau: Grün führte sonst
+     geradewegs in den roten Punkt. */
+  .tlItem.is-done:has(+ .is-reject)::before { background: var(--border-color); }
+
+  .tlDot {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint-foreground);
+  }
+  .tlDot svg { width: 14px; height: 14px; }
+
+  /* Gefüllte Punkte tragen die Seitenfarbe als Schrift: Das trägt in
+     beiden Erscheinungsbildern, ohne eigenes Weiß. */
+  .is-done .tlDot {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--background);
+  }
+  .is-current .tlDot {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+  .is-reject .tlDot {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--background);
+  }
+
+  .tlTitel {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--foreground);
+    text-wrap: pretty;
+  }
+  .is-todo .tlTitel { color: var(--faint-foreground); font-weight: 400; }
+  .is-reject .tlTitel { color: var(--danger); }
+
+  .tlSub {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--faint-foreground);
+  }
+
+  .tlDatum {
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint-foreground);
+    padding-top: 5px;
+    white-space: nowrap;
+  }
+
+  .bStandNeu { margin-top: 20px; }
+
+  .bCodeBox[hidden], #zumStand[hidden],
+  #standForm[hidden], #standErgebnis[hidden] { display: none; }
+
+  /* ---------- Wechsel zwischen Formular und Abfrage ---------- */
+  .bWechsel {
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+  }
+  .bWechsel[hidden] { display: none; }
+
+  .bWechsel button {
+    background: none;
+    border: 0;
+    padding: 4px 2px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .bWechsel button:hover { color: var(--foreground); }
+  .bWechsel button[hidden] { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #stand { animation: none; }
+  }
+
   /* Falle für automatisierte Einträge. */
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 </style>
@@ -477,6 +688,59 @@
       </svg>
       <h2>Bewerbung eingegangen</h2>
       <p id="fertig-text"></p>
+
+      <div class="bCodeBox">
+        <span class="bCodeLabel">Dein Bewerbungscode</span>
+        <b class="bCodeWert" id="fertig-code">–</b>
+        <button type="button" class="btn-secondary btn-sm bCodeKopie" id="codeKopieren">
+          Code kopieren
+        </button>
+        <p class="bCodeHinweis">
+          Schreib ihn dir auf. Mit ihm siehst du jederzeit unter
+          portal.fsbs-hm.de/bewerbung, wie weit deine Bewerbung ist.
+        </p>
+      </div>
+
+      <button type="button" class="btn-primary btn--block" id="zumStand">
+        Stand ansehen
+      </button>
+    </div>
+
+    <!-- Stand abrufen: Codefeld, darunter der Zeitstrahl. Erreichbar,
+         solange es die Seite gibt — auch wenn das Formular längst zu ist. -->
+    <div id="stand" hidden>
+      <div class="bStandKopf">
+        <h2>Stand deiner Bewerbung</h2>
+        <p id="standInfo">Gib den Code ein, den du nach dem Absenden bekommen hast.</p>
+      </div>
+
+      <form id="standForm" class="bForm" novalidate>
+        <div class="field full">
+          <label for="code">Bewerbungscode</label>
+          <input id="code" type="text" maxlength="7" autocomplete="off"
+                 autocapitalize="characters" spellcheck="false"
+                 inputmode="latin" placeholder="ABC12">
+          <div class="bErr" id="code-error"></div>
+        </div>
+        <button id="standSubmit" type="submit" class="btn-primary btn--lg btn--block bSubmit">
+          Stand abrufen
+        </button>
+      </form>
+
+      <div id="standErgebnis" hidden>
+        <div class="bStandKarte">
+          <h3>Deine Schritte</h3>
+          <ol class="tl" id="tlListe"></ol>
+        </div>
+        <button type="button" class="btn-secondary btn--block bStandNeu" id="standNeu">
+          Anderen Code eingeben
+        </button>
+      </div>
+    </div>
+
+    <div class="bWechsel" id="wechsel" hidden>
+      <button type="button" id="zurAbfrage">Schon beworben? Stand abrufen</button>
+      <button type="button" id="zumFormular" hidden>Zurück zum Bewerbungsformular</button>
     </div>
 
   </div>
@@ -498,6 +762,37 @@
   const form = $("form"), notice = $("notice"), submit = $("submit");
 
   const zeigeHinweis = (text) => { notice.textContent = text; notice.hidden = false; };
+
+  /* ============================================================
+     Ansichten
+     ------------------------------------------------------------
+     Die Seite zeigt immer genau eine von fünf Karten: das Laden,
+     das Formular, die geschlossene Frist, die Bestätigung nach dem
+     Absenden und die Abfrage per Code. Alles Umschalten läuft hier
+     durch — sonst stünde leicht zweierlei zugleich da.
+     ============================================================ */
+  let ansichtJetzt = "laden";
+  let formularBereit = false;   // Fragen geladen und Frist nicht vorbei
+
+  function ansicht(welche) {
+    ansichtJetzt = welche;
+    $("laden").hidden  = welche !== "laden";
+    form.hidden        = welche !== "formular";
+    $("zu").hidden     = welche !== "zu";
+    $("fertig").hidden = welche !== "fertig";
+    $("stand").hidden  = welche !== "stand";
+
+    // Die Uhr gehört zum Formular, und auch dort nur mit Frist.
+    $("uhr").hidden = welche !== "formular" || !frist.bis;
+
+    // Auf der Bestätigung steht der Weg zum Stand schon als Knopf.
+    const zurAbfrage  = welche !== "stand" && welche !== "laden" && welche !== "fertig";
+    const zumFormular = welche === "stand" && formularBereit;
+    $("zurAbfrage").hidden  = !zurAbfrage;
+    $("zumFormular").hidden = !zumFormular;
+    // Ohne Knopf bliebe nur der Trennstrich stehen.
+    $("wechsel").hidden = !zurAbfrage && !zumFormular;
+  }
 
   let sb;
   try {
@@ -528,22 +823,26 @@
 
   const schliessen = () => {
     if (ticker) { clearInterval(ticker); ticker = null; }
+    formularBereit = false;
     const vorbei = frist.bis && Date.now() >= frist.bis.getTime();
-    $("uhr").hidden = true;
-    $("laden").hidden = true;
-    form.hidden = true;
-    $("fertig").hidden = true;
     $("zu-text").textContent = vorbei
       ? "Seit " + berlinText(frist.bis) + " nehmen wir keine Bewerbungen mehr entgegen. Im nächsten Semester geht es weiter."
       : "Zurzeit nehmen wir keine Bewerbungen entgegen. Schau gerne später noch einmal vorbei.";
-    $("zu").hidden = false;
+    ansicht("zu");
   };
 
   const zwei = (n) => String(n).padStart(2, "0");
 
   const uhrZeichnen = () => {
     const rest = frist.bis.getTime() - Date.now();
-    if (rest <= 0) { schliessen(); return; }
+    if (rest <= 0) {
+      if (ticker) { clearInterval(ticker); ticker = null; }
+      formularBereit = false;
+      // Wer gerade seinen Stand liest, wird nicht mitten im Lesen auf
+      // die geschlossene Karte geworfen.
+      if (ansichtJetzt === "formular") schliessen();
+      return;
+    }
     const s = Math.floor(rest / 1000);
     $("cdT").textContent = Math.floor(s / 86400);
     $("cdS").textContent = zwei(Math.floor(s / 3600) % 24);
@@ -891,7 +1190,7 @@
     }
   });
 
-  (async () => {
+  async function starten() {
     await formularLaden();
     if (!offen()) { schliessen(); return; }
 
@@ -901,12 +1200,11 @@
       einwilligungLaden()
     ]);
 
-    $("laden").hidden = true;
-    form.hidden = false;
+    formularBereit = true;
+    ansicht("formular");
 
     if (frist.bis) {
       uhrZeichnen();
-      $("uhr").hidden = false;
       ticker = setInterval(uhrZeichnen, 1000);
     }
 
@@ -919,12 +1217,227 @@
       submit.disabled = true;
       zeigeHinweis("Es sind noch keine Ressorts hinterlegt. Bitte später noch einmal vorbeischauen.");
     }
-  })().catch((err) => {
-    console.error(err);
-    $("laden").hidden = true;
-    form.hidden = false;
-    submit.disabled = true;
-    zeigeHinweis("Das Formular ließ sich nicht laden. Bitte die Seite neu laden.");
+  }
+
+  starten()
+    .catch((err) => {
+      console.error(err);
+      ansicht("formular");
+      submit.disabled = true;
+      zeigeHinweis("Das Formular ließ sich nicht laden. Bitte die Seite neu laden.");
+    })
+    /* Ein Link mit ?code=… führt gleich zum Stand — auch dann, wenn das
+       Formular zu ist oder sich nicht laden ließ. */
+    .finally(() => {
+      const ausDerAdresse = new URLSearchParams(location.search).get("code");
+      if (ausDerAdresse) { abfrageZeigen(ausDerAdresse); standAbrufen(ausDerAdresse); }
+    });
+
+  /* ============================================================
+     Stand abrufen
+     ------------------------------------------------------------
+     Fünf Zeichen, mehr braucht es nicht. Die Datenbank gibt dazu
+     nur den Vornamen, den Stand und zwei Zeitpunkte heraus — genug
+     für den Zeitstrahl, zu wenig, als dass Raten sich lohnte.
+     ============================================================ */
+  const SPEICHER = "fsbs-bewerbungscode";
+  const ABFRAGE_TEXT = $("standInfo").textContent;
+
+  let meinCode = "";
+  let standLaeuft = false;
+
+  const codeMerken = (code) => {
+    try { localStorage.setItem(SPEICHER, code); } catch (e) { /* privates Fenster */ }
+  };
+
+  const codeGemerkt = () => {
+    try { return localStorage.getItem(SPEICHER) || ""; } catch (e) { return ""; }
+  };
+
+  /* Dieselbe Nachsicht wie in der Datenbank: Groß und klein ist egal,
+     Leerzeichen und Bindestriche fallen weg, und ein O wird zur Null,
+     ein I oder L zur Eins. */
+  const codeNormal = (roh) =>
+    String(roh ?? "").replace(/[^0-9a-z]/gi, "").toUpperCase()
+      .replace(/O/g, "0").replace(/[IL]/g, "1");
+
+  /* Die sechs Schritte, die eine Bewerbung durchläuft. `stand` ist der
+     Bearbeitungsstand aus der Datenbank, der zu diesem Schritt gehört;
+     der erste hat keinen — er ist mit dem Absenden erledigt. */
+  const SCHRITTE = [
+    { titel: "Deine Bewerbung ist bei uns eingegangen.",
+      sub: "Abgeschickt und gespeichert.", stand: null },
+    { titel: "Wir prüfen deine Bewerbung.",
+      sub: "Der Vorstand liest alle Bewerbungen.", stand: "offen" },
+    { titel: "Wir haben Neuigkeiten für dich. Schau in dein Mail-Postfach.",
+      sub: "Rückmeldung per E-Mail.", stand: "rueckmeldung" },
+    { titel: "Schön, dass du beim Kennenlernevent dabei warst.",
+      sub: "Wir haben dich kennengelernt.", stand: "kennenlernen" },
+    { titel: "Wir haben deine Priobestätigung erhalten.",
+      sub: "Deine Ressortwünsche stehen fest.", stand: "prios_bestaetigt" },
+    { titel: "Herzlich willkommen bei der Fachschaft!",
+      sub: "Aufnahme als Anwärter.", stand: "anwaerter" }
+  ];
+
+  const svg = (inhalt, breite) =>
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + breite +
+    '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inhalt + '</svg>';
+
+  const ICON_HAKEN = svg('<path d="M5 12.5 10 17.5 19 7"/>', 3);
+  const ICON_UHR   = svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.2V12l3 1.9"/>', 2);
+  const ICON_KREUZ = svg('<path d="M7 7l10 10"/><path d="M17 7 7 17"/>', 2.6);
+
+  const kurzDatum = (iso) => iso
+    ? new Date(iso).toLocaleDateString("de-DE",
+        { timeZone: "Europe/Berlin", day: "numeric", month: "short" })
+    : "";
+
+  function tlZeile(klasse, punkt, titel, sub, datum) {
+    return `<li class="tlItem ${klasse}">
+      <span class="tlDot">${punkt}</span>
+      <span>
+        <span class="tlTitel">${esc(titel)}</span>
+        <span class="tlSub">${esc(sub)}</span>
+      </span>
+      <span class="tlDatum">${esc(datum)}</span>
+    </li>`;
+  }
+
+  function standZeichnen(code, z) {
+    const abgelehnt = z.status === "abgelehnt";
+
+    /* Wie weit es ging. Bei einer Absage zählt der Stand davor — sonst
+       stünde nur die Absage da und nicht, an welcher Stelle sie kam. */
+    const gesucht = abgelehnt ? z.status_vor_absage : z.status;
+    const gefunden = SCHRITTE.findIndex((schritt) => schritt.stand === gesucht);
+    const bis = gefunden < 1 ? 1 : gefunden;
+    const letzter = SCHRITTE.length - 1;
+
+    const zeilen = [];
+    for (let i = 0; i < SCHRITTE.length; i++) {
+      // Nach einer Absage kommt nichts mehr; was ausbliebe, steht nicht da.
+      if (abgelehnt && i > bis) break;
+
+      const schritt = SCHRITTE[i];
+      const erledigt = i < bis || (i === bis && (abgelehnt || bis === letzter));
+      const klasse = erledigt ? "is-done" : i === bis ? "is-current" : "is-todo";
+      const punkt = erledigt ? ICON_HAKEN : i === bis ? ICON_UHR : String(i + 1);
+
+      // Datiert ist, was die Datenbank weiß: das Eingehen und der
+      // jetzige Stand. Die Schritte dazwischen bleiben ohne Datum.
+      const datum = i === 0 ? kurzDatum(z.eingegangen_am)
+                  : (i === bis && !abgelehnt) ? kurzDatum(z.stand_seit)
+                  : "";
+
+      zeilen.push(tlZeile(klasse, punkt, schritt.titel, schritt.sub, datum));
+    }
+
+    if (abgelehnt) {
+      zeilen.push(tlZeile("is-reject", ICON_KREUZ,
+        "Leider konnten wir dir keinen Platz anbieten.",
+        "Das Verfahren ist damit abgeschlossen.",
+        kurzDatum(z.stand_seit)));
+    }
+
+    $("tlListe").innerHTML = zeilen.join("");
+    $("standInfo").textContent =
+      `Hallo ${z.vorname}! Das ist der Stand zu Code ${code}.`;
+    $("standForm").hidden = true;
+    $("standErgebnis").hidden = false;
+    ansicht("stand");
+
+    // Der Code bleibt in der Adresse: So führt ein Lesezeichen zurück.
+    history.replaceState(null, "", "?code=" + encodeURIComponent(code));
+  }
+
+  async function standAbrufen(roh) {
+    const feld = $("code");
+    const code = codeNormal(roh);
+
+    if (code.length !== 5) {
+      setzeFehler(feld, "Der Code besteht aus fünf Zeichen.");
+      feld.focus({ preventScroll: true });
+      return;
+    }
+    if (standLaeuft) return;
+
+    standLaeuft = true;
+    const knopf = $("standSubmit");
+    knopf.disabled = true;
+    knopf.innerHTML = '<span class="spinner spinner--sm"></span>';
+
+    const { data, error } = await sb.rpc("bewerbung_stand", { p_code: code });
+
+    standLaeuft = false;
+    knopf.disabled = false;
+    knopf.textContent = "Stand abrufen";
+
+    if (error) {
+      console.error(error);
+      setzeFehler(feld, "Der Stand ließ sich nicht abrufen. Bitte später noch einmal versuchen.");
+      return;
+    }
+
+    const zeile = Array.isArray(data) ? data[0] : data;
+    if (!zeile) {
+      setzeFehler(feld, "Diesen Code kennen wir nicht. Bitte prüfe deine Eingabe.");
+      feld.focus({ preventScroll: true });
+      return;
+    }
+
+    loescheFehler(feld);
+    codeMerken(code);
+    standZeichnen(code, zeile);
+  }
+
+  /* Zur Eingabe zurück: entweder mit einem Code in der Hand oder leer. */
+  function abfrageZeigen(vorbelegt) {
+    const feld = $("code");
+    loescheFehler(feld);
+    $("standErgebnis").hidden = true;
+    $("standForm").hidden = false;
+    $("standInfo").textContent = ABFRAGE_TEXT;
+    feld.value = vorbelegt || feld.value || codeGemerkt();
+    ansicht("stand");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  $("code").addEventListener("input", () => loescheFehler($("code")));
+
+  $("standForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    standAbrufen($("code").value);
+  });
+
+  $("zurAbfrage").addEventListener("click", () => abfrageZeigen(""));
+  $("zumFormular").addEventListener("click", () => {
+    history.replaceState(null, "", location.pathname);
+    ansicht("formular");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  $("standNeu").addEventListener("click", () => {
+    history.replaceState(null, "", location.pathname);
+    $("code").value = "";
+    abfrageZeigen("");
+    $("code").focus();
+  });
+
+  $("zumStand").addEventListener("click", () => {
+    abfrageZeigen(meinCode);
+    standAbrufen(meinCode);
+  });
+
+  $("codeKopieren").addEventListener("click", async () => {
+    const knopf = $("codeKopieren");
+    const zurueck = () => setTimeout(() => { knopf.textContent = "Code kopieren"; }, 2200);
+    try {
+      await navigator.clipboard.writeText(meinCode);
+      knopf.textContent = "Kopiert";
+    } catch (e) {
+      knopf.textContent = "Bitte abschreiben";
+    }
+    zurueck();
   });
 
   /* ============================================================
@@ -951,13 +1464,21 @@
     }
   }
 
-  function fertigZeigen() {
+  function fertigZeigen(code) {
     if (ticker) { clearInterval(ticker); ticker = null; }
-    $("uhr").hidden = true;
-    form.hidden = true;
     $("fertig-text").textContent =
       "Danke! Wir haben deine Bewerbung erhalten und melden uns per E-Mail bei dir, sobald wir sie gesichtet haben.";
-    $("fertig").hidden = false;
+
+    meinCode = code || "";
+    const kasten = $("fertig-code").closest(".bCodeBox");
+    kasten.hidden = !meinCode;
+    $("zumStand").hidden = !meinCode;
+    if (meinCode) {
+      $("fertig-code").textContent = meinCode;
+      codeMerken(meinCode);
+    }
+
+    ansicht("fertig");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -1012,18 +1533,21 @@
       antworten[eintrag.feld.feld_key] = eintrag.lies();
     }
 
-    const { error } = await sb.from("bewerbungen").insert({
-      vorname:  $("vorname").value.trim(),
-      nachname: $("nachname").value.trim(),
-      email:    $("email").value.trim().toLowerCase(),
-      telefon:  $("telefon").value.trim() || null,
-      ressort_1_id: $("ressort1").value,
-      ressort_2_id: $("ressort2").value || null,
-      antworten,
-      einwilligung_id: einwilligung.id
+    /* `bewerbung_abgeben` trägt ein und gibt den Code zurück. Eine
+       gewöhnliche INSERT-Anweisung könnte das nicht, ohne zugleich die
+       ganze Zeile zum Lesen freizugeben. */
+    const { data: code, error } = await sb.rpc("bewerbung_abgeben", {
+      p_vorname:  $("vorname").value.trim(),
+      p_nachname: $("nachname").value.trim(),
+      p_email:    $("email").value.trim().toLowerCase(),
+      p_telefon:  $("telefon").value.trim() || null,
+      p_ressort_1_id: $("ressort1").value,
+      p_ressort_2_id: $("ressort2").value || null,
+      p_antworten: antworten,
+      p_einwilligung_id: einwilligung.id
     });
 
-    if (!error) { fertigZeigen(); return; }
+    if (!error) { fertigZeigen(code); return; }
 
     knopfZurueck();
 

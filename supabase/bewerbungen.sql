@@ -49,7 +49,7 @@ on conflict (name) do nothing;
 --   auswahl   eine aus `optionen`
 --   mehrfach  beliebig viele aus `optionen`
 --   ja_nein   Häkchen
---   datei     Upload in den Ordner `bewerbungen` (Block 10)
+--   datei     Upload in den Ordner `bewerbungen` (Block 11)
 --
 -- `feld_key` ist der Schlüssel, unter dem die Antwort in `antworten` liegt.
 -- Er bleibt, auch wenn die Frage umformuliert wird – sonst verlören ältere
@@ -146,7 +146,7 @@ create table if not exists public.bewerbung_formular (
 );
 
 insert into public.bewerbung_formular (id, intro)
-values (true, 'Schön, dass du dabei sein möchtest. Fülle das Formular in Ruhe aus – wir melden uns danach per E-Mail bei dir.')
+values (true, 'Schön, dass du dabei sein möchtest.')
 on conflict (id) do nothing;
 
 create or replace function public.bewerbung_offen()
@@ -210,9 +210,11 @@ create table if not exists public.bewerbungen (
     foto_pfad         text,
     einwilligung_id   uuid        not null references public.bewerbung_einwilligung (id),
     einwilligung_text text,
+    code              text,
     status            text        not null default 'offen',
     status_am         timestamptz,
     status_von        uuid,
+    status_vor_absage text,
     notiz             text,
     created_at        timestamptz not null default now(),
 
@@ -220,6 +222,14 @@ create table if not exists public.bewerbungen (
     constraint bewerbungen_status_bekannt
         check (status in ('offen', 'rueckmeldung', 'kennenlernen',
                           'prios_bestaetigt', 'anwaerter', 'abgelehnt')),
+
+    -- Eine Absage kann an jeder Stelle kommen. `status_vor_absage` hält fest,
+    -- wie weit es vorher war – sonst zeigte der Zeitstrahl unter /bewerbung
+    -- nur noch die Absage und nicht mehr, an welcher Stelle sie kam.
+    constraint bewerbungen_absage_stand_bekannt
+        check (status_vor_absage is null or status_vor_absage in
+               ('offen', 'rueckmeldung', 'kennenlernen',
+                'prios_bestaetigt', 'anwaerter')),
 
     constraint bewerbungen_vorname_laenge  check (char_length(btrim(vorname))  between 1 and 80),
     constraint bewerbungen_nachname_laenge check (char_length(btrim(nachname)) between 1 and 80),
@@ -252,12 +262,113 @@ alter table public.bewerbungen add column if not exists antworten    jsonb not n
 alter table public.bewerbungen add column if not exists fragen       jsonb not null default '[]'::jsonb;
 alter table public.bewerbungen add column if not exists foto_pfad    text;
 alter table public.bewerbungen add column if not exists notiz        text;
+alter table public.bewerbungen add column if not exists code         text;
+alter table public.bewerbungen add column if not exists status_vor_absage text;
 alter table public.bewerbung_formular add column if not exists titel text not null
     default 'Bewerbung bei der Fachschaft Business School';
 alter table public.bewerbung_formular add column if not exists intro text;
 
+do $$
+begin
+    if not exists (select 1 from pg_constraint
+                    where conrelid = 'public.bewerbungen'::regclass
+                      and conname  = 'bewerbungen_absage_stand_bekannt') then
+        alter table public.bewerbungen
+            add constraint bewerbungen_absage_stand_bekannt
+            check (status_vor_absage is null or status_vor_absage in
+                   ('offen', 'rueckmeldung', 'kennenlernen',
+                    'prios_bestaetigt', 'anwaerter'));
+    end if;
+end;
+$$;
 
--- 7 ------------------------------------------------------------------ Trigger
+-- Der zweite Satz stand über dem Formular, sagte aber nichts, was nicht
+-- ohnehin passiert. Er verschwindet nur, wenn ihn niemand angefasst hat –
+-- ein im Portal geschriebener Text bleibt, wie er ist.
+update public.bewerbung_formular
+   set intro = 'Schön, dass du dabei sein möchtest.'
+ where id
+   and intro = 'Schön, dass du dabei sein möchtest. Fülle das Formular in Ruhe aus – wir melden uns danach per E-Mail bei dir.';
+
+
+-- 7 ---------------------------------------------------------- Bewerbungscode
+-- Fünf Zeichen, die jede Bewerbung mitbekommt. Damit ruft der Bewerber
+-- unter portal.fsbs-hm.de/bewerbung ab, wie weit sein Verfahren ist – ohne
+-- Konto, ohne Passwort.
+--
+-- Das Alphabet ist Crockfords Base32: Ziffern und Großbuchstaben ohne
+-- I, L, O und U. Was sich am Telefon verwechseln lässt, kommt gar nicht
+-- erst vor, und beim Eintippen übersetzt `bewerbung_code_norm` ein O in
+-- eine Null und ein I oder L in eine Eins. 32^5 sind 33,5 Millionen
+-- Möglichkeiten – genug, dass Raten nicht lohnt.
+
+create or replace function public.bewerbung_code_norm(p_code text)
+returns text
+language sql
+immutable
+as $$
+    -- Leerzeichen und Bindestriche fallen weg, damit "ab 12c" und "AB-12C"
+    -- dasselbe bedeuten wie "AB12C".
+    select nullif(
+        translate(upper(regexp_replace(coalesce(p_code, ''), '[^0-9A-Za-z]', '', 'g')),
+                  'OIL', '011'),
+        '');
+$$;
+
+create or replace function public.bewerbung_code_neu()
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+    zeichen  constant text := '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+    kandidat text;
+    i        integer;
+begin
+    for versuch in 1..50 loop
+        kandidat := '';
+        for i in 1..5 loop
+            -- `gen_random_bytes` statt `random()`: Der Code ist das einzige,
+            -- was die Bewerbung schützt, und 256 teilt sich ohne Rest durch
+            -- 32 – kein Zeichen kommt häufiger vor als ein anderes.
+            kandidat := kandidat ||
+                substr(zeichen, 1 + (get_byte(gen_random_bytes(1), 0) % 32), 1);
+        end loop;
+
+        if not exists (select 1 from public.bewerbungen where code = kandidat) then
+            return kandidat;
+        end if;
+    end loop;
+
+    raise exception 'Es ließ sich kein freier Bewerbungscode finden';
+end;
+$$;
+
+-- Bewerbungen aus der Zeit davor bekommen ihren Code nachträglich; erst
+-- danach lässt sich die Spalte verpflichtend machen.
+update public.bewerbungen set code = public.bewerbung_code_neu() where code is null;
+
+create unique index if not exists bewerbungen_code_eindeutig
+    on public.bewerbungen (code);
+
+alter table public.bewerbungen alter column code set not null;
+
+do $$
+begin
+    if not exists (select 1 from pg_constraint
+                    where conrelid = 'public.bewerbungen'::regclass
+                      and conname  = 'bewerbungen_code_form') then
+        alter table public.bewerbungen
+            add constraint bewerbungen_code_form
+            check (code ~ '^[0-9A-HJKMNP-TV-Z]{5}$');
+    end if;
+end;
+$$;
+
+
+-- 8 ----------------------------------------------------------------- Trigger
 -- Räumt die Eingaben auf, füllt die Klartext-Spalten und prüft die Antworten
 -- gegen die Fragen aus Block 2. Das Formular schickt nur IDs und einen
 -- JSON-Block; was gültig ist, entscheidet die Datenbank – nicht der Browser.
@@ -394,11 +505,16 @@ begin
 
     -- Zeitstempel und Bearbeitungsstand gehören der Datenbank, nicht dem
     -- Absender. Neu ist neu, egal was im Aufruf stand.
-    new.created_at := now();
-    new.status     := 'offen';
-    new.status_am  := null;
-    new.status_von := null;
-    new.notiz      := null;
+    new.created_at        := now();
+    new.status            := 'offen';
+    new.status_am         := null;
+    new.status_von        := null;
+    new.status_vor_absage := null;
+    new.notiz             := null;
+
+    -- Der Code kommt ebenfalls von hier. Was im Aufruf stand, zählt nicht:
+    -- sonst könnte sich jemand seinen eigenen aussuchen.
+    new.code := public.bewerbung_code_neu();
     return new;
 end;
 $$;
@@ -409,7 +525,7 @@ create trigger bewerbungen_normalisieren
     for each row execute function public.bewerbungen_normalisieren();
 
 
--- 8 ------------------------------------------------- Bearbeitungsstand-Verlauf
+-- 9 ----------------------------------------------- Bearbeitungsstand-Verlauf
 -- Wer den Stand ändert und wann, hält die Datenbank selbst fest. Die Seite
 -- schickt nur den neuen Stand. Die Ressortwünsche darf der Vorstand im Portal
 -- korrigieren – die Klartext-Spalten ziehen dann mit.
@@ -421,9 +537,19 @@ security definer
 set search_path = public
 as $$
 begin
+    -- Der Code gehört zur Bewerbung, nicht zum Aufruf: einmal vergeben,
+    -- bleibt er – sonst liefe der Zettel des Bewerbers ins Leere.
+    new.code := old.code;
+
     if new.status is distinct from old.status then
         new.status_am  := now();
         new.status_von := auth.uid();
+
+        -- Eine Absage kann an jeder Stelle kommen. Womit sie kam, hält der
+        -- Zeitstrahl unter /bewerbung fest – dafür muss der Stand davor
+        -- erhalten bleiben. Wird eine Absage zurückgenommen, fällt er weg.
+        new.status_vor_absage := case when new.status = 'abgelehnt'
+                                      then old.status end;
     end if;
 
     if new.ressort_1_id is distinct from old.ressort_1_id then
@@ -458,7 +584,7 @@ create trigger bewerbungen_pflegen
     for each row execute function public.bewerbungen_pflegen();
 
 
--- 9 ----------------------------------------------------------- Wer darf was
+-- 10 ----------------------------------------------------------- Wer darf was
 -- `ist_vorstand()` gibt es seit den Zutritten; hier steht sie noch einmal,
 -- damit dieses Skript für sich allein läuft. Sie ist wortgleich, ein zweiter
 -- Durchlauf ändert also nichts.
@@ -502,7 +628,7 @@ grant execute on function public.ist_vorstand() to authenticated;
 grant execute on function public.ist_leitung()  to anon, authenticated;
 
 
--- 10 --------------------------------------------------------- Bewerbungsfotos
+-- 11 -------------------------------------------------------- Bewerbungsfotos
 -- Ein nicht-öffentlicher Ordner: Hochladen darf jeder, der das Formular
 -- ausfüllt, ansehen nur Vorstand und Ressortleitung – die Seite holt sich
 -- dafür einen zeitlich begrenzten Link. Ohne diesen Block lädt das Formular
@@ -532,7 +658,7 @@ create policy "bewerbungsfoto entfernen" on storage.objects
     using (bucket_id = 'bewerbungen' and public.ist_vorstand());
 
 
--- 11 -------------------------------------------------------------------- RLS
+-- 12 -------------------------------------------------------------------- RLS
 -- Das Formular läuft mit dem öffentlichen Schlüssel. Es darf die Listen lesen
 -- und eintragen – die eingegangenen Bewerbungen selbst nicht.
 
@@ -588,7 +714,11 @@ create policy "formular stellen" on public.bewerbung_formular
     with check (public.ist_vorstand());
 
 -- ---- Bewerbungen ------------------------------------------------------------
--- Nach der Frist nimmt die Datenbank nichts mehr an, nicht erst die Seite.
+-- Eingetragen wird nur noch über `bewerbung_abgeben()` (Block 14) – das
+-- Formular braucht seinen Code zurück, und den gäbe eine gewöhnliche
+-- INSERT-Anweisung nicht her, ohne zugleich die ganze Zeile zu öffnen.
+-- Die Regel bleibt als zweiter Riegel stehen: Nach der Frist nimmt die
+-- Datenbank nichts mehr an, nicht erst die Seite.
 drop policy if exists "bewerbung abgeben" on public.bewerbungen;
 create policy "bewerbung abgeben" on public.bewerbungen
     for insert to anon, authenticated
@@ -606,7 +736,7 @@ create policy "bewerbungen bearbeiten" on public.bewerbungen
     with check (public.ist_vorstand());
 
 
--- 12 ------------------------------------------------------------------ Rechte
+-- 13 ----------------------------------------------------------------- Rechte
 -- RLS entscheidet über die Zeilen, diese Rechte über die Spalten. Beides muss
 -- zusammenpassen: Was hier nicht steht, kommt von außen nicht herein.
 
@@ -623,13 +753,97 @@ grant insert, update, delete on public.bewerbung_einwilligung to authenticated;
 revoke insert, update, delete on public.bewerbung_formular from anon, authenticated;
 grant update (titel, intro, frist, geschlossen) on public.bewerbung_formular to authenticated;
 
--- Eintragen darf das Formular nur die Felder, die es auch ausfüllt: Stand,
--- Zeitstempel und die Klartext-Kopien sind von außen nicht setzbar.
+-- Von außen trägt niemand unmittelbar ein: Das Formular ruft
+-- `bewerbung_abgeben()` auf (Block 14) und bekommt dafür den Code zurück.
 revoke insert, update, delete on public.bewerbungen from anon, authenticated;
-grant insert (vorname, nachname, email, telefon,
-              ressort_1_id, ressort_2_id, antworten, foto_pfad, einwilligung_id)
-    on public.bewerbungen to anon, authenticated;
 grant select on public.bewerbungen to authenticated;
 -- Später ändern lässt sich der Bearbeitungsstand, eine Notiz und – falls im
 -- Formular etwas verrutscht ist – die beiden Ressortwünsche.
 grant update (status, notiz, ressort_1_id, ressort_2_id) on public.bewerbungen to authenticated;
+
+
+-- 14 ------------------------------------------------ Abgeben und nachschauen
+-- Zwei Funktionen, die das Formular aufruft. Beide laufen mit den Rechten
+-- ihres Eigentümers: Die Tabelle selbst bleibt für anon verschlossen, und
+-- nach außen geht nur, was hier ausdrücklich zurückgegeben wird.
+
+-- ---- Abgeben ----------------------------------------------------------------
+-- Trägt die Bewerbung ein und liefert den Code zurück. Geprüft wird weiter
+-- im Trigger aus Block 8; diese Funktion fügt nur die Frist hinzu, die
+-- sonst die RLS-Regel besorgt hätte.
+
+create or replace function public.bewerbung_abgeben(
+    p_vorname         text,
+    p_nachname        text,
+    p_email           text,
+    p_telefon         text,
+    p_ressort_1_id    uuid,
+    p_ressort_2_id    uuid,
+    p_antworten       jsonb,
+    p_einwilligung_id uuid,
+    p_foto_pfad       text default null
+)
+returns text
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+    v_code text;
+begin
+    if not public.bewerbung_offen() then
+        -- Derselbe Fehlercode, den die RLS-Regel geliefert hätte: Die Seite
+        -- zeigt daraufhin "Bewerbung geschlossen".
+        raise exception 'Zurzeit nehmen wir keine Bewerbungen entgegen'
+            using errcode = '42501';
+    end if;
+
+    insert into public.bewerbungen
+        (vorname, nachname, email, telefon, ressort_1_id, ressort_2_id,
+         antworten, foto_pfad, einwilligung_id)
+    values
+        (p_vorname, p_nachname, p_email, p_telefon, p_ressort_1_id, p_ressort_2_id,
+         coalesce(p_antworten, '{}'::jsonb), p_foto_pfad, p_einwilligung_id)
+    returning code into v_code;
+
+    return v_code;
+end;
+$$;
+
+
+-- ---- Nachschauen ------------------------------------------------------------
+-- Was der Bewerber mit seinem Code sieht. Bewusst wenig: Vorname zur
+-- Bestätigung, dass der Code der richtige ist, dazu der Stand und die zwei
+-- Zeitpunkte für den Zeitstrahl. Notiz, E-Mail, Antworten und Foto bleiben
+-- drin, wo sie hingehören.
+--
+-- Der Code ist der ganze Schlüssel; mehr als diese vier Angaben gibt eine
+-- geratene Zeichenfolge deshalb auch nicht her.
+
+create or replace function public.bewerbung_stand(p_code text)
+returns table (
+    vorname           text,
+    status            text,
+    status_vor_absage text,
+    eingegangen_am    timestamptz,
+    stand_seit        timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    select b.vorname, b.status, b.status_vor_absage, b.created_at, b.status_am
+      from public.bewerbungen b
+     where b.code = public.bewerbung_code_norm(p_code)
+     limit 1;
+$$;
+
+grant execute on function public.bewerbung_abgeben(
+    text, text, text, text, uuid, uuid, jsonb, uuid, text) to anon, authenticated;
+grant execute on function public.bewerbung_stand(text) to anon, authenticated;
+
+-- Den Code selbst vergibt allein die Datenbank. Postgres gibt neue
+-- Funktionen sonst an `public` frei – und damit auch an das Formular.
+revoke execute on function public.bewerbung_code_neu() from public;

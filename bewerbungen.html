@@ -143,6 +143,15 @@
      Vorbeiscrollen preisgibt. */
   .bewStand { position: absolute; top: 13px; left: 16px; }
 
+  /* Der Code, wie ihn der Bewerber vor sich hat: gleiche Breite je
+     Zeichen, damit sich 0 und O beim Vorlesen nicht in die Quere kommen. */
+  .bewCode {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+  }
+
   /* ---------- Detailansicht ---------- */
   /* Mehrzeilige Antworten lesen sich in 680 px wie ein Kassenbon. */
   #detailDlg { width: min(780px, calc(100vw - 32px)); }
@@ -694,7 +703,7 @@ function passt(z) {
   if (filter !== "alle" && z.status !== filter) return false;
   if (ressortFilter && z.ressort_1 !== ressortFilter && z.ressort_2 !== ressortFilter) return false;
   if (!suche) return true;
-  const heu = [z.vorname, z.nachname, z.email, z.telefon, z.ressort_1, z.ressort_2,
+  const heu = [z.vorname, z.nachname, z.email, z.telefon, z.code, z.ressort_1, z.ressort_2,
                ...Object.values(z.antworten || {}).map((v) => Array.isArray(v) ? v.join(" ") : v)]
     .map(safe).join(" ").toLowerCase();
   return heu.includes(suche);
@@ -720,7 +729,7 @@ function renderPage() {
 
     <div class="toolbar">
       <input class="toolbar__search" id="sucheFeld" type="search"
-             placeholder="Name, E-Mail, Ressort oder Antwort suchen">
+             placeholder="Name, E-Mail, Code, Ressort oder Antwort suchen">
       <select class="toolbar__select" id="ressortFeld"><option value="">Ressort (alle)</option></select>
       <button class="btn-secondary btn-sm" id="neuLaden" type="button">Aktualisieren</button>
       <div class="toolbar__spacer"></div>
@@ -922,6 +931,9 @@ function detailOeffnen(id) {
   foto.onclick = link ? () => window.open(link, "_blank", "noopener") : null;
 
   const reihen = [
+    // Der Code, den der Bewerber bekommen hat: Damit findet man beim Anruf
+    // die richtige Zeile, und er steht auch in der Suche.
+    ["Code", `<span class="bewCode">${esc(z.code || "—")}</span>`],
     ["E-Mail", `<a href="mailto:${esc(z.email)}">${esc(z.email)}</a>`],
     ["Telefon", z.telefon ? `<a href="tel:${esc(z.telefon)}">${esc(z.telefon)}</a>` : "—"],
     ["Priorität 1", esc(z.ressort_1 || "—")],
@@ -1462,7 +1474,7 @@ async function laden() {
 
   const { data, error } = await sb.from("bewerbungen")
     .select("id,vorname,nachname,email,telefon,ressort_1_id,ressort_1,ressort_2_id,ressort_2," +
-            "antworten,fragen,einwilligung_text,status,status_am,created_at")
+            "antworten,fragen,einwilligung_text,code,status,status_am,created_at")
     .order("created_at", { ascending: false });
 
   if (error) {
