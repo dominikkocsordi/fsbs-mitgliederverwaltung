@@ -1,1061 +1,1546 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FSBS">
-  <title>FSBS Intern – Bewerbungen</title>
+<title>FSBS Intern – Bewerbungen</title>
+<meta name="theme-color" content="#f4f4f6">
 
-  <meta name="theme-color" content="#f4f4f6">
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-  <link rel="manifest" href="/favicon/site.webmanifest">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/app-shell.js"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/mobile-nav.css">
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  /* Nur das, was es sonst nirgends gibt. Kacheln, Karten, Pillen,
+     Knöpfe und Dialoge kommen aus style.css. */
 
-  <script src="/app-shell.js"></script>
-  <script src="/theme.js"></script>
-  <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="/mobile-nav.css">
+  /* ---------- Kopfzeile des Formulars ---------- */
+  .formKarte {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .formKarte input[type="datetime-local"] { flex: 0 1 200px; width: auto; height: 32px; font-size: 13px; }
+  .formKarte .toolbar__spacer { flex: 1 1 auto; }
 
+  /* Auf dem Handy nimmt der Kasten sonst ein Drittel des Bildschirms
+     ein, bevor die erste Bewerbung kommt. */
+  @media (max-width: 719px) {
+    .formKarte { gap: 8px; }
+    .formKarte input[type="datetime-local"] { flex: 1 1 100%; }
+    .formKarte .toolbar__spacer { display: none; }
+    .formKarte .btn-sm { flex: 1 1 auto; }
+  }
+
+  .zeitMuted { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+
+  /* ---------- Kennzahlen als Filter ---------- */
+  .statGrid { margin-bottom: 18px; }
+
+  /* Sieben Kacheln in der Standardbreite ergeben auf dem Handy vier
+     Reihen, bevor die Liste anfängt. Schmaler passen sie in zwei. */
+  @media (max-width: 719px) {
+    .statGrid { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+    .statGrid .stat { padding: 12px; gap: 2px; }
+    .statGrid .stat__value { font-size: 22px; }
+    .statGrid .stat__label { font-size: 11px; }
+  }
+  .stat--filter { cursor: pointer; text-align: left; font: inherit; color: inherit; }
+  .stat--filter.is-active {
+    border-color: color-mix(in oklab, var(--primary) 45%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
+  }
+
+  /* ---------- Bewerbungskarte ---------- */
+  .bewGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    /* Gleich hohe Karten je Reihe: Zwei Ressortwünsche brauchen eine
+       Zeile mehr als einer, und eine Reihe aus Treppenstufen liest
+       sich schlecht. */
+    align-items: stretch;
+  }
+  @media (max-width: 620px) { .bewGrid { grid-template-columns: 1fr; } }
+
+  .bewCard {
+    position: relative;
+    display: flex;
+    gap: 13px;
+    padding: 16px;
+    padding-top: 44px;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg, 18px);
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    transition: transform 0.18s var(--ease), border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .bewCard:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border-color));
+    box-shadow: var(--shadow-pop);
+  }
+
+  .bewFoto {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface-2);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+  .bewFoto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .bewBody { min-width: 0; flex: 1 1 auto; display: block; }
+  .bewName {
+    display: block;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bewMail {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+  .bewPills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+
+  /* Der Stand sitzt oben in der Karte, damit sie ihn auch im
+     Vorbeiscrollen preisgibt. */
+  .bewStand { position: absolute; top: 13px; left: 16px; }
+
+  /* ---------- Detailansicht ---------- */
+  /* Mehrzeilige Antworten lesen sich in 680 px wie ein Kassenbon. */
+  #detailDlg { width: min(780px, calc(100vw - 32px)); }
+  #detailDlg .dlgShell { max-width: 780px; }
+
+  .detailKopf {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 0;
+  }
+  .detailFoto {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--surface-2);
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+  }
+  .detailFoto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .detailFoto.klickbar { cursor: zoom-in; }
+
+  .antwortText { white-space: pre-wrap; line-height: 1.55; }
+
+  .prioRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .prioRow[hidden] { display: none; }
+  @media (max-width: 560px) { .prioRow { grid-template-columns: 1fr; } }
+
+  /* ---------- Formular-Editor ---------- */
+  .editorSection + .editorSection {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+  }
+  .editorSection h3 {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0 0 12px;
+  }
+
+  .feldListe { display: flex; flex-direction: column; gap: 8px; }
+
+  .feldZeile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+  }
+  .feldZeile.is-aus { opacity: 0.5; }
+
+  .feldText { min-width: 0; flex: 1 1 auto; }
+  .feldLabel {
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .feldMeta { font-size: 11px; color: var(--faint-foreground); margin-top: 2px; }
+  .feldKnoepfe { flex: none; display: flex; gap: 4px; }
+
+  /* Die Pfeile sind quadratisch — sonst schöbe sich die Zeile bei
+     jedem Umsortieren um ein paar Pixel. */
+  .feldKnoepfe .btn-xs { min-width: 30px; padding: 0 8px; }
+
+  .listeRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+    font-size: 13px;
+  }
+  .listeRow + .listeRow { margin-top: 6px; }
+  .listeRow.is-aus { opacity: 0.5; }
+  .listeRow span { flex: 1 1 auto; min-width: 0; }
+
+  .neuRow { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .neuRow input { flex: 1 1 auto; height: 34px; font-size: 13px; }
+
+  .editorHinweis {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--faint-foreground);
+    margin: 0 0 12px;
+  }
+
+  .gate { text-align: center; padding: 64px 20px; color: var(--muted-foreground); }
+  .gate strong { display: block; font-size: 17px; color: var(--foreground); margin-bottom: 6px; }
+</style>
 </head>
 
 <body>
-  <div class="app">
+<div class="app">
 
-    <div class="top">
-      <div class="brandLeft">
-        <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
-          <img src="logo.png" alt="Fachschaft Logo"
-               onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
-        </a>
-        <div>
-          <h1>Bewerbungen</h1>
-          <div class="subtitle">Übersicht aus Google Sheet · Klick für Details</div>
-        </div>
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/index.html" title="Fachschaft Business School e.V.">
+        <img src="/logo.png" alt="FSBS Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';">
+      </a>
+      <div>
+        <h1>Bewerbungen</h1>
+        <div class="subtitle">Eingegangen über portal.fsbs-hm.de/bewerbung</div>
       </div>
+    </div>
 
-      <div class="brandRight" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-        <div class="pill" id="statusPill">–</div>
+    <div class="brandRight" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="pill" id="statusPill">–</div>
 
-        <div class="authFloating" id="authBadge" title="Login-Status">
-          <span class="dot warn" id="authDot"></span>
-          <div class="authAvatar hidden" id="authAvatar">U</div>
-
-          <div class="authInfo">
-            <div class="authTopLine">
-              <div class="authState" id="authState">nicht eingeloggt</div>
-
-              <div class="authCompact hidden" id="authCompact">
-                <span class="authNameInline" id="authNameInline">User</span>
-                <span class="rolePill" id="authRolePill">Rolle</span>
-                <button class="authChevron" id="authToggle" type="button" aria-label="Details">⌄</button>
-              </div>
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" type="button" aria-label="Details">⌄</button>
             </div>
-
-            <div class="authDetails hidden" id="authDetails">
-              <div class="authMail" id="authMail"></div>
-            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- NAV -->
-    <div class="glass navWrap hidden" id="navWrap" data-nav>
-      <div class="nav">
-        <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
-        <div class="navLeft"></div>
-        <div class="navRight">
-          <button class="btn-secondary hidden" id="logoutBtn" type="button">Abmelden</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Loader -->
-    <div class="pageLoader" id="pageLoader">
-      <div class="spinnerRing"></div>
-      <span>Daten werden geladen…</span>
-    </div>
-
-    <!-- Content -->
-    <div class="glass card hidden" id="contentCard">
-
-      <div class="kpiGrid" id="kpiGrid"></div>
-
-      <div class="row">
-        <input id="q" placeholder="Suche (Name, Mail, Ressort…)" />
-        <select id="fRes"><option value="">Ressort (alle)</option></select>
-        <select id="fSem"><option value="">Semester (alle)</option></select>
-        <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
-        <div class="spacer"></div>
-        <div class="pill" id="countPill">0</div>
-      </div>
-
-      <div id="grid" class="grid"></div>
-      <div id="empty" class="empty hidden">Keine Bewerbungen gefunden.</div>
-    </div>
-
   </div>
 
-  <!-- ✅ Native Dialog Modal -->
-  <dialog id="dlg">
-    <div class="dlgShell">
-      <div class="sheetHandle" aria-hidden="true"></div>
-
-      <div class="modalHeader">
-        <div>
-          <h2 class="modalTitle" id="modalTitle">Bewerbung</h2>
-          <div class="modalSub" id="modalSub">–</div>
-        </div>
-        <button class="btn-secondary closeX" id="closeModalBtn" type="button">✕</button>
-      </div>
-
-      <div class="modalPhotoWrap">
-        <div class="modalPhoto" id="modalPhoto" title="Klick: Foto öffnen"></div>
-      </div>
-
-      <div class="kv" id="kv"></div>
-
-      <div class="modalActions">
-        <button class="btn-secondary" id="savePriosBtn" type="button" style="display:none;">Prios speichern</button>
-        <button class="btn-danger" id="rejectBtn" type="button">Ablehnen</button>
-        <button class="btn-amber" id="rsvpBtn" type="button">Rückmeldung Anwesenheit</button>
-        <button class="btn-info" id="meetBtn" type="button">Anwesend Kennenlernen</button>
-        <button class="btn-purple" id="priosConfirmedBtn" type="button">Prios Bestätigt</button>
-        <button class="btn-primary" id="moveToCandidateBtn" type="button">Als Anwärter übernehmen</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- Ressort-Auswahl Dialog -->
-  <dialog id="ressortDlg">
-    <div class="dlgShell" style="max-width:440px; margin:auto;">
-      <div class="sheetHandle" aria-hidden="true"></div>
-      <div class="modalHeader">
-        <div>
-          <h2 class="modalTitle">Ressort auswählen</h2>
-          <div class="modalSub" id="ressortDlgSub">Endgültiges Ressort für den Anwärter</div>
-        </div>
-        <button class="btn-secondary closeX" id="ressortDlgClose" type="button">✕</button>
-      </div>
-      <div style="margin-top:16px;">
-        <select id="ressortSelect" style="width:100%; min-width:0;"></select>
-      </div>
-      <div class="modalActions" style="margin-top:14px;">
-        <button class="btn-secondary" id="ressortDlgCancel" type="button">Abbrechen</button>
-        <button class="btn-primary" id="ressortDlgConfirm" type="button">Als Anwärter übernehmen</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- ✅ Fallback -->
-  <div class="fallbackOverlay" id="fbOverlay">
-    <div class="fallbackPanel" onclick="event.stopPropagation()">
-      <div class="sheetHandle" aria-hidden="true" style="display:block;"></div>
-
-      <div class="modalHeader">
-        <div>
-          <h2 class="modalTitle" id="fbTitle">Bewerbung</h2>
-          <div class="modalSub" id="fbSub">–</div>
-        </div>
-        <button class="btn-secondary closeX" id="fbClose" type="button">✕</button>
-      </div>
-
-      <div class="modalPhotoWrap">
-        <div class="modalPhoto" id="fbPhoto"></div>
-      </div>
-
-      <div class="kv" id="fbKv"></div>
-
-      <div class="modalActions">
-        <button class="btn-secondary" id="fbSavePrios" type="button" style="display:none;">Prios speichern</button>
-        <button class="btn-danger" id="fbReject" type="button">Ablehnen</button>
-        <button class="btn-amber" id="fbRsvp" type="button">Rückmeldung Anwesenheit</button>
-        <button class="btn-info" id="fbMeet" type="button">Anwesend Kennenlernen</button>
-        <button class="btn-purple" id="fbPriosConfirmed" type="button">Prios Bestätigt</button>
-        <button class="btn-primary" id="fbMove" type="button">Als Anwärter übernehmen</button>
+  <!-- NAV -->
+  <div class="glass navWrap" id="navWrap" data-nav>
+    <div class="nav">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+      <div class="navLeft"></div>
+      <div class="navRight">
+        <button class="btn-secondary" id="logoutBtn" type="button">Abmelden</button>
       </div>
     </div>
   </div>
 
-  <script>
-    /* ========= CONFIG ========= */
-    const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbzy_fHyndcLXJG4fzehlTS6IXyncHOannkG6l0wwecVOQs9aBIGCRPW6MiLBIzWmi0L/exec";
-    const SHEET_API_KEY = "hfishfisfhsdfhudsfijiew-fsfhdsjkfhsdkjfhjsfh1324";
+  <div id="mainContent">
+    <div class="pageLoader"><div class="spinnerRing"></div><span>Lade…</span></div>
+  </div>
 
-    const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+</div>
 
-    const LOGIN_REDIRECT = "/login.html";
+<!-- ============================================================
+     Detailansicht einer Bewerbung
+     ============================================================ -->
+<dialog id="detailDlg">
+  <div class="dlgShell">
+    <div class="sheetHandle" aria-hidden="true"></div>
 
-    const PROFILES_TABLE = "profiles";
-    const CANDIDATES_TABLE = "anwaerter";
-    const CAND_ID_COL = "bewerbung_id";
-    const CAND_STATUS_COL = "bewerbung_status";
-
-    const RESSORTS_FIXED = ["Externe Events","Interne Events","Sponsoring","Merchandise","Kommunikation"];
-
-    const F = {
-      ts: "Zeitstempel",
-      fn: "Vorname",
-      ln: "Nachname",
-      age: "Alter",
-      phone: "Handynummer",
-      email: "E-Mail Adresse",
-      why: "Warum bewirbst du dich um eine Mitgliedschaft in der Fachschaft?",
-      exp: "Welche bisherigen Erfahrungen und Kompetenzen bringst du mit, die in der Fachschaft von Nutzen sein können?",
-      r1: "Ressort Prio 1",
-      r2: "Ressort Prio 2",
-      whyR: "Warum hast du dich für diese beiden Ressorts als Priorität 1 und 2 entschieden?\n\nWas reizt dich an diesen Bereichen besonders und welchen Mehrwert kannst du deiner Meinung nach dort einbringen?",
-      photo: "Lade bitte ein Foto von dir hoch",
-      consent: "Einwilligung in die Datenverarbeitung gemäß Datenschutzerklärung",
-      sem: "Semester",
-
-      degree: "Studiengang (Bachelor/Master)"
-    };
-
-    /* ========= ELEMENTS ========= */
-    const statusPill = document.getElementById("statusPill");
-    const navWrap = document.getElementById("navWrap");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const contentCard = document.getElementById("contentCard");
-    const pageLoader = document.getElementById("pageLoader");
-    const navFinanzen = document.getElementById("navFinanzen");
-
-    const q = document.getElementById("q");
-    const fRes = document.getElementById("fRes");
-    const fSem = document.getElementById("fSem");
-    const reloadBtn = document.getElementById("reloadBtn");
-    const countPill = document.getElementById("countPill");
-    const grid = document.getElementById("grid");
-    const empty = document.getElementById("empty");
-
-    const kpiGrid = document.getElementById("kpiGrid");
-
-    // Auth UI
-    const authBadge = document.getElementById("authBadge");
-    const authDot = document.getElementById("authDot");
-    const authState = document.getElementById("authState");
-    const authMail  = document.getElementById("authMail");
-    const authAvatar = document.getElementById("authAvatar");
-    const authCompact = document.getElementById("authCompact");
-    const authNameInline = document.getElementById("authNameInline");
-    const authRolePill = document.getElementById("authRolePill");
-    const authToggle = document.getElementById("authToggle");
-    const authDetails = document.getElementById("authDetails");
-
-    // Dialog + fallback
-    const dlg = document.getElementById("dlg");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalSub = document.getElementById("modalSub");
-    const modalPhoto = document.getElementById("modalPhoto");
-    const kv = document.getElementById("kv");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const moveToCandidateBtn = document.getElementById("moveToCandidateBtn");
-    const savePriosBtn       = document.getElementById("savePriosBtn");
-    const fbSavePrios        = document.getElementById("fbSavePrios");
-    const priosConfirmedBtn  = document.getElementById("priosConfirmedBtn");
-    const fbPriosConfirmed   = document.getElementById("fbPriosConfirmed");
-    const rejectBtn = document.getElementById("rejectBtn");
-    const rsvpBtn = document.getElementById("rsvpBtn");
-    const meetBtn = document.getElementById("meetBtn");
-    const ressortDlg = document.getElementById("ressortDlg");
-    const ressortSelect = document.getElementById("ressortSelect");
-    const ressortDlgSub = document.getElementById("ressortDlgSub");
-    const ressortDlgClose = document.getElementById("ressortDlgClose");
-    const ressortDlgCancel = document.getElementById("ressortDlgCancel");
-    const ressortDlgConfirm = document.getElementById("ressortDlgConfirm");
-
-    const fbOverlay = document.getElementById("fbOverlay");
-    const fbTitle = document.getElementById("fbTitle");
-    const fbSub = document.getElementById("fbSub");
-    const fbPhoto = document.getElementById("fbPhoto");
-    const fbKv = document.getElementById("fbKv");
-    const fbClose = document.getElementById("fbClose");
-    const fbMove = document.getElementById("fbMove");
-    const fbReject = document.getElementById("fbReject");
-    const fbRsvp = document.getElementById("fbRsvp");
-    const fbMeet = document.getElementById("fbMeet");
-
-    /* ========= STATE ========= */
-    let ALL = [];
-    let ACTIVE_ROW = null;
-    let statusMap = new Map();
-
-    let MY_ROLE = "";
-    let MY_RESSORT = "";
-    let CAN_VIEW = false;
-    let CAN_EDIT = false;
-
-    let RENDER_TOKEN = 0;
-
-    const safe = (v) => (v === null || v === undefined) ? "" : String(v);
-    const esc = (s) => String(s)
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#039;");
-
-    /* ========= AUTH UI helpers ========= */
-    function normRole(v){ return String(v || "").trim().toLowerCase(); }
-    function roleLabel(role){
-      const r = normRole(role);
-      if (r === "vorstand") return "Vorstand";
-      if (r === "ressortleiter") return "Ressortleiter";
-      if (r === "protokollfuehrer") return "Protokollführer";
-      return "Unbekannt";
-    }
-    function hashString(str){
-      let h = 2166136261;
-      for (let i = 0; i < str.length; i++){
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619);
-      }
-      return (h >>> 0);
-    }
-    function initialsFromEmail(email){
-      const e = (email || "").trim().toLowerCase();
-      if (!e) return "U";
-      const local = e.split("@")[0] || "u";
-      const parts = local.split(/[.\-_]+/).filter(Boolean);
-      const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
-      const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
-      return (a + b).trim() || a;
-    }
-    function initialsFromText(txt){
-      const t = (txt || "").trim();
-      if (!t) return "U";
-      const parts = t.split(/\s+/).filter(Boolean);
-      const a = (parts[0]?.[0] || "U").toUpperCase();
-      const b = (parts[1]?.[0] || "").toUpperCase();
-      return (a + b).trim() || a;
-    }
-    function setAvatar(email){
-      const e = (email || "").trim().toLowerCase();
-      if (!e){
-        authAvatar?.classList.add("hidden");
-        authAvatar.textContent = "U";
-        authAvatar.style.background = "var(--secondary)";
-        return;
-      }
-      const h = hashString(e);
-      const hue = h % 360;
-      const hue2 = (hue + 38) % 360;
-      authAvatar.textContent = initialsFromEmail(e);
-      authAvatar?.classList.remove("hidden");
-      authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
-    }
-    function setRolePill(role){
-      const r = normRole(role);
-      authRolePill.textContent = roleLabel(r);
-      authRolePill.classList.remove("vorstand","ressortleiter");
-      if (r === "vorstand") authRolePill.classList.add("vorstand");
-      else authRolePill.classList.add("ressortleiter");
-    }
-    function setCompactIdentity(displayName, email){
-      const name = (displayName || "").trim();
-      const fallback = ((email || "").split("@")[0] || "User").trim();
-      authNameInline.textContent = name || fallback;
-    }
-    function closeAuthDetails(){ authDetails?.classList.add("hidden"); }
-    authToggle?.addEventListener("click", (e)=>{ e.stopPropagation(); authDetails?.classList.toggle("hidden"); });
-    document.addEventListener("click", (e)=>{ if (authBadge && !authBadge.contains(e.target)) closeAuthDetails(); });
-
-    function setAuthUI(isAuthed, email=""){
-      if (isAuthed){
-        authDot.classList.remove("warn"); authDot.classList.add("ok");
-        authState.classList.add("hidden");
-        authCompact.classList.remove("hidden");
-        authMail.textContent = (email || "").trim();
-        setAvatar(email);
-
-        navWrap.classList.remove("hidden");
-        logoutBtn.classList.remove("hidden");
-      } else {
-        authDot.classList.remove("ok"); authDot.classList.add("warn");
-        authState.classList.remove("hidden");
-        authState.textContent = "nicht eingeloggt";
-        authCompact.classList.add("hidden");
-        authMail.textContent = "";
-        setAvatar("");
-
-        navWrap.classList.add("hidden");
-        logoutBtn.classList.add("hidden");
-        contentCard.classList.add("hidden");
-        pageLoader.classList.remove("hidden");
-      }
-    }
-
-    async function loadMyProfile(session){
-      const uid = session?.user?.id;
-      const email = session?.user?.email || "";
-
-      const { data } = await sb
-        .from(PROFILES_TABLE)
-        .select("role, display_name, ressort")
-        .eq("id", uid)
-        .maybeSingle();
-
-      MY_ROLE = normRole(data?.role);
-      if (MY_ROLE === "protokollfuehrer") { window.location.replace("protokoll.html"); return; }
-      MY_RESSORT = safe(data?.ressort).trim();
-      CAN_VIEW = (MY_ROLE === "vorstand" || MY_ROLE === "ressortleiter");
-      CAN_EDIT = (MY_ROLE === "vorstand");
-
-      setCompactIdentity(data?.display_name, email);
-      setRolePill(MY_ROLE || "ressortleiter");
-
-      const dn = (data?.display_name || "").trim();
-      if (dn) authAvatar.textContent = initialsFromText(dn);
-
-      if (navFinanzen) navFinanzen.style.display = CAN_EDIT ? "" : "none";
-      const navProtokoll = document.getElementById("navProtokoll");
-      if (navProtokoll) navProtokoll.style.display = CAN_EDIT ? "" : "none";
-      const navZeugnisse = document.getElementById("navZeugnisse");
-      if (navZeugnisse) navZeugnisse.style.display = CAN_EDIT ? "" : "none";
-      const navZutritte = document.getElementById("navZutritte");
-      if (navZutritte) navZutritte.style.display = CAN_EDIT ? "" : "none";
-    }
-
-    logoutBtn?.addEventListener("click", async ()=>{
-      await sb.auth.signOut();
-      window.location.href = LOGIN_REDIRECT;
-    });
-
-    /* ========= DATA helpers ========= */
-    function uniq(arr){
-      return [...new Set(arr.map(x => safe(x).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
-    }
-
-    function fillFilters(){
-      const ressorts = uniq([
-        ...ALL.map(r => r[F.r1]),
-        ...ALL.map(r => r[F.r2])
-      ]);
-      const semesters = uniq(ALL.map(r => r[F.sem]));
-
-      fRes.innerHTML = `<option value="">Ressort (alle)</option>` +
-        ressorts.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
-
-      fSem.innerHTML = `<option value="">Semester (alle)</option>` +
-        semesters.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
-    }
-
-    function getInitials(row){
-      const a = safe(row[F.fn]).trim().slice(0,1);
-      const b = safe(row[F.ln]).trim().slice(0,1);
-      return (a + b).toUpperCase() || "•";
-    }
-
-    function normalizeDegree(v){
-      const s = safe(v).trim().toLowerCase();
-      if (!s) return "";
-      if (s.includes("master")) return "Master";
-      if (s.includes("bachelor")) return "Bachelor";
-      // fallback: original (z.B. "BSc", "MSc")
-      return safe(v).trim();
-    }
-
-    function getDegree(row){
-      const raw =
-        row?.[F.degree] ??
-        row?.["Studiengang"] ??
-        row?.["Abschluss"] ??
-        row?.["Bachelor/Master"] ??
-        row?.["Studium"] ??
-        "";
-      return normalizeDegree(raw);
-    }
-
-    function getThumb(row){
-      try{
-        if (row?.__photo?.items?.[0]?.thumb){
-          const t = String(row.__photo.items[0].thumb);
-          if (t.startsWith("http://") || t.startsWith("https://")) return t;
-        }
-      } catch(e){}
-      return "";
-    }
-    function getPhotoUrl(row){
-      try{
-        if (row?.__photo?.items?.[0]?.url){
-          const u = String(row.__photo.items[0].url);
-          if (u.startsWith("http://") || u.startsWith("https://")) return u;
-        }
-      } catch(e){}
-      return "";
-    }
-
-    function normId(v){ return String(v || "").trim(); }
-    function makeBewerbungId(row){
-      const ts = safe(row?.[F.ts]).trim();
-      const email = safe(row?.[F.email]).trim();
-      return [ts, email].filter(Boolean).join(" | ") || "";
-    }
-
-    async function refreshStatusMapFor(rows){
-      statusMap = new Map();
-      const ids = [...new Set((rows || []).map(makeBewerbungId).map(normId).filter(Boolean))];
-      if (!ids.length) return;
-
-      const { data, error } = await sb
-        .from(CANDIDATES_TABLE)
-        .select(`${CAND_ID_COL},${CAND_STATUS_COL}`)
-        .in(CAND_ID_COL, ids);
-
-      if (error) return;
-
-      (data || []).forEach(r => {
-        statusMap.set(normId(r[CAND_ID_COL]), String(r[CAND_STATUS_COL] || "").toLowerCase());
-      });
-    }
-    function getStatusForRow(row){
-      return statusMap.get(normId(makeBewerbungId(row))) || "";
-    }
-
-    function matches(row, text){
-      if (!text) return true;
-      const hay = [
-        row[F.fn], row[F.ln], row[F.email], row[F.r1], row[F.r2], row[F.sem], row[F.phone],
-        getDegree(row) // ✅ neu auch suchbar
-      ].map(safe).join(" ").toLowerCase();
-      return hay.includes(text.toLowerCase());
-    }
-
-    function filtered(){
-      const text = safe(q.value).trim();
-      const res = safe(fRes.value).trim();
-      const sem = safe(fSem.value).trim();
-
-      return ALL.filter(row => {
-        if (!matches(row, text)) return false;
-        if (sem && safe(row[F.sem]).trim() !== sem) return false;
-        if (res){
-          const r1 = safe(row[F.r1]).trim();
-          const r2 = safe(row[F.r2]).trim();
-          if (r1 !== res && r2 !== res) return false;
-        }
-        return true;
-      });
-    }
-
-    /* ========= DASHBOARD ========= */
-    function makeKpi(label, value, dotClass){
-      const el = document.createElement("div");
-      el.className = "kpiCard glass";
-      el.innerHTML = `
-        <div class="kpiTop">
-          <div class="kpiLabel">${esc(label)}</div>
-          <span class="kpiDot ${esc(dotClass || "")}"></span>
+    <div class="modalHeader">
+      <div class="detailKopf">
+        <div class="detailFoto" id="detailFoto">–</div>
+        <div style="min-width:0;">
+          <h2 class="modalTitle" id="detailTitel">Bewerbung</h2>
+          <div class="modalSub" id="detailSub">–</div>
         </div>
-        <div class="kpiValue">${esc(String(value))}</div>
-      `;
-      return el;
-    }
+      </div>
+      <button class="btn-secondary closeX" id="detailClose" type="button" aria-label="Schließen">✕</button>
+    </div>
 
-    function countByStatus(rows){
-      let offen=0, anwaerter=0, abgelehnt=0, rueckmeldung=0, kennenlernen=0, priosBestaetigt=0;
-      rows.forEach(r=>{
-        const st = getStatusForRow(r);
-        if (st === "anwaerter")            anwaerter++;
-        else if (st === "abgelehnt")       abgelehnt++;
-        else if (st === "rueckmeldung")    rueckmeldung++;
-        else if (st === "kennenlernen")    kennenlernen++;
-        else if (st === "prios_bestaetigt") priosBestaetigt++;
-        else offen++;
-      });
-      return { offen, anwaerter, abgelehnt, rueckmeldung, kennenlernen, priosBestaetigt };
-    }
+    <div class="modalBody">
+      <div class="kv" id="detailKv"></div>
 
-    function renderDashboard(){
-      const rows = filtered();
-      const { offen, anwaerter, abgelehnt, rueckmeldung, kennenlernen, priosBestaetigt } = countByStatus(rows);
-      const total = rows.length;
-
-      kpiGrid.innerHTML = "";
-      kpiGrid.appendChild(makeKpi("Gesamt", total, "purple"));
-      kpiGrid.appendChild(makeKpi("Offen", offen, "warn"));
-      kpiGrid.appendChild(makeKpi("Rückmeldung", rueckmeldung, "orange"));
-      kpiGrid.appendChild(makeKpi("Kennenlernen", kennenlernen, ""));
-      kpiGrid.appendChild(makeKpi("Prios Bestätigt", priosBestaetigt, "purple"));
-      kpiGrid.appendChild(makeKpi("Anwärter", anwaerter, "ok"));
-      kpiGrid.appendChild(makeKpi("Abgelehnt", abgelehnt, "bad"));
-
-      const my = (MY_RESSORT || "").trim();
-      if (my){
-        const prio12 = rows.filter(r => safe(r[F.r1]).trim() === my || safe(r[F.r2]).trim() === my).length;
-        kpiGrid.appendChild(makeKpi("Dein Ressort (Prio 1+2)", prio12, "orange"));
-      }
-
-      if (MY_ROLE === "vorstand"){
-        RESSORTS_FIXED.forEach(r=>{
-          const p12 = rows.filter(x => safe(x[F.r1]).trim() === r || safe(x[F.r2]).trim() === r).length;
-          kpiGrid.appendChild(makeKpi(`${r} (P1+2)`, p12, "purple"));
-        });
-      }
-    }
-
-    /* ========= CACHE HELPERS ========= */
-    const CACHE_KEY = "bewerbungen_v1";
-    const CACHE_TTL = 10 * 60 * 1000;
-
-    function getCache(){
-      try {
-        const c = JSON.parse(localStorage.getItem(CACHE_KEY));
-        if (c && Array.isArray(c.rows) && Date.now() - c.ts < CACHE_TTL) return c.rows;
-      } catch(e){}
-      return null;
-    }
-
-    function setCache(rows){
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), rows })); } catch(e){}
-    }
-
-    /* ========= FAST LOAD ========= */
-    async function fetchRows(){
-      if (!CAN_VIEW) return;
-
-      // Phase 1: show cached data immediately (0ms perceived load)
-      const cached = getCache();
-      if (cached && cached.length){
-        ALL = cached;
-        statusMap = new Map();
-        fillFilters();
-        contentCard.classList.remove("hidden");
-        pageLoader.classList.add("hidden");
-        render();
-        statusPill.textContent = `Cache (${ALL.length}) · aktualisiere…`;
-        refreshStatusMapFor(ALL).then(()=>render()).catch(()=>{});
-      } else {
-        statusPill.textContent = "Lade…";
-        await new Promise(r => requestAnimationFrame(r));
-      }
-
-      // Phase 2: fetch fresh data in background
-      try {
-        const url = `${SHEET_API_URL}?key=${encodeURIComponent(SHEET_API_KEY)}`;
-        const res = await fetch(url, { cache: "no-store" });
-        const text = await res.text();
-        let json;
-        try { json = JSON.parse(text); }
-        catch(e){
-          if (!cached) statusPill.textContent = "API liefert kein JSON";
-          else statusPill.textContent = `Cache (${ALL.length}) · API-Fehler`;
-          return;
-        }
-        const freshRows = Array.isArray(json.rows) ? json.rows : [];
-        setCache(freshRows);
-        ALL = freshRows;
-        statusMap = new Map();
-        statusPill.textContent = `Geladen: ${ALL.length} · Status lädt…`;
-        fillFilters();
-        contentCard.classList.remove("hidden");
-        pageLoader.classList.add("hidden");
-        render();
-        refreshStatusMapFor(ALL).then(()=>{
-          statusPill.textContent = `Geladen: ${ALL.length}`;
-          render();
-        }).catch(()=>{
-          statusPill.textContent = `Geladen: ${ALL.length} · Status nicht verfügbar`;
-        });
-      } catch(err){
-        if (!cached) statusPill.textContent = "Ladefehler: " + err.message;
-        else statusPill.textContent = `Cache (${ALL.length}) · Aktualisierung fehlgeschlagen`;
-        contentCard.classList.remove("hidden");
-        pageLoader.classList.add("hidden");
-      }
-    }
-
-    /* ========= MODAL ========= */
-    function buildKvField(kvEl, key, row){
-      const rawVal = (key === F.degree) ? getDegree(row) : safe(row[key]).trim();
-
-      const row_ = document.createElement("div"); row_.className = "kv-row";
-      const k = document.createElement("div"); k.className = "kv-label"; k.textContent = key;
-      const v = document.createElement("div"); v.className = "kv-value";
-
-      if (CAN_EDIT && (key === F.r1 || key === F.r2)){
-        const sel = document.createElement("select");
-        sel.dataset.prioField = key === F.r1 ? "r1" : "r2";
-        sel.innerHTML = `<option value="">— kein Ressort —</option>` +
-          RESSORTS_FIXED.map(r =>
-            `<option value="${esc(r)}"${r === rawVal ? " selected" : ""}>${esc(r)}</option>`
-          ).join("");
-        v.appendChild(sel);
-      } else {
-        if (String(rawVal).startsWith("http://") || String(rawVal).startsWith("https://") || String(rawVal).includes("drive.google.com")){
-          v.innerHTML = `<a href="${esc(rawVal)}" target="_blank" rel="noopener" style="color:var(--accent1);word-break:break-all;">${esc(rawVal)}</a>`;
-        } else v.textContent = rawVal || "—";
-      }
-
-      row_.appendChild(k); row_.appendChild(v); kvEl.appendChild(row_);
-    }
-
-    function dialogSupported(){ return !!(dlg && typeof dlg.showModal === "function"); }
-    function openModalUI(){ dialogSupported() ? dlg.showModal() : fbOverlay.classList.add("show"); }
-    function closeModalUI(){ dialogSupported() ? (dlg.open && dlg.close()) : fbOverlay.classList.remove("show"); }
-
-    function setModalPhotoUI(photoEl, row){
-      photoEl.innerHTML = "";
-      const thumb = getThumb(row);
-      const photoUrl = getPhotoUrl(row);
-      const initials = getInitials(row);
-
-      if (thumb){
-        const img = document.createElement("img");
-        img.src = thumb;
-        img.alt = "Foto";
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.referrerPolicy = "no-referrer";
-
-        img.onerror = () => {
-          photoEl.innerHTML = "";
-          photoEl.textContent = initials;
-          photoEl.style.cursor = "default";
-        };
-
-        photoEl.style.cursor = photoUrl ? "pointer" : "default";
-        photoEl.onclick = () => { if (photoUrl) window.open(photoUrl, "_blank", "noopener"); };
-
-        photoEl.appendChild(img);
-      } else {
-        photoEl.textContent = initials;
-        photoEl.style.cursor = "default";
-        photoEl.onclick = null;
-      }
-    }
-
-    function openModal(row){
-      ACTIVE_ROW = row;
-
-      const fn = safe(row[F.fn]).trim();
-      const ln = safe(row[F.ln]).trim();
-      const title = (fn + " " + ln).trim() || "Bewerbung";
-
-      const line = [];
-      if (safe(row[F.ts]).trim()) line.push(`Zeit: ${safe(row[F.ts]).trim()}`);
-      if (safe(row[F.email]).trim()) line.push(`Mail: ${safe(row[F.email]).trim()}`);
-      const sub = line.join(" · ") || "—";
-
-      modalTitle.textContent = title;
-      modalSub.textContent = sub;
-      setModalPhotoUI(modalPhoto, row);
-
-      fbTitle.textContent = title;
-      fbSub.textContent = sub;
-      setModalPhotoUI(fbPhoto, row);
-
-      const fields = [
-        F.ts, F.fn, F.ln,
-        F.degree,
-        F.age, F.sem, F.email, F.phone,
-        F.r1, F.r2, F.whyR, F.why, F.exp, F.photo, F.consent
-      ];
-
-      kv.innerHTML = "";
-      fbKv.innerHTML = "";
-      fields.forEach(key => {
-        buildKvField(kv,   key, row);
-        buildKvField(fbKv, key, row);
-      });
-
-      rejectBtn.disabled = !CAN_EDIT;
-      rsvpBtn.disabled = !CAN_EDIT;
-      meetBtn.disabled = !CAN_EDIT;
-      priosConfirmedBtn.disabled = !CAN_EDIT;
-      moveToCandidateBtn.disabled = !CAN_EDIT;
-      fbReject.disabled = !CAN_EDIT;
-      fbRsvp.disabled = !CAN_EDIT;
-      fbMeet.disabled = !CAN_EDIT;
-      fbPriosConfirmed.disabled = !CAN_EDIT;
-      fbMove.disabled = !CAN_EDIT;
-
-      savePriosBtn.style.display = CAN_EDIT ? "" : "none";
-      fbSavePrios.style.display  = CAN_EDIT ? "" : "none";
-
-      openModalUI();
-    }
-
-    function closeModal(){
-      ACTIVE_ROW = null;
-      closeModalUI();
-    }
-
-    closeModalBtn?.addEventListener("click", closeModal);
-    dlg?.addEventListener("click", (e)=>{
-      const rect = dlg.getBoundingClientRect();
-      const inDialog = (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom);
-      if (!inDialog) closeModal();
-    });
-
-    fbOverlay?.addEventListener("click", (e)=>{ if (e.target === fbOverlay) closeModal(); });
-    fbClose?.addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e)=>{ if (e.key === "Escape") closeModal(); });
-
-    /* ========= RENDER ========= */
-    function badgeHtmlForStatus(st){
-      if (st === "anwaerter")           return `<div class="cornerBadge ok"><span>🟢 Anwärter</span></div>`;
-      if (st === "abgelehnt")           return `<div class="cornerBadge bad"><span>🔴 Abgelehnt</span></div>`;
-      if (st === "rueckmeldung")        return `<div class="cornerBadge amber"><span>🟡 Rückmeldung</span></div>`;
-      if (st === "kennenlernen")        return `<div class="cornerBadge info"><span>🔵 Kennenlernen</span></div>`;
-      if (st === "prios_bestaetigt")    return `<div class="cornerBadge purple"><span>🟣 Prios Bestätigt</span></div>`;
-      return `<div class="cornerBadge warn"><span>🟠 Offen</span></div>`;
-    }
-
-    function makeAvatarHtml(row){
-      const thumb = getThumb(row);
-      const initials = getInitials(row);
-
-      if (!thumb){
-        return `<div class="avatar">${esc(initials)}</div>`;
-      }
-
-      return `
-        <div class="avatar loading">
-          <span style="position:relative; z-index:1;">${esc(initials)}</span>
-          <img src="${esc(thumb)}" alt="Foto"
-               loading="lazy" decoding="async" fetchpriority="low" referrerpolicy="no-referrer"
-               onload="this.parentElement.classList.remove('loading'); this.previousElementSibling.remove();"
-               onerror="this.remove(); this.parentElement.classList.remove('loading');" />
+      <div class="prioRow" id="prioRow" hidden>
+        <div class="field">
+          <label for="prio1">Ressort – Priorität 1</label>
+          <select id="prio1"></select>
         </div>
-      `;
-    }
+        <div class="field">
+          <label for="prio2">Ressort – Priorität 2</label>
+          <select id="prio2"></select>
+        </div>
+      </div>
+    </div>
 
-    function makeCard(row){
-      const fn = safe(row[F.fn]).trim();
-      const ln = safe(row[F.ln]).trim();
-      const sem = safe(row[F.sem]).trim();
-      const mail = safe(row[F.email]).trim();
+    <div class="modalActions" id="detailActions">
+      <button class="btn-secondary" id="prioSpeichern" type="button">Ressorts speichern</button>
+      <button class="btn-warning" id="standRueck" type="button">Rückmeldung</button>
+      <button class="btn-info" id="standKennen" type="button">Kennenlernen</button>
+      <button class="btn-purple" id="standPrios" type="button">Prios bestätigt</button>
+      <button class="btn-danger" id="standAbgelehnt" type="button">Ablehnen</button>
+      <button class="btn-primary" id="uebernehmen" type="button">Als Anwärter übernehmen</button>
+    </div>
+  </div>
+</dialog>
 
-      const r1 = safe(row[F.r1]).trim();
-      const r2 = safe(row[F.r2]).trim();
-      const ressortTag = [r1, r2].filter(Boolean).join(" · ");
+<!-- Ressort-Auswahl bei der Übernahme -->
+<dialog id="ressortDlg">
+  <div class="dlgShell" style="max-width:440px;">
+    <div class="sheetHandle" aria-hidden="true"></div>
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle">Ressort festlegen</h2>
+        <div class="modalSub" id="ressortDlgSub">Endgültiges Ressort für den Anwärter</div>
+      </div>
+      <button class="btn-secondary closeX" id="ressortDlgClose" type="button" aria-label="Schließen">✕</button>
+    </div>
+    <div class="modalBody">
+      <div class="field">
+        <label for="ressortWahl">Ressort</label>
+        <select id="ressortWahl"></select>
+      </div>
+    </div>
+    <div class="modalActions">
+      <button class="btn-secondary" id="ressortDlgAbbruch" type="button">Abbrechen</button>
+      <button class="btn-primary" id="ressortDlgOk" type="button">Übernehmen</button>
+    </div>
+  </div>
+</dialog>
 
-      const degree = getDegree(row);
-      const photoUrl = getPhotoUrl(row);
-      const st = getStatusForRow(row);
+<!-- ============================================================
+     Formular-Editor — nur für den Vorstand
+     ============================================================ -->
+<dialog id="editorDlg">
+  <div class="dlgShell">
+    <div class="sheetHandle" aria-hidden="true"></div>
 
-      const card = document.createElement("div");
-      card.className = "card-bew";
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle">Bewerbungsformular</h2>
+        <div class="modalSub">Was hier steht, sieht jeder auf portal.fsbs-hm.de/bewerbung</div>
+      </div>
+      <button class="btn-secondary closeX" id="editorClose" type="button" aria-label="Schließen">✕</button>
+    </div>
 
-      card.innerHTML = `
-        ${badgeHtmlForStatus(st)}
-        <div class="inner">
-          ${makeAvatarHtml(row)}
-          <div style="min-width:0;">
-            <div class="title">${esc((fn + " " + ln).trim() || "Unbekannt")}</div>
-            <div class="sub">${esc(mail || "—")}</div>
-            <div class="tags">
-              ${ressortTag ? `<span class="tag">Ressorts: ${esc(ressortTag)}</span>` : ``}
-              ${degree ? `<span class="tag">🎓 ${esc(degree)}</span>` : ""}
-              ${sem ? `<span class="tag">Sem: ${esc(sem)}</span>` : ""}
-              ${photoUrl ? `<span class="tag">📷 <a href="${esc(photoUrl)}" target="_blank" rel="noopener">Foto öffnen</a></span>` : ""}
-            </div>
+    <div class="modalBody">
+
+      <div class="editorSection">
+        <h3>Überschrift und Einleitung</h3>
+        <div class="fieldGrid">
+          <div class="field full">
+            <label for="edTitel">Überschrift</label>
+            <input id="edTitel" type="text" maxlength="160">
+          </div>
+          <div class="field full">
+            <label for="edIntro">Einleitung</label>
+            <textarea id="edIntro" rows="3" maxlength="600"></textarea>
           </div>
         </div>
-      `;
+        <div class="neuRow">
+          <div class="toolbar__spacer"></div>
+          <button class="btn-primary btn-sm" id="edTexteSpeichern" type="button">Texte speichern</button>
+        </div>
+      </div>
 
-      card.querySelectorAll("a").forEach(a => a.addEventListener("click", (e)=>e.stopPropagation()));
-      card.addEventListener("click", ()=>openModal(row));
-      return card;
-    }
+      <div class="editorSection">
+        <h3>Fragen</h3>
+        <p class="editorHinweis">
+          Die Reihenfolge bestimmt, wie das Formular aussieht. Eine Frage
+          auszuschalten lässt bereits gegebene Antworten stehen — löschen
+          nimmt sie mit.
+        </p>
+        <div class="feldListe" id="edFelder"></div>
+        <div class="neuRow">
+          <div class="toolbar__spacer"></div>
+          <button class="btn-secondary btn-sm" id="edFeldNeu" type="button">Frage hinzufügen</button>
+        </div>
+      </div>
 
-    function render(){
-      if (!CAN_VIEW) return;
+      <div class="editorSection">
+        <h3>Ressorts</h3>
+        <p class="editorHinweis">Stehen im Formular als Priorität 1 und 2 zur Wahl.</p>
+        <div id="edRessorts"></div>
+        <div class="neuRow">
+          <input id="edRessortNeu" type="text" maxlength="60" placeholder="Neues Ressort">
+          <button class="btn-secondary btn-sm" id="edRessortAdd" type="button">Hinzufügen</button>
+        </div>
+      </div>
 
-      const token = ++RENDER_TOKEN;
-      const rows = filtered();
-      countPill.textContent = `${rows.length} / ${ALL.length}`;
-      empty.classList.toggle("hidden", rows.length !== 0);
+      <div class="editorSection">
+        <h3>Einwilligung</h3>
+        <p class="editorHinweis">
+          Ein geänderter Wortlaut gilt ab sofort für neue Bewerbungen.
+          Bereits eingegangene behalten die Fassung, der sie zugestimmt haben.
+        </p>
+        <div class="field full">
+          <label for="edEinwilligung">Wortlaut</label>
+          <textarea id="edEinwilligung" rows="4" maxlength="1500"></textarea>
+        </div>
+        <div class="neuRow">
+          <div class="toolbar__spacer"></div>
+          <button class="btn-primary btn-sm" id="edEinwilligungSpeichern" type="button">Wortlaut übernehmen</button>
+        </div>
+      </div>
 
-      renderDashboard();
+    </div>
+  </div>
+</dialog>
 
-      grid.innerHTML = "";
+<!-- Eine einzelne Frage bearbeiten -->
+<dialog id="feldDlg">
+  <div class="dlgShell" style="max-width:520px;">
+    <div class="sheetHandle" aria-hidden="true"></div>
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle" id="feldDlgTitel">Frage</h2>
+        <div class="modalSub" id="feldDlgSub">–</div>
+      </div>
+      <button class="btn-secondary closeX" id="feldDlgClose" type="button" aria-label="Schließen">✕</button>
+    </div>
 
-      const BATCH = 24;
-      let i = 0;
+    <div class="modalBody">
+      <div class="fieldGrid">
+        <div class="field full">
+          <label for="fdLabel">Frage</label>
+          <textarea id="fdLabel" rows="2" maxlength="400"></textarea>
+        </div>
+        <div class="field full">
+          <label for="fdSchluessel">Schlüssel</label>
+          <input id="fdSchluessel" type="text" maxlength="49" autocomplete="off">
+          <div class="editorHinweis" style="margin:5px 0 0;">
+            Kleinbuchstaben, Ziffern und Unterstriche. Steht er einmal,
+            bleibt er — daran hängen die bereits gegebenen Antworten.
+          </div>
+        </div>
+        <div class="field">
+          <label for="fdTyp">Art</label>
+          <select id="fdTyp">
+            <option value="text">Kurze Antwort</option>
+            <option value="textarea">Langer Text</option>
+            <option value="zahl">Zahl</option>
+            <option value="auswahl">Eine Auswahl</option>
+            <option value="mehrfach">Mehrfachauswahl</option>
+            <option value="ja_nein">Häkchen</option>
+            <option value="datei">Datei</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fdPflicht">Pflicht</label>
+          <select id="fdPflicht">
+            <option value="ja">Pflichtfeld</option>
+            <option value="nein">Freiwillig</option>
+          </select>
+        </div>
+        <div class="field full" id="fdOptionenFeld" hidden>
+          <label for="fdOptionen">Optionen</label>
+          <textarea id="fdOptionen" rows="4" placeholder="Eine Option je Zeile"></textarea>
+        </div>
+        <div class="field" id="fdMinFeld" hidden>
+          <label for="fdMin">Kleinster Wert</label>
+          <input id="fdMin" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="field" id="fdMaxFeld" hidden>
+          <label for="fdMax">Größter Wert</label>
+          <input id="fdMax" type="text" inputmode="numeric" autocomplete="off">
+        </div>
+        <div class="field full">
+          <label for="fdHilfe">Hinweis unter dem Feld
+            <span style="float:right;font-weight:400;color:var(--faint-foreground);">Optional</span></label>
+          <input id="fdHilfe" type="text" maxlength="200">
+        </div>
+      </div>
+      <p class="notice bad" id="fdFehler" role="alert" hidden style="margin-top:12px;"></p>
+    </div>
 
-      const pump = () => {
-        if (token !== RENDER_TOKEN) return;
+    <div class="modalActions modalActions--split">
+      <button class="btn-danger btn-sm" id="fdLoeschen" type="button">Löschen</button>
+      <span style="display:flex;gap:8px;">
+        <button class="btn-secondary" id="fdAbbruch" type="button">Abbrechen</button>
+        <button class="btn-primary" id="fdSpeichern" type="button">Speichern</button>
+      </span>
+    </div>
+  </div>
+</dialog>
 
-        const frag = document.createDocumentFragment();
-        const end = Math.min(i + BATCH, rows.length);
-        for (; i < end; i++){
-          frag.appendChild(makeCard(rows[i]));
-        }
-        grid.appendChild(frag);
+<div class="toast" id="toast"></div>
 
-        if (i < rows.length) requestAnimationFrame(pump);
-      };
+<script>
+/* ================================================================
+   Bewerbungen — Liste, Bearbeitungsstand und der Editor für das
+   öffentliche Formular.
 
-      requestAnimationFrame(pump);
-    }
+   Alles kommt aus Supabase: Die Fragen stehen in `bewerbung_felder`,
+   die Bewerbungen in `bewerbungen`. Google Sheets ist damit aus dem
+   Weg.
+   ================================================================ */
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    /* ========= INIT ========= */
-    (async ()=>{
-      const { data } = await sb.auth.getSession();
-      const session = data?.session;
-      const mail = session?.user?.email || "";
+const LOGIN_PAGE = "/login.html";
+const ANWAERTER_TABELLE = "anwaerter";
+const FOTO_BUCKET = "bewerbungen";
 
-      setAuthUI(!!session, mail);
+/* Der Link, den die Anwärterliste in `photo_url` bekommt. Er läuft
+   nicht ab, solange das Bild liegt — so wie die Drive-Links vorher. */
+const FOTO_LINK_DAUER = 60 * 60 * 24 * 3650;
 
-      if (!session){
-        window.location.href = LOGIN_REDIRECT;
-        return;
-      }
+const $ = (id) => document.getElementById(id);
+const esc = (s) => { const d = document.createElement("div"); d.textContent = String(s ?? ""); return d.innerHTML; };
+const safe = (v) => (v === null || v === undefined) ? "" : String(v);
 
-      await loadMyProfile(session);
+let toastTimer;
+function showToast(msg, isError = false) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.toggle("error", isError);
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}
 
-      if (!CAN_VIEW){
-        statusPill.textContent = "Kein Zugriff";
-        return;
-      }
+/* ================================================================
+   Anmeldung (wie auf den übrigen Seiten)
+   ================================================================ */
+const authBadge = $("authBadge"), authDot = $("authDot"), authState = $("authState"),
+      authMail = $("authMail"), authAvatar = $("authAvatar"), authCompact = $("authCompact"),
+      authNameInline = $("authNameInline"), authRolePill = $("authRolePill"),
+      authToggle = $("authToggle"), authDetails = $("authDetails");
 
-      await fetchRows();
-    })();
+const normRole = (v) => (v || "").trim().toLowerCase();
 
-    /* ========= STATUS ACTIONS ========= */
-    async function setStatus(row, status, ressortOverride){
-      const id = normId(makeBewerbungId(row));
-      if (!id){ alert("Fehler: Bewerbung hat keine ID."); return; }
+function roleLabel(r) {
+  if (r === "vorstand") return "Vorstand";
+  if (r === "ressortleiter") return "Ressortleiter";
+  if (r === "protokollfuehrer") return "Protokollführer";
+  return "Unbekannt";
+}
 
-      const { error } = await sb
-        .from(CANDIDATES_TABLE)
-        .upsert({
-          [CAND_ID_COL]:     id,
-          [CAND_STATUS_COL]: status,
-          vorname:           safe(row[F.fn]).trim(),
-          nachname:          safe(row[F.ln]).trim(),
-          email:             safe(row[F.email]).trim(),
-          telefon:           safe(row[F.phone]).trim() || null,
-          ressort:           ressortOverride || safe(row[F.r1]).trim(),
-          photo_url:         getPhotoUrl(row) || null,
-          photo_thumb:       getThumb(row) || null,
-        }, { onConflict: CAND_ID_COL });
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
 
-      if (error){ alert("Fehler beim Speichern: " + error.message); return; }
+function initialenAusMail(email) {
+  const e = (email || "").trim().toLowerCase();
+  if (!e) return "U";
+  const local = e.split("@")[0] || "u";
+  const teile = local.split(/[.\-_]+/).filter(Boolean);
+  return ((teile[0]?.[0] || local[0] || "u").toUpperCase() +
+          (teile[1]?.[0] || local[1] || "").toUpperCase()).trim() || "U";
+}
 
-      statusMap.set(id, status);
-      render();
-      closeModal();
-    }
+function setAvatar(email) {
+  const e = (email || "").trim().toLowerCase();
+  if (!e) { authAvatar.classList.add("hidden"); return; }
+  const h = hashString(e), hue = h % 360, hue2 = (hue + 38) % 360;
+  authAvatar.textContent = initialenAusMail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background =
+    `linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`;
+}
 
-    async function handleSavePrios(){
-      if (!ACTIVE_ROW || !CAN_EDIT) return;
+function setRolePill(role) {
+  const r = normRole(role);
+  authRolePill.textContent = roleLabel(r);
+  authRolePill.classList.remove("vorstand", "ressortleiter");
+  authRolePill.classList.add(r === "vorstand" ? "vorstand" : "ressortleiter");
+}
 
-      const selR1 = kv.querySelector('[data-prio-field="r1"]') || fbKv.querySelector('[data-prio-field="r1"]');
-      const selR2 = kv.querySelector('[data-prio-field="r2"]') || fbKv.querySelector('[data-prio-field="r2"]');
+authToggle?.addEventListener("click", (e) => { e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", (e) => { if (!authBadge.contains(e.target)) authDetails.classList.add("hidden"); });
 
-      const newR1 = selR1?.value ?? "";
-      const newR2 = selR2?.value ?? "";
+function setAuthUI(email) {
+  authDot.classList.remove("warn"); authDot.classList.add("ok");
+  authState.classList.add("hidden");
+  authCompact.classList.remove("hidden");
+  authMail.textContent = (email || "").trim();
+  setAvatar(email);
+}
 
-      [savePriosBtn, fbSavePrios].forEach(btn => { btn.textContent = "Speichert…"; btn.disabled = true; });
+async function logout() { await sb.auth.signOut(); window.location.replace(LOGIN_PAGE); }
+$("logoutBtn")?.addEventListener("click", logout);
 
-      try {
-        const url = new URL(SHEET_API_URL);
-        url.searchParams.set("key",    SHEET_API_KEY);
-        url.searchParams.set("action", "updatePrios");
-        url.searchParams.set("ts",     safe(ACTIVE_ROW[F.ts]).trim());
-        url.searchParams.set("email",  safe(ACTIVE_ROW[F.email]).trim());
-        url.searchParams.set("prio1",  newR1);
-        url.searchParams.set("prio2",  newR2);
+/* ================================================================
+   Bearbeitungsstände
+   ================================================================ */
+const STAENDE = {
+  offen:            { label: "Offen",           pill: "pill--neutral" },
+  rueckmeldung:     { label: "Rückmeldung",     pill: "pill--warning" },
+  kennenlernen:     { label: "Kennenlernen",    pill: "pill--info"    },
+  prios_bestaetigt: { label: "Prios bestätigt", pill: "pill--accent"  },
+  anwaerter:        { label: "Anwärter",        pill: "pill--success" },
+  abgelehnt:        { label: "Abgelehnt",       pill: "pill--danger"  }
+};
 
-        const res  = await fetch(url.toString(), { cache: "no-store" });
-        const text = await res.text();
-        let json;
-        try { json = JSON.parse(text); }
-        catch(e){ alert("Script-Antwort (kein JSON):\n" + text.slice(0, 300)); return; }
+let CAN_VIEW = false;
+let CAN_EDIT = false;
+let MY_RESSORT = "";
 
-        if (json.error){ alert("Script-Fehler: " + json.error); return; }
+let zeilen = [];            // die Bewerbungen
+let felder = [];            // die Fragen, auch die ausgeschalteten
+let ressorts = [];          // auch die ausgeschalteten
+let einwilligung = null;
+let formular = { titel: "", intro: "", frist: null, geschlossen: false };
+let fotoLinks = new Map();  // Pfad → Link auf Zeit
 
-        // In-Memory aktualisieren + Karten neu rendern
-        ACTIVE_ROW[F.r1] = newR1;
-        ACTIVE_ROW[F.r2] = newR2;
-        render();
+let filter = "alle";
+let suche = "";
+let ressortFilter = "";
+let AKTIV = null;           // die Bewerbung im Dialog
 
-        [savePriosBtn, fbSavePrios].forEach(btn => { btn.textContent = "✓ Gespeichert"; });
-        setTimeout(() => {
-          [savePriosBtn, fbSavePrios].forEach(btn => { btn.textContent = "Prios speichern"; });
-        }, 2000);
+const zeitText = (iso) => {
+  if (!iso) return "–";
+  const d = new Date(iso);
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+         ", " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+};
 
-      } catch(err){
-        alert("Fehler: " + err.message);
-      } finally {
-        [savePriosBtn, fbSavePrios].forEach(btn => { btn.disabled = false; });
-      }
-    }
+const zeitBerlin = (iso) => new Date(iso).toLocaleString("de-DE", {
+  timeZone: "Europe/Berlin",
+  day: "2-digit", month: "2-digit", year: "numeric",
+  hour: "2-digit", minute: "2-digit"
+}) + " Uhr";
 
-    function handleReject(){
-      if (!ACTIVE_ROW || !CAN_EDIT) return;
-      if (!confirm("Bewerbung wirklich ablehnen?")) return;
-      setStatus(ACTIVE_ROW, "abgelehnt");
-    }
+const initialen = (z) =>
+  ((safe(z.vorname).trim()[0] || "") + (safe(z.nachname).trim()[0] || "")).toUpperCase() || "•";
 
-    function handleMove(){
-      if (!ACTIVE_ROW || !CAN_EDIT) return;
+const vollerName = (z) => `${safe(z.vorname)} ${safe(z.nachname)}`.trim() || "Unbekannt";
 
-      // Dropdown mit allen Ressorts befüllen, Prio 1 vorausgewählt
-      const r1 = safe(ACTIVE_ROW[F.r1]).trim();
-      ressortSelect.innerHTML = RESSORTS_FIXED.map(r =>
-        `<option value="${esc(r)}"${r === r1 ? " selected" : ""}>${esc(r)}</option>`
-      ).join("");
+/* Das Foto steckt in einer Frage vom Typ „datei“ — welche das ist,
+   sagt die Fragenliste, nicht der Quelltext. */
+const fotoFelder = () => felder.filter((f) => f.typ === "datei").map((f) => f.feld_key);
 
-      const name = (safe(ACTIVE_ROW[F.fn]) + " " + safe(ACTIVE_ROW[F.ln])).trim();
-      ressortDlgSub.textContent = name || "Anwärter";
+function fotoPfad(z) {
+  for (const key of fotoFelder()) {
+    const wert = z.antworten?.[key];
+    if (typeof wert === "string" && wert.trim()) return wert.trim();
+  }
+  return "";
+}
 
-      ressortDlg.showModal();
-    }
+const fotoLink = (z) => fotoLinks.get(fotoPfad(z)) || "";
 
-    ressortDlgClose?.addEventListener("click", () => ressortDlg.close());
-    ressortDlgCancel?.addEventListener("click", () => ressortDlg.close());
-    ressortDlgConfirm?.addEventListener("click", () => {
-      const selectedRessort = ressortSelect.value;
-      ressortDlg.close();
-      setStatus(ACTIVE_ROW, "anwaerter", selectedRessort);
+function passt(z) {
+  if (filter !== "alle" && z.status !== filter) return false;
+  if (ressortFilter && z.ressort_1 !== ressortFilter && z.ressort_2 !== ressortFilter) return false;
+  if (!suche) return true;
+  const heu = [z.vorname, z.nachname, z.email, z.telefon, z.ressort_1, z.ressort_2,
+               ...Object.values(z.antworten || {}).map((v) => Array.isArray(v) ? v.join(" ") : v)]
+    .map(safe).join(" ").toLowerCase();
+  return heu.includes(suche);
+}
+
+/* ================================================================
+   Gerüst
+   ================================================================ */
+function renderPage() {
+  $("mainContent").innerHTML = `
+    ${CAN_EDIT ? `
+    <div class="glass card--tight formKarte">
+      <span class="pill" id="formPill">–</span>
+      <span class="zeitMuted" id="formFrist"></span>
+      <div class="toolbar__spacer"></div>
+      <input type="datetime-local" id="fristInput" aria-label="Frist">
+      <button class="btn-secondary btn-sm" id="fristSetzen" type="button">Frist setzen</button>
+      <button class="btn-sm" id="formToggle" type="button">–</button>
+      <button class="btn-secondary btn-sm" id="editorOeffnen" type="button">Formular bearbeiten</button>
+    </div>` : ``}
+
+    <div class="statGrid" id="statGrid"></div>
+
+    <div class="toolbar">
+      <input class="toolbar__search" id="sucheFeld" type="search"
+             placeholder="Name, E-Mail, Ressort oder Antwort suchen">
+      <select class="toolbar__select" id="ressortFeld"><option value="">Ressort (alle)</option></select>
+      <button class="btn-secondary btn-sm" id="neuLaden" type="button">Aktualisieren</button>
+      <div class="toolbar__spacer"></div>
+      <span class="toolbar__count" id="anzahl"></span>
+    </div>
+
+    <div class="bewGrid" id="karten"></div>
+    <div id="leer" hidden></div>`;
+
+  $("sucheFeld").addEventListener("input", (e) => { suche = e.target.value.trim().toLowerCase(); zeichne(); });
+  $("ressortFeld").addEventListener("change", (e) => { ressortFilter = e.target.value; zeichne(); });
+  $("neuLaden").addEventListener("click", () => laden());
+  $("statGrid").addEventListener("click", (e) => {
+    const kachel = e.target.closest("button[data-filter]");
+    if (kachel) { filter = kachel.dataset.filter; zeichne(); }
+  });
+  $("karten").addEventListener("click", (e) => {
+    const karte = e.target.closest("button[data-id]");
+    if (karte) detailOeffnen(karte.dataset.id);
+  });
+
+  if (CAN_EDIT) {
+    $("fristSetzen").addEventListener("click", () => {
+      const wert = $("fristInput").value;
+      formSpeichern({ frist: wert ? ausBerlin(wert) : null });
     });
+    $("formToggle").addEventListener("click", () => {
+      if (formOffen()) { formSpeichern({ geschlossen: true }); return; }
+      // Wiederöffnen: eine abgelaufene Frist würde sofort wieder zumachen.
+      formSpeichern(fristVorbei() ? { geschlossen: false, frist: null } : { geschlossen: false });
+    });
+    $("editorOeffnen").addEventListener("click", editorOeffnen);
+  }
+}
 
-    function handleRsvp(){
-      if (!ACTIVE_ROW || !CAN_EDIT) return;
-      if (!confirm("Status auf 'Rückmeldung Anwesenheit' setzen?")) return;
-      setStatus(ACTIVE_ROW, "rueckmeldung");
+function ressortFilterFuellen() {
+  const feld = $("ressortFeld");
+  if (!feld) return;
+  const gewaehlt = feld.value;
+  feld.innerHTML = `<option value="">Ressort (alle)</option>` +
+    ressorts.filter((r) => r.active).map((r) =>
+      `<option value="${esc(r.name)}">${esc(r.name)}</option>`).join("");
+  feld.value = gewaehlt;
+}
+
+/* ---- Kennzahlen, Karten, Zähler ---- */
+function zeichne() {
+  const zaehler = { alle: zeilen.length };
+  for (const k of Object.keys(STAENDE)) zaehler[k] = zeilen.filter((z) => z.status === k).length;
+
+  $("statGrid").innerHTML = [["alle", "Alle"]]
+    .concat(Object.entries(STAENDE).map(([k, v]) => [k, v.label]))
+    .map(([k, label]) => `
+      <button type="button" class="stat stat--filter${filter === k ? " is-active" : ""}" data-filter="${k}">
+        <div class="stat__label">${esc(label)}</div>
+        <div class="stat__value">${zaehler[k]}</div>
+      </button>`).join("");
+
+  const sichtbar = zeilen.filter(passt);
+  $("anzahl").textContent = sichtbar.length === zeilen.length
+    ? `${zeilen.length} Bewerbungen`
+    : `${sichtbar.length} von ${zeilen.length}`;
+
+  $("karten").innerHTML = sichtbar.map((z) => {
+    const stand = STAENDE[z.status] || STAENDE.offen;
+    const link = fotoLink(z);
+    const wuensche = [z.ressort_1, z.ressort_2].filter(Boolean);
+
+    return `<button type="button" class="bewCard" data-id="${z.id}">
+      <span class="pill ${stand.pill} bewStand">${esc(stand.label)}</span>
+      <span class="bewFoto">${link
+        ? `<img src="${esc(link)}" alt="" loading="lazy" decoding="async"
+                onerror="this.parentElement.textContent='${esc(initialen(z))}'">`
+        : esc(initialen(z))}</span>
+      <span class="bewBody">
+        <span class="bewName">${esc(vollerName(z))}</span>
+        <span class="bewMail">${esc(z.email)}</span>
+        <span class="bewPills">
+          ${wuensche.map((r, i) =>
+            `<span class="pill${i === 0 ? " pill--strong" : ""}">${esc(r)}</span>`).join("")}
+        </span>
+      </span>
+    </button>`;
+  }).join("");
+
+  const leer = $("leer");
+  leer.hidden = sichtbar.length > 0;
+  if (!leer.hidden) {
+    leer.innerHTML = `<div class="empty">
+      <div class="empty__icon">📋</div>
+      <div class="empty__title">${zeilen.length === 0
+        ? "Noch keine Bewerbung eingegangen" : "Nichts gefunden"}</div>
+    </div>`;
+  }
+}
+
+/* ================================================================
+   Frist und Schalter
+   ================================================================ */
+// Der Vorstand tippt Berliner Zeit, egal wo der Rechner steht.
+const inZone = (d, zone) =>
+  new Date(d.toLocaleString("sv-SE", { timeZone: zone }).replace(" ", "T") + "Z");
+const berlinVersatz = (d) => inZone(d, "Europe/Berlin") - inZone(d, "UTC");
+
+// "2026-09-14T20:00" (Berliner Uhr) → ISO. Der zweite Durchgang fängt die
+// Zeitumstellung ab, wenn der Versatz vor und nach dem Wechsel verschieden ist.
+function ausBerlin(wert) {
+  const naiv = new Date(wert.length === 16 ? wert + ":00Z" : wert + "Z");
+  const grob = new Date(naiv.getTime() - berlinVersatz(naiv));
+  return new Date(naiv.getTime() - berlinVersatz(grob)).toISOString();
+}
+
+// ISO → "2026-09-14T20:00" für das Eingabefeld.
+function nachBerlin(iso) {
+  const t = new Date(iso).toLocaleString("sv-SE", { timeZone: "Europe/Berlin" });
+  return t.slice(0, 10) + "T" + t.slice(11, 16);
+}
+
+const fristVorbei = () => !!formular.frist && Date.now() >= new Date(formular.frist).getTime();
+const formOffen = () => !formular.geschlossen && !fristVorbei();
+
+function formZeichnen() {
+  if (!CAN_EDIT || !$("formPill")) return;
+  const offen = formOffen();
+
+  const pille = $("formPill");
+  pille.className = "pill " + (offen ? "pill--success" : "pill--danger");
+  pille.textContent = offen ? "Formular geöffnet" : "Formular geschlossen";
+
+  $("formFrist").textContent = formular.frist
+    ? (fristVorbei() ? "Frist abgelaufen: " : "Frist: ") + zeitBerlin(formular.frist)
+    : "Keine Frist";
+
+  const schalter = $("formToggle");
+  schalter.className = "btn-sm " + (offen ? "btn-danger" : "btn-success");
+  schalter.textContent = offen ? "Schließen" : "Öffnen";
+
+  const feld = $("fristInput");
+  if (document.activeElement !== feld) feld.value = formular.frist ? nachBerlin(formular.frist) : "";
+}
+
+async function formSpeichern(aenderung) {
+  const { data, error } = await sb.from("bewerbung_formular")
+    .update(aenderung)
+    .eq("id", true)
+    .select("titel,intro,frist,geschlossen")
+    .maybeSingle();
+
+  if (error || !data) {
+    // Kein Fehler, aber auch keine Zeile zurück: die Policy hat die
+    // Änderung verworfen. Das ist kein Absturz.
+    if (error) console.error(error);
+    showToast(error ? "Die Änderung ließ sich nicht speichern." : "Keine Berechtigung dafür.", true);
+    return false;
+  }
+
+  formular = { ...data, geschlossen: data.geschlossen === true };
+  formZeichnen();
+  return true;
+}
+
+/* ================================================================
+   Detailansicht
+   ================================================================ */
+const detailDlg = $("detailDlg");
+
+function antwortHtml(feld, wert) {
+  if (wert === null || wert === undefined || wert === "") return "—";
+  if (feld?.typ === "ja_nein") return wert === true ? "Ja" : "Nein";
+  if (Array.isArray(wert)) return wert.map(esc).join(", ") || "—";
+
+  if (feld?.typ === "datei") {
+    const link = fotoLinks.get(String(wert));
+    return link
+      ? `<a href="${esc(link)}" target="_blank" rel="noopener">Datei öffnen</a>`
+      : "Datei hinterlegt";
+  }
+
+  const text = String(wert);
+  if (/^https?:\/\//.test(text)) {
+    return `<a href="${esc(text)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+  }
+  return `<span class="antwortText">${esc(text)}</span>`;
+}
+
+function detailOeffnen(id) {
+  const z = zeilen.find((x) => x.id === id);
+  if (!z) return;
+  AKTIV = z;
+
+  $("detailTitel").textContent = vollerName(z);
+  $("detailSub").textContent =
+    `Eingegangen am ${zeitText(z.created_at)} · ${STAENDE[z.status]?.label || z.status}`;
+
+  const foto = $("detailFoto");
+  const link = fotoLink(z);
+  foto.innerHTML = link ? `<img src="${esc(link)}" alt="Foto">` : esc(initialen(z));
+  foto.classList.toggle("klickbar", !!link);
+  foto.onclick = link ? () => window.open(link, "_blank", "noopener") : null;
+
+  const reihen = [
+    ["E-Mail", `<a href="mailto:${esc(z.email)}">${esc(z.email)}</a>`],
+    ["Telefon", z.telefon ? `<a href="tel:${esc(z.telefon)}">${esc(z.telefon)}</a>` : "—"],
+    ["Priorität 1", esc(z.ressort_1 || "—")],
+    ["Priorität 2", esc(z.ressort_2 || "—")]
+  ];
+
+  /* Gefragt wurde, was in `fragen` steht — die Fassung von damals.
+     Nur wenn die fehlt, greifen wir auf die heutigen Fragen zurück. */
+  const damals = Array.isArray(z.fragen) && z.fragen.length
+    ? z.fragen
+    : felder.filter((f) => f.active);
+
+  for (const frage of damals) {
+    const feld = felder.find((f) => f.feld_key === frage.feld_key) || frage;
+    reihen.push([frage.label || frage.feld_key,
+                 antwortHtml(feld, z.antworten?.[frage.feld_key])]);
+  }
+
+  if (z.einwilligung_text) reihen.push(["Einwilligung", esc(z.einwilligung_text)]);
+
+  $("detailKv").innerHTML = reihen.map(([k, v]) => `
+    <div class="kv__row">
+      <div class="kv__label">${esc(k)}</div>
+      <div class="kv__value">${v}</div>
+    </div>`).join("");
+
+  /* Die Ressortwünsche darf der Vorstand nachziehen, wenn im Formular
+     etwas verrutscht ist. */
+  $("prioRow").hidden = !CAN_EDIT;
+  if (CAN_EDIT) {
+    const aktive = ressorts.filter((r) => r.active);
+    $("prio1").innerHTML = aktive.map((r) =>
+      `<option value="${r.id}"${r.id === z.ressort_1_id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
+    $("prio2").innerHTML = `<option value="">— keins —</option>` + aktive.map((r) =>
+      `<option value="${r.id}"${r.id === z.ressort_2_id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
+  }
+
+  $("detailActions").hidden = !CAN_EDIT;
+  detailDlg.showModal();
+}
+
+function detailSchliessen() { AKTIV = null; if (detailDlg.open) detailDlg.close(); }
+$("detailClose").addEventListener("click", detailSchliessen);
+detailDlg.addEventListener("click", (e) => { if (e.target === detailDlg) detailSchliessen(); });
+
+/* ---- Stand setzen ---- */
+async function standSetzen(neu) {
+  if (!AKTIV || !CAN_EDIT) return false;
+  const z = AKTIV;
+  if (z.status === neu) { detailSchliessen(); return true; }
+
+  const { data, error } = await sb.from("bewerbungen")
+    .update({ status: neu })
+    .eq("id", z.id)
+    .select("id,status,status_am")
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error(error);
+    showToast(error ? "Der Stand ließ sich nicht speichern." : "Keine Berechtigung dafür.", true);
+    return false;
+  }
+
+  z.status = data.status;
+  z.status_am = data.status_am;
+  zeichne();
+  detailSchliessen();
+  return true;
+}
+
+$("standRueck").addEventListener("click", async () => {
+  const name = vollerName(AKTIV || {});
+  if (await standSetzen("rueckmeldung")) showToast(`${name}: Rückmeldung`);
+});
+$("standKennen").addEventListener("click", async () => {
+  const name = vollerName(AKTIV || {});
+  if (await standSetzen("kennenlernen")) showToast(`${name}: Kennenlernen`);
+});
+$("standPrios").addEventListener("click", async () => {
+  const name = vollerName(AKTIV || {});
+  if (await standSetzen("prios_bestaetigt")) showToast(`${name}: Prios bestätigt`);
+});
+$("standAbgelehnt").addEventListener("click", async () => {
+  if (!confirm("Bewerbung wirklich ablehnen?")) return;
+  const name = vollerName(AKTIV || {});
+  if (await standSetzen("abgelehnt")) showToast(`${name}: abgelehnt`);
+});
+
+/* ---- Ressortwünsche korrigieren ---- */
+$("prioSpeichern").addEventListener("click", async () => {
+  if (!AKTIV || !CAN_EDIT) return;
+  const eins = $("prio1").value;
+  const zwei = $("prio2").value || null;
+
+  if (zwei && zwei === eins) {
+    showToast("Priorität 1 und 2 können nicht dasselbe Ressort sein.", true);
+    return;
+  }
+
+  const { data, error } = await sb.from("bewerbungen")
+    .update({ ressort_1_id: eins, ressort_2_id: zwei })
+    .eq("id", AKTIV.id)
+    .select("id,ressort_1_id,ressort_1,ressort_2_id,ressort_2")
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error(error);
+    showToast(error ? "Die Ressorts ließen sich nicht speichern." : "Keine Berechtigung dafür.", true);
+    return;
+  }
+
+  Object.assign(AKTIV, data);
+  zeichne();
+  showToast("Ressorts gespeichert");
+});
+
+/* ---- Als Anwärter übernehmen ---- */
+const ressortDlg = $("ressortDlg");
+
+$("uebernehmen").addEventListener("click", () => {
+  if (!AKTIV || !CAN_EDIT) return;
+  $("ressortWahl").innerHTML = ressorts.filter((r) => r.active).map((r) =>
+    `<option value="${esc(r.name)}"${r.name === AKTIV.ressort_1 ? " selected" : ""}>${esc(r.name)}</option>`).join("");
+  $("ressortDlgSub").textContent = vollerName(AKTIV);
+  ressortDlg.showModal();
+});
+
+$("ressortDlgClose").addEventListener("click", () => ressortDlg.close());
+$("ressortDlgAbbruch").addEventListener("click", () => ressortDlg.close());
+ressortDlg.addEventListener("click", (e) => { if (e.target === ressortDlg) ressortDlg.close(); });
+
+$("ressortDlgOk").addEventListener("click", async () => {
+  if (!AKTIV || !CAN_EDIT) return;
+  const z = AKTIV;
+  const ressort = $("ressortWahl").value;
+  ressortDlg.close();
+
+  /* Das Foto liegt in einem nicht-öffentlichen Ordner; die
+     Anwärterliste kann sich selbst keinen Link holen. Sie bekommt
+     deshalb hier einen mit. */
+  let bildLink = null;
+  const pfad = fotoPfad(z);
+  if (pfad) {
+    const { data } = await sb.storage.from(FOTO_BUCKET).createSignedUrl(pfad, FOTO_LINK_DAUER);
+    bildLink = data?.signedUrl || null;
+  }
+
+  const { error } = await sb.from(ANWAERTER_TABELLE).upsert({
+    bewerbung_id:     z.id,
+    bewerbung_status: "anwaerter",
+    vorname:  safe(z.vorname).trim(),
+    nachname: safe(z.nachname).trim(),
+    email:    safe(z.email).trim(),
+    telefon:  safe(z.telefon).trim() || null,
+    ressort,
+    photo_url:   bildLink,
+    photo_thumb: bildLink
+  }, { onConflict: "bewerbung_id" });
+
+  if (error) {
+    console.error(error);
+    showToast("Die Übernahme ließ sich nicht speichern: " + error.message, true);
+    return;
+  }
+
+  const name = vollerName(z);
+  if (await standSetzen("anwaerter")) {
+    showToast(`${name} ist jetzt Anwärter im Ressort ${ressort}.`);
+  }
+});
+
+/* ================================================================
+   Formular-Editor
+   ================================================================ */
+const editorDlg = $("editorDlg");
+const feldDlg = $("feldDlg");
+
+const TYP_LABEL = {
+  text: "Kurze Antwort", textarea: "Langer Text", zahl: "Zahl",
+  auswahl: "Eine Auswahl", mehrfach: "Mehrfachauswahl",
+  ja_nein: "Häkchen", datei: "Datei"
+};
+
+function editorOeffnen() {
+  if (!CAN_EDIT) return;
+  $("edTitel").value = formular.titel || "";
+  $("edIntro").value = formular.intro || "";
+  $("edEinwilligung").value = einwilligung?.text || "";
+  felderZeichnen();
+  ressortsZeichnen();
+  editorDlg.showModal();
+}
+
+$("editorClose").addEventListener("click", () => editorDlg.close());
+editorDlg.addEventListener("click", (e) => { if (e.target === editorDlg) editorDlg.close(); });
+
+$("edTexteSpeichern").addEventListener("click", async () => {
+  const ok = await formSpeichern({
+    titel: $("edTitel").value.trim() || "Bewerbung",
+    intro: $("edIntro").value.trim() || null
+  });
+  if (ok) showToast("Texte gespeichert");
+});
+
+/* ---- Fragen ---- */
+function felderZeichnen() {
+  $("edFelder").innerHTML = felder.map((f, i) => `
+    <div class="feldZeile${f.active ? "" : " is-aus"}">
+      <div class="feldText">
+        <div class="feldLabel">${esc(f.label)}</div>
+        <div class="feldMeta">${esc(TYP_LABEL[f.typ] || f.typ)} ·
+          ${f.pflicht ? "Pflicht" : "freiwillig"} · ${esc(f.feld_key)}${f.active ? "" : " · ausgeschaltet"}</div>
+      </div>
+      <div class="feldKnoepfe">
+        <button class="btn-xs btn-ghost" data-hoch="${i}" type="button"
+                aria-label="Nach oben"${i === 0 ? " disabled" : ""}>↑</button>
+        <button class="btn-xs btn-ghost" data-runter="${i}" type="button"
+                aria-label="Nach unten"${i === felder.length - 1 ? " disabled" : ""}>↓</button>
+        <button class="btn-xs btn-ghost" data-schalter="${f.id}" type="button">${f.active ? "Aus" : "Ein"}</button>
+        <button class="btn-xs btn-secondary" data-bearbeiten="${f.id}" type="button">Ändern</button>
+      </div>
+    </div>`).join("");
+}
+
+$("edFelder").addEventListener("click", async (e) => {
+  const knopf = e.target.closest("button");
+  if (!knopf) return;
+
+  if (knopf.dataset.bearbeiten) {
+    feldDlgOeffnen(felder.find((f) => f.id === knopf.dataset.bearbeiten));
+    return;
+  }
+
+  if (knopf.dataset.schalter) {
+    const f = felder.find((x) => x.id === knopf.dataset.schalter);
+    const { data, error } = await sb.from("bewerbung_felder")
+      .update({ active: !f.active }).eq("id", f.id).select("id,active").maybeSingle();
+    if (error || !data) {
+      if (error) console.error(error);
+      showToast(error ? "Ließ sich nicht umstellen." : "Keine Berechtigung dafür.", true);
+      return;
+    }
+    f.active = data.active;
+    felderZeichnen();
+    showToast(f.active ? "Frage eingeschaltet" : "Frage ausgeschaltet");
+    return;
+  }
+
+  const hoch = knopf.dataset.hoch, runter = knopf.dataset.runter;
+  if (hoch === undefined && runter === undefined) return;
+
+  const i = Number(hoch ?? runter);
+  const j = hoch !== undefined ? i - 1 : i + 1;
+  if (j < 0 || j >= felder.length) return;
+
+  [felder[i], felder[j]] = [felder[j], felder[i]];
+  felderZeichnen();
+  await reihenfolgeSpeichern();
+});
+
+/* Die Reihenfolge steckt in `sort_order`. Nach dem Tauschen bekommt
+   jede Frage ihre Position neu — in Zehnerschritten, damit später
+   auch von Hand etwas dazwischenpasst. */
+async function reihenfolgeSpeichern() {
+  const aenderungen = felder
+    .map((f, i) => ({ f, neu: (i + 1) * 10 }))
+    .filter(({ f, neu }) => f.sort_order !== neu);
+
+  for (const { f, neu } of aenderungen) {
+    const { error } = await sb.from("bewerbung_felder").update({ sort_order: neu }).eq("id", f.id);
+    if (error) {
+      console.error(error);
+      showToast("Die Reihenfolge ließ sich nicht speichern.", true);
+      return;
+    }
+    f.sort_order = neu;
+  }
+  if (aenderungen.length) showToast("Reihenfolge gespeichert");
+}
+
+/* ---- Eine Frage bearbeiten ---- */
+let FELD_BEARBEITET = null;
+
+function feldDlgOeffnen(feld) {
+  FELD_BEARBEITET = feld || null;
+
+  $("feldDlgTitel").textContent = feld ? "Frage ändern" : "Neue Frage";
+  $("feldDlgSub").textContent = feld
+    ? "Der Schlüssel lässt sich nicht mehr ändern."
+    : "Sie erscheint unten im Formular.";
+
+  $("fdLabel").value = feld?.label || "";
+  $("fdSchluessel").value = feld?.feld_key || "";
+  $("fdSchluessel").disabled = !!feld;
+  $("fdTyp").value = feld?.typ || "text";
+  $("fdPflicht").value = feld?.pflicht ? "ja" : "nein";
+  $("fdOptionen").value = (feld?.optionen || []).join("\n");
+  $("fdMin").value = feld?.min_wert ?? "";
+  $("fdMax").value = feld?.max_wert ?? "";
+  $("fdHilfe").value = feld?.hilfetext || "";
+  $("fdLoeschen").hidden = !feld;
+  $("fdFehler").hidden = true;
+
+  typFelder();
+  feldDlg.showModal();
+}
+
+/* Optionen gehören zur Auswahl, Grenzen zur Zahl — der Rest der
+   Felder hat dort nichts zu suchen. */
+function typFelder() {
+  const typ = $("fdTyp").value;
+  $("fdOptionenFeld").hidden = typ !== "auswahl" && typ !== "mehrfach";
+  $("fdMinFeld").hidden = typ !== "zahl";
+  $("fdMaxFeld").hidden = typ !== "zahl";
+}
+$("fdTyp").addEventListener("change", typFelder);
+
+/* Aus der Frage einen Schlüssel vorschlagen — ändern kann man ihn,
+   solange die Frage neu ist. */
+$("fdLabel").addEventListener("input", () => {
+  if (FELD_BEARBEITET || $("fdSchluessel").dataset.getippt) return;
+  $("fdSchluessel").value = $("fdLabel").value
+    .toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .replace(/^([0-9])/, "f$1")
+    .slice(0, 49);
+});
+$("fdSchluessel").addEventListener("input", () => { $("fdSchluessel").dataset.getippt = "1"; });
+
+$("feldDlgClose").addEventListener("click", () => feldDlg.close());
+$("fdAbbruch").addEventListener("click", () => feldDlg.close());
+feldDlg.addEventListener("click", (e) => { if (e.target === feldDlg) feldDlg.close(); });
+$("edFeldNeu").addEventListener("click", () => {
+  delete $("fdSchluessel").dataset.getippt;
+  feldDlgOeffnen(null);
+});
+
+const fdFehler = (text) => { $("fdFehler").textContent = text; $("fdFehler").hidden = false; };
+
+$("fdSpeichern").addEventListener("click", async () => {
+  const label = $("fdLabel").value.trim();
+  const key = $("fdSchluessel").value.trim();
+  const typ = $("fdTyp").value;
+  const optionen = $("fdOptionen").value.split("\n").map((s) => s.trim()).filter(Boolean);
+
+  if (!label) { fdFehler("Ohne Frage kein Feld."); return; }
+  if (!/^[a-z][a-z0-9_]{0,48}$/.test(key)) {
+    fdFehler("Der Schlüssel beginnt mit einem Kleinbuchstaben und besteht aus Kleinbuchstaben, Ziffern und Unterstrichen.");
+    return;
+  }
+  if ((typ === "auswahl" || typ === "mehrfach") && optionen.length === 0) {
+    fdFehler("Zu einer Auswahl gehört mindestens eine Option.");
+    return;
+  }
+
+  const zahl = (v) => { const t = String(v).trim(); return t === "" ? null : Number(t); };
+  const min = typ === "zahl" ? zahl($("fdMin").value) : null;
+  const max = typ === "zahl" ? zahl($("fdMax").value) : null;
+  if ((min !== null && !Number.isFinite(min)) || (max !== null && !Number.isFinite(max))) {
+    fdFehler("Die Grenzen sind Zahlen oder bleiben leer.");
+    return;
+  }
+  if (min !== null && max !== null && min > max) {
+    fdFehler("Der kleinste Wert liegt über dem größten.");
+    return;
+  }
+
+  const satz = {
+    label,
+    typ,
+    optionen,
+    pflicht: $("fdPflicht").value === "ja",
+    min_wert: min,
+    max_wert: max,
+    hilfetext: $("fdHilfe").value.trim() || null
+  };
+
+  let antwort;
+  if (FELD_BEARBEITET) {
+    antwort = await sb.from("bewerbung_felder").update(satz)
+      .eq("id", FELD_BEARBEITET.id).select().maybeSingle();
+  } else {
+    satz.feld_key = key;
+    satz.sort_order = (felder.length + 1) * 10;
+    satz.active = true;
+    antwort = await sb.from("bewerbung_felder").insert(satz).select().maybeSingle();
+  }
+
+  if (antwort.error) {
+    console.error(antwort.error);
+    fdFehler(antwort.error.code === "23505"
+      ? "Diesen Schlüssel gibt es schon."
+      : "Ließ sich nicht speichern: " + antwort.error.message);
+    return;
+  }
+  if (!antwort.data) { fdFehler("Keine Berechtigung dafür."); return; }
+
+  if (FELD_BEARBEITET) Object.assign(FELD_BEARBEITET, antwort.data);
+  else felder.push(antwort.data);
+
+  feldDlg.close();
+  felderZeichnen();
+  showToast("Frage gespeichert");
+});
+
+$("fdLoeschen").addEventListener("click", async () => {
+  if (!FELD_BEARBEITET) return;
+  if (!confirm("Die Frage löschen? Die bereits gegebenen Antworten darauf sind dann nicht mehr zu sehen. " +
+               "Zum Ausblenden reicht »Aus«.")) return;
+
+  const id = FELD_BEARBEITET.id;
+  const { error } = await sb.from("bewerbung_felder").delete().eq("id", id);
+  if (error) { console.error(error); fdFehler("Ließ sich nicht löschen: " + error.message); return; }
+
+  felder = felder.filter((f) => f.id !== id);
+  feldDlg.close();
+  felderZeichnen();
+  showToast("Frage gelöscht");
+});
+
+/* ---- Ressorts ---- */
+function ressortsZeichnen() {
+  $("edRessorts").innerHTML = ressorts.map((r) => `
+    <div class="listeRow${r.active ? "" : " is-aus"}">
+      <span>${esc(r.name)}${r.active ? "" : " · ausgeschaltet"}</span>
+      <button class="btn-xs btn-ghost" data-ressort="${r.id}" type="button">${r.active ? "Aus" : "Ein"}</button>
+    </div>`).join("");
+}
+
+$("edRessorts").addEventListener("click", async (e) => {
+  const knopf = e.target.closest("button[data-ressort]");
+  if (!knopf) return;
+  const r = ressorts.find((x) => x.id === knopf.dataset.ressort);
+
+  const { data, error } = await sb.from("bewerbung_ressorts")
+    .update({ active: !r.active }).eq("id", r.id).select("id,active").maybeSingle();
+  if (error || !data) {
+    if (error) console.error(error);
+    showToast(error ? "Ließ sich nicht umstellen." : "Keine Berechtigung dafür.", true);
+    return;
+  }
+
+  r.active = data.active;
+  ressortsZeichnen();
+  ressortFilterFuellen();
+  showToast(r.active ? "Ressort eingeschaltet" : "Ressort ausgeschaltet");
+});
+
+$("edRessortAdd").addEventListener("click", async () => {
+  const name = $("edRessortNeu").value.trim();
+  if (!name) return;
+
+  const { data, error } = await sb.from("bewerbung_ressorts")
+    .insert({ name, sort_order: (ressorts.length + 1) * 10 })
+    .select().maybeSingle();
+
+  if (error) {
+    console.error(error);
+    showToast(error.code === "23505" ? "Dieses Ressort gibt es schon." : "Ließ sich nicht anlegen.", true);
+    return;
+  }
+  if (!data) { showToast("Keine Berechtigung dafür.", true); return; }
+
+  ressorts.push(data);
+  $("edRessortNeu").value = "";
+  ressortsZeichnen();
+  ressortFilterFuellen();
+  showToast("Ressort angelegt");
+});
+
+/* ---- Einwilligung ---- */
+/* Geändert wird nicht der Satz, sondern es kommt ein neuer dazu: Wer
+   der alten Fassung zugestimmt hat, behält sie. */
+$("edEinwilligungSpeichern").addEventListener("click", async () => {
+  const text = $("edEinwilligung").value.trim();
+  if (!text) { showToast("Ohne Wortlaut keine Einwilligung.", true); return; }
+  if (text === einwilligung?.text) { showToast("Der Wortlaut steht schon so da."); return; }
+
+  const { data, error } = await sb.from("bewerbung_einwilligung")
+    .insert({ text }).select().maybeSingle();
+
+  if (error) {
+    console.error(error);
+    showToast(error.code === "23505"
+      ? "Diesen Wortlaut gibt es schon — vielleicht ausgeschaltet."
+      : "Ließ sich nicht speichern.", true);
+    return;
+  }
+  if (!data) { showToast("Keine Berechtigung dafür.", true); return; }
+
+  if (einwilligung) {
+    await sb.from("bewerbung_einwilligung").update({ active: false }).eq("id", einwilligung.id);
+  }
+  einwilligung = data;
+  showToast("Neuer Wortlaut gilt ab jetzt");
+});
+
+/* ================================================================
+   Laden
+   ================================================================ */
+async function fotolinksHolen() {
+  const pfade = [...new Set(zeilen.map(fotoPfad).filter(Boolean))];
+  fotoLinks = new Map();
+  if (!pfade.length) return;
+
+  const { data, error } = await sb.storage.from(FOTO_BUCKET).createSignedUrls(pfade, 3600);
+  if (error) { console.error(error); return; }
+
+  for (const eintrag of data || []) {
+    if (eintrag.signedUrl && !eintrag.error) fotoLinks.set(eintrag.path, eintrag.signedUrl);
+  }
+}
+
+async function stammdatenLaden() {
+  const [f, r, e, fo] = await Promise.all([
+    sb.from("bewerbung_felder")
+      .select("id,feld_key,label,typ,hilfetext,optionen,pflicht,min_wert,max_wert,sort_order,active")
+      .order("sort_order", { ascending: true }).order("created_at", { ascending: true }),
+    sb.from("bewerbung_ressorts").select("id,name,sort_order,active")
+      .order("sort_order", { ascending: true }).order("name", { ascending: true }),
+    sb.from("bewerbung_einwilligung").select("id,text")
+      .order("created_at", { ascending: false }).limit(1),
+    sb.from("bewerbung_formular").select("titel,intro,frist,geschlossen").maybeSingle()
+  ]);
+
+  if (f.error || r.error) throw f.error || r.error;
+
+  felder = f.data || [];
+  ressorts = r.data || [];
+  einwilligung = e.data?.[0] || null;
+  if (fo.data) formular = { ...fo.data, geschlossen: fo.data.geschlossen === true };
+}
+
+async function laden() {
+  $("statusPill").textContent = "Lade…";
+
+  const { data, error } = await sb.from("bewerbungen")
+    .select("id,vorname,nachname,email,telefon,ressort_1_id,ressort_1,ressort_2_id,ressort_2," +
+            "antworten,fragen,einwilligung_text,status,status_am,created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    $("statusPill").textContent = "Ladefehler";
+    showToast("Die Liste ließ sich nicht laden.", true);
+    return;
+  }
+
+  zeilen = data || [];
+  await fotolinksHolen();
+  zeichne();
+  $("statusPill").textContent = `${zeilen.length} Bewerbungen`;
+}
+
+async function profilLaden(session) {
+  const uid = session?.user?.id, email = session?.user?.email || "";
+  const { data, error } = await sb.from("profiles")
+    .select("role,display_name,ressort").eq("id", uid).maybeSingle();
+  if (error || !data) throw new Error("kein_profil");
+
+  const rolle = normRole(data.role);
+  if (rolle === "protokollfuehrer") {
+    window.location.replace("/protokoll.html");
+    throw new Error("umgeleitet");
+  }
+
+  setAuthUI(email);
+  authNameInline.textContent = (data.display_name || "").trim() || email.split("@")[0];
+  setRolePill(rolle);
+  window.FSBSNav?.setRole(rolle);
+
+  MY_RESSORT = safe(data.ressort).trim();
+  CAN_VIEW = rolle === "vorstand" || rolle === "ressortleiter";
+  CAN_EDIT = rolle === "vorstand";
+  return data;
+}
+
+(async () => {
+  try {
+    const { data } = await sb.auth.getSession();
+    if (!data.session) { window.location.replace(LOGIN_PAGE); return; }
+
+    await profilLaden(data.session);
+
+    if (!CAN_VIEW) {
+      $("statusPill").textContent = "Kein Zugriff";
+      $("mainContent").innerHTML = `<div class="glass card gate">
+        <strong>Kein Zugriff</strong>
+        Die Bewerbungen sehen Vorstand und Ressortleitung.
+      </div>`;
+      return;
     }
 
-    function handleMeet(){
-      if (!ACTIVE_ROW || !CAN_EDIT) return;
-      if (!confirm("Status auf 'Anwesend Kennenlernen' setzen?")) return;
-      setStatus(ACTIVE_ROW, "kennenlernen");
+    await stammdatenLaden();
+    renderPage();
+    ressortFilterFuellen();
+    formZeichnen();
+
+    /* Das eigene Ressort steht vorn: Danach schaut eine Leitung
+       zuerst. Der Vorstand schaut auf alles. */
+    if (!CAN_EDIT && MY_RESSORT && ressorts.some((r) => r.name === MY_RESSORT)) {
+      ressortFilter = MY_RESSORT;
+      $("ressortFeld").value = MY_RESSORT;
     }
 
-    function handlePriosBestaetigt(){
-      if (!ACTIVE_ROW || !CAN_EDIT) return;
-      if (!confirm("Status auf 'Prios Bestätigt' setzen?")) return;
-      setStatus(ACTIVE_ROW, "prios_bestaetigt");
-    }
+    await laden();
+  } catch (err) {
+    if (err?.message === "umgeleitet") return;
+    console.error(err);
+    $("mainContent").innerHTML = `<div class="glass card gate">
+      <strong>Das ging schief</strong>
+      Die Seite ließ sich nicht laden. Bitte neu laden oder erneut anmelden.
+    </div>`;
+  }
+})();
+</script>
 
-    savePriosBtn?.addEventListener("click", handleSavePrios);
-    fbSavePrios?.addEventListener("click", handleSavePrios);
-    rejectBtn?.addEventListener("click", handleReject);
-    fbReject?.addEventListener("click", handleReject);
-    rsvpBtn?.addEventListener("click", handleRsvp);
-    fbRsvp?.addEventListener("click", handleRsvp);
-    meetBtn?.addEventListener("click", handleMeet);
-    fbMeet?.addEventListener("click", handleMeet);
-    priosConfirmedBtn?.addEventListener("click", handlePriosBestaetigt);
-    fbPriosConfirmed?.addEventListener("click", handlePriosBestaetigt);
-    moveToCandidateBtn?.addEventListener("click", handleMove);
-    fbMove?.addEventListener("click", handleMove);
-
-    /* ========= EVENTS ========= */
-    [q, fRes, fSem].forEach(el => el?.addEventListener("input", render));
-    reloadBtn?.addEventListener("click", fetchRows);
-  </script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

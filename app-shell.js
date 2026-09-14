@@ -91,6 +91,12 @@
      verschwinden müsste. */
   var GRUNDROLLE = 'ressortleiter';
 
+  /* Die Seiten melden die Rolle, sobald das Profil da ist — und das
+     kann vor dem Bauen der Leiste geschehen, wenn die Antwort aus dem
+     Zwischenspeicher kommt. Deshalb wird sie gemerkt, nicht nur
+     angewandt. */
+  var ROLLE = null;
+
   function seiteJetzt() {
     var p = window.location.pathname.replace(/\/+$/, '');
     var datei = p.split('/').pop();
@@ -115,13 +121,15 @@
       var a = el('a', 'navLink');
       a.id = punkt.id;
       a.href = punkt.href;
+      a.title = punkt.label;
+      a.setAttribute('aria-label', punkt.label);
       a.innerHTML = punkt.icon + '<span class="navLabel">' + punkt.label + '</span>';
 
       if (punkt.href.split('/').pop() === hier) {
         a.classList.add('active');
         a.setAttribute('aria-current', 'page');
       }
-      if (!darfSehen(punkt, GRUNDROLLE)) a.style.display = 'none';
+      if (!darfSehen(punkt, ROLLE === null ? GRUNDROLLE : ROLLE)) a.style.display = 'none';
 
       slot.appendChild(a);
     });
@@ -129,10 +137,10 @@
 
   /* Nach dem Laden des Profils ruft die Seite das hier auf. */
   function setRole(rolle) {
-    var r = String(rolle || '').trim().toLowerCase();
+    ROLLE = String(rolle || '').trim().toLowerCase();
     NAV.forEach(function (punkt) {
       var a = document.getElementById(punkt.id);
-      if (a) a.style.display = darfSehen(punkt, r) ? '' : 'none';
+      if (a) a.style.display = darfSehen(punkt, ROLLE) ? '' : 'none';
     });
   }
 
@@ -445,6 +453,10 @@
     var raf = null;
     var applying = false;
 
+    function passt() {
+      return navLeft.scrollWidth <= navLeft.clientWidth + 1;
+    }
+
     function layout() {
       raf = null;
       applying = true;
@@ -456,13 +468,20 @@
         navLeft.appendChild(link);
       });
       wrap.style.display = 'none';
+      navLeft.classList.remove('navLeft--eng', 'navLeft--zeichen');
 
       var visible = links.filter(function (l) { return !isHidden(l); });
       if (!visible.length) return;
 
+      /* Erst enger setzen, dann auf die Zeichen zurückgehen — einen
+         Punkt ganz aus der Leiste zu nehmen ist das letzte Mittel.
+         Die Beschriftung steht dann im Titel und im Menü. */
+      if (!passt()) navLeft.classList.add('navLeft--eng');
+      if (!passt()) navLeft.classList.add('navLeft--zeichen');
+
       /* Solange es zu breit ist: letzten sichtbaren Punkt ins Menü schieben */
       var guard = 0;
-      while (navLeft.scrollWidth > navLeft.clientWidth + 1 && guard < links.length) {
+      while (!passt() && guard < links.length) {
         guard++;
         var pool = links.filter(function (l) {
           return !isHidden(l) && l.parentNode === navLeft;
@@ -472,7 +491,7 @@
         moved.classList.add('navLink--menu');
         menu.insertBefore(moved, menu.firstChild);
         wrap.style.display = '';
-        if (navLeft.scrollWidth <= navLeft.clientWidth + 1) break;
+        if (passt()) break;
       }
 
       var inMenu = links.filter(function (l) { return l.parentNode === menu && !isHidden(l); });

@@ -503,13 +503,24 @@ textarea:focus-visible,
 .navLink:hover .navIcon,
 .navLink.active .navIcon { opacity: 1; }
 
-/* Wird es eng, tragen die Zeichen allein. Die Beschriftungen
-   verschwinden erst, wenn auch das Überlauf-Menü nicht mehr reicht —
-   ab dort übernimmt ohnehin die Tab-Leiste unten. */
-@media (min-width: 769px) and (max-width: 920px) {
-  .siteNav .navLeft > .navLink .navLabel { display: none; }
-  .siteNav .navLeft > .navLink { padding: 0 10px; }
-}
+/* Wird die Leiste eng, rückt sie in zwei Stufen zusammen, bevor
+   app-shell.js anfängt, Punkte in das Überlauf-Menü zu schieben:
+   erst enger setzen, dann die Beschriftungen weglassen. Der Titel
+   und das Menü nennen sie weiterhin beim Namen. */
+.siteNav .navLeft--eng { gap: 0; }
+.siteNav .navLeft--eng > .navLink { padding: 0 9px; gap: 6px; }
+
+.siteNav .navLeft--zeichen > .navLink { padding: 0 9px; gap: 0; }
+.siteNav .navLeft--zeichen > .navLink .navLabel { display: none; }
+
+/* Eine Ausnahme: Die Seite, auf der man steht, behält ihren Namen.
+   So sagt die Leiste auch in der schmalsten Stufe noch, wo man ist. */
+.siteNav .navLeft--zeichen > .navLink.active { padding: 0 13px; gap: 7px; }
+.siteNav .navLeft--zeichen > .navLink.active .navLabel { display: inline; }
+
+/* Ohne Beschriftung darf das Zeichen etwas kräftiger sein — es
+   trägt den Punkt jetzt allein. */
+.siteNav .navLeft--zeichen > .navLink .navIcon { width: 19px; height: 19px; opacity: 0.85; }
 
 /* ---------- Überlauf-Menü ---------- */
 .navMore {
@@ -1941,6 +1952,9 @@ dialog::backdrop {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  /* Fünf, sechs Knöpfe passen in keine Zeile mehr — sie brechen um,
+     statt seitlich aus dem Dialog zu laufen. */
+  flex-wrap: wrap;
   gap: 10px;
   padding: 16px 24px 20px;
   border-top: 1px solid var(--border-color);
