@@ -46,15 +46,26 @@
   };
 
   var TABS = [
-    { href: 'index.html',       icon: ICONS.home,     label: 'Dashboard'   },
-    { href: 'members.html',     icon: ICONS.users,    label: 'Mitglieder'  },
-    { href: 'anwaerter.html',   icon: ICONS.userPlus, label: 'Anwärter'    },
-    { href: 'bewerbungen.html', icon: ICONS.file,     label: 'Bewerbungen' },
+    { href: '/',       icon: ICONS.home,     label: 'Dashboard'   },
+    { href: '/members',     icon: ICONS.users,    label: 'Mitglieder'  },
+    { href: '/anwaerter',   icon: ICONS.userPlus, label: 'Anwärter'    },
+    { href: '/bewerbungen', icon: ICONS.file,     label: 'Bewerbungen' },
     { href: '#mehr',            icon: ICONS.more,     label: 'Mehr', isMehr: true },
   ];
 
+  /* Aus einer Adresse den blanken Namen — mit oder ohne .html,
+     die Wurzel zählt als "index". Gleiche Regel wie in app-shell.js. */
+  function seitenName(pfad) {
+    var datei = String(pfad || '')
+      .split('?')[0].split('#')[0]
+      .replace(/\/+$/, '')
+      .split('/').pop();
+    if (!datei) return 'index';
+    return datei.replace(/\.html$/, '');
+  }
+
   function currentPage() {
-    return window.location.pathname.split('/').pop() || 'index.html';
+    return seitenName(window.location.pathname);
   }
 
   function buildTabBar(openFn) {
@@ -70,8 +81,7 @@
     bar.appendChild(pill);
 
     TABS.forEach(function (tab) {
-      var isActive = !tab.isMehr &&
-        (page === tab.href || (page === '' && tab.href === 'index.html'));
+      var isActive = !tab.isMehr && seitenName(tab.href) === page;
 
       if (tab.isMehr) {
         var btn = document.createElement('button');
@@ -89,7 +99,7 @@
       } else {
         var a = document.createElement('a');
         a.className = 'tabItem' + (isActive ? ' active' : '');
-        a.href = '/' + tab.href;
+        a.href = tab.href;
         if (isActive) a.setAttribute('aria-current', 'page');
         a.setAttribute('aria-label', tab.label);
         a.innerHTML =

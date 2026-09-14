@@ -139,7 +139,7 @@
 <body>
   <main class="app">
     <header class="loginHead">
-      <a class="siteLogo" href="index.html" title="Fachschaft Business School e.V.">
+      <a class="siteLogo" href="/" title="Fachschaft Business School e.V.">
         <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
              alt="Fachschaft Business School e.V." />
         <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true" />
@@ -204,8 +204,11 @@
   const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const APP_REDIRECT       = "index.html";
-  const EMAIL_REDIRECT_TO  = "https://portal.fsbs-hm.de/login.html";
+  const APP_REDIRECT       = "/";
+  /* Das Ziel, auf das der Link in der E-Mail führt. Supabase lässt nur
+     Adressen zu, die unter Authentication → URL Configuration in den
+     Redirect URLs stehen — diese hier gehört also dort hinein. */
+  const EMAIL_REDIRECT_TO  = "https://portal.fsbs-hm.de/login";
 
   /* --- DOM-Elemente --- */
   const emailEl    = document.getElementById("email");

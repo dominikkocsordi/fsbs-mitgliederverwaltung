@@ -3,23 +3,23 @@
    Offline-Support & PWA-Installierung
    ============================================================ */
 
-const CACHE = 'fsbs-v9';
+const CACHE = 'fsbs-v10';
 
 /* Statische App-Shell – bei Installation vorher cachen */
 const PRECACHE = [
-  '/index.html',
-  '/login.html',
-  '/members.html',
-  '/anwaerter.html',
-  '/bewerbungen.html',
-  '/bewerbung.html',
-  '/rechnungen.html',
-  '/mv.html',
-  '/protokoll.html',
-  '/zeugnisse.html',
-  '/abstimmung.html',
-  '/zutritte.html',
-  '/zutritte-liste.html',
+  '/',
+  '/login',
+  '/members',
+  '/anwaerter',
+  '/bewerbungen',
+  '/bewerbung',
+  '/rechnungen',
+  '/mv',
+  '/protokoll',
+  '/zeugnisse',
+  '/abstimmung',
+  '/zutritte',
+  '/zutritte-liste',
   '/style.css',
   '/theme.js',
   '/app-shell.js',
@@ -72,8 +72,9 @@ self.addEventListener('fetch', evt => {
   if (skipHosts.some(h => url.hostname.includes(h))) return;
 
   /* HTML-Seiten: Network-first (immer frischer Inhalt, Fallback auf Cache).
-     Auch Aufrufe ohne Endung zählen dazu – /zutritte etwa liefert GitHub
-     Pages aus zutritte.html aus. */
+     Die Seiten laufen ohne Endung – /zutritte etwa liefert GitHub Pages
+     aus zutritte.html aus. Die Prüfung auf .html bleibt trotzdem: Wer
+     einen alten Link mit Endung aufruft, landet ebenfalls hier. */
   if (request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/') {
     evt.respondWith(
       fetch(request)
@@ -84,7 +85,7 @@ self.addEventListener('fetch', evt => {
           return res;
         })
         .catch(() => caches.match(request).then(cached =>
-          cached || caches.match('/index.html')
+          cached || caches.match('/')
         ))
     );
     return;

@@ -76,14 +76,14 @@
   /* `rollen` zählt auf, wer den Punkt sehen darf. Der Protokollführer
      kommt nur an das Protokoll — deshalb steht er nur dort. */
   var NAV = [
-    { id: 'navDashboard',  href: '/index.html',          label: 'Dashboard',   icon: ICONS.dashboard, rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navMembers',    href: '/members.html',        label: 'Mitglieder',  icon: ICONS.members,   rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navCandidates', href: '/anwaerter.html',      label: 'Anwärter',    icon: ICONS.candidate, rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navApps',       href: '/bewerbungen.html',    label: 'Bewerbungen', icon: ICONS.apps,      rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navFinanzen',   href: '/rechnungen.html',     label: 'Finanzen',    icon: ICONS.finance,   rollen: ['vorstand'] },
-    { id: 'navProtokoll',  href: '/protokoll.html',      label: 'Protokoll',   icon: ICONS.minutes,   rollen: ['vorstand', 'protokollfuehrer'] },
-    { id: 'navZeugnisse',  href: '/zeugnisse.html',      label: 'Zeugnisse',   icon: ICONS.diploma,   rollen: ['vorstand'] },
-    { id: 'navZutritte',   href: '/zutritte-liste.html', label: 'Zutritte',    icon: ICONS.key,       rollen: ['vorstand'] }
+    { id: 'navDashboard',  href: '/',          label: 'Dashboard',   icon: ICONS.dashboard, rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navMembers',    href: '/members',        label: 'Mitglieder',  icon: ICONS.members,   rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navCandidates', href: '/anwaerter',      label: 'Anwärter',    icon: ICONS.candidate, rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navApps',       href: '/bewerbungen',    label: 'Bewerbungen', icon: ICONS.apps,      rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navFinanzen',   href: '/rechnungen',     label: 'Finanzen',    icon: ICONS.finance,   rollen: ['vorstand'] },
+    { id: 'navProtokoll',  href: '/protokoll',      label: 'Protokoll',   icon: ICONS.minutes,   rollen: ['vorstand', 'protokollfuehrer'] },
+    { id: 'navZeugnisse',  href: '/zeugnisse',      label: 'Zeugnisse',   icon: ICONS.diploma,   rollen: ['vorstand'] },
+    { id: 'navZutritte',   href: '/zutritte-liste', label: 'Zutritte',    icon: ICONS.key,       rollen: ['vorstand'] }
   ];
 
   /* Solange die Rolle unbekannt ist: zeigen, was jede Rolle mit
@@ -97,17 +97,26 @@
      angewandt. */
   var ROLLE = null;
 
+  /* Aus einer Adresse den blanken Namen. "/members", "/members.html"
+     und "/members?x=1" führen alle auf "members", "/" auf "index" —
+     so ist es einerlei, ob ein Link die Endung noch trägt. */
+  function seitenName(pfad) {
+    var datei = String(pfad || '')
+      .split('?')[0].split('#')[0]
+      .replace(/\/+$/, '')
+      .split('/').pop();
+    if (!datei) return 'index';
+    return datei.replace(/\.html$/, '');
+  }
+
   function seiteJetzt() {
-    var p = window.location.pathname.replace(/\/+$/, '');
-    var datei = p.split('/').pop();
-    if (!datei) return 'index.html';
-    return datei.indexOf('.') === -1 ? datei + '.html' : datei;
+    return seitenName(window.location.pathname);
   }
 
   /* Die Seite, auf der man gerade steht, bleibt immer in der Leiste —
      sonst fehlte ausgerechnet der Punkt, der hervorgehoben ist. */
   function darfSehen(punkt, rolle) {
-    return punkt.href.split('/').pop() === seiteJetzt() ||
+    return seitenName(punkt.href) === seiteJetzt() ||
            punkt.rollen.indexOf(rolle) !== -1;
   }
 
@@ -125,7 +134,7 @@
       a.setAttribute('aria-label', punkt.label);
       a.innerHTML = punkt.icon + '<span class="navLabel">' + punkt.label + '</span>';
 
-      if (punkt.href.split('/').pop() === hier) {
+      if (seitenName(punkt.href) === hier) {
         a.classList.add('active');
         a.setAttribute('aria-current', 'page');
       }
@@ -167,7 +176,7 @@
     /* ---------- 1. Wortmarke ---------- */
     var oldLogo = top && top.querySelector('.brandLogo');
     var logo = el('a', 'siteLogo');
-    logo.href = (oldLogo && oldLogo.getAttribute('href')) || '/index.html';
+    logo.href = (oldLogo && oldLogo.getAttribute('href')) || '/';
     logo.title = 'FSBS Intern';
     logo.innerHTML =
       '<img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"' +

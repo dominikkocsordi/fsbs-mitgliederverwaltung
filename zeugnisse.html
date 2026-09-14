@@ -24,7 +24,7 @@
 
   <div class="top">
     <div class="brandLeft">
-      <a class="brandLogo" href="index.html" title="FSBS Intern">
+      <a class="brandLogo" href="/" title="FSBS Intern">
         <img src="logo.png" alt="FSBS Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
       </a>
       <div>
@@ -79,7 +79,7 @@
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const LOGIN_PAGE = "login.html";
+const LOGIN_PAGE = "/login";
 
 /* ---- Helpers ---- */
 function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }

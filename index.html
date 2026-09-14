@@ -30,7 +30,7 @@
 
   <header class="top">
     <div class="brandLeft">
-      <a class="brandLogo" href="index.html" title="FSBS Intern">
+      <a class="brandLogo" href="/" title="FSBS Intern">
         <img src="logo.png" alt="Fachschaft Logo"
              onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
       </a>
@@ -99,7 +99,7 @@
       </div>
 
       <div class="mvRight">
-        <button class="mvOpenBtn" type="button" onclick="location.href='mv.html'">
+        <button class="mvOpenBtn" type="button" onclick="location.href='/mv'">
           Seite öffnen ↗
         </button>
       </div>
@@ -113,7 +113,7 @@
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-const LOGIN_PAGE = "login.html";
+const LOGIN_PAGE = "/login";
 
 /* ========= Tables ========= */
 const PROFILES_TABLE = "profiles";
@@ -489,7 +489,7 @@ async function loadDashboard(){
   const myRessort = (me.ressort || "").trim();
 
   // Protokollführer has no dashboard — send them straight to their page
-  if (isPfluehrer) { window.location.replace("protokoll.html"); return; }
+  if (isPfluehrer) { window.location.replace("/protokoll"); return; }
 
   /* Welche Punkte die Rolle sieht, entscheidet app-shell.js. */
   window.FSBSNav?.setRole(me.role);
@@ -514,8 +514,8 @@ async function loadDashboard(){
           </div>
         `
       })}
-      ${card({ href:"members.html", title:"Mitglieder", value:String(membersMine), sub:"Mitglieder in deinem Ressort.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
-      ${card({ href:"anwaerter.html", title:"Anwärter", value:String(candMine), sub:"Anwärter in deinem Ressort.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
+      ${card({ href:"/members", title:"Mitglieder", value:String(membersMine), sub:"Mitglieder in deinem Ressort.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
+      ${card({ href:"/anwaerter", title:"Anwärter", value:String(candMine), sub:"Anwärter in deinem Ressort.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
     `;
     return;
   }
@@ -529,8 +529,8 @@ async function loadDashboard(){
   );
 
   grid.innerHTML = `
-    ${card({ href:"members.html", title:"Gesamt Mitglieder", value:String(membersAll), sub:"Alle Ressorts zusammen.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
-    ${card({ href:"anwaerter.html", title:"Gesamt Anwärter", value:String(candAll), sub:"Alle offenen Anwärter.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
+    ${card({ href:"/members", title:"Gesamt Mitglieder", value:String(membersAll), sub:"Alle Ressorts zusammen.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
+    ${card({ href:"/anwaerter", title:"Gesamt Anwärter", value:String(candAll), sub:"Alle offenen Anwärter.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
     ${cardStatic({
       title:"Ressort-Übersicht",
       sub:"Mitglieder & Anwärter pro Ressort.",

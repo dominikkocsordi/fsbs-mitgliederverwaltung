@@ -30,7 +30,7 @@
 
     <div class="top">
       <div class="brandLeft">
-        <a class="brandLogo" href="/index.html" title="FSBS Intern">
+        <a class="brandLogo" href="/" title="FSBS Intern">
           <img src="logo.png" alt="Fachschaft Logo"
                onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
         </a>
@@ -183,7 +183,7 @@
     const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const LOGIN_REDIRECT = "/login.html";
+    const LOGIN_REDIRECT = "/login";
 
     /* ========= Rollen/Permissions ========= */
     const PROFILES_TABLE = "profiles";
@@ -461,7 +461,7 @@
 
         if (res?.data){
           MY_ROLE = normRole(res.data.role);
-          if (MY_ROLE === "protokollfuehrer") { window.location.replace("protokoll.html"); return; }
+          if (MY_ROLE === "protokollfuehrer") { window.location.replace("/protokoll"); return; }
           MY_RESSORT = safe(res.data.ressort).trim();
           CAN_EDIT = (MY_ROLE === "vorstand");
 

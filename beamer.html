@@ -201,7 +201,9 @@ let lastVoteHash = null;
 function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
 
 function shareUrl(t){
-  return location.origin + location.pathname.replace("beamer.html","") + "abstimmung.html?s=" + t;
+  // Die Seite liegt an der Wurzel der Domain, der Pfad daneben braucht
+  // hier nichts beizutragen.
+  return location.origin + "/abstimmung?s=" + t;
 }
 
 function generateQR(url){

@@ -26,7 +26,7 @@
   <!-- Header -->
   <div class="top">
     <div class="brandLeft">
-      <a class="brandLogo" href="/index.html" title="FSBS Intern">
+      <a class="brandLogo" href="/" title="FSBS Intern">
         <img src="logo.png" alt="Fachschaft Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';" />
       </a>
       <div>
@@ -83,7 +83,7 @@
       <div style="margin-top:6px;color:var(--muted-foreground);">Diese Seite ist nur für <b>Vorstand</b>.</div>
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn-secondary" id="logoutBtn2" type="button">Abmelden</button>
-        <a class="pill" href="/index.html" style="text-decoration:none;">Zum Dashboard</a>
+        <a class="pill" href="/" style="text-decoration:none;">Zum Dashboard</a>
       </div>
     </div>
   </div>
@@ -318,7 +318,7 @@
     }
   }
 
-  async function doLogout(){await sb.auth.signOut();location.href="/login.html";}
+  async function doLogout(){await sb.auth.signOut();location.href="/login";}
   logoutBtn?.addEventListener("click",doLogout);
   logoutBtn2?.addEventListener("click",doLogout);
 
@@ -540,7 +540,7 @@
     const {data}=await sb.auth.getSession();
     const session=data?.session;
     setAuthUI(!!session,session?.user?.email||"");
-    if(!session){location.href="/login.html";return;}
+    if(!session){location.href="/login";return;}
 
     const uid=session.user.id, email=session.user.email||"";
     const {data:profile}=await sb.from(PROFILES_TABLE).select("role,display_name").eq("id",uid).maybeSingle();
