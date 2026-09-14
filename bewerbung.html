@@ -1374,7 +1374,9 @@
 
     if (error) {
       console.error(error);
-      setzeFehler(feld, "Der Stand ließ sich nicht abrufen. Bitte später noch einmal versuchen.");
+      setzeFehler(feld, error.code === "PGRST202"
+        ? "Die Abfrage ist gerade nicht eingerichtet. Bitte schreib uns kurz."
+        : "Der Stand ließ sich nicht abrufen. Bitte später noch einmal versuchen.");
       return;
     }
 
@@ -1544,7 +1546,8 @@
       p_ressort_1_id: $("ressort1").value,
       p_ressort_2_id: $("ressort2").value || null,
       p_antworten: antworten,
-      p_einwilligung_id: einwilligung.id
+      p_einwilligung_id: einwilligung.id,
+      p_foto_pfad: null
     });
 
     if (!error) { fertigZeigen(code); return; }
@@ -1564,6 +1567,17 @@
       // Der Trigger nennt das Feld im Klartext — das ist hier die
       // hilfreichste Meldung, die wir haben.
       zeigeHinweis(error.message || "Eine Angabe hat die Prüfung nicht bestanden.");
+      return;
+    }
+
+    // PGRST202: PostgREST kennt `bewerbung_abgeben` nicht. Entweder ist
+    // supabase/bewerbungen.sql noch nicht gelaufen, oder PostgREST hat den
+    // Katalog noch nicht neu gelesen ("notify pgrst, 'reload schema'").
+    // Warten hilft dagegen nicht, deshalb steht hier etwas anderes.
+    if (error.code === "PGRST202") {
+      console.error("bewerbung_abgeben fehlt in der Datenbank:", error);
+      zeigeHinweis("Das Formular ist gerade nicht vollständig eingerichtet. " +
+                   "Bitte schreib uns kurz — wir kümmern uns darum.");
       return;
     }
 
