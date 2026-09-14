@@ -3370,42 +3370,30 @@ dialog::backdrop {
   }
 
 /* ---------- 7.3  Bewerbungen ---------- */
-/* Grösseres Bewerbungsfoto auf der Karte */
-  .card-bew .avatar { width: 48px; height: 48px; font-size: 16px; }
-  .avatar.loading { opacity: 0.5; }
-
-  .card-bew .inner { position: relative; z-index: 1; }
-  .card-bew .tags { margin-top: 12px; }
-
-  /* Foto im Detaildialog */
-  .modalPhotoWrap { display: flex; justify-content: center; margin-bottom: 16px; }
-
-  .modalPhoto {
-    width: 88px;
-    height: 88px;
-    border-radius: var(--radius-lg);
-    background: var(--secondary);
-    border: 1px solid var(--border-color);
-    display: grid;
-    place-items: center;
-    font-size: 26px;
-    font-weight: 600;
-    overflow: hidden;
-    cursor: pointer;
-  }
-
-  .modalPhoto img { width: 100%; height: 100%; object-fit: cover; }
-
+  /* Abstand der Angabenliste im Detaildialog. Alles Übrige — Karte,
+     Foto, Kacheln — steht in bewerbungen.html selbst. */
   .kv { margin: 14px 0; }
 
-/* ---------- 7.4  Finanzen ---------- */
+/* ---------- 7.4  Dashboard ---------- */
+/* Zwei Spalten, nicht das mitwachsende Standardraster: Die Kacheln
+   der Startseite sind mit `kpiBig` auf »eine halbe Reihe« ausgelegt,
+   und bei drei Spalten ergäbe das eine Treppe statt einer Reihe.
+   Nur die Startseite benutzt `.grid` noch — deshalb steht es an ihrer
+   Kennung und nicht an der Klasse. */
+#grid.grid { grid-template-columns: 1fr 1fr; }
+
+@media (max-width: 700px) {
+  #grid.grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- 7.5  Finanzen ---------- */
 /* Betrag rechts oben auf der Belegkarte */
   .rCard .cardAmount { margin-left: auto; }
 
   /* Hinweisfläche, wenn der Zugriff fehlt */
   .denyBox .iconBox { margin: 0 auto 14px; }
 
-/* ---------- 7.5  Anwesenheit MV ---------- */
+/* ---------- 7.6  Anwesenheit MV ---------- */
 /* Begründung in der Tabelle */
   .reasonText {
     font-size: 12px;
@@ -3427,7 +3415,7 @@ dialog::backdrop {
     background: none;
   }
 
-/* ---------- 7.6  Abstimmung (öffentlich) ---------- */
+/* ---------- 7.7  Abstimmung (öffentlich) ---------- */
 /* Code entry */
     .code-container {
       display: flex;
