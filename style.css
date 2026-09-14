@@ -1837,6 +1837,9 @@ label, .formLabel, .field__label {
 .fieldGrid .full { grid-column: 1 / -1; }
 
 .formSection { margin-bottom: 22px; }
+/* Der letzte Abschnitt braucht seinen Abstand nicht — darunter kommt
+   schon der Innenabstand des Körpers. */
+.modalBody > .formSection:last-child { margin-bottom: 0; }
 
 .formSectionTitle {
   font-size: 11px;
