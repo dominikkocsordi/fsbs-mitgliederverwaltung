@@ -433,9 +433,9 @@
     grid-template-columns: 26px 1fr auto;
     gap: 0 13px;
     align-items: start;
-    padding-bottom: 22px;
+    padding-bottom: 18px;
   }
-  .tlItem:last-child { padding-bottom: 14px; }
+  .tlItem:last-child { padding-bottom: 12px; }
 
   /* Die Linie zum nächsten Punkt. Sie färbt sich mit: Was hinter dir
      liegt, ist grün — was noch kommt, bleibt grau. */
@@ -491,6 +491,7 @@
 
   .tlTitel {
     display: block;
+    padding-top: 4px;
     font-size: 13.5px;
     font-weight: 500;
     line-height: 1.45;
@@ -499,14 +500,6 @@
   }
   .is-todo .tlTitel { color: var(--faint-foreground); font-weight: 400; }
   .is-reject .tlTitel { color: var(--danger); }
-
-  .tlSub {
-    display: block;
-    margin-top: 2px;
-    font-size: 12px;
-    line-height: 1.45;
-    color: var(--faint-foreground);
-  }
 
   .tlDatum {
     font-size: 11.5px;
@@ -1265,18 +1258,15 @@
      Bearbeitungsstand aus der Datenbank, der zu diesem Schritt gehört;
      der erste hat keinen — er ist mit dem Absenden erledigt. */
   const SCHRITTE = [
-    { titel: "Deine Bewerbung ist bei uns eingegangen.",
-      sub: "Abgeschickt und gespeichert.", stand: null },
-    { titel: "Wir prüfen deine Bewerbung.",
-      sub: "Der Vorstand liest alle Bewerbungen.", stand: "offen" },
+    { titel: "Deine Bewerbung ist bei uns eingegangen.", stand: null },
+    { titel: "Wir prüfen deine Bewerbung.", stand: "offen" },
     { titel: "Wir haben Neuigkeiten für dich. Schau in dein Mail-Postfach.",
-      sub: "Rückmeldung per E-Mail.", stand: "rueckmeldung" },
+      stand: "rueckmeldung" },
     { titel: "Schön, dass du beim Kennenlernevent dabei warst.",
-      sub: "Wir haben dich kennengelernt.", stand: "kennenlernen" },
+      stand: "kennenlernen" },
     { titel: "Wir haben deine Priobestätigung erhalten.",
-      sub: "Deine Ressortwünsche stehen fest.", stand: "prios_bestaetigt" },
-    { titel: "Herzlich willkommen bei der Fachschaft!",
-      sub: "Aufnahme als Anwärter.", stand: "anwaerter" }
+      stand: "prios_bestaetigt" },
+    { titel: "Herzlich willkommen bei der Fachschaft!", stand: "anwaerter" }
   ];
 
   const svg = (inhalt, breite) =>
@@ -1292,13 +1282,10 @@
         { timeZone: "Europe/Berlin", day: "numeric", month: "short" })
     : "";
 
-  function tlZeile(klasse, punkt, titel, sub, datum) {
+  function tlZeile(klasse, punkt, titel, datum) {
     return `<li class="tlItem ${klasse}">
       <span class="tlDot">${punkt}</span>
-      <span>
-        <span class="tlTitel">${esc(titel)}</span>
-        <span class="tlSub">${esc(sub)}</span>
-      </span>
+      <span class="tlTitel">${esc(titel)}</span>
       <span class="tlDatum">${esc(datum)}</span>
     </li>`;
   }
@@ -1329,13 +1316,12 @@
                   : (i === bis && !abgelehnt) ? kurzDatum(z.stand_seit)
                   : "";
 
-      zeilen.push(tlZeile(klasse, punkt, schritt.titel, schritt.sub, datum));
+      zeilen.push(tlZeile(klasse, punkt, schritt.titel, datum));
     }
 
     if (abgelehnt) {
       zeilen.push(tlZeile("is-reject", ICON_KREUZ,
         "Leider konnten wir dir keinen Platz anbieten.",
-        "Das Verfahren ist damit abgeschlossen.",
         kurzDatum(z.stand_seit)));
     }
 
