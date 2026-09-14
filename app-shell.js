@@ -9,8 +9,10 @@
        <div class="pageHead">      Titel links · Kontext rechts
        … Seiteninhalt …
 
-   Es werden ausschliesslich vorhandene Elemente verschoben —
-   IDs, Event-Handler und Seiten-JS bleiben damit gültig.
+   Die Navigationspunkte entstehen dabei aus einer Liste in dieser
+   Datei — jede Seite bringt nur noch den leeren Platzhalter mit.
+   Alles Übrige wird verschoben, nicht neu gebaut: IDs,
+   Event-Handler und Seiten-JS bleiben damit gültig.
    Läuft vor theme.js und mobile-nav.js.
    ============================================================ */
 (function () {
@@ -28,8 +30,116 @@
     return node.textContent.trim().length > 0;
   }
 
+  /* ============================================================
+     Navigation
+     ------------------------------------------------------------
+     Alle Seiten teilen sich diese eine Liste. Eine Seite bringt
+     nur noch den leeren Platzhalter mit:
+
+       <div class="glass navWrap" id="navWrap" data-nav>
+         <div class="nav">
+           <button class="hamburger" id="hamburger" …>☰</button>
+           <div class="navLeft"></div>
+           <div class="navRight">… Abmelden …</div>
+         </div>
+       </div>
+
+     Welcher Punkt aktiv ist, ergibt sich aus der Adresse. Was eine
+     Rolle sehen darf, steht in `rollen` — bis das Profil geladen
+     ist, zeigt die Leiste, was jede angemeldete Rolle sieht, und
+     `FSBSNav.setRole(rolle)` schaltet den Rest frei.
+     ============================================================ */
+
+  function icon(paths) {
+    return '<span class="navIcon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"' +
+      ' stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+      paths + '</svg></span>';
+  }
+
+  var ICONS = {
+    dashboard: icon('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-5.5h5V20"/>'),
+    members:   icon('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c0-3 2.5-4.8 5.5-4.8s5.5 1.8 5.5 4.8"/>' +
+                    '<path d="M16.5 6.4a3 3 0 0 1 0 5.8"/><path d="M17.5 14.9c2 .5 3.3 1.9 3.3 4.6"/>'),
+    candidate: icon('<circle cx="10" cy="8" r="3.2"/><path d="M4 19.5c0-3 2.7-4.8 6-4.8 1.2 0 2.3.2 3.2.7"/>' +
+                    '<path d="M17.5 14v6"/><path d="M14.5 17h6"/>'),
+    apps:      icon('<path d="M14 3H7a1.6 1.6 0 0 0-1.6 1.6v14.8A1.6 1.6 0 0 0 7 21h10a1.6 1.6 0 0 0 1.6-1.6V7.6Z"/>' +
+                    '<path d="M14 3v4.6h4.6"/><path d="M8.8 12.5h6.4"/><path d="M8.8 16h4.4"/>'),
+    finance:   icon('<path d="M3.5 7.5h17v11a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5Z"/>' +
+                    '<path d="M3.5 7.5 6 4h12l2.5 3.5"/><path d="M9.5 11.5h5"/>'),
+    minutes:   icon('<path d="M6 3.5h9.5L19 7v13.5H6Z"/><path d="M15.5 3.5V7H19"/>' +
+                    '<path d="M9 11.5h6"/><path d="M9 15h4"/>'),
+    diploma:   icon('<path d="M12 3.5 21 8l-9 4.5L3 8Z"/><path d="M7 10.5V15c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/>' +
+                    '<path d="M21 8v5"/>'),
+    key:       icon('<circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20 12v2"/>')
+  };
+
+  /* `rollen` zählt auf, wer den Punkt sehen darf. Der Protokollführer
+     kommt nur an das Protokoll — deshalb steht er nur dort. */
+  var NAV = [
+    { id: 'navDashboard',  href: '/index.html',          label: 'Dashboard',   icon: ICONS.dashboard, rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navMembers',    href: '/members.html',        label: 'Mitglieder',  icon: ICONS.members,   rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navCandidates', href: '/anwaerter.html',      label: 'Anwärter',    icon: ICONS.candidate, rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navApps',       href: '/bewerbungen.html',    label: 'Bewerbungen', icon: ICONS.apps,      rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navFinanzen',   href: '/rechnungen.html',     label: 'Finanzen',    icon: ICONS.finance,   rollen: ['vorstand'] },
+    { id: 'navProtokoll',  href: '/protokoll.html',      label: 'Protokoll',   icon: ICONS.minutes,   rollen: ['vorstand', 'protokollfuehrer'] },
+    { id: 'navZeugnisse',  href: '/zeugnisse.html',      label: 'Zeugnisse',   icon: ICONS.diploma,   rollen: ['vorstand'] },
+    { id: 'navZutritte',   href: '/zutritte-liste.html', label: 'Zutritte',    icon: ICONS.key,       rollen: ['vorstand'] }
+  ];
+
+  /* Solange die Rolle unbekannt ist: zeigen, was jede Rolle mit
+     Zugang zur Liste sieht. Nichts blinkt auf, was später wieder
+     verschwinden müsste. */
+  var GRUNDROLLE = 'ressortleiter';
+
+  function seiteJetzt() {
+    var p = window.location.pathname.replace(/\/+$/, '');
+    var datei = p.split('/').pop();
+    if (!datei) return 'index.html';
+    return datei.indexOf('.') === -1 ? datei + '.html' : datei;
+  }
+
+  function darfSehen(punkt, rolle) {
+    return punkt.rollen.indexOf(rolle) !== -1;
+  }
+
+  function buildNav() {
+    var slot = document.querySelector('[data-nav] .navLeft');
+    if (!slot || slot.querySelector('.navLink')) return;
+
+    var hier = seiteJetzt();
+
+    NAV.forEach(function (punkt) {
+      var a = el('a', 'navLink');
+      a.id = punkt.id;
+      a.href = punkt.href;
+      a.innerHTML = punkt.icon + '<span class="navLabel">' + punkt.label + '</span>';
+
+      if (punkt.href.split('/').pop() === hier) {
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'page');
+      }
+      if (!darfSehen(punkt, GRUNDROLLE)) a.style.display = 'none';
+
+      slot.appendChild(a);
+    });
+  }
+
+  /* Nach dem Laden des Profils ruft die Seite das hier auf. */
+  function setRole(rolle) {
+    var r = String(rolle || '').trim().toLowerCase();
+    NAV.forEach(function (punkt) {
+      var a = document.getElementById(punkt.id);
+      if (a) a.style.display = darfSehen(punkt, r) ? '' : 'none';
+    });
+  }
+
+  window.FSBSNav = { setRole: setRole, punkte: NAV };
+
+
   function build() {
     if (document.querySelector('.siteHeader')) return;
+
+    buildNav();
 
     var app = document.querySelector('.app');
     var top = document.querySelector('.top');

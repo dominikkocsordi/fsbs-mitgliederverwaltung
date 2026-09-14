@@ -124,6 +124,9 @@
   transition: background .18s ease, color .18s ease;
 }
 .drawerLink:active { background: var(--secondary); }
+/* Im Schubfach steht mehr Platz zur Verfügung als in der Kopfleiste. */
+.drawerLink .navIcon { width: 20px; height: 20px; opacity: .8; }
+.drawerLink.active .navIcon { opacity: 1; }
 .drawerLink.active {
   background: var(--foreground);
   color: var(--background);

@@ -201,7 +201,8 @@
       var navLinks  = Array.from(navLeft.querySelectorAll('.navLink'));
       var linksHtml = navLinks.map(function (link) {
         var href     = link.getAttribute('href') || '#';
-        var text     = link.textContent.trim();
+        /* Inhalt statt Text: so nimmt der Punkt sein Zeichen mit. */
+        var inhalt   = link.innerHTML.trim() || link.textContent.trim();
         var isActive = link.classList.contains('active');
         var hidden   = link.style.display === 'none';
         return (
@@ -209,7 +210,7 @@
           ' href="' + href + '"' +
           (hidden ? ' style="display:none"' : '') +
           ' data-navid="' + (link.id || '') + '">' +
-          text + '</a>'
+          inhalt + '</a>'
         );
       }).join('');
 
