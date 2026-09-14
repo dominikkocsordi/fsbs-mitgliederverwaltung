@@ -12,6 +12,9 @@
 --  E-Mail, Telefon und die beiden Ressortwünsche. Sie sind fest, damit die
 --  Liste im Portal und die Übernahme als Anwärter nicht davon abhängen, wie
 --  eine Frage gerade heißt. Alles Übrige landet in `antworten`.
+--
+--  Danach gehört supabase/bewerbung-schutz.sql an die Reihe: Es füllt die
+--  Einhängepunkte aus Block 14 mit dem Captcha und der Bremse je IP-Adresse.
 -- =============================================================================
 
 create extension if not exists pgcrypto;
@@ -797,10 +800,70 @@ grant delete on public.bewerbungen to authenticated;
 -- ihres Eigentümers: Die Tabelle selbst bleibt für anon verschlossen, und
 -- nach außen geht nur, was hier ausdrücklich zurückgegeben wird.
 
+-- ---- Einhängepunkte für den Schutz ------------------------------------------
+-- Drei Funktionen, die hier nichts tun. supabase/bewerbung-schutz.sql ersetzt
+-- sie durch die Captcha-Prüfung und die Bremse je IP-Adresse.
+--
+-- Der Umweg hat einen Grund: Beide Skripte sind wiederholbar, und wer dieses
+-- hier ein zweites Mal laufen lässt, soll den Schutz nicht wieder abschalten.
+-- Stünde die Prüfung unten im Rumpf von `bewerbung_abgeben`, wäre genau das die
+-- Folge. So bleibt sie, wo sie hingehört, und dieses Skript weiß nur, wann
+-- gefragt werden muss.
+
+-- `create or replace` wäre hier falsch: Es setzte die echte Prüfung bei jedem
+-- weiteren Durchlauf wieder auf "tut nichts" zurück. Angelegt wird darum nur,
+-- was noch fehlt.
+
+do $anlegen$
+begin
+    if to_regprocedure('public.bewerbung_schutz_pruefen(text)') is null then
+        create function public.bewerbung_schutz_pruefen(p_captcha_token text)
+        returns void
+        language plpgsql
+        volatile
+        security definer
+        set search_path = public
+        as $huelle$ begin return; end; $huelle$;
+
+        revoke execute on function public.bewerbung_schutz_pruefen(text) from public;
+    end if;
+
+    if to_regprocedure('public.bewerbung_stand_pruefen()') is null then
+        create function public.bewerbung_stand_pruefen()
+        returns void
+        language plpgsql
+        volatile
+        security definer
+        set search_path = public
+        as $huelle$ begin return; end; $huelle$;
+
+        revoke execute on function public.bewerbung_stand_pruefen() from public;
+    end if;
+
+    if to_regprocedure('public.bewerbung_stand_fehlschlag()') is null then
+        create function public.bewerbung_stand_fehlschlag()
+        returns void
+        language plpgsql
+        volatile
+        security definer
+        set search_path = public
+        as $huelle$ begin return; end; $huelle$;
+
+        revoke execute on function public.bewerbung_stand_fehlschlag() from public;
+    end if;
+end
+$anlegen$;
+
+
 -- ---- Abgeben ----------------------------------------------------------------
 -- Trägt die Bewerbung ein und liefert den Code zurück. Geprüft wird weiter
 -- im Trigger aus Block 8; diese Funktion fügt nur die Frist hinzu, die
--- sonst die RLS-Regel besorgt hätte.
+-- sonst die RLS-Regel besorgt hätte, und fragt beim Schutz nach.
+
+-- Die Fassung ohne `p_captcha_token` muss weg: Sonst stünde neben der neuen
+-- weiter eine, die ohne Token einträgt — eine Tür neben einer offenen.
+drop function if exists public.bewerbung_abgeben(
+    text, text, text, text, uuid, uuid, jsonb, uuid, text);
 
 create or replace function public.bewerbung_abgeben(
     p_vorname         text,
@@ -811,7 +874,8 @@ create or replace function public.bewerbung_abgeben(
     p_ressort_2_id    uuid,
     p_antworten       jsonb,
     p_einwilligung_id uuid,
-    p_foto_pfad       text default null
+    p_foto_pfad       text default null,
+    p_captcha_token   text default null
 )
 returns text
 language plpgsql
@@ -828,6 +892,9 @@ begin
         raise exception 'Zurzeit nehmen wir keine Bewerbungen entgegen'
             using errcode = '42501';
     end if;
+
+    -- Captcha und Bremse. Ohne bewerbung-schutz.sql ein Aufruf ins Leere.
+    perform public.bewerbung_schutz_pruefen(p_captcha_token);
 
     insert into public.bewerbungen
         (vorname, nachname, email, telefon, ressort_1_id, ressort_2_id,
@@ -859,19 +926,41 @@ returns table (
     eingegangen_am    timestamptz,
     stand_seit        timestamptz
 )
-language sql
-stable
+language plpgsql
+volatile
 security definer
 set search_path = public
 as $$
+declare
+    v_code  text := public.bewerbung_code_norm(p_code);
+    v_zeile record;
+begin
+    perform public.bewerbung_stand_pruefen();
+
     select b.vorname, b.status, b.status_vor_absage, b.created_at, b.status_am
+      into v_zeile
       from public.bewerbungen b
-     where b.code = public.bewerbung_code_norm(p_code)
+     where b.code = v_code
      limit 1;
+
+    if found then
+        vorname           := v_zeile.vorname;
+        status            := v_zeile.status;
+        status_vor_absage := v_zeile.status_vor_absage;
+        eingegangen_am    := v_zeile.created_at;
+        stand_seit        := v_zeile.status_am;
+        return next;
+        return;
+    end if;
+
+    -- Nur der Fehlschlag wird gezählt: Wer seinen richtigen Code eingibt, darf
+    -- so oft nachschauen, wie er mag.
+    perform public.bewerbung_stand_fehlschlag();
+end;
 $$;
 
 grant execute on function public.bewerbung_abgeben(
-    text, text, text, text, uuid, uuid, jsonb, uuid, text) to anon, authenticated;
+    text, text, text, text, uuid, uuid, jsonb, uuid, text, text) to anon, authenticated;
 grant execute on function public.bewerbung_stand(text) to anon, authenticated;
 
 -- Den Code selbst vergibt allein die Datenbank. Postgres gibt neue

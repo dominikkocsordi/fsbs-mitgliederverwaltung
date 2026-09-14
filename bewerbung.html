@@ -19,6 +19,36 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/app-shell.js"></script>
+
+<!-- Eingebettet? Das muss vor dem ersten Paint feststehen, sonst scheint die
+     Karte erst mit Rahmen auf und gleich darauf ohne. Ausgewertet werden:
+
+       embed=1   ohne Seitenhintergrund und ohne Rahmen (im iframe von selbst)
+       karte=1   den Kasten des Formulars doch behalten
+       kopf=0    Titel und Einleitung weglassen, die Seite ringsum hat eigene
+       theme=…   light, dark oder auto — siehe theme.js
+       view=…    formular oder stand, siehe unten
+       origin=…  wohin die Höhe gemeldet werden darf
+       code=…    gleich den Stand zu diesem Code zeigen                    -->
+<script>
+(function () {
+  var p = new URLSearchParams(window.location.search);
+  var gesetzt = function (name) {
+    var v = p.get(name);
+    return v === "1" || v === "true" || v === "ja";
+  };
+
+  var imRahmen;
+  try { imRahmen = window.self !== window.top; } catch (e) { imRahmen = true; }
+  if (!gesetzt("embed") && !imRahmen) return;
+
+  var w = document.documentElement;
+  w.classList.add("embed");
+  if (!gesetzt("karte")) w.classList.add("embed--flach");
+  if (p.get("kopf") === "0") w.classList.add("embed--ohneKopf");
+})();
+</script>
+
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="style.css">
 
@@ -543,6 +573,65 @@
 
   /* Falle für automatisierte Einträge. */
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+  /* ---------- Sicherheitsprüfung ---------- */
+  .bCaptcha { margin-top: 22px; }
+  .bCaptcha[hidden] { display: none; }
+  .bCaptcha .bErr { text-align: center; }
+
+  /* Der Kasten kommt vom Anbieter und ist 300 px breit; umstellen lässt
+     er sich nicht, auf schmalen Geräten wird er deshalb kleiner gezogen. */
+  .bCaptchaKasten {
+    display: flex;
+    justify-content: center;
+    min-height: 65px;
+  }
+
+  @media (max-width: 359px) {
+    .bCaptchaKasten { transform: scale(0.86); transform-origin: top center; }
+  }
+
+  /* ============================================================
+     Eingebettet
+     ------------------------------------------------------------
+     Auf der WordPress-Seite steht diese Seite in einem iframe. Dann
+     gibt sie auf, was ihr dort nicht zusteht: den Hintergrund, den
+     Rahmen und die eigene Höhe. Gescrollt wird draußen, und wie hoch
+     der Rahmen zu sein hat, meldet sie per postMessage — embed.js
+     auf der anderen Seite hört zu.
+     ============================================================ */
+  html.embed, html.embed body { background: transparent; }
+  html.embed .bg-gradient, html.embed .radial-glow { display: none; }
+
+  html.embed .wrap { min-height: 0; padding: 0; }
+
+  html.embed .wrap > .glass {
+    width: 100%;
+    max-width: none;
+    animation: none;
+  }
+
+  /* Ohne `karte=1` kein eigener Kasten: Das Formular soll wie ein Teil
+     der umgebenden Seite aussehen, nicht wie ein Aufkleber darauf. */
+  html.embed--flach .wrap > .glass {
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  /* Der Umschalter für hell und dunkel gehört zur Seite, nicht in die
+     Einbettung — dort bestimmt die umgebende Seite, wie es aussieht. */
+  html.embed .themeToggle { display: none !important; }
+
+  /* Das Logo steht auf der WordPress-Seite schon. Titel und Einleitung
+     bleiben: Sie kommen aus der Datenbank und nennen die Frist. */
+  html.embed .bHead .siteLogoImg { display: none; }
+  html.embed .bHead { margin-bottom: 20px; }
+  html.embed--ohneKopf .bHead { display: none; }
 </style>
 </head>
 
@@ -660,6 +749,13 @@
         <input id="webseite" type="text" tabindex="-1" autocomplete="off">
       </div>
 
+      <!-- Der Kasten des Captcha-Anbieters. Er bleibt leer und verborgen,
+           solange in der Datenbank keine Prüfung eingerichtet ist. -->
+      <div class="field bCaptcha" id="captchaFeld" hidden>
+        <div class="bCaptchaKasten" id="captcha"></div>
+        <div class="bErr" id="captcha-error"></div>
+      </div>
+
       <button id="submit" type="submit" class="btn-primary btn--lg btn--block bSubmit">Bewerbung absenden</button>
       <p class="notice bad bNotice" id="notice" role="alert" hidden></p>
     </form>
@@ -757,6 +853,110 @@
   const zeigeHinweis = (text) => { notice.textContent = text; notice.hidden = false; };
 
   /* ============================================================
+     Eingebettet auf einer anderen Seite
+     ------------------------------------------------------------
+     Im iframe gehört die Bildlaufleiste der umgebenden Seite. Daraus
+     folgen zwei Pflichten: die eigene Höhe zu melden, damit dort
+     nichts abgeschnitten wird, und nach draußen zu bitten, wenn
+     gescrollt werden soll. Beides läuft über postMessage; embed.js
+     auf der anderen Seite hört zu.
+
+     `view` sagt, was gezeigt wird — nur das Formular, nur die
+     Abfrage oder wie bisher beides. So lassen sich die zwei Teile
+     auf zwei WordPress-Seiten verteilen.
+     ============================================================ */
+  const ADRESSE = new URLSearchParams(location.search);
+  const EINGEBETTET = document.documentElement.classList.contains("embed");
+
+  /* Hinaus gehen nur die Höhe und die Bitte zu scrollen. Wer den
+     Zielort mitgibt, bekommt sie auch nur dorthin geschickt. */
+  const ELTERN = ADRESSE.get("origin") || "*";
+
+  const NUR = ADRESSE.get("view") === "stand" ? "stand"
+            : ADRESSE.get("view") === "formular" ? "formular"
+            : "";
+
+  const melden = (was) => {
+    if (!EINGEBETTET) return;
+    try { window.parent.postMessage(was, ELTERN); } catch (e) { /* nicht zu ändern */ }
+  };
+
+  /* Gemessen wird `.wrap`, nicht das Dokument: Der Rahmen ist anfangs
+     höher als der Inhalt, und die Höhe des Dokuments käme deshalb nie
+     unter die des Rahmens zurück. */
+  const messlatte = document.querySelector(".wrap");
+  let hoeheZuletzt = 0;
+
+  const hoeheMelden = () => {
+    if (!EINGEBETTET || !messlatte) return;
+    const hoehe = Math.ceil(messlatte.getBoundingClientRect().height);
+    if (hoehe <= 0 || hoehe === hoeheZuletzt) return;
+    hoeheZuletzt = hoehe;
+    melden({ fsbs: "hoehe", hoehe: hoehe });
+  };
+
+  if (EINGEBETTET) {
+    if (window.ResizeObserver && messlatte) {
+      new ResizeObserver(hoeheMelden).observe(messlatte);
+    }
+
+    /* Ein Netz darunter: Schriften, die nachladen, und der Kasten des
+       Captcha-Anbieters treffen den Beobachter nicht immer. */
+    setInterval(hoeheMelden, 500);
+    window.addEventListener("load", hoeheMelden);
+    document.addEventListener("fsbs:themechange", hoeheMelden);
+
+    window.addEventListener("message", (e) => {
+      const d = e.data;
+      if (!d || typeof d !== "object" || typeof d.fsbs !== "string") return;
+      /* Wer den Zielort mitgegeben hat, darf auch nur von dort reden. */
+      if (ELTERN !== "*" && e.origin !== ELTERN) return;
+
+      /* embed.js meldet sich, sobald der Rahmen steht. Erst jetzt ist
+         bekannt, dass draußen jemand die Höhe entgegennimmt — und erst
+         jetzt darf diese Seite ihre eigene Bildlaufleiste aufgeben. Ein
+         von Hand gesetzter iframe ohne embed.js behält sie, und der
+         Inhalt bleibt erreichbar, auch wenn der Rahmen zu kurz ist. */
+      if (d.fsbs === "hallo" || d.fsbs === "hoehe?") {
+        document.documentElement.style.overflowY = "hidden";
+        hoeheZuletzt = 0;
+        hoeheMelden();
+        return;
+      }
+
+      if (d.fsbs === "theme" && window.FSBSTheme && window.FSBSTheme.erzwinge) {
+        window.FSBSTheme.erzwinge(d.theme === "dark" ? "dark" : "light");
+      }
+    });
+  }
+
+  /* Nach oben: Im Rahmen kann das nur die umgebende Seite. */
+  const nachOben = () => {
+    if (!EINGEBETTET) { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    melden({ fsbs: "scroll", versatz: 0 });
+  };
+
+  const zuElement = (el) => {
+    if (!EINGEBETTET) { el.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
+    const oben = el.getBoundingClientRect().top + window.scrollY;
+    melden({ fsbs: "scroll", versatz: Math.max(0, Math.round(oben) - 40) });
+  };
+
+  /* Der Code bleibt in der Adresse, damit ein Lesezeichen zurückführt.
+     Eingebettet nicht: Dort stünden danach die Einbettungsparameter
+     nicht mehr darin, und ein Neuladen des Rahmens käme ohne sie. */
+  const adresseSetzen = (suche) => {
+    if (EINGEBETTET) return;
+    history.replaceState(null, "", suche || location.pathname);
+  };
+
+  /* Nur die Abfrage: Dann trägt die Karte ihre eigene Überschrift. */
+  if (NUR === "stand") {
+    const kopf = document.querySelector(".bHead");
+    if (kopf) kopf.hidden = true;
+  }
+
+  /* ============================================================
      Ansichten
      ------------------------------------------------------------
      Die Seite zeigt immer genau eine von fünf Karten: das Laden,
@@ -779,8 +979,9 @@
     $("uhr").hidden = welche !== "formular" || !frist.bis;
 
     // Auf der Bestätigung steht der Weg zum Stand schon als Knopf.
-    const zurAbfrage  = welche !== "stand" && welche !== "laden" && welche !== "fertig";
-    const zumFormular = welche === "stand" && formularBereit;
+    const zurAbfrage  = NUR === "" &&
+                        welche !== "stand" && welche !== "laden" && welche !== "fertig";
+    const zumFormular = NUR !== "stand" && welche === "stand" && formularBereit;
     $("zurAbfrage").hidden  = !zurAbfrage;
     $("zumFormular").hidden = !zumFormular;
     // Ohne Knopf bliebe nur der Trennstrich stehen.
@@ -1184,17 +1385,24 @@
   });
 
   async function starten() {
+    /* Nur die Abfrage eingebettet: Dann braucht es weder die Fragen noch
+       die Frist — der Stand lässt sich auch danach noch abrufen. Gezeigt
+       wird sie unten im `finally`. */
+    if (NUR === "stand") return;
+
     await formularLaden();
     if (!offen()) { schliessen(); return; }
 
     const [ressorts, , texte] = await Promise.all([
       ressortsLaden(),
       felderLaden(),
-      einwilligungLaden()
+      einwilligungLaden(),
+      schutzLaden()
     ]);
 
     formularBereit = true;
     ansicht("formular");
+    pruefungVorbereiten();
 
     if (frist.bis) {
       uhrZeichnen();
@@ -1222,8 +1430,9 @@
     /* Ein Link mit ?code=… führt gleich zum Stand — auch dann, wenn das
        Formular zu ist oder sich nicht laden ließ. */
     .finally(() => {
-      const ausDerAdresse = new URLSearchParams(location.search).get("code");
+      const ausDerAdresse = ADRESSE.get("code");
       if (ausDerAdresse) { abfrageZeigen(ausDerAdresse); standAbrufen(ausDerAdresse); }
+      else if (NUR === "stand") abfrageZeigen("");
     });
 
   /* ============================================================
@@ -1331,8 +1540,7 @@
     $("standErgebnis").hidden = false;
     ansicht("stand");
 
-    // Der Code bleibt in der Adresse: So führt ein Lesezeichen zurück.
-    history.replaceState(null, "", "?code=" + encodeURIComponent(code));
+    adresseSetzen("?code=" + encodeURIComponent(code));
   }
 
   async function standAbrufen(roh) {
@@ -1361,6 +1569,8 @@
       console.error(error);
       setzeFehler(feld, error.code === "PGRST202"
         ? "Die Abfrage ist gerade nicht eingerichtet. Bitte schreib uns kurz."
+        : error.code === "PT429"
+        ? "Das waren zu viele Versuche. Bitte in einigen Minuten noch einmal."
         : "Der Stand ließ sich nicht abrufen. Bitte später noch einmal versuchen.");
       return;
     }
@@ -1386,7 +1596,7 @@
     $("standInfo").textContent = ABFRAGE_TEXT;
     feld.value = vorbelegt || feld.value || codeGemerkt();
     ansicht("stand");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    nachOben();
   }
 
   $("code").addEventListener("input", () => loescheFehler($("code")));
@@ -1398,13 +1608,13 @@
 
   $("zurAbfrage").addEventListener("click", () => abfrageZeigen(""));
   $("zumFormular").addEventListener("click", () => {
-    history.replaceState(null, "", location.pathname);
+    adresseSetzen("");
     ansicht("formular");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    nachOben();
   });
 
   $("standNeu").addEventListener("click", () => {
-    history.replaceState(null, "", location.pathname);
+    adresseSetzen("");
     $("code").value = "";
     abfrageZeigen("");
     $("code").focus();
@@ -1426,6 +1636,136 @@
     }
     zurueck();
   });
+
+  /* ============================================================
+     Sicherheitsprüfung
+     ------------------------------------------------------------
+     Welcher Anbieter und welcher Schlüssel: Das sagt die Datenbank
+     (`bewerbung_schutz_info`), im Quelltext steht davon nichts. Ist
+     nichts eingerichtet, bleibt es beim versteckten Feld weiter
+     oben, und am Formular ändert sich nichts.
+
+     Geprüft wird das Token nicht hier, sondern in der Datenbank:
+     `bewerbung_abgeben` fragt beim Anbieter nach, ob es echt ist.
+     Wer das Formular umgeht, kommt damit also nicht weiter — dieses
+     Widget ist nur die Stelle, an der das Token ausgestellt wird.
+     ============================================================ */
+  const ANBIETER = {
+    turnstile: {
+      skript: "https://challenges.cloudflare.com/turnstile/v0/api.js" +
+              "?render=explicit&onload=fsbsPruefungBereit",
+      api: () => window.turnstile,
+      felder: (thema) => ({ theme: thema, language: "de" })
+    },
+    hcaptcha: {
+      skript: "https://js.hcaptcha.com/1/api.js?render=explicit&onload=fsbsPruefungBereit",
+      api: () => window.hcaptcha,
+      felder: (thema) => ({ theme: thema, hl: "de" })
+    }
+  };
+
+  const pruefung = {
+    verlangt: false,
+    anbieter: "turnstile",
+    siteKey: "",
+    widget: null,
+    token: "",
+    angefordert: false
+  };
+
+  const themaJetzt = () =>
+    document.documentElement.classList.contains("dark") ? "dark" : "light";
+
+  const pruefungFehler = (text) => { setzeFehler($("captcha"), text); hoeheMelden(); };
+
+  async function schutzLaden() {
+    const { data, error } = await sb.rpc("bewerbung_schutz_info");
+
+    if (error) {
+      /* PGRST202: supabase/bewerbung-schutz.sql ist noch nicht gelaufen.
+         Dann gibt es keine Prüfung — und daran soll das Formular nicht
+         hängen bleiben, sonst nähme ein fehlendes Skript die Bewerbung
+         mit. */
+      if (error.code !== "PGRST202") console.error(error);
+      return;
+    }
+
+    const zeile = Array.isArray(data) ? data[0] : data;
+    if (!zeile || zeile.captcha_aktiv !== true || !zeile.captcha_site_key) return;
+
+    pruefung.verlangt = true;
+    pruefung.anbieter = zeile.captcha_anbieter === "hcaptcha" ? "hcaptcha" : "turnstile";
+    pruefung.siteKey  = zeile.captcha_site_key;
+  }
+
+  function pruefungZeichnen() {
+    if (!pruefung.verlangt) return;
+    const anbieter = ANBIETER[pruefung.anbieter];
+    const api = anbieter.api();
+    if (!api) return;
+
+    const kasten = $("captcha");
+
+    /* Ein zweites `render` in denselben Kasten weist der Anbieter ab;
+       der alte muss erst fort. */
+    if (pruefung.widget !== null) {
+      try { api.remove(pruefung.widget); } catch (e) { /* schon fort */ }
+      pruefung.widget = null;
+    }
+    kasten.innerHTML = "";
+    pruefung.token = "";
+
+    pruefung.widget = api.render(kasten, Object.assign({
+      sitekey: pruefung.siteKey,
+      callback: (token) => {
+        pruefung.token = token || "";
+        loescheFehler($("captcha"));
+      },
+      "expired-callback":  () => { pruefung.token = ""; },
+      "timeout-callback":  () => { pruefung.token = ""; },
+      "error-callback":    () => { pruefung.token = ""; }
+    }, anbieter.felder(themaJetzt())));
+
+    hoeheMelden();
+  }
+
+  /* Ein Token gilt nur einmal. Nach jedem Fehlschlag braucht es ein
+     neues — auch dann, wenn der Fehler ein ganz anderer war. */
+  function pruefungZuruecksetzen() {
+    if (!pruefung.verlangt) return;
+    pruefung.token = "";
+    if (pruefung.widget === null) return;
+
+    const api = ANBIETER[pruefung.anbieter].api();
+    if (!api) return;
+    try { api.reset(pruefung.widget); } catch (e) { pruefungZeichnen(); }
+  }
+
+  function pruefungVorbereiten() {
+    if (!pruefung.verlangt || pruefung.angefordert) return;
+    pruefung.angefordert = true;
+    $("captchaFeld").hidden = false;
+
+    window.fsbsPruefungBereit = pruefungZeichnen;
+
+    const skript = document.createElement("script");
+    skript.src = ANBIETER[pruefung.anbieter].skript;
+    skript.async = true;
+    skript.defer = true;
+    skript.onerror = () => {
+      submit.disabled = true;
+      pruefungFehler("Die Sicherheitsprüfung ließ sich nicht laden. Blockiert " +
+                     "vielleicht ein Adblocker die Seite? Bitte neu laden.");
+    };
+    document.head.appendChild(skript);
+
+    /* Der Kasten des Anbieters kennt hell und dunkel nur beim Zeichnen;
+       bei einem Wechsel entsteht er darum neu. Das Token fällt dabei
+       weg — gebraucht wird es erst beim Absenden. */
+    document.addEventListener("fsbs:themechange", () => {
+      if (pruefung.widget !== null) pruefungZeichnen();
+    });
+  }
 
   /* ============================================================
      Absenden
@@ -1466,13 +1806,14 @@
     }
 
     ansicht("fertig");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    nachOben();
   }
 
   function knopfZurueck() {
     laeuft = false;
     submit.disabled = false;
     submit.textContent = "Bewerbung absenden";
+    pruefungZuruecksetzen();
   }
 
   form.addEventListener("submit", async (event) => {
@@ -1494,7 +1835,15 @@
 
     if (erstesFehlendes) {
       erstesFehlendes.focus({ preventScroll: true });
-      erstesFehlendes.scrollIntoView({ block: "center", behavior: "smooth" });
+      zuElement(erstesFehlendes);
+      return;
+    }
+
+    /* Die Prüfung erst hier abfragen: Wer noch ausfüllt, soll nicht von
+       einem ablaufenden Token gehetzt werden. */
+    if (pruefung.verlangt && !pruefung.token) {
+      pruefungFehler("Bitte bestätige noch kurz, dass du kein Bot bist.");
+      zuElement($("captchaFeld"));
       return;
     }
 
@@ -1523,7 +1872,7 @@
     /* `bewerbung_abgeben` trägt ein und gibt den Code zurück. Eine
        gewöhnliche INSERT-Anweisung könnte das nicht, ohne zugleich die
        ganze Zeile zum Lesen freizugeben. */
-    const { data: code, error } = await sb.rpc("bewerbung_abgeben", {
+    const felder = {
       p_vorname:  $("vorname").value.trim(),
       p_nachname: $("nachname").value.trim(),
       p_email:    $("email").value.trim().toLowerCase(),
@@ -1533,7 +1882,17 @@
       p_antworten: antworten,
       p_einwilligung_id: einwilligung.id,
       p_foto_pfad: null
-    });
+    };
+
+    /* Das Token kommt nur mit, wenn eine Prüfung verlangt wird — und das
+       kann sie nur, wenn supabase/bewerbung-schutz.sql schon gelaufen ist.
+       PostgREST sucht die Funktion über die Namen der Argumente: Ein
+       `p_captcha_token` an eine Datenbank, die es noch nicht kennt, fände
+       dort gar keine Funktion mehr. So ist es gleichgültig, ob zuerst die
+       Seite oder zuerst das SQL an die Reihe kommt. */
+    if (pruefung.verlangt) felder.p_captcha_token = pruefung.token;
+
+    const { data: code, error } = await sb.rpc("bewerbung_abgeben", felder);
 
     if (!error) { fertigZeigen(code); return; }
 
@@ -1541,6 +1900,22 @@
 
     // Die Datenbank weist ab, was nach der Frist kommt.
     if (error.code === "42501") { frist.geschlossen = true; schliessen(); return; }
+
+    // Das Captcha hat beim Anbieter nicht bestanden — meist ein Token,
+    // das zu lange herumlag.
+    if (error.code === "PT403") {
+      pruefungFehler("Die Sicherheitsprüfung ist abgelaufen. Bitte bestätige noch " +
+                     "einmal und sende dann erneut ab.");
+      zuElement($("captchaFeld"));
+      return;
+    }
+
+    // Zu viele Bewerbungen von dieser Verbindung.
+    if (error.code === "PT429") {
+      zeigeHinweis("Von dieser Verbindung kamen gerade schon mehrere Bewerbungen. " +
+                   "Bitte versuch es später noch einmal — oder schreib uns kurz.");
+      return;
+    }
 
     if (error.code === "23505") {
       setzeFehler($("email"), "Mit dieser E-Mail-Adresse liegt uns schon eine Bewerbung vor.");
@@ -1573,7 +1948,9 @@
 </script>
 
 <script>
-if ("serviceWorker" in navigator) {
+/* Eingebettet nicht: Der Dienst gehört zum Portal, nicht in einen Rahmen
+   auf einer fremden Seite. */
+if ("serviceWorker" in navigator && !document.documentElement.classList.contains("embed")) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(console.warn);
   });

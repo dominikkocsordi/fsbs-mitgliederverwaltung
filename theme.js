@@ -11,6 +11,24 @@
   var STORAGE_KEY = 'fsbs-theme';
   var root = document.documentElement;
 
+  /* `?theme=` schlägt alles andere: Eingebettet auf einer fremden Seite
+     kann der Speicher gesperrt sein, und welches Design dort passt, weiß
+     ohnehin nur die Seite ringsum.
+
+       theme=light / theme=dark   festgelegt, nichts wird gespeichert
+       theme=auto                 dem System folgen, Gewähltes ignorieren  */
+  function ausDerAdresse() {
+    try {
+      var v = new URLSearchParams(window.location.search).get('theme');
+      if (v === 'light' || v === 'dark' || v === 'auto') return v;
+    } catch (e) { /* ältere Browser */ }
+    return null;
+  }
+
+  var wunsch = ausDerAdresse();
+  var festgelegt = wunsch === 'light' || wunsch === 'dark';
+  var eingebettet = root.classList.contains('embed');
+
   function stored() {
     try { return window.localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
   }
@@ -53,13 +71,14 @@
   }
 
   /* --- Sofort anwenden (vor dem ersten Paint) --- */
-  apply(stored() || systemTheme());
+  apply(festgelegt ? wunsch : (wunsch === 'auto' ? systemTheme() : (stored() || systemTheme())));
 
-  /* Systemwechsel folgen, solange nichts manuell gewählt wurde */
+  /* Systemwechsel folgen, solange nichts festgelegt und nichts gewählt wurde */
   if (window.matchMedia) {
     var mq = window.matchMedia('(prefers-color-scheme: dark)');
     var onChange = function (e) {
-      if (!stored()) apply(e.matches ? 'dark' : 'light');
+      if (festgelegt) return;
+      if (wunsch === 'auto' || !stored()) apply(e.matches ? 'dark' : 'light');
     };
     if (mq.addEventListener) mq.addEventListener('change', onChange);
     else if (mq.addListener) mq.addListener(onChange);
@@ -89,6 +108,10 @@
   function mount() {
     if (document.getElementById('themeToggle')) return;
 
+    /* Eingebettet oder festgelegt: Dann entscheidet nicht diese Seite,
+       und ein Umschalter wäre ein Knopf, der das Falsche verspricht. */
+    if (eingebettet || festgelegt) return;
+
     /* Bevorzugt: Aktionsbereich der App-Shell */
     var host = document.querySelector('.siteActions') || document.querySelector('.brandRight');
     if (host) { host.appendChild(build(false)); return; }
@@ -116,5 +139,13 @@
     mount();
   }
 
-  window.FSBSTheme = { get: current, set: setTheme, toggle: toggle };
+  /* `erzwinge` setzt das Design, ohne es zu speichern: So kann die
+     umgebende Seite einer Einbettung sagen, wie sie es gerade hält. */
+  function erzwinge(theme) {
+    festgelegt = true;
+    apply(theme === 'dark' ? 'dark' : 'light');
+    document.dispatchEvent(new CustomEvent('fsbs:themechange', { detail: { theme: current() } }));
+  }
+
+  window.FSBSTheme = { get: current, set: setTheme, toggle: toggle, erzwinge: erzwinge };
 })();
