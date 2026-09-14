@@ -1861,6 +1861,11 @@ dialog {
   max-height: calc(100dvh - 32px);
   overflow: visible;
   color: var(--foreground);
+  /* Der Browser mittet einen modalen Dialog über `margin: auto`. Der
+     Reset in 1. setzt `margin: 0` auf alles – ohne diese Zeile klebten
+     die Dialoge in der linken oberen Ecke. Auf schmalen Geräten wird
+     daraus weiter unten ein Blatt, das von unten hereinfährt. */
+  margin: auto;
 }
 
 dialog::backdrop {
@@ -2599,6 +2604,9 @@ dialog::backdrop {
   width: 100%;
   max-width: 680px;
   max-height: calc(100dvh - 32px);
+  /* Eine Hülle, die schmaler ist als ihr Dialog, stünde sonst links
+     darin statt mittig. */
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   overflow: hidden;
