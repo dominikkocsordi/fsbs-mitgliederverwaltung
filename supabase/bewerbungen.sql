@@ -315,12 +315,17 @@ as $$
         '');
 $$;
 
+-- `extensions` gehört in den Suchpfad: In Supabase liegt pgcrypto dort und
+-- nicht in `public`, und ohne den Eintrag fände diese Funktion
+-- `gen_random_bytes` nicht. (`gen_random_uuid` weiter oben ist etwas
+-- anderes — das bringt Postgres selbst mit.) Wo es das Schema nicht gibt,
+-- übergeht Postgres den Eintrag stillschweigend.
 create or replace function public.bewerbung_code_neu()
 returns text
 language plpgsql
 volatile
 security definer
-set search_path = public
+set search_path = public, extensions
 as $$
 declare
     zeichen  constant text := '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -363,6 +368,20 @@ begin
         alter table public.bewerbungen
             add constraint bewerbungen_code_form
             check (code ~ '^[0-9A-HJKMNP-TV-Z]{5}$');
+    end if;
+end;
+$$;
+
+-- Einen Code zur Probe ziehen. Bei leerer Tabelle rührt die Nachrüstung
+-- oben die Funktion nicht an — ohne diese Zeile fiele erst der ersten
+-- echten Bewerbung auf, wenn hier etwas fehlt.
+do $$
+declare
+    probe text;
+begin
+    probe := public.bewerbung_code_neu();
+    if probe !~ '^[0-9A-HJKMNP-TV-Z]{5}$' then
+        raise exception 'Der Bewerbungscode kommt verformt heraus: %', probe;
     end if;
 end;
 $$;
