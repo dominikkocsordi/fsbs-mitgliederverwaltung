@@ -132,16 +132,18 @@
   <div class="dlgShell">
     <div class="modalDragHandle"></div>
 
-    <button class="btn-secondary closeX" id="closeModalBtn" type="button" title="Schließen">✕</button>
-
-    <!-- Avatar preview -->
-    <div class="modalAvatarWrap">
-      <div id="modalAvatar"></div>
-    </div>
-
+    <!-- Bild und Titel links, das ✕ rechts — dieselbe Kopfzeile wie in den
+         übrigen Dialogen. Vorher stand beides lose in der Hülle und rutschte
+         damit in die linke obere Ecke, halb über den Rand hinaus. -->
     <div class="modalHeader">
-      <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
-      <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
+      <div class="modalKopf">
+        <div id="modalAvatar"></div>
+        <div style="min-width:0;">
+          <h2 class="modalTitle" id="modalTitle">Mitglied</h2>
+          <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
+        </div>
+      </div>
+      <button class="btn-secondary closeX" id="closeModalBtn" type="button" title="Schließen">✕</button>
     </div>
 
     <!-- Section: Persönliche Daten -->

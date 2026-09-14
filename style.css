@@ -1934,6 +1934,15 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 .modalHeader--center { text-align: center; display: block; }
 
+/* Die linke Seite einer Kopfzeile: Bild und Titel nebeneinander, das ✕
+   bleibt dadurch rechts in der Ecke, wo es hingehört. */
+.modalKopf {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+
 .modalTitle {
   font-family: var(--font-display);
   font-size: 20px;
