@@ -107,6 +107,10 @@
     text-wrap: pretty;
   }
 
+  /* Steht die Pille darunter, braucht der Kopf weniger Luft nach unten —
+     beide zusammen bilden dann einen Block. */
+  .bHead:has(+ .bWechsel:not([hidden])) { margin-bottom: 16px; }
+
   /* ---------- Abschnitte ---------- */
   /* Drei Blöcke statt einer Kette aus zwanzig Feldern: Wer das
      Formular überfliegt, sieht, wie weit es noch geht. */
@@ -545,30 +549,81 @@
   #standForm[hidden], #standErgebnis[hidden] { display: none; }
 
   /* ---------- Wechsel zwischen Formular und Abfrage ---------- */
+  /* Der Weg zum Stand steht oben, gleich unter der Einleitung: Wer nur
+     nachsehen will, wie weit seine Bewerbung ist, soll dafür nicht erst
+     an zwanzig Feldern vorbeiscrollen. Als Pille, damit sie sich vom
+     Formular darunter abhebt, ohne ihm die Aufmerksamkeit zu nehmen. */
   .bWechsel {
-    margin-top: 24px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border-color);
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 26px;
   }
   .bWechsel[hidden] { display: none; }
 
-  .bWechsel button {
-    background: none;
-    border: 0;
-    padding: 4px 2px;
+  /* Die Pille selbst. `min-height` hält sie auch dann gut greifbar,
+     wenn der Text auf schmalen Geräten einzeilig bleibt. */
+  .bPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 100%;
+    min-height: 38px;
+    padding: 7px 16px 7px 13px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
     font: inherit;
     font-size: 13px;
+    font-weight: 400;
+    line-height: 1.35;
     color: var(--muted-foreground);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-align: left;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease, border-color 0.2s ease,
+                color 0.2s ease, box-shadow 0.2s ease,
+                transform 0.2s var(--ease);
   }
-  .bWechsel button:hover { color: var(--foreground); }
-  .bWechsel button[hidden] { display: none; }
+  .bPill[hidden] { display: none; }
+
+  .bPill svg {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    color: var(--primary);
+  }
+
+  /* Die eigentliche Handlung trägt das Gewicht, die Frage davor nicht. */
+  .bPill b {
+    font-weight: 600;
+    color: var(--foreground);
+  }
+
+  /* Nur wo wirklich gezeigt werden kann: Auf dem Telefon bliebe der
+     Zustand sonst nach dem Tippen kleben. */
+  @media (hover: hover) {
+    .bPill:hover {
+      background: color-mix(in oklab, var(--primary) 9%, var(--surface-1));
+      border-color: color-mix(in oklab, var(--primary) 42%, transparent);
+      color: var(--foreground);
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-1px);
+    }
+  }
+
+  .bPill:active { transform: translateY(0); box-shadow: none; }
+
+  .bPill:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     #stand { animation: none; }
+    .bPill { transition: none; }
+    .bPill:hover { transform: none; }
   }
 
   /* Falle für automatisierte Einträge. */
@@ -648,6 +703,28 @@
       <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true">
       <h1 id="titel">Bewerbung bei der Fachschaft Business School</h1>
       <p id="intro"></p>
+    </div>
+
+    <!-- Der Wechsel zwischen Formular und Abfrage. Er steht über allem
+         anderen: Wer schon beworben ist, kommt hier in einem Griff zu
+         seinem Stand, statt ihn unter dem Formular suchen zu müssen. -->
+    <div class="bWechsel" id="wechsel" hidden>
+      <button type="button" class="bPill" id="zurAbfrage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3.5 2"/>
+        </svg>
+        <span>Schon beworben? <b>Stand abrufen</b></span>
+      </button>
+      <button type="button" class="bPill" id="zumFormular" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/>
+          <path d="m11 6-6 6 6 6"/>
+        </svg>
+        <span>Zurück zum <b>Bewerbungsformular</b></span>
+      </button>
     </div>
 
     <div id="laden">
@@ -827,11 +904,6 @@
       </div>
     </div>
 
-    <div class="bWechsel" id="wechsel" hidden>
-      <button type="button" id="zurAbfrage">Schon beworben? Stand abrufen</button>
-      <button type="button" id="zumFormular" hidden>Zurück zum Bewerbungsformular</button>
-    </div>
-
   </div>
 </div>
 
@@ -984,7 +1056,7 @@
     const zumFormular = NUR !== "stand" && welche === "stand" && formularBereit;
     $("zurAbfrage").hidden  = !zurAbfrage;
     $("zumFormular").hidden = !zumFormular;
-    // Ohne Knopf bliebe nur der Trennstrich stehen.
+    // Ohne Knopf bliebe nur der Abstand über der Karte stehen.
     $("wechsel").hidden = !zurAbfrage && !zumFormular;
   }
 
