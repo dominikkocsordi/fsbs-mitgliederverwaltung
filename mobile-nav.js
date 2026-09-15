@@ -38,19 +38,22 @@
     home:  svg('<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M9.5 20v-5.5h5V20"/>'),
     users: svg('<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c0-3 2.5-4.8 5.5-4.8s5.5 1.8 5.5 4.8"/>' +
                '<path d="M16.5 6.4a3 3 0 0 1 0 5.8"/><path d="M17.5 14.9c2 .5 3.3 1.9 3.3 4.6"/>'),
+    /* Dieselben Zeichen wie in der Kopfleiste (app-shell.js): das Kind
+       für die Anwärter, Mensch und Plus für die Bewerbungen. */
+    child: svg('<circle cx="12" cy="14" r="6.4"/><path d="M9.9 13h.01"/><path d="M14.1 13h.01"/>' +
+               '<path d="M10.2 16.3c.5.5 1.1.7 1.8.7s1.3-.2 1.8-.7"/>' +
+               '<path d="M12 7.6V6c0-1.3 1-2.3 2.2-2.3 1 0 1.7.6 1.7 1.4"/>'),
     userPlus: svg('<circle cx="10" cy="8" r="3.2"/><path d="M4 19.5c0-3 2.7-4.8 6-4.8 1.2 0 2.3.2 3.2.7"/>' +
                   '<path d="M17.5 14v6"/><path d="M14.5 17h6"/>'),
-    file:  svg('<path d="M14 3H7a1.6 1.6 0 0 0-1.6 1.6v14.8A1.6 1.6 0 0 0 7 21h10a1.6 1.6 0 0 0 1.6-1.6V7.6Z"/>' +
-               '<path d="M14 3v4.6h4.6"/><path d="M8.8 12.5h6.4"/><path d="M8.8 16h4.4"/>'),
     more:  svg('<path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/>'),
   };
 
   var TABS = [
-    { href: '/',       icon: ICONS.home,     label: 'Dashboard'   },
+    { href: '/',            icon: ICONS.home,     label: 'Dashboard'   },
     { href: '/members',     icon: ICONS.users,    label: 'Mitglieder'  },
-    { href: '/anwaerter',   icon: ICONS.userPlus, label: 'Anwärter'    },
-    { href: '/bewerbungen', icon: ICONS.file,     label: 'Bewerbungen' },
-    { href: '#mehr',            icon: ICONS.more,     label: 'Mehr', isMehr: true },
+    { href: '/anwaerter',   icon: ICONS.child,    label: 'Anwärter'    },
+    { href: '/bewerbungen', icon: ICONS.userPlus, label: 'Bewerbungen' },
+    { href: '#mehr',        icon: ICONS.more,     label: 'Mehr', isMehr: true },
   ];
 
   /* Aus einer Adresse den blanken Namen — mit oder ohne .html,

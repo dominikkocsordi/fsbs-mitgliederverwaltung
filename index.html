@@ -140,7 +140,6 @@ const PROFILES_TABLE = "profiles";
 const MEMBERS_TABLE  = "members";
 const CAND_TABLE     = "anwaerter";
 const BEW_TABLE      = "bewerbungen";
-const ZUTRITT_TABLE  = "zutritte";
 
 const CAND_STATUS_COL = "bewerbung_status";
 
@@ -379,15 +378,14 @@ async function hole(fn, fallback = []){
 }
 
 async function ladeAlles(istVorstand){
-  const [ mitglieder, anwaerter, bewerbungen, zutritte, kontenOhneProfil ] = await Promise.all([
+  const [ mitglieder, anwaerter, bewerbungen, kontenOhneProfil ] = await Promise.all([
     hole(() => sb.from(MEMBERS_TABLE).select("ressort,status")),
     hole(() => sb.from(CAND_TABLE).select(`ressort,${CAND_STATUS_COL},mail,created_at`)),
     hole(() => sb.from(BEW_TABLE).select("ressort_1,ressort_2,status,status_am,created_at")),
-    istVorstand ? hole(() => sb.from(ZUTRITT_TABLE).select("status")) : [],
     istVorstand ? hole(() => sb.rpc("nutzer_ohne_profil")) : [],
   ]);
 
-  return { mitglieder, anwaerter, bewerbungen, zutritte, kontenOhneProfil };
+  return { mitglieder, anwaerter, bewerbungen, kontenOhneProfil };
 }
 
 /* ============================================================
@@ -470,7 +468,7 @@ function begruessung(me){
    Vorstand — der ganze Verein
    ============================================================ */
 function rendereVorstand(daten){
-  const { mitglieder, anwaerter, bewerbungen, zutritte, kontenOhneProfil } = daten;
+  const { mitglieder, anwaerter, bewerbungen, kontenOhneProfil } = daten;
 
   const aktive     = mitglieder.filter(m => mitgliedStand(m) === "aktiv").length;
   const anwOffen   = anwaerter.filter(a => anwaerterStand(a) === "offen").length;
@@ -482,8 +480,6 @@ function rendereVorstand(daten){
      wartet dort jemand auf Antwort. */
   const bewLiegen = bewerbungen.filter(b =>
     bewLaeuft(b) && (tageHer(b?.status_am || b?.created_at) ?? 0) > 14).length;
-
-  const zutOffen = zutritte.filter(z => kleinschrift(z?.status) === "offen").length;
 
   document.getElementById("dashStats").innerHTML = [
     statTile({ label:"Mitglieder", value:String(aktive), icon:"👥", href:"/members",
@@ -504,8 +500,6 @@ function rendereVorstand(daten){
                        text:"Bewerbungen seit über zwei Wochen ohne Antwort" }));
   if (anwMailOffen)  offen.push(todoItem({ anzahl:anwMailOffen, ton:"warn", href:"/anwaerter",
                        text:"Anwärter ohne Nachricht" }));
-  if (zutOffen)      offen.push(todoItem({ anzahl:zutOffen, ton:"warn", href:"/zutritte-liste",
-                       text:"Zutritte ungeprüft" }));
   if (kontenOhneProfil.length) offen.push(todoItem({ anzahl:kontenOhneProfil.length, ton:"bad", href:"/nutzer",
                        text:"Konten ohne Profil" }));
   offenKarte(offen);
