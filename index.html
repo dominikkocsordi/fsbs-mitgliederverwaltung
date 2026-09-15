@@ -82,10 +82,17 @@
   </div>
 
   <!-- DASHBOARD -->
-  <main class="grid" id="grid"></main>
+  <main class="dash hidden" id="dash">
+    <section class="dashHello" id="dashHello"></section>
+    <section class="dashStats" id="dashStats"></section>
+    <section class="dashCols">
+      <div class="dashCol" id="dashLinks"></div>
+      <div class="dashCol" id="dashRechts"></div>
+    </section>
+  </main>
 
   <!-- MV WIDGET -->
-  <div class="mvWidget" id="mvWidget">
+  <div class="mvWidget hidden" id="mvWidget">
     <div class="glass mvCompact">
       <div class="mvLeft">
         <div class="mvEyebrow">✅ MV WS 26/27</div>
@@ -109,26 +116,71 @@
 </div>
 
 <script>
-/* ========= Supabase config ========= */
+/* ============================================================
+   FSBS INTERN — Dashboard
+   ------------------------------------------------------------
+   Die Startseite zeigt keine blossen Gesamtzahlen mehr, sondern
+   das, woran jemand mit seiner Rolle wirklich etwas tun kann:
+
+     Vorstand        sieht den Verein — Mitglieder, das laufende
+                     Bewerbungsverfahren, Zutritte, Finanzen,
+                     Konten, Protokolle und alles, was offen ist.
+     Ressortleiter   sieht sein Ressort — sein Team, seine
+                     Anwärter und die Bewerbungen, die sich auf
+                     sein Ressort beworben haben.
+     Protokollführer hat kein Dashboard und wird weitergeleitet.
+
+   Gelesen wird nur, was die Rolle auch lesen darf (siehe die
+   Zugriffsregeln in supabase/*.sql). Jede Abfrage steht für sich:
+   fällt eine aus, fehlt ihre Karte — die Seite bleibt stehen.
+   ============================================================ */
+
+/* ========= Supabase ========= */
 const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
 const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const LOGIN_PAGE = "/login";
 
-/* ========= Tables ========= */
+/* ========= Tabellen ========= */
 const PROFILES_TABLE = "profiles";
-const MEMBERS_TABLE = "members";
-const CAND_TABLE = "anwaerter";
+const MEMBERS_TABLE  = "members";
+const CAND_TABLE     = "anwaerter";
+const BEW_TABLE      = "bewerbungen";
+const ZUTRITT_TABLE  = "zutritte";
+const PROTO_TABLE    = "protokolle";
 
 const CAND_STATUS_COL = "bewerbung_status";
 
 /* Einheitliche Ressorts */
 const RESSORTS = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
 
-/* MV – Apps Script */
+/* Apps Script: Anwesenheit MV und die Belegliste der Finanzen */
 const MV_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJtYsEQbqqrp0gyfPp5caDitVndT1SwiLTSi1ybtf63_27UUv07wnlESYrP5-Cf2SEtA/exec";
+const FINANZ_APP_URL     = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
 
-/* Canonical Farbmap */
+/* Die Stände einer Bewerbung — derselbe Wortlaut wie auf /bewerbungen,
+   in derselben Reihenfolge, die der Bewerber als Zeitstrahl sieht.
+   `abgelehnt` steht daneben und kann jeden Schritt beenden. */
+const BEW_STAENDE = [
+  { key:"offen",          label:"Offen",                 farbe:"var(--faint-foreground)" },
+  { key:"geprueft",       label:"Geprüft",               farbe:"var(--info)" },
+  { key:"einladung",      label:"Einladung versendet",   farbe:"var(--warning)" },
+  { key:"kennenlernen",   label:"Anwesend Kennenlernen", farbe:"var(--chart-1)" },
+  { key:"prios_gesendet", label:"Prios gesendet",        farbe:"var(--chart-5)" },
+  { key:"anwaerter",      label:"Anwärter",              farbe:"var(--success)" }
+];
+const BEW_ABGELEHNT = { key:"abgelehnt", label:"Abgelehnt", farbe:"var(--danger)" };
+const BEW_LABEL = Object.fromEntries(
+  BEW_STAENDE.concat([BEW_ABGELEHNT]).map(s => [s.key, s.label])
+);
+/* Was noch im Verfahren steckt und damit Arbeit bedeutet. */
+const BEW_LAEUFT = ["offen","geprueft","einladung","kennenlernen","prios_gesendet"];
+
+/* Die Stände einer Zutritts-Einsendung (siehe /zutritte-liste). */
+const ZUT_LABEL = { offen:"Offen", geprueft:"Geprüft", rueckfrage:"Rückfrage", abgelehnt:"Abgelehnt" };
+
+/* Canonical Farbmap der Ressorts — Pillen wie auf den übrigen Seiten,
+   dazu ein voller Ton für die Balken. */
 const RESSORT_COLORS = {
   "Externe Events":  ["var(--rx-a1)", "var(--rx-a2)"],
   "Interne Events":  ["var(--rx-p1)", "var(--rx-p2)"],
@@ -136,6 +188,14 @@ const RESSORT_COLORS = {
   "Kommunikation":   ["var(--rx-b1)", "var(--rx-b2)"],
   "Sponsoring":      ["linear-gradient(135deg, var(--rx-a1), var(--rx-p2))", null],
   "Abgelehnt":       ["var(--rx-r1)", "var(--rx-r2)"],
+};
+
+const RESSORT_TON = {
+  "Externe Events": "var(--chart-1)",
+  "Interne Events": "var(--chart-5)",
+  "Merchandise":    "var(--chart-3)",
+  "Kommunikation":  "var(--chart-2)",
+  "Sponsoring":     "var(--chart-4)",
 };
 
 function pillStyle(label){
@@ -161,6 +221,12 @@ function pillStyle(label){
   return `background: linear-gradient(135deg, ${a}, ${b}); border-color: ${border};`;
 }
 
+/* ========= Kleine Helfer ========= */
+const safe = (v) => (v === null || v === undefined) ? "" : String(v);
+const esc  = (s) => safe(s)
+  .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+  .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+
 function normRole(v){ return (v || "").trim().toLowerCase(); }
 
 function roleLabel(role){
@@ -171,7 +237,47 @@ function roleLabel(role){
   return "Unbekannt";
 }
 
-/* ========= Auth UI elements ========= */
+const TAG_MS = 86400000;
+
+/* Zahlwort und Zeitangaben auf Deutsch — an einer Stelle, damit nicht
+   jede Karte ihre eigene Schreibweise erfindet. */
+function zahlwort(n, eins, mehr){ return `${n} ${n === 1 ? eins : mehr}`; }
+
+function tageHer(iso){
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (!isFinite(t)) return null;
+  return Math.floor((Date.now() - t) / TAG_MS);
+}
+
+function seitText(iso){
+  if (!iso) return "–";
+  const d = new Date(iso);
+  if (!isFinite(d.getTime())) return "–";
+  const min = Math.round((Date.now() - d.getTime()) / 60000);
+  if (min < 1)  return "gerade eben";
+  if (min < 60) return `vor ${zahlwort(min, "Minute", "Minuten")}`;
+  const std = Math.round(min / 60);
+  if (std < 24) return `vor ${zahlwort(std, "Stunde", "Stunden")}`;
+  const tage = Math.round(std / 24);
+  if (tage === 1) return "gestern";
+  if (tage < 31)  return `vor ${tage} Tagen`;
+  return d.toLocaleDateString("de-DE", { day:"2-digit", month:"short", year:"numeric" });
+}
+
+function datumText(iso){
+  if (!iso) return "–";
+  const d = new Date(iso);
+  if (!isFinite(d.getTime())) return "–";
+  return d.toLocaleDateString("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" });
+}
+
+function anteil(teil, ganz){
+  if (!ganz) return 0;
+  return Math.round((teil / ganz) * 100);
+}
+
+/* ========= Auth-UI ========= */
 const authBadge = document.getElementById("authBadge");
 const authDot = document.getElementById("authDot");
 const authState = document.getElementById("authState");
@@ -314,130 +420,741 @@ async function loadMyProfile(session){
   };
 }
 
-/* ========= Counting helpers ========= */
-function candBaseFilter(q){
-  return q.eq(CAND_STATUS_COL, "anwaerter");
+async function logout(){
+  await sb.auth.signOut();
+  window.location.replace(LOGIN_PAGE);
 }
 
-async function countTable(table, filterCol=null, filterVal=null, opts = {}){
-  let q = sb.from(table).select("id", { count:"exact", head:true });
-  if (typeof opts.base === "function") q = opts.base(q);
-  if (filterCol && filterVal) q = q.eq(filterCol, filterVal);
-  const res = await q;
-  return res.count ?? 0;
+/* ============================================================
+   Daten holen
+   ------------------------------------------------------------
+   Jede Abfrage einzeln gekapselt: Was eine Rolle nicht lesen darf
+   oder was gerade nicht erreichbar ist, kommt als leere Liste
+   zurück. Die Karte dazu entfällt dann, statt dass das ganze
+   Dashboard leer bleibt.
+   ============================================================ */
+async function hole(fn, fallback = []){
+  try{
+    const { data, error } = await fn();
+    if (error) throw error;
+    return data ?? fallback;
+  } catch(err){
+    console.warn("Dashboard: Abfrage übersprungen —", err?.message || err);
+    return fallback;
+  }
 }
 
-/* ========= Dashboard UI ========= */
-const grid = document.getElementById("grid");
+async function ladeAlles(istVorstand){
+  const [ mitglieder, anwaerter, bewerbungen, bewFormular,
+          zutritte, zutFormular, protokolle, konten, kontenOhneProfil ] = await Promise.all([
+    hole(() => sb.from(MEMBERS_TABLE).select("*")),
+    hole(() => sb.from(CAND_TABLE).select("*")),
+    hole(() => sb.from(BEW_TABLE)
+      .select("id,vorname,nachname,ressort_1,ressort_2,status,status_am,created_at")
+      .order("created_at", { ascending:false })),
+    hole(() => sb.from("bewerbung_formular").select("frist,geschlossen").maybeSingle(), null),
 
-function go(href, ev){
-  ev?.stopPropagation();
-  location.href = href;
+    istVorstand ? hole(() => sb.from(ZUTRITT_TABLE)
+      .select("id,vorname,nachname,ressort,rolle,status,created_at")
+      .order("created_at", { ascending:false })) : [],
+    istVorstand ? hole(() => sb.from("zutritt_formular").select("frist,geschlossen").maybeSingle(), null) : null,
+    istVorstand ? hole(() => sb.from(PROTO_TABLE)
+      .select("id,titel,datum,typ,updated_at")
+      .order("updated_at", { ascending:false }).limit(4)) : [],
+    istVorstand ? hole(() => sb.rpc("nutzer_liste")) : [],
+    istVorstand ? hole(() => sb.rpc("nutzer_ohne_profil")) : [],
+  ]);
+
+  return { mitglieder, anwaerter, bewerbungen, bewFormular,
+           zutritte, zutFormular, protokolle, konten, kontenOhneProfil };
 }
 
-function card({span="kpi", title, value, sub, icon, href, buttonText="Öffnen"}){
-  const btn = href ? `<button class="btn-secondary" type="button" onclick="go('${href}', event)">${buttonText} ↗</button>` : "";
+/* ============================================================
+   Auswerten
+   ============================================================ */
+const kleinschrift = (v) => safe(v).trim().toLowerCase();
+
+/* Mitglieder: „Vollmitglied“, „Fördermitglied“ und alles Unbekannte
+   zählen als aktiv; die drei Sonderfälle stehen für sich. */
+function mitgliedStand(m){
+  const s = kleinschrift(m?.status);
+  if (s.startsWith("aus")) return "ausgetreten";
+  if (s.startsWith("pau")) return "pausiert";
+  if (s.startsWith("anw")) return "anwaerter";
+  return "aktiv";
+}
+
+/* Anwärter: dieselben drei Stände wie auf /anwaerter. */
+function anwaerterStand(a){
+  const s = kleinschrift(a?.[CAND_STATUS_COL]);
+  if (s === "vollmitglied") return "uebernommen";
+  if (s === "anwärter abgelehnt" || s === "anwaerter abgelehnt") return "abgelehnt";
+  return "offen";
+}
+
+const bewLaeuft = (b) => BEW_LAEUFT.includes(kleinschrift(b?.status));
+
+function vollerName(x){
+  return (safe(x?.vorname) + " " + safe(x?.nachname)).trim() || "Ohne Namen";
+}
+
+function gleichesRessort(a, b){
+  return kleinschrift(a) !== "" && kleinschrift(a) === kleinschrift(b);
+}
+
+/* Alle Ressorts, die vorkommen: die fünf festen zuerst, Altbestände
+   („Finanzen“ aus früheren Jahren etwa) hinterher. */
+function alleRessorts(daten){
+  const gefunden = new Set();
+  daten.mitglieder.forEach(m => { const r = safe(m?.ressort).trim(); if (r) gefunden.add(r); });
+  daten.anwaerter.forEach(a  => { const r = safe(a?.ressort).trim(); if (r) gefunden.add(r); });
+  daten.bewerbungen.forEach(b => { const r = safe(b?.ressort_1).trim(); if (r) gefunden.add(r); });
+  const weitere = [...gefunden].filter(r => !RESSORTS.includes(r)).sort((a,b) => a.localeCompare(b,"de"));
+  return RESSORTS.concat(weitere);
+}
+
+/* ============================================================
+   Bausteine der Oberfläche
+   ============================================================ */
+function statTile({ label, value, sub = "", icon = "✨", href = "#", ton = "", id = "" }){
   return `
-    <div class="glass ${span} kpi kpiCard" ${href ? `onclick="location.href='${href}'"` : ""}>
-      <div class="kpiTop">
-        <div>
-          <div class="kpiTitle">${title}</div>
-          <div class="kpiValue">${value}</div>
-          <div class="kpiSub">${sub || ""}</div>
-        </div>
-        <div class="kpiIcon">${icon || "✨"}</div>
+    <a class="statTile ${ton}" href="${href}"${id ? ` id="${id}"` : ""}>
+      <div class="statTile__head">
+        <div class="statTile__label">${esc(label)}</div>
+        <div class="statTile__icon" aria-hidden="true">${icon}</div>
       </div>
-      <div class="kpiActions">${btn}</div>
-    </div>
-  `;
+      <div class="statTile__value">${value}</div>
+      <div class="statTile__sub">${sub}</div>
+    </a>`;
 }
 
-function cardStatic({span="kpiFull", title, sub, innerHtml=""}){
+function panel({ title, sub = "", href = "", linkText = "Öffnen", body }){
   return `
-    <div class="glass ${span} card">
-      <div style="font-weight:900; font-size:16px; letter-spacing:.2px;">${title}</div>
-      ${sub ? `<div class="small" style="margin-top:6px;">${sub}</div>` : ""}
-      <div class="hr"></div>
-      ${innerHtml}
-    </div>
-  `;
+    <section class="card panel">
+      <div class="panelHead">
+        <div>
+          <div class="panelTitle">${esc(title)}</div>
+          ${sub ? `<div class="panelSub">${esc(sub)}</div>` : ""}
+        </div>
+        ${href ? `<a class="panelLink" href="${href}">${esc(linkText)} ↗</a>` : ""}
+      </div>
+      ${body}
+    </section>`;
 }
 
-function resortBadge(name, membersCount, candCount){
-  const label = (name || "—").trim();
+function barRow({ label, wert, max, farbe = "var(--primary)", hint = "", muted = false }){
+  const breite = max > 0 && wert > 0 ? Math.max(3, Math.round((wert / max) * 100)) : 0;
   return `
-    <span class="badge" style="${pillStyle(label)}">
-      ${label} · <strong>${membersCount}</strong> Mitgl · <strong>${candCount}</strong> Anw
-    </span>
-  `;
+    <div class="barRow ${muted ? "is-muted" : ""}">
+      <div class="barRow__label" title="${esc(label)}">${esc(label)}</div>
+      <div class="barRow__track"><span class="barRow__fill" style="width:${breite}%; background:${farbe};"></span></div>
+      <div class="barRow__value">${wert}</div>
+      ${hint ? `<div class="barRow__hint">${esc(hint)}</div>` : ""}
+    </div>`;
 }
 
-/* ========= MV CSV parsing ========= */
-function parseCsvLine(line){
-  const result = [];
-  let current = "";
-  let inQuotes = false;
+function todoItem({ anzahl, text, hint = "", href, ton = "" }){
+  return `
+    <a class="todoItem" href="${href}">
+      <span class="todoCount ${ton}">${anzahl}</span>
+      <span class="todoText">${esc(text)}${hint ? `<small>${esc(hint)}</small>` : ""}</span>
+    </a>`;
+}
 
-  for (let i = 0; i < line.length; i++){
-    const char = line[i];
-    const next = line[i + 1];
+function feedItem({ icon, name, was, zeit, href }){
+  return `
+    <a class="feedItem" href="${href}">
+      <span class="feedIcon" aria-hidden="true">${icon}</span>
+      <span>
+        <span class="feedName">${esc(name)}</span>
+        <span class="feedWhat">${esc(was)}</span>
+      </span>
+      <span class="feedTime">${esc(zeit)}</span>
+    </a>`;
+}
 
-    if (char === '"'){
-      if (inQuotes && next === '"'){
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === "," && !inQuotes){
-      result.push(current.trim());
-      current = "";
-    } else {
-      current += char;
-    }
+function miniRow({ text, hint = "", rechts = "", href = "" }){
+  const inhalt = `
+      <span class="miniRow__text">${esc(text)}${hint ? `<small>${esc(hint)}</small>` : ""}</span>
+      ${rechts ? `<span class="miniRow__right">${rechts}</span>` : ""}`;
+  return href
+    ? `<a class="miniRow" href="${href}">${inhalt}</a>`
+    : `<div class="miniRow">${inhalt}</div>`;
+}
+
+function ressortPille(name){
+  const label = safe(name).trim() || "ohne Ressort";
+  return `<span class="badge" style="${pillStyle(label)}">${esc(label)}</span>`;
+}
+
+/* Was ein Formular gerade tut — dieselbe Lesart wie auf den
+   Verwaltungsseiten: geschlossen, Frist vorbei, oder offen. */
+function formularStand(f){
+  if (!f) return null;
+  if (f.geschlossen === true) return { ton:"bad",  text:"geschlossen", kurz:"Nimmt nichts mehr an" };
+  if (!f.frist)               return { ton:"ok",   text:"offen", kurz:"Ohne Frist" };
+  const ms = new Date(f.frist).getTime() - Date.now();
+  if (!isFinite(ms))          return { ton:"ok",   text:"offen", kurz:"Ohne Frist" };
+  if (ms <= 0)                return { ton:"bad",  text:"Frist abgelaufen", kurz:`Seit ${datumText(f.frist)}` };
+  const tage = Math.ceil(ms / TAG_MS);
+  return {
+    ton: tage <= 7 ? "warn" : "ok",
+    text: tage <= 1 ? "läuft heute ab" : `noch ${tage} Tage`,
+    kurz: `Frist: ${datumText(f.frist)}`
+  };
+}
+
+function standPille(stand){
+  if (!stand) return "";
+  const farbe = stand.ton === "bad" ? "var(--danger)" : stand.ton === "warn" ? "var(--warning)" : "var(--success)";
+  const flaeche = stand.ton === "bad" ? "var(--danger-surface)" : stand.ton === "warn" ? "var(--warning-surface)" : "var(--success-surface)";
+  return `<span class="badge" style="background:${flaeche}; border-color:color-mix(in oklab, ${farbe} 28%, transparent); color:${farbe};">${esc(stand.text)}</span>`;
+}
+
+/* ============================================================
+   Begrüssung
+   ============================================================ */
+function begruessung(me){
+  const stunde = new Date().getHours();
+  const gruss = stunde < 5 ? "Gute Nacht" : stunde < 11 ? "Guten Morgen" : stunde < 18 ? "Guten Tag" : "Guten Abend";
+  const name = me.display_name || (me.email.split("@")[0] || "");
+  const heute = new Date().toLocaleDateString("de-DE", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+
+  const rolleKlasse = normRole(me.role) === "vorstand" ? "vorstand" : "ressortleiter";
+
+  document.getElementById("dashHello").innerHTML = `
+    <div>
+      <h2 class="dashHelloTitle">${esc(gruss)}${name ? ", " + esc(name) : ""}</h2>
+      <p class="dashHelloSub">${esc(heute)}</p>
+    </div>
+    <div class="dashHelloMeta">
+      <span class="rolePill ${rolleKlasse}">${esc(roleLabel(me.role))}</span>
+      ${me.ressort ? ressortPille(me.ressort) : ""}
+    </div>`;
+}
+
+/* ============================================================
+   Dashboard: Vorstand
+   ============================================================ */
+function rendereVorstand(daten){
+  const { mitglieder, anwaerter, bewerbungen, bewFormular,
+          zutritte, zutFormular, protokolle, konten, kontenOhneProfil } = daten;
+
+  /* ---- Mitglieder ---- */
+  const mStand = { aktiv:0, anwaerter:0, pausiert:0, ausgetreten:0 };
+  mitglieder.forEach(m => { mStand[mitgliedStand(m)]++; });
+
+  /* ---- Anwärter ---- */
+  const aStand = { offen:0, uebernommen:0, abgelehnt:0 };
+  anwaerter.forEach(a => { aStand[anwaerterStand(a)]++; });
+  const anwOhneRessort = anwaerter.filter(a => anwaerterStand(a) === "offen" && !safe(a?.ressort).trim()).length;
+  const anwMailOffen = anwaerter.filter(a =>
+    anwaerterStand(a) !== "offen" && a?.mail !== true).length;
+
+  /* ---- Bewerbungen ---- */
+  const bewZaehler = {};
+  bewerbungen.forEach(b => {
+    const k = kleinschrift(b?.status) || "offen";
+    bewZaehler[k] = (bewZaehler[k] || 0) + 1;
+  });
+  const bewOffenGesamt = bewerbungen.filter(bewLaeuft).length;
+  const bewNeu7 = bewerbungen.filter(b => (tageHer(b?.created_at) ?? 999) <= 7).length;
+  const bewUngeprueft = bewerbungen.filter(b => kleinschrift(b?.status) === "offen").length;
+  /* Liegt eine laufende Bewerbung länger als zwei Wochen unverändert,
+     wartet dort jemand auf Antwort. */
+  const bewLiegenGeblieben = bewerbungen.filter(b =>
+    bewLaeuft(b) && (tageHer(b?.status_am || b?.created_at) ?? 0) > 14).length;
+  const bewPrioOffen = bewerbungen.filter(b => kleinschrift(b?.status) === "kennenlernen").length;
+
+  /* ---- Zutritte ---- */
+  const zutOffen = zutritte.filter(z => kleinschrift(z?.status) === "offen").length;
+  const zutRueck = zutritte.filter(z => kleinschrift(z?.status) === "rueckfrage").length;
+
+  /* ---- Konten ---- */
+  const kontenNieAngemeldet = konten.filter(k => !k?.letzte_anmeldung).length;
+  const kontenOhneRessort = konten.filter(k =>
+    normRole(k?.role) === "ressortleiter" && !safe(k?.ressort).trim()).length;
+  const kontenFehlt = konten.filter(k => k?.konto_fehlt === true).length;
+
+  /* ================= Kennzahlen ================= */
+  const kacheln = document.getElementById("dashStats");
+  kacheln.className = "dashStats dashStats--3";
+  kacheln.innerHTML = [
+    statTile({
+      label:"Mitglieder", value:String(mStand.aktiv), icon:"👥", href:"/members",
+      sub:`${zahlwort(mStand.pausiert, "Pausierter", "Pausierte")} · ${mStand.ausgetreten} ausgetreten`
+    }),
+    statTile({
+      label:"Anwärter offen", value:String(aStand.offen), icon:"👶🏼", href:"/anwaerter",
+      ton: aStand.offen > 0 ? "is-info" : "",
+      sub:`${aStand.uebernommen} übernommen · ${aStand.abgelehnt} abgelehnt`
+    }),
+    statTile({
+      label:"Bewerbungen im Lauf", value:String(bewOffenGesamt), icon:"📄", href:"/bewerbungen",
+      ton: bewUngeprueft > 0 ? "is-warn" : "",
+      sub: bewNeu7 > 0 ? `${bewNeu7} neu in sieben Tagen` : `${bewerbungen.length} insgesamt eingegangen`
+    }),
+    statTile({
+      label:"Zutritte offen", value:String(zutOffen), icon:"🔑", href:"/zutritte-liste",
+      ton: zutOffen > 0 ? "is-warn" : "",
+      sub: zutritte.length ? `${zutritte.length} Einsendungen insgesamt` : "Noch keine Einsendungen"
+    }),
+    statTile({
+      label:"Offene Belege", value:`<span class="isPending" id="finWert">…</span>`, icon:"🧾", href:"/rechnungen",
+      id:"finTile", sub:`<span id="finSub">wird geladen…</span>`
+    }),
+    statTile({
+      label:"Konten", value:String(konten.length), icon:"🔐", href:"/nutzer",
+      sub: kontenNieAngemeldet > 0
+        ? `${zahlwort(kontenNieAngemeldet, "Konto war", "Konten waren")} noch nie angemeldet`
+        : "Alle haben sich schon angemeldet"
+    }),
+  ].join("");
+
+  /* ================= Linke Spalte ================= */
+  const links = [];
+
+  /* --- Trichter der Bewerbungen --- */
+  if (bewerbungen.length){
+    const maxBew = Math.max(...BEW_STAENDE.map(s => bewZaehler[s.key] || 0), 1);
+    links.push(panel({
+      title:"Bewerbungsverfahren",
+      sub:`${bewerbungen.length} Bewerbungen insgesamt, ${bewOffenGesamt} noch im Verfahren`,
+      href:"/bewerbungen", linkText:"Bewerbungen",
+      body:`<div class="barRows">
+        ${BEW_STAENDE.map(s => barRow({
+          label:s.label, wert:bewZaehler[s.key] || 0, max:maxBew, farbe:s.farbe
+        })).join("")}
+        <div class="hr" style="margin:4px 0"></div>
+        ${barRow({
+          label:BEW_ABGELEHNT.label, wert:bewZaehler.abgelehnt || 0, max:maxBew,
+          farbe:BEW_ABGELEHNT.farbe, muted:true
+        })}
+      </div>`
+    }));
   }
 
-  result.push(current.trim());
-  return result;
+  /* --- Ressorts nebeneinander --- */
+  const ressorts = alleRessorts(daten).map(r => ({
+    name: r,
+    mitglieder: mitglieder.filter(m => gleichesRessort(m?.ressort, r) && mitgliedStand(m) === "aktiv").length,
+    anwaerter:  anwaerter.filter(a => gleichesRessort(a?.ressort, r) && anwaerterStand(a) === "offen").length,
+    bewerbungen: bewerbungen.filter(b => bewLaeuft(b) &&
+      (gleichesRessort(b?.ressort_1, r) || gleichesRessort(b?.ressort_2, r))).length,
+  })).filter(x => x.mitglieder || x.anwaerter || x.bewerbungen);
+
+  if (ressorts.length){
+    const maxR = Math.max(...ressorts.map(x => x.mitglieder), 1);
+    links.push(panel({
+      title:"Ressorts",
+      sub:"Aktive Mitglieder je Ressort, dazu offene Anwärter und Bewerbungen.",
+      href:"/members", linkText:"Mitglieder",
+      body:`<div class="barRows">
+        ${ressorts.map(x => barRow({
+          label:x.name, wert:x.mitglieder, max:maxR,
+          farbe: RESSORT_TON[x.name] || "var(--primary)",
+          hint: `${zahlwort(x.anwaerter, "Anwärter", "Anwärter")} · ${zahlwort(x.bewerbungen, "Bewerbung", "Bewerbungen")} im Lauf`
+        })).join("")}
+      </div>`
+    }));
+  }
+
+  /* --- Mitglieder nach Stand --- */
+  if (mitglieder.length){
+    const teile = [
+      { label:"Aktiv",       wert:mStand.aktiv,       farbe:"var(--success)" },
+      { label:"Anwärter",    wert:mStand.anwaerter,   farbe:"var(--info)" },
+      { label:"Pausiert",    wert:mStand.pausiert,    farbe:"var(--warning)" },
+      { label:"Ausgetreten", wert:mStand.ausgetreten, farbe:"var(--faint-foreground)" },
+    ].filter(t => t.wert > 0);
+
+    links.push(panel({
+      title:"Mitgliederstand",
+      sub:`${mitglieder.length} Einträge in der Mitgliederliste`,
+      href:"/members", linkText:"Liste",
+      body:`
+        <div class="stackBar">
+          ${teile.map(t => `<span style="width:${anteil(t.wert, mitglieder.length)}%; background:${t.farbe};" title="${esc(t.label)}"></span>`).join("")}
+        </div>
+        <div class="legend">
+          ${teile.map(t => `<span class="legendItem"><span class="legendDot" style="background:${t.farbe}"></span>${esc(t.label)} <strong>${t.wert}</strong></span>`).join("")}
+        </div>`
+    }));
+  }
+
+  /* --- Protokolle --- */
+  if (protokolle.length){
+    links.push(panel({
+      title:"Protokolle",
+      sub:"Zuletzt bearbeitet.",
+      href:"/protokoll", linkText:"Protokoll",
+      body:`<div class="miniRows">
+        ${protokolle.slice(0,3).map(p => miniRow({
+          text: safe(p?.titel) || "Unbenanntes Protokoll",
+          hint: `${safe(p?.typ) || "Sitzung"}${p?.datum ? " · " + datumText(p.datum) : ""}`,
+          rechts: esc(seitText(p?.updated_at)),
+          href:"/protokoll"
+        })).join("")}
+      </div>`
+    }));
+  }
+
+  document.getElementById("dashLinks").innerHTML = links.join("");
+
+  /* ================= Rechte Spalte ================= */
+  const rechts = [];
+
+  /* --- Was ansteht --- */
+  const todos = [];
+  if (bewUngeprueft)      todos.push(todoItem({ anzahl:bewUngeprueft, ton:"warn", href:"/bewerbungen",
+                            text:"Bewerbungen warten auf die erste Prüfung" }));
+  if (bewLiegenGeblieben) todos.push(todoItem({ anzahl:bewLiegenGeblieben, ton:"bad", href:"/bewerbungen",
+                            text:"Bewerbungen liegen über zwei Wochen unverändert", hint:"Dort wartet jemand auf eine Antwort." }));
+  if (bewPrioOffen)       todos.push(todoItem({ anzahl:bewPrioOffen, ton:"info", href:"/bewerbungen",
+                            text:"Bewerber sollen ihre Prios bestätigen", hint:"Stand „Anwesend Kennenlernen“." }));
+  if (anwMailOffen)       todos.push(todoItem({ anzahl:anwMailOffen, ton:"warn", href:"/anwaerter",
+                            text:"Anwärter haben ihre Nachricht noch nicht bekommen" }));
+  if (anwOhneRessort)     todos.push(todoItem({ anzahl:anwOhneRessort, ton:"info", href:"/anwaerter",
+                            text:"Anwärter haben noch kein Ressort" }));
+  if (zutOffen)           todos.push(todoItem({ anzahl:zutOffen, ton:"warn", href:"/zutritte-liste",
+                            text:"Zutritte sind noch nicht geprüft" }));
+  if (zutRueck)           todos.push(todoItem({ anzahl:zutRueck, ton:"bad", href:"/zutritte-liste",
+                            text:"Zutritte stehen auf Rückfrage" }));
+  if (kontenOhneProfil.length) todos.push(todoItem({ anzahl:kontenOhneProfil.length, ton:"bad", href:"/nutzer",
+                            text:"Konten haben kein Profil", hint:"Ohne Profil kommt niemand ins Portal." }));
+  if (kontenFehlt)        todos.push(todoItem({ anzahl:kontenFehlt, ton:"bad", href:"/nutzer",
+                            text:"Profile ohne Konto" }));
+  if (kontenOhneRessort)  todos.push(todoItem({ anzahl:kontenOhneRessort, ton:"info", href:"/nutzer",
+                            text:"Ressortleiter ohne Ressort", hint:"Sie sehen auf ihrem Dashboard nichts." }));
+
+  rechts.push(panel({
+    title:"Was ansteht",
+    sub: todos.length ? "Nach Dringlichkeit geordnet." : "",
+    body: todos.length
+      ? `<div class="todoList">${todos.join("")}</div>`
+      : `<div class="panelEmpty">Nichts liegen geblieben — alles bearbeitet. 🎉</div>`
+  }));
+
+  /* --- Zuletzt passiert --- */
+  const feed = [];
+  bewerbungen.slice(0, 8).forEach(b => feed.push({
+    zeit:b?.created_at, icon:"📄", name:vollerName(b), href:"/bewerbungen",
+    was:`Bewerbung · ${safe(b?.ressort_1) || "ohne Wunsch"} · ${BEW_LABEL[kleinschrift(b?.status)] || safe(b?.status)}`
+  }));
+  anwaerter.slice().sort((a,b) => safe(b?.created_at).localeCompare(safe(a?.created_at))).slice(0, 8)
+    .forEach(a => feed.push({
+      zeit:a?.created_at, icon:"👶🏼", name:vollerName(a), href:"/anwaerter",
+      was:`Anwärter · ${safe(a?.ressort) || "ohne Ressort"}`
+    }));
+  zutritte.slice(0, 8).forEach(z => feed.push({
+    zeit:z?.created_at, icon:"🔑", name:vollerName(z), href:"/zutritte-liste",
+    was:`Zutritt · ${ZUT_LABEL[kleinschrift(z?.status)] || safe(z?.status)}`
+  }));
+  protokolle.slice(0, 4).forEach(p => feed.push({
+    zeit:p?.updated_at, icon:"📝", name:safe(p?.titel) || "Unbenanntes Protokoll", href:"/protokoll",
+    was:`Protokoll · ${safe(p?.typ) || "Sitzung"}`
+  }));
+
+  const feedSortiert = feed
+    .filter(x => x.zeit)
+    .sort((a,b) => new Date(b.zeit) - new Date(a.zeit))
+    .slice(0, 7);
+
+  rechts.push(panel({
+    title:"Zuletzt passiert",
+    body: feedSortiert.length
+      ? `<div class="feed">${feedSortiert.map(x => feedItem({
+          icon:x.icon, name:x.name, was:x.was, zeit:seitText(x.zeit), href:x.href
+        })).join("")}</div>`
+      : `<div class="panelEmpty">Noch nichts eingegangen.</div>`
+  }));
+
+  /* --- Formulare & Fristen --- */
+  const bewStand = formularStand(bewFormular);
+  const zutStand = formularStand(zutFormular);
+  if (bewStand || zutStand){
+    rechts.push(panel({
+      title:"Formulare",
+      sub:"Was draussen gerade Einsendungen annimmt.",
+      body:`<div class="miniRows">
+        ${bewStand ? miniRow({ text:"Bewerbung", hint:bewStand.kurz, rechts:standPille(bewStand), href:"/bewerbungen" }) : ""}
+        ${zutStand ? miniRow({ text:"Zutritte",  hint:zutStand.kurz, rechts:standPille(zutStand), href:"/zutritte-liste" }) : ""}
+      </div>`
+    }));
+  }
+
+  document.getElementById("dashRechts").innerHTML = rechts.join("");
+
+  /* Die Belegliste hängt an einer fremden Tabelle und einem Google-Skript.
+     Sie wird nachgeladen, damit sie das Dashboard nicht aufhält. */
+  ladeFinanzen();
 }
 
-function parseMvCsv(text){
-  const lines = text
-    .split(/\r?\n/)
-    .filter(line => line.trim() !== "");
+/* ============================================================
+   Dashboard: Ressortleiter
+   ============================================================ */
+function rendereRessortleiter(daten, me){
+  const { mitglieder, anwaerter, bewerbungen, bewFormular } = daten;
+  const meinR = me.ressort;
 
-  if (lines.length < 2) return [];
+  const meineMitglieder = mitglieder.filter(m => gleichesRessort(m?.ressort, meinR));
+  const aktive = meineMitglieder.filter(m => mitgliedStand(m) === "aktiv");
+  const aktivImVerein = mitglieder.filter(m => mitgliedStand(m) === "aktiv").length;
 
-  const headers = parseCsvLine(lines[0]);
+  const meineAnwaerter = anwaerter.filter(a => gleichesRessort(a?.ressort, meinR));
+  const anwOffen = meineAnwaerter.filter(a => anwaerterStand(a) === "offen");
+  const anwUebernommen = meineAnwaerter.filter(a => anwaerterStand(a) === "uebernommen").length;
 
-  return lines.slice(1).map(line => {
-    const cols = parseCsvLine(line);
-    const row = {};
-    headers.forEach((h, i) => {
-      row[h] = cols[i] || "";
-    });
-    return row;
-  });
+  const bewErst = bewerbungen.filter(b => gleichesRessort(b?.ressort_1, meinR));
+  const bewZweit = bewerbungen.filter(b => gleichesRessort(b?.ressort_2, meinR));
+  const bewMeine = bewErst.concat(bewZweit);
+  const bewMeineOffen = bewMeine.filter(bewLaeuft);
+  const neuDreissig = meineAnwaerter.filter(a => (tageHer(a?.created_at) ?? 999) <= 30).length
+                    + bewMeine.filter(b => (tageHer(b?.created_at) ?? 999) <= 30).length;
+
+  /* ================= Kennzahlen ================= */
+  const kacheln = document.getElementById("dashStats");
+  kacheln.className = "dashStats dashStats--4";
+  kacheln.innerHTML = [
+    statTile({
+      label:"Mitglieder im Ressort", value:String(aktive.length), icon:"👥", href:"/members",
+      sub: aktivImVerein ? `${anteil(aktive.length, aktivImVerein)} % aller aktiven Mitglieder` : "—"
+    }),
+    statTile({
+      label:"Anwärter offen", value:String(anwOffen.length), icon:"👶🏼", href:"/anwaerter",
+      ton: anwOffen.length > 0 ? "is-info" : "",
+      sub:`${anwUebernommen} bereits übernommen`
+    }),
+    statTile({
+      label:"Bewerbungen auf dein Ressort", value:String(bewMeineOffen.length), icon:"📄", href:"/bewerbungen",
+      ton: bewMeineOffen.length > 0 ? "is-warn" : "",
+      sub:`${bewErst.filter(bewLaeuft).length} als Erstwunsch · ${bewZweit.filter(bewLaeuft).length} als Zweitwunsch`
+    }),
+    statTile({
+      label:"Neu in 30 Tagen", value:String(neuDreissig), icon:"✨", href:"/anwaerter",
+      sub:"Anwärter und Bewerbungen deines Ressorts"
+    }),
+  ].join("");
+
+  /* ================= Linke Spalte ================= */
+  const links = [];
+
+  if (!meinR){
+    links.push(panel({
+      title:"Dir ist noch kein Ressort zugeordnet",
+      body:`<div class="panelEmpty">Ohne Ressort lässt sich nichts zusammenstellen, was
+            dir gehört. Der Vorstand trägt das Ressort unter „Nutzer“ nach — sag dort kurz Bescheid.</div>`
+    }));
+  }
+
+  /* --- Bewerbungen auf mein Ressort --- */
+  if (bewMeine.length){
+    const laufend = bewMeineOffen
+      .slice()
+      .sort((a,b) => safe(b?.created_at).localeCompare(safe(a?.created_at)))
+      .slice(0, 6);
+
+    links.push(panel({
+      title:"Bewerbungen auf dein Ressort",
+      sub:`${bewMeine.length} insgesamt, ${bewMeineOffen.length} noch im Verfahren`,
+      href:"/bewerbungen", linkText:"Bewerbungen",
+      body: laufend.length
+        ? `<div class="miniRows">
+            ${laufend.map(b => miniRow({
+              text: vollerName(b),
+              hint: `${gleichesRessort(b?.ressort_1, meinR) ? "Erstwunsch" : "Zweitwunsch"} · seit ${seitText(b?.created_at)}`,
+              rechts: `<span class="badge">${esc(BEW_LABEL[kleinschrift(b?.status)] || safe(b?.status))}</span>`,
+              href:"/bewerbungen"
+            })).join("")}
+          </div>`
+        : `<div class="panelEmpty">Gerade läuft keine Bewerbung mehr auf dein Ressort.</div>`
+    }));
+  }
+
+  /* --- Dein Team --- */
+  if (meineMitglieder.length){
+    const rang = (m) => {
+      const r = kleinschrift(m?.rolle);
+      if (r.includes("vorstand")) return 0;
+      if (r.includes("leitung") && !r.includes("stell")) return 1;
+      if (r.includes("stell")) return 2;
+      return 3;
+    };
+    const sortiert = aktive.slice().sort((a,b) =>
+      rang(a) - rang(b) || safe(a?.nachname).localeCompare(safe(b?.nachname), "de"));
+
+    links.push(panel({
+      title:"Dein Team",
+      sub:`${zahlwort(aktive.length, "aktives Mitglied", "aktive Mitglieder")} in ${meinR}`,
+      href:"/members", linkText:"Mitglieder",
+      body:`<div class="miniRows">
+        ${sortiert.slice(0, 8).map(m => miniRow({
+          text: vollerName(m),
+          hint: safe(m?.email) || "keine Mailadresse hinterlegt",
+          rechts: `<span class="badge">${esc(safe(m?.rolle) || "Mitglied")}</span>`,
+          href:"/members"
+        })).join("")}
+        ${sortiert.length > 8 ? miniRow({ text:`… und ${sortiert.length - 8} weitere`, href:"/members" }) : ""}
+      </div>`
+    }));
+  }
+
+  /* --- Anwärter im Ressort --- */
+  if (meineAnwaerter.length){
+    const stand = {
+      offen: anwOffen.length,
+      uebernommen: anwUebernommen,
+      abgelehnt: meineAnwaerter.filter(a => anwaerterStand(a) === "abgelehnt").length,
+    };
+    const maxA = Math.max(stand.offen, stand.uebernommen, stand.abgelehnt, 1);
+    links.push(panel({
+      title:"Anwärter in deinem Ressort",
+      sub:`${meineAnwaerter.length} insgesamt`,
+      href:"/anwaerter", linkText:"Anwärter",
+      body:`<div class="barRows">
+        ${barRow({ label:"Offen",      wert:stand.offen,       max:maxA, farbe:"var(--info)" })}
+        ${barRow({ label:"Übernommen", wert:stand.uebernommen, max:maxA, farbe:"var(--success)" })}
+        ${barRow({ label:"Abgelehnt",  wert:stand.abgelehnt,   max:maxA, farbe:"var(--danger)", muted:true })}
+      </div>`
+    }));
+  }
+
+  document.getElementById("dashLinks").innerHTML = links.join("");
+
+  /* ================= Rechte Spalte ================= */
+  const rechts = [];
+
+  /* --- Was ansteht --- */
+  const todos = [];
+  const bewErstOffen = bewErst.filter(b => kleinschrift(b?.status) === "offen").length;
+  const ohneMail = aktive.filter(m => !safe(m?.email).trim()).length;
+  const anwAlt = anwOffen.filter(a => (tageHer(a?.created_at) ?? 0) > 60).length;
+
+  if (bewErstOffen) todos.push(todoItem({ anzahl:bewErstOffen, ton:"warn", href:"/bewerbungen",
+                      text:"neue Bewerbungen mit deinem Ressort als Erstwunsch" }));
+  if (anwOffen.length) todos.push(todoItem({ anzahl:anwOffen.length, ton:"info", href:"/anwaerter",
+                      text:"Anwärter warten auf eine Entscheidung" }));
+  if (anwAlt)       todos.push(todoItem({ anzahl:anwAlt, ton:"bad", href:"/anwaerter",
+                      text:"Anwärter sind seit über zwei Monaten offen" }));
+  if (ohneMail)     todos.push(todoItem({ anzahl:ohneMail, ton:"info", href:"/members",
+                      text:"Mitglieder ohne Mailadresse" }));
+
+  rechts.push(panel({
+    title:"Was ansteht",
+    body: todos.length
+      ? `<div class="todoList">${todos.join("")}</div>`
+      : `<div class="panelEmpty">In deinem Ressort ist gerade nichts offen. 🎉</div>`
+  }));
+
+  /* --- Zuletzt passiert --- */
+  const feed = [];
+  bewMeine.forEach(b => feed.push({
+    zeit:b?.created_at, icon:"📄", name:vollerName(b), href:"/bewerbungen",
+    was:`Bewerbung · ${gleichesRessort(b?.ressort_1, meinR) ? "Erstwunsch" : "Zweitwunsch"} · ${BEW_LABEL[kleinschrift(b?.status)] || safe(b?.status)}`
+  }));
+  meineAnwaerter.forEach(a => feed.push({
+    zeit:a?.created_at, icon:"👶🏼", name:vollerName(a), href:"/anwaerter",
+    was:`Anwärter · ${anwaerterStand(a) === "offen" ? "offen" : anwaerterStand(a) === "uebernommen" ? "übernommen" : "abgelehnt"}`
+  }));
+
+  const feedSortiert = feed
+    .filter(x => x.zeit)
+    .sort((a,b) => new Date(b.zeit) - new Date(a.zeit))
+    .slice(0, 6);
+
+  rechts.push(panel({
+    title:"Zuletzt passiert",
+    sub:"Nur dein Ressort.",
+    body: feedSortiert.length
+      ? `<div class="feed">${feedSortiert.map(x => feedItem({
+          icon:x.icon, name:x.name, was:x.was, zeit:seitText(x.zeit), href:x.href
+        })).join("")}</div>`
+      : `<div class="panelEmpty">Noch nichts eingegangen.</div>`
+  }));
+
+  /* --- Bewerbungsformular --- */
+  const bewStand = formularStand(bewFormular);
+  if (bewStand){
+    rechts.push(panel({
+      title:"Bewerbungsformular",
+      body:`<div class="miniRows">
+        ${miniRow({ text:"Bewerbung", hint:bewStand.kurz, rechts:standPille(bewStand), href:"/bewerbungen" })}
+      </div>`
+    }));
+  }
+
+  document.getElementById("dashRechts").innerHTML = rechts.join("");
 }
 
-function getMvStatus(row){
-  const candidates = [
-    row["Status"],
-    row["Nimmst du an der MV teil?"],
-    row["Nimmst du an der Mitgliederversammlung teil?"],
-    row["Teilnahme"],
-    row["Anwesenheit"]
-  ];
+/* ============================================================
+   Belegliste (Finanzen) — nur Vorstand, nur nachgeladen
+   ------------------------------------------------------------
+   Die Zahlen stehen in einer Tabelle bei Google, den Zugang dazu
+   hält `app_secrets`. Klappt eines von beidem nicht, bleibt die
+   Kachel stehen und sagt das.
+   ============================================================ */
+async function ladeFinanzen(){
+  const wert = document.getElementById("finWert");
+  const sub  = document.getElementById("finSub");
+  const kachel = document.getElementById("finTile");
+  if (!wert || !sub) return;
 
-  return String(candidates.find(Boolean) || "").toLowerCase().trim();
+  const zeigeFehler = (text) => {
+    wert.textContent = "–";
+    wert.classList.add("isPending");
+    sub.textContent = text;
+  };
+
+  try{
+    const { data: secret } = await sb.from("app_secrets")
+      .select("value").eq("key","finance_sheet_token").maybeSingle();
+
+    const token = secret?.value || "";
+    if (!token) return zeigeFehler("Kein Zugang hinterlegt");
+
+    const res = await fetch(`${FINANZ_APP_URL}?token=${encodeURIComponent(token)}`, { cache:"no-store" });
+    const json = await res.json();
+    if (json?.error) throw new Error(json.error);
+
+    const zeilen = Array.isArray(json.rows) ? json.rows : [];
+
+    /* Dieselbe Lesart wie auf /rechnungen: alles ohne erkennbaren
+       Stand gilt als offen. */
+    const stand = (r) => {
+      const t = safe(r["Status"]).trim().toLowerCase();
+      if (t.includes("prüfung")) return "pruefung";
+      if (t.includes("bezahlt")) return "bezahlt";
+      return "offen";
+    };
+    const betrag = (v) => {
+      if (typeof v === "number" && isFinite(v)) return v;
+      const s = safe(v).trim().replace(/\s/g,"").replace(/[^\d.,-]/g,"");
+      if (!s) return 0;
+      if (s.includes(".") && s.includes(",")) return Number(s.replace(/\./g,"").replace(",",".")) || 0;
+      if (s.includes(",")) return Number(s.replace(",",".")) || 0;
+      return Number(s) || 0;
+    };
+    const euro = (n) => new Intl.NumberFormat("de-DE", { style:"currency", currency:"EUR", maximumFractionDigits:0 }).format(n || 0);
+
+    const offen = zeilen.filter(r => stand(r) === "offen");
+    const pruefung = zeilen.filter(r => stand(r) === "pruefung");
+    const summe = offen.reduce((a, r) => a + betrag(r["Beleg Summe"]), 0);
+
+    wert.classList.remove("isPending");
+    wert.textContent = String(offen.length);
+    sub.textContent = `${euro(summe)} offen · ${pruefung.length} in Prüfung`;
+    if (kachel && offen.length > 0) kachel.classList.add("is-warn");
+  } catch(err){
+    console.warn("Dashboard: Belegliste nicht erreichbar —", err?.message || err);
+    zeigeFehler("Belegliste nicht erreichbar");
+  }
 }
 
-function isPresent(row){
-  const s = getMvStatus(row);
-  return s.includes("ja") || s.includes("anwesend") || s.includes("zugesagt");
-}
-
+/* ============================================================
+   Anwesenheit MV
+   ============================================================ */
 async function loadMvWidget(){
+  const widget  = document.getElementById("mvWidget");
   const totalEl = document.getElementById("mvTotal");
   const splitEl = document.getElementById("mvSplit");
   const quoteEl = document.getElementById("mvQuote");
@@ -447,7 +1164,7 @@ async function loadMvWidget(){
   try{
     const [mvRes, { count: memberCount }] = await Promise.all([
       fetch(MV_APPS_SCRIPT_URL, { cache: "no-store" }),
-      sb.from("members").select("*", { count: "exact", head: true }).in("status", ["Vollmitglied", "Fördermitglied"])
+      sb.from(MEMBERS_TABLE).select("*", { count: "exact", head: true }).in("status", ["Vollmitglied", "Fördermitglied"])
     ]);
 
     if (!mvRes.ok) throw new Error(`HTTP ${mvRes.status}`);
@@ -470,98 +1187,61 @@ async function loadMvWidget(){
     } else {
       quoteEl.textContent = `${yes} Zusagen`;
     }
+
+    widget?.classList.remove("hidden");
   } catch(err){
     console.warn("MV-Widget konnte nicht geladen werden:", err.message);
-    totalEl.textContent = "–";
-    splitEl.textContent = "–";
-    quoteEl.textContent = "–";
+    /* Ohne Zahlen keine Kachel — eine Reihe Striche hilft niemandem. */
+    widget?.classList.add("hidden");
   }
 }
 
+/* ============================================================
+   Ablauf
+   ============================================================ */
 async function loadDashboard(){
   const session = await requireAuthOrRedirect();
   const email = session?.user?.email || "";
   setAuthUI(true, email);
 
   const me = await loadMyProfile(session);
-  const isVorstand = normRole(me.role) === "vorstand";
-  const isPfluehrer = normRole(me.role) === "protokollfuehrer";
-  const myRessort = (me.ressort || "").trim();
+  const istVorstand = normRole(me.role) === "vorstand";
 
-  // Protokollführer has no dashboard — send them straight to their page
-  if (isPfluehrer) { window.location.replace("/protokoll"); return; }
+  /* Der Protokollführer hat kein Dashboard — direkt auf seine Seite. */
+  if (normRole(me.role) === "protokollfuehrer"){
+    window.location.replace("/protokoll");
+    return;
+  }
 
   /* Welche Punkte die Rolle sieht, entscheidet app-shell.js. */
   window.FSBSNav?.setRole(me.role);
 
-  const membersAll = await countTable(MEMBERS_TABLE);
-  const candAll = await countTable(CAND_TABLE, null, null, { base: candBaseFilter });
+  begruessung(me);
 
-  const membersMine = myRessort ? await countTable(MEMBERS_TABLE, "ressort", myRessort) : 0;
-  const candMine = myRessort ? await countTable(CAND_TABLE, "ressort", myRessort, { base: candBaseFilter }) : 0;
+  const daten = await ladeAlles(istVorstand);
+  if (istVorstand) rendereVorstand(daten);
+  else             rendereRessortleiter(daten, me);
 
-  if (!isVorstand){
-    grid.innerHTML = `
-      ${cardStatic({
-        span:"kpiBig",
-        title:"Mein Ressort",
-        sub:"Deine Übersicht (nur dein Ressort).",
-        innerHtml: `
-          <div style="margin-top:12px;">
-            <span class="badge" style="${pillStyle(myRessort || "Kommunikation")}">
-              ${myRessort ? myRessort : "—"} · <strong>${membersMine}</strong> Mitgl · <strong>${candMine}</strong> Anw
-            </span>
-          </div>
-        `
-      })}
-      ${card({ href:"/members", title:"Mitglieder", value:String(membersMine), sub:"Mitglieder in deinem Ressort.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
-      ${card({ href:"/anwaerter", title:"Anwärter", value:String(candMine), sub:"Anwärter in deinem Ressort.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
-    `;
-    return;
-  }
-
-  const nutzerAll = await countTable(PROFILES_TABLE);
-
-  const byR = await Promise.all(
-    RESSORTS.map(async r => ({
-      r,
-      m: await countTable(MEMBERS_TABLE, "ressort", r),
-      a: await countTable(CAND_TABLE, "ressort", r, { base: candBaseFilter })
-    }))
-  );
-
-  grid.innerHTML = `
-    ${card({ href:"/members", title:"Gesamt Mitglieder", value:String(membersAll), sub:"Alle Ressorts zusammen.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
-    ${card({ href:"/anwaerter", title:"Gesamt Anwärter", value:String(candAll), sub:"Alle offenen Anwärter.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
-    ${card({ href:"/nutzer", title:"Nutzer", value:String(nutzerAll), sub:"Konten mit Zugang zum Portal.", icon:"🔐", span:"kpiBig", buttonText:"Nutzer" })}
-    ${cardStatic({
-      title:"Ressort-Übersicht",
-      sub:"Mitglieder & Anwärter pro Ressort.",
-      innerHtml: `<div class="ressortList">${byR.map(x => resortBadge(x.r, x.m, x.a)).join("")}</div>`
-    })}
-  `;
+  document.getElementById("dash").classList.remove("hidden");
 }
 
-async function logout(){
-  await sb.auth.signOut();
-  window.location.replace(LOGIN_PAGE);
-}
-
-/* ========= Init ========= */
 const _pageLoader = document.getElementById("pageLoader");
 (async () => {
   try{
-    const session = await requireAuthOrRedirect();
-    const email = session?.user?.email || "";
-    setAuthUI(true, email);
     await loadDashboard();
     await loadMvWidget();
   } catch(e){
     if (e?.message === "kein_profil"){
       setAuthUI(true, "");
-      const g = document.getElementById("grid");
-      if (g) g.innerHTML = `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted-foreground);font-size:15px;">⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.</div>`;
-    } else {
+      const dash = document.getElementById("dash");
+      if (dash){
+        dash.classList.remove("hidden");
+        dash.innerHTML = `<div class="card panel" style="text-align:center; padding:32px; color:var(--muted-foreground);">
+          ⛔ Kein Zugriff – deine E-Mail ist nicht freigeschaltet.
+        </div>`;
+      }
+    } else if (e?.message !== "No session"){
+      console.error(e);
       setAuthUI(false);
     }
   } finally {
