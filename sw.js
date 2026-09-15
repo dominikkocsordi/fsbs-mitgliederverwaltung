@@ -3,7 +3,7 @@
    Offline-Support & PWA-Installierung
    ============================================================ */
 
-const CACHE = 'fsbs-v15';
+const CACHE = 'fsbs-v16';
 
 /* Statische App-Shell – bei Installation vorher cachen */
 const PRECACHE = [
@@ -35,6 +35,8 @@ const PRECACHE = [
   '/favicon/android-chrome-192x192.png',
   '/favicon/android-chrome-512x512.png',
   '/favicon/favicon.ico',
+  '/favicon/favicon-32x32.png',
+  '/favicon/favicon-16x16.png',
 ];
 
 /* ---------- Install ---------- */
