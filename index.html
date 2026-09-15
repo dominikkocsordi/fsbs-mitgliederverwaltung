@@ -520,6 +520,8 @@ async function loadDashboard(){
     return;
   }
 
+  const nutzerAll = await countTable(PROFILES_TABLE);
+
   const byR = await Promise.all(
     RESSORTS.map(async r => ({
       r,
@@ -531,6 +533,7 @@ async function loadDashboard(){
   grid.innerHTML = `
     ${card({ href:"/members", title:"Gesamt Mitglieder", value:String(membersAll), sub:"Alle Ressorts zusammen.", icon:"👥", span:"kpiBig", buttonText:"Mitglieder" })}
     ${card({ href:"/anwaerter", title:"Gesamt Anwärter", value:String(candAll), sub:"Alle offenen Anwärter.", icon:"👶🏼", span:"kpiBig", buttonText:"Anwärter" })}
+    ${card({ href:"/nutzer", title:"Nutzer", value:String(nutzerAll), sub:"Konten mit Zugang zum Portal.", icon:"🔐", span:"kpiBig", buttonText:"Nutzer" })}
     ${cardStatic({
       title:"Ressort-Übersicht",
       sub:"Mitglieder & Anwärter pro Ressort.",

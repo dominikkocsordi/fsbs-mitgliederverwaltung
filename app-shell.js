@@ -70,7 +70,9 @@
                     '<path d="M9 11.5h6"/><path d="M9 15h4"/>'),
     diploma:   icon('<path d="M12 3.5 21 8l-9 4.5L3 8Z"/><path d="M7 10.5V15c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/>' +
                     '<path d="M21 8v5"/>'),
-    key:       icon('<circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20 12v2"/>')
+    key:       icon('<circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20 12v2"/>'),
+    users:     icon('<circle cx="12" cy="7.5" r="3.4"/><path d="M5 20c0-3.4 3.1-5.5 7-5.5s7 2.1 7 5.5"/>' +
+                    '<path d="M18.5 4.5h4"/><path d="M20.5 2.5v4"/>')
   };
 
   /* `rollen` zählt auf, wer den Punkt sehen darf. Der Protokollführer
@@ -83,7 +85,8 @@
     { id: 'navFinanzen',   href: '/rechnungen',     label: 'Finanzen',    icon: ICONS.finance,   rollen: ['vorstand'] },
     { id: 'navProtokoll',  href: '/protokoll',      label: 'Protokoll',   icon: ICONS.minutes,   rollen: ['vorstand', 'protokollfuehrer'] },
     { id: 'navZeugnisse',  href: '/zeugnisse',      label: 'Zeugnisse',   icon: ICONS.diploma,   rollen: ['vorstand'] },
-    { id: 'navZutritte',   href: '/zutritte-liste', label: 'Zutritte',    icon: ICONS.key,       rollen: ['vorstand'] }
+    { id: 'navZutritte',   href: '/zutritte-liste', label: 'Zutritte',    icon: ICONS.key,       rollen: ['vorstand'] },
+    { id: 'navNutzer',     href: '/nutzer',         label: 'Nutzer',      icon: ICONS.users,     rollen: ['vorstand'] }
   ];
 
   /* Solange die Rolle unbekannt ist: zeigen, was jede Rolle mit

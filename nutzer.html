@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<title>FSBS Intern – Nutzer</title>
+
+<meta name="theme-color" content="#f4f4f6">
+
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="/app-shell.js"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/mobile-nav.css">
+
+<style>
+  /* Die Karte für Konten ohne Profil steht über der Liste und ist die
+     meiste Zeit gar nicht da — sie taucht nur auf, wenn es etwas zu
+     tun gibt. */
+  .waisenCard { margin-bottom: 18px; }
+  .waisenRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    border-top: 1px solid var(--border-color);
+  }
+  .waisenRow:first-of-type { border-top: 0; }
+  .waisenRow .waisenMail { font-weight: 600; word-break: break-all; }
+  .waisenRow .waisenMeta { color: var(--muted-foreground); font-size: 13px; }
+  .waisenRow .waisenSpacer { flex: 1 1 auto; }
+
+  /* Zwei Zeilen Zeitangaben in der Tabelle, klein und ruhig. */
+  .zeitStack { font-size: 13px; line-height: 1.45; }
+  .zeitStack .zeitSub { color: var(--muted-foreground); font-size: 12px; }
+
+  .mailReadonly { opacity: .7; }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/" title="FSBS Intern">
+        <img src="logo.png" alt="Fachschaft Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Nutzer</h1>
+        <div class="subtitle">Konten · Rollen · Ressorts</div>
+      </div>
+    </div>
+
+    <div class="brandRight">
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
+          </div>
+
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap hidden" id="navWrap" data-nav>
+    <div class="nav">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+      <div class="navLeft"></div>
+      <div class="navRight">
+        <button class="btn-secondary" id="logoutBtn" onclick="logout()" type="button">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="pageLoader" id="pageLoader">
+    <div class="spinnerRing"></div>
+    <span>Nutzer werden geladen…</span>
+  </div>
+
+  <!-- Konten ohne Profil -->
+  <div class="glass card waisenCard hidden" id="waisenCard">
+    <div style="font-weight:900; font-size:16px; letter-spacing:.2px;">Konten ohne Profil</div>
+    <div class="small muted" style="margin-top:6px;">
+      Diese Konten gibt es in der Anmeldung, aber sie haben keine Rolle — damit
+      kommen sie auf keine Seite. Rolle vergeben, dann geht es.
+    </div>
+    <div class="hr"></div>
+    <div id="waisenList"></div>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="glass card hidden" id="mainCard">
+
+    <!-- Filter Bar -->
+    <div class="filterBar">
+      <input class="searchInput" id="search" placeholder="Suchen – Name, Mail, Rolle, Ressort …" oninput="render()">
+
+      <select id="fRole" oninput="render()">
+        <option value="">Alle Rollen</option>
+        <option value="vorstand">Vorstand</option>
+        <option value="ressortleiter">Ressortleiter</option>
+        <option value="protokollfuehrer">Protokollführer</option>
+      </select>
+
+      <select id="fRessort" oninput="render()">
+        <option value="">Alle Ressorts</option>
+      </select>
+
+      <span class="countText" id="countInfo"></span>
+
+      <button class="btn-secondary btnRefresh" onclick="load()" type="button">Aktualisieren</button>
+      <button class="btn-primary btnCreate" id="createBtn" onclick="openCreate()" type="button">+ Nutzer</button>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="tableWrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="avatarTh"></th>
+            <th style="width:30%">Name &amp; Mail</th>
+            <th style="width:16%">Rolle</th>
+            <th style="width:20%">Ressort</th>
+            <th style="width:22%">Anmeldung</th>
+            <th style="width:12%">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card Grid -->
+    <div id="cardGrid" class="memberCardGrid"></div>
+
+  </div><!-- /mainCard -->
+
+</div><!-- /app -->
+
+<!-- DIALOG MODAL -->
+<dialog id="dlg">
+  <div class="dlgShell">
+    <div class="modalDragHandle"></div>
+
+    <div class="modalHeader">
+      <div class="modalKopf">
+        <div id="modalAvatar"></div>
+        <div style="min-width:0;">
+          <h2 class="modalTitle" id="modalTitle">Nutzer</h2>
+          <div class="modalSub" id="modalSub">Bitte Felder ausfüllen.</div>
+        </div>
+      </div>
+      <button class="btn-secondary closeX" id="closeModalBtn" type="button" title="Schließen">✕</button>
+    </div>
+
+    <div class="modalBody">
+
+      <!-- Section: Konto -->
+      <div class="formSection">
+        <div class="formSectionTitle">Konto</div>
+        <div class="formGrid">
+          <div class="formField full" id="uebernehmenWrap">
+            <label class="formLabel" for="uMember">Aus Mitgliedern übernehmen</label>
+            <select id="uMember" onchange="uebernehmen()"></select>
+            <div class="small muted" style="margin-top:6px;">
+              Füllt Mail, Name und Ressort aus der Mitgliederliste — ändern geht danach noch.
+            </div>
+          </div>
+          <div class="formField full">
+            <label class="formLabel" for="uEmail">E-Mail *</label>
+            <input id="uEmail" placeholder="name@domain.de" inputmode="email" autocomplete="off"
+                   oninput="updateModalAvatar()">
+            <div class="small muted" id="mailHint" style="margin-top:6px;">
+              Mit dieser Adresse meldet sich die Person an — sie bekommt ihren
+              Code auf /login selbst.
+            </div>
+          </div>
+          <div class="formField full">
+            <label class="formLabel" for="uName">Anzeigename</label>
+            <input id="uName" placeholder="z.B. Domi Mustermann" oninput="updateModalAvatar()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Rechte -->
+      <div class="formSection">
+        <div class="formSectionTitle">Rechte</div>
+        <div class="formGrid">
+          <div class="formField">
+            <label class="formLabel" for="uRole">Rolle *</label>
+            <select id="uRole" onchange="rollenHinweis()">
+              <option value="ressortleiter">Ressortleiter</option>
+              <option value="vorstand">Vorstand</option>
+              <option value="protokollfuehrer">Protokollführer</option>
+            </select>
+          </div>
+          <div class="formField">
+            <label class="formLabel" for="uRessort">Ressort</label>
+            <select id="uRessort"></select>
+          </div>
+          <div class="formField full">
+            <div class="small muted" id="roleHint"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="modalActions">
+      <button class="btn-secondary" type="button" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-primary" id="modalSaveBtn" type="button" onclick="saveModal()">Speichern</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+/* ========= Supabase config ========= */
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const LOGIN_PAGE = "/login";
+const PROFILES_TABLE = "profiles";
+const MEMBERS_TABLE  = "members";
+
+/* Die Funktion, die Konten anlegt und löscht. Alles Übrige geht ohne sie. */
+const NUTZER_FUNKTION = "nutzer-verwalten";
+
+const RESSORTS = ["Externe Events","Interne Events","Merchandise","Kommunikation","Sponsoring"];
+
+const ROLLEN = [
+  { wert: "vorstand",         label: "Vorstand",
+    hinweis: "Sieht und ändert alles — auch diese Seite hier." },
+  { wert: "ressortleiter",    label: "Ressortleiter",
+    hinweis: "Sieht Mitglieder, Anwärter und Bewerbungen; das Dashboard zeigt das eigene Ressort." },
+  { wert: "protokollfuehrer", label: "Protokollführer",
+    hinweis: "Kommt ausschließlich an das Protokoll, sonst an nichts." },
+];
+
+/* ========= State ========= */
+let MY_ROLE = "";
+let MY_ID   = "";
+let nutzer  = [];
+let waisen  = [];
+let members = [];
+let editId  = null;
+
+/* ========= Elements ========= */
+const authBadge     = document.getElementById("authBadge");
+const authDot       = document.getElementById("authDot");
+const authState     = document.getElementById("authState");
+const authMail      = document.getElementById("authMail");
+const authAvatar    = document.getElementById("authAvatar");
+const authCompact   = document.getElementById("authCompact");
+const authNameInline= document.getElementById("authNameInline");
+const authRolePill  = document.getElementById("authRolePill");
+const authToggle    = document.getElementById("authToggle");
+const authDetails   = document.getElementById("authDetails");
+
+const navWrap    = document.getElementById("navWrap");
+const mainCard   = document.getElementById("mainCard");
+const pageLoader = document.getElementById("pageLoader");
+const waisenCard = document.getElementById("waisenCard");
+const waisenList = document.getElementById("waisenList");
+
+const searchEl  = document.getElementById("search");
+const fRole     = document.getElementById("fRole");
+const fRessort  = document.getElementById("fRessort");
+const countInfo = document.getElementById("countInfo");
+const listEl    = document.getElementById("list");
+const cardGrid  = document.getElementById("cardGrid");
+
+const dlg           = document.getElementById("dlg");
+const closeModalBtn = document.getElementById("closeModalBtn");
+const modalTitle    = document.getElementById("modalTitle");
+const modalSub      = document.getElementById("modalSub");
+const modalSaveBtn  = document.getElementById("modalSaveBtn");
+const modalAvatarEl = document.getElementById("modalAvatar");
+const createBtn     = document.getElementById("createBtn");
+
+const uEmail   = document.getElementById("uEmail");
+const uName    = document.getElementById("uName");
+const uRole    = document.getElementById("uRole");
+const uRessort = document.getElementById("uRessort");
+const uMember  = document.getElementById("uMember");
+const uebernehmenWrap = document.getElementById("uebernehmenWrap");
+const mailHint = document.getElementById("mailHint");
+const roleHint = document.getElementById("roleHint");
+
+/* ========= Helpers ========= */
+function esc(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function norm(s){ return String(s ?? "").trim(); }
+function normRole(v){ return norm(v).toLowerCase(); }
+
+function roleLabel(role){
+  const r = normRole(role);
+  const treffer = ROLLEN.find(x => x.wert === r);
+  return treffer ? treffer.label : (r ? norm(role) : "Unbekannt");
+}
+function roleClass(role){
+  const r = normRole(role);
+  if (r === "vorstand")         return "pill-role-vorstand";
+  if (r === "protokollfuehrer") return "pill-role-stv";
+  return "pill-role-leitung";
+}
+
+const RESSORT_COLORS = {
+  "Externe Events":   ["color-mix(in oklab, var(--chart-1) 22%, transparent)", "color-mix(in oklab, var(--chart-1) 12%, transparent)"],
+  "Interne Events":   ["color-mix(in oklab, var(--chart-5) 22%, transparent)", "color-mix(in oklab, var(--chart-5) 12%, transparent)"],
+  "Merchandise":      ["color-mix(in oklab, var(--chart-3) 22%, transparent)", "color-mix(in oklab, var(--chart-3) 12%, transparent)"],
+  "Kommunikation":    ["color-mix(in oklab, var(--chart-2) 22%, transparent)", "color-mix(in oklab, var(--chart-2) 12%, transparent)"],
+  "Sponsoring":       ["color-mix(in oklab, var(--chart-4) 22%, transparent)", "color-mix(in oklab, var(--chart-4) 12%, transparent)"],
+};
+function pillColorStyle(label){
+  const pair = RESSORT_COLORS[norm(label)];
+  const a = pair?.[0] ?? "var(--surface-2)";
+  const b = pair?.[1] ?? "var(--surface-1)";
+  return `background: linear-gradient(135deg, ${a}, ${b}); border-color: var(--border-color); color: var(--foreground);`;
+}
+
+function hashString(str){
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
+function initialsFromEmail(email){
+  const e = norm(email).toLowerCase();
+  if (!e) return "U";
+  const local = e.split("@")[0] || "u";
+  const parts = local.split(/[.\-_]+/).filter(Boolean);
+  const a = (parts[0]?.[0] || local[0] || "u").toUpperCase();
+  const b = (parts[1]?.[0] || local[1] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
+function initialsFromText(txt){
+  const t = norm(txt);
+  if (!t) return "U";
+  const parts = t.split(/\s+/).filter(Boolean);
+  const a = (parts[0]?.[0] || "U").toUpperCase();
+  const b = (parts[1]?.[0] || "").toUpperCase();
+  return (a + b).trim() || a;
+}
+function nutzerAvatar(u, size = 40){
+  const name = norm(u?.display_name);
+  const mail = norm(u?.email);
+  const initials = name ? initialsFromText(name) : initialsFromEmail(mail);
+  const h = hashString(mail || name || "u");
+  const hue  = h % 360;
+  const hue2 = (hue + 42) % 360;
+  const style = `width:${size}px;height:${size}px;border-radius:${size<=44?'50%':'16px'};display:grid;place-items:center;font-weight:800;font-size:${size<=44?Math.round(size*0.35):Math.round(size*0.32)}px;flex:0 0 auto;border:1px solid var(--border-color);background:linear-gradient(135deg,hsla(${hue},70%,58%,.55),hsla(${hue2},70%,55%,.35));`;
+  return `<div style="${style}">${esc(initials)}</div>`;
+}
+function setAvatar(email){
+  const e = norm(email).toLowerCase();
+  if (!e){
+    authAvatar.classList.add("hidden");
+    authAvatar.textContent = "U";
+    authAvatar.style.background = "var(--secondary)";
+    return;
+  }
+  const h = hashString(e);
+  const hue  = h % 360;
+  const hue2 = (hue + 38) % 360;
+  authAvatar.textContent = initialsFromEmail(e);
+  authAvatar.classList.remove("hidden");
+  authAvatar.style.background = `linear-gradient(135deg, hsla(${hue}, 85%, 55%, .55), hsla(${hue2}, 85%, 55%, .35))`;
+}
+
+const DATUM = new Intl.DateTimeFormat("de-DE", { day:"2-digit", month:"2-digit", year:"numeric" });
+function datum(wert){
+  if (!wert) return "";
+  const d = new Date(wert);
+  return isNaN(d) ? "" : DATUM.format(d);
+}
+function seitdem(wert){
+  if (!wert) return "nie angemeldet";
+  const d = new Date(wert);
+  if (isNaN(d)) return "";
+  const tage = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (tage <= 0) return "heute";
+  if (tage === 1) return "gestern";
+  if (tage < 31)  return `vor ${tage} Tagen`;
+  return datum(wert);
+}
+
+/* ========= Badge ========= */
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+function setRolePill(role){
+  const r = normRole(role);
+  authRolePill.textContent = roleLabel(r);
+  authRolePill.classList.remove("vorstand","ressortleiter");
+  if (r === "vorstand") authRolePill.classList.add("vorstand");
+  else authRolePill.classList.add("ressortleiter");
+}
+function setCompactIdentity(displayName, email){
+  const name = norm(displayName);
+  const fallback = (norm(email).split("@")[0] || "User");
+  authNameInline.textContent = name || fallback;
+}
+function setAuthUI(isAuthed, email = ""){
+  if (isAuthed){
+    authDot.classList.remove("warn");
+    authDot.classList.add("ok");
+    authState.classList.add("hidden");
+    authCompact.classList.remove("hidden");
+    closeAuthDetails();
+    authMail.textContent = norm(email);
+    setAvatar(email);
+    navWrap.classList.remove("hidden");
+  } else {
+    authDot.classList.remove("ok");
+    authDot.classList.add("warn");
+    authState.classList.remove("hidden");
+    authState.textContent = "nicht eingeloggt";
+    authCompact.classList.add("hidden");
+    closeAuthDetails();
+    authMail.textContent = "";
+    setAvatar("");
+    mainCard.classList.add("hidden");
+    navWrap.classList.add("hidden");
+    pageLoader.classList.remove("hidden");
+  }
+}
+
+authToggle?.addEventListener("click", (e)=>{
+  e.stopPropagation();
+  authDetails.classList.toggle("hidden");
+});
+document.addEventListener("click", (e)=>{
+  if (!authBadge.contains(e.target)) closeAuthDetails();
+});
+
+async function requireAuthOrRedirect(){
+  const { data } = await sb.auth.getSession();
+  if (!data.session){
+    window.location.replace(LOGIN_PAGE);
+    throw new Error("No session");
+  }
+  return data.session;
+}
+
+async function loadMyProfile(session){
+  MY_ID = session?.user?.id || "";
+  const email = session?.user?.email || "";
+
+  const { data, error } = await sb
+    .from(PROFILES_TABLE)
+    .select("role, display_name")
+    .eq("id", MY_ID)
+    .single();
+
+  if (error || !data) throw new Error("kein_profil");
+
+  MY_ROLE = normRole(data.role);
+
+  setCompactIdentity(data.display_name, email);
+  setRolePill(MY_ROLE || "ressortleiter");
+  const dn = norm(data.display_name);
+  if (dn) authAvatar.textContent = initialsFromText(dn);
+  authBadge.title = `${(dn || email || "User")} • ${roleLabel(MY_ROLE)}`;
+
+  window.FSBSNav?.setRole(MY_ROLE);
+
+  /* Diese Seite ist Vorstandssache. Wer sie sonst aufruft, landet dort,
+     wo er hingehört — dieselbe Umleitung wie auf den übrigen Seiten. */
+  if (MY_ROLE === "protokollfuehrer"){ window.location.replace("/protokoll"); throw new Error("umgeleitet"); }
+  if (MY_ROLE !== "vorstand"){ window.location.replace("/"); throw new Error("umgeleitet"); }
+}
+
+async function logout(){
+  await sb.auth.signOut();
+  window.location.replace(LOGIN_PAGE);
+}
+
+/* ========= Daten ========= */
+async function load(){
+  await requireAuthOrRedirect();
+
+  const [liste, ohne, mitglieder] = await Promise.all([
+    sb.rpc("nutzer_liste"),
+    sb.rpc("nutzer_ohne_profil"),
+    sb.from(MEMBERS_TABLE).select("vorname,nachname,email,ressort").order("nachname", { ascending: true }),
+  ]);
+
+  if (liste.error){
+    zeigeFehler(
+      "Die Nutzerliste steht noch nicht bereit.",
+      `Fehlt <code>nutzer_liste()</code> in der Datenbank? Dann einmal
+       <code>supabase/nutzer.sql</code> im Supabase-SQL-Editor ausführen.
+       <br><span class="small muted">${esc(liste.error.message)}</span>`
+    );
+    return;
+  }
+
+  nutzer  = liste.data || [];
+  waisen  = ohne.error ? [] : (ohne.data || []);
+  members = mitglieder.error ? [] : (mitglieder.data || []);
+
+  refreshDropdowns();
+  render();
+  renderWaisen();
+
+  mainCard.classList.remove("hidden");
+  pageLoader.classList.add("hidden");
+}
+
+function zeigeFehler(titel, text){
+  pageLoader.classList.add("hidden");
+  mainCard.classList.remove("hidden");
+  mainCard.innerHTML = `
+    <div style="padding:28px;text-align:center;">
+      <div style="font-weight:800;font-size:16px;">${esc(titel)}</div>
+      <div class="small muted" style="margin-top:8px;line-height:1.6;">${text}</div>
+    </div>`;
+}
+
+/* ========= Dropdowns ========= */
+function refreshDropdowns(){
+  const ausDaten = nutzer.map(u => norm(u.ressort)).filter(Boolean);
+  const alle = [...new Set(RESSORTS.concat(ausDaten))].sort((a,b)=>a.localeCompare(b,"de"));
+
+  const prev = fRessort.value;
+  fRessort.innerHTML = `<option value="">Alle Ressorts</option>` +
+    alle.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  if (prev) fRessort.value = prev;
+
+  uRessort.innerHTML = `<option value="">— kein Ressort —</option>` +
+    alle.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+
+  /* Mitglieder, die noch kein Konto haben — mit denen fängt ein neues
+     Konto meistens an. */
+  const schonDa = new Set(nutzer.map(u => norm(u.email).toLowerCase()).filter(Boolean));
+  const offen = members
+    .filter(m => norm(m.email) && !schonDa.has(norm(m.email).toLowerCase()))
+    .sort((a,b) => norm(a.nachname).localeCompare(norm(b.nachname), "de"));
+
+  uMember.innerHTML = `<option value="">— frei eintragen —</option>` +
+    offen.map(m => {
+      const name = `${norm(m.vorname)} ${norm(m.nachname)}`.trim();
+      return `<option value="${esc(norm(m.email))}">${esc(name || norm(m.email))} · ${esc(norm(m.email))}</option>`;
+    }).join("");
+
+  uebernehmenWrap.style.display = offen.length ? "" : "none";
+}
+
+function uebernehmen(){
+  const mail = uMember.value;
+  if (!mail) return;
+  const m = members.find(x => norm(x.email).toLowerCase() === mail.toLowerCase());
+  if (!m) return;
+  uEmail.value   = norm(m.email);
+  uName.value    = `${norm(m.vorname)} ${norm(m.nachname)}`.trim();
+  uRessort.value = norm(m.ressort);
+  updateModalAvatar();
+}
+
+function rollenHinweis(){
+  const treffer = ROLLEN.find(x => x.wert === uRole.value);
+  roleHint.textContent = treffer ? treffer.hinweis : "";
+}
+
+/* ========= Render ========= */
+function render(){
+  const q  = searchEl.value.trim().toLowerCase();
+  const fR = fRole.value;
+  const fS = fRessort.value;
+
+  const gefiltert = nutzer.filter(u => {
+    if (fR && normRole(u.role) !== fR) return false;
+    if (fS && norm(u.ressort) !== fS)  return false;
+    if (!q) return true;
+    const heu = [u.email, u.display_name, roleLabel(u.role), u.role, u.ressort]
+      .map(x => String(x ?? "")).join(" ").toLowerCase();
+    return heu.includes(q);
+  });
+
+  countInfo.textContent = `${gefiltert.length} von ${nutzer.length} Nutzern`;
+
+  listEl.innerHTML = gefiltert.map(u => {
+    const id      = u.id;
+    const name    = norm(u.display_name);
+    const mail    = norm(u.email);
+    const ressort = norm(u.ressort);
+    const selbst  = id === MY_ID;
+
+    /* Ohne Anzeigenamen steht die Mail oben — und dann nicht noch einmal
+       darunter. */
+    const nameHtml = `<div class="nameStack">
+      <span class="nameBold">${esc(name || mail || "—")}${selbst ? ' <span class="small muted">(du)</span>' : ""}</span>
+      ${name || !mail ? `<span class="emailMuted">${esc(mail || "Konto fehlt")}</span>` : ""}
+    </div>`;
+
+    const zeit = `<div class="zeitStack">
+      <div>${esc(seitdem(u.letzte_anmeldung))}</div>
+      <div class="zeitSub">Konto seit ${esc(datum(u.konto_seit || u.profil_seit) || "—")}</div>
+    </div>`;
+
+    const delTitle = selbst ? "Das eigene Konto lässt sich hier nicht löschen" : "Löschen";
+
+    return `
+      <tr class="clickable" onclick="openEdit('${esc(id)}')" title="Bearbeiten">
+        <td class="avatarCell">${nutzerAvatar(u, 40)}</td>
+        <td>${nameHtml}</td>
+        <td><span class="pill ${roleClass(u.role)}">${esc(roleLabel(u.role))}</span></td>
+        <td>${ressort ? `<span class="pill" style="${pillColorStyle(ressort)}">${esc(ressort)}</span>` : `<span class="small muted">—</span>`}</td>
+        <td>${zeit}</td>
+        <td onclick="event.stopPropagation()">
+          <div class="actions">
+            <button class="btn-secondary iconBtn" title="Bearbeiten"
+              onclick="openEdit('${esc(id)}')">✏️</button>
+            <button class="btn-danger iconBtn" title="${esc(delTitle)}"
+              ${selbst ? "disabled" : ""}
+              onclick="del('${esc(id)}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+
+  cardGrid.innerHTML = gefiltert.map(u => {
+    const id      = u.id;
+    const name    = norm(u.display_name);
+    const mail    = norm(u.email);
+    const ressort = norm(u.ressort);
+    const selbst  = id === MY_ID;
+
+    return `
+      <div class="memberCard">
+        <div class="cardTop">
+          ${nutzerAvatar(u, 52)}
+          <div>
+            <div class="cardName">${esc(name || mail || "—")}${selbst ? ' <span class="small muted">(du)</span>' : ""}</div>
+            ${name && mail ? `<div class="cardEmail">${esc(mail)}</div>` : ""}
+            ${!mail ? `<div class="cardEmail">Konto fehlt</div>` : ""}
+          </div>
+        </div>
+        <div class="cardPills">
+          <span class="pill ${roleClass(u.role)}">${esc(roleLabel(u.role))}</span>
+          ${ressort ? `<span class="pill" style="${pillColorStyle(ressort)}">${esc(ressort)}</span>` : ""}
+        </div>
+        <div class="small muted" style="margin-bottom:12px;">
+          ${esc(seitdem(u.letzte_anmeldung))} · Konto seit ${esc(datum(u.konto_seit || u.profil_seit) || "—")}
+        </div>
+        <div class="cardActions">
+          <button class="btn-secondary" onclick="openEdit('${esc(id)}')">✏️ Bearbeiten</button>
+          <button class="btn-danger" ${selbst ? "disabled" : ""} onclick="del('${esc(id)}')">🗑️ Löschen</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderWaisen(){
+  if (!waisen.length){
+    waisenCard.classList.add("hidden");
+    waisenList.innerHTML = "";
+    return;
+  }
+  waisenCard.classList.remove("hidden");
+  waisenList.innerHTML = waisen.map(w => `
+    <div class="waisenRow">
+      <div>
+        <div class="waisenMail">${esc(norm(w.email) || w.id)}</div>
+        <div class="waisenMeta">Konto seit ${esc(datum(w.konto_seit) || "—")}</div>
+      </div>
+      <div class="waisenSpacer"></div>
+      <button class="btn-secondary" type="button"
+        onclick="openNachtragen('${esc(w.id)}')">Rolle vergeben</button>
+      <button class="btn-danger" type="button"
+        onclick="del('${esc(w.id)}')">Konto löschen</button>
+    </div>`).join("");
+}
+
+/* ========= Modal ========= */
+function updateModalAvatar(){
+  modalAvatarEl.innerHTML = nutzerAvatar(
+    { display_name: uName.value, email: uEmail.value }, 72);
+}
+function openModal(){
+  updateModalAvatar();
+  rollenHinweis();
+  dlg.showModal();
+  setTimeout(() => (uEmail.disabled ? uRole : uEmail).focus(), 80);
+}
+function closeModal(){
+  if (dlg.open) dlg.close();
+  editId = null;
+}
+closeModalBtn?.addEventListener("click", closeModal);
+dlg?.addEventListener("click", (e) => {
+  const r = dlg.getBoundingClientRect();
+  const outside = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+  if (outside) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && dlg.open) closeModal();
+});
+
+function clearModal(){
+  uEmail.value = ""; uName.value = ""; uRessort.value = "";
+  uRole.value = "ressortleiter";
+  uMember.value = "";
+  uEmail.disabled = false;
+  uEmail.classList.remove("mailReadonly");
+}
+
+function openCreate(){
+  editId = null;
+  clearModal();
+  uebernehmenWrap.style.display = uMember.options.length > 1 ? "" : "none";
+  mailHint.textContent = "Mit dieser Adresse meldet sich die Person an — sie bekommt ihren Code auf /login selbst.";
+  modalTitle.textContent   = "Nutzer hinzufügen";
+  modalSub.textContent     = "Konto anlegen und Rolle vergeben.";
+  modalSaveBtn.textContent = "Anlegen";
+  openModal();
+}
+
+function openEdit(id){
+  const u = nutzer.find(x => x.id === id);
+  if (!u) return;
+
+  editId = id;
+  clearModal();
+  uebernehmenWrap.style.display = "none";
+  uEmail.value = norm(u.email);
+  uEmail.disabled = true;
+  uEmail.classList.add("mailReadonly");
+  mailHint.textContent = "Die Mailadresse gehört zur Anmeldung und lässt sich hier nicht ändern.";
+  uName.value    = norm(u.display_name);
+  uRole.value    = ROLLEN.some(r => r.wert === normRole(u.role)) ? normRole(u.role) : "ressortleiter";
+  uRessort.value = norm(u.ressort);
+
+  modalTitle.textContent   = "Nutzer bearbeiten";
+  modalSub.textContent     = norm(u.email) || "Konto ohne Mailadresse";
+  modalSaveBtn.textContent = "Speichern";
+  openModal();
+}
+
+/* Ein Konto ohne Profil bekommt hier seine Rolle — angelegt wird nichts,
+   die Zeile in `profiles` fehlt nur noch. */
+function openNachtragen(id){
+  const w = waisen.find(x => x.id === id);
+  if (!w) return;
+
+  editId = id;
+  clearModal();
+  uebernehmenWrap.style.display = "none";
+  uEmail.value = norm(w.email);
+  uEmail.disabled = true;
+  uEmail.classList.add("mailReadonly");
+  mailHint.textContent = "Das Konto gibt es schon — es fehlt nur die Rolle.";
+
+  const m = members.find(x => norm(x.email).toLowerCase() === norm(w.email).toLowerCase());
+  if (m){
+    uName.value    = `${norm(m.vorname)} ${norm(m.nachname)}`.trim();
+    uRessort.value = norm(m.ressort);
+  }
+
+  modalTitle.textContent   = "Rolle vergeben";
+  modalSub.textContent     = norm(w.email);
+  modalSaveBtn.textContent = "Rolle vergeben";
+  openModal();
+}
+
+/* ========= Speichern ========= */
+async function saveModal(){
+  await requireAuthOrRedirect();
+
+  const email   = norm(uEmail.value).toLowerCase();
+  const name    = norm(uName.value);
+  const rolle   = normRole(uRole.value);
+  const ressort = norm(uRessort.value);
+
+  if (!editId && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+    return alert("Bitte eine gültige Mailadresse eintragen.");
+  }
+  if (!ROLLEN.some(r => r.wert === rolle)){
+    return alert("Bitte eine Rolle wählen.");
+  }
+
+  modalSaveBtn.disabled = true;
+  try {
+    if (editId === null){
+      /* Neues Konto — das geht nur über die Funktion mit Dienstschlüssel. */
+      const { data, error } = await sb.functions.invoke(NUTZER_FUNKTION, {
+        body: { aktion: "anlegen", email, display_name: name, role: rolle, ressort },
+      });
+      const problem = await funktionsFehler(error, data);
+      if (problem) return alert(problem);
+
+      closeModal();
+      await load();
+      alert(data?.hinweis || `Konto für ${email} angelegt.`);
+      return;
+    }
+
+    /* Bestehender Nutzer oder Konto ohne Profil: die Zeile in `profiles`
+       reicht, dafür braucht es die Funktion nicht. */
+    const zeile = { id: editId, role: rolle, display_name: name || null, ressort: ressort || null };
+    const { error } = await sb.from(PROFILES_TABLE).upsert(zeile, { onConflict: "id" });
+
+    if (error) return alert("Speichern: " + error.message);
+
+    closeModal();
+    await load();
+  } finally {
+    modalSaveBtn.disabled = false;
+  }
+}
+
+/* ========= Löschen ========= */
+async function del(id){
+  await requireAuthOrRedirect();
+
+  if (id === MY_ID) return alert("Das eigene Konto lässt sich hier nicht löschen.");
+
+  const u    = nutzer.find(x => x.id === id) || waisen.find(x => x.id === id);
+  const wer  = norm(u?.display_name) || norm(u?.email) || id;
+
+  if (!confirm(
+    `${wer} wirklich löschen?\n\n` +
+    "Das Konto verschwindet aus der Anmeldung — anmelden geht danach nicht mehr. " +
+    "Der Eintrag in der Mitgliederliste bleibt davon unberührt."
+  )) return;
+
+  const { data, error } = await sb.functions.invoke(NUTZER_FUNKTION, {
+    body: { aktion: "loeschen", id },
+  });
+  const problem = await funktionsFehler(error, data);
+  if (problem) return alert(problem);
+
+  await load();
+}
+
+/* Die Funktion antwortet bei Fehlern mit einem Text in `fehler` — den holt
+   supabase-js aber nicht aus der Antwort heraus, sondern meldet nur
+   „non-2xx“. Also selbst nachsehen. */
+async function funktionsFehler(error, data){
+  if (!error){
+    return data?.fehler || null;
+  }
+
+  const status = error.context?.status;
+  try {
+    const rumpf = await error.context?.json?.();
+    if (rumpf?.fehler) return rumpf.fehler;
+  } catch(_){}
+
+  /* 404 heißt hier: es gibt die Funktion noch gar nicht. */
+  if (status === 404 || error.name === "FunctionsFetchError" || /fetch/i.test(error.message || "")){
+    return "Die Funktion „" + NUTZER_FUNKTION + "“ ist nicht erreichbar.\n\n" +
+           "Ist sie schon veröffentlicht? Siehe docs/nutzerverwaltung.md.";
+  }
+  return error.message || "Unbekannter Fehler.";
+}
+
+/* ========= Init ========= */
+(async () => {
+  try {
+    const session = await requireAuthOrRedirect();
+    setAuthUI(true, session?.user?.email || "");
+    await loadMyProfile(session);
+    await load();
+  } catch(e) {
+    if (e?.message === "kein_profil"){
+      zeigeFehler("⛔ Kein Zugriff", "Deine E-Mail ist nicht freigeschaltet.");
+    }
+  }
+})();
+
+/* PWA SW */
+if ("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(console.warn);
+  });
+}
+</script>
+
+<script src="/mobile-nav.js"></script>
+</body>
+</html>
