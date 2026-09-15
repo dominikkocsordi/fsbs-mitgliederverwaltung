@@ -212,6 +212,9 @@
 
   .antwortText { white-space: pre-wrap; line-height: 1.55; }
 
+  /* Was der Vorstand an einer Bewerbung dreht: der Bearbeitungsstand und,
+     falls im Formular etwas verrutscht ist, die beiden Ressortwünsche.
+     Der Stand nimmt die ganze Breite — er ist die häufigste Änderung. */
   .prioRow {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -219,25 +222,42 @@
     margin-top: 16px;
   }
   .prioRow[hidden] { display: none; }
+  .prioRow > .full { grid-column: 1 / -1; }
   @media (max-width: 560px) { .prioRow { grid-template-columns: 1fr; } }
 
-  .prioSave { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
-
-  /* Die fünf Bearbeitungsstände. Nebeneinander bräuchten sie 800 px und
-     hätten 700 — als Raster brechen sie in Spalten um statt zerfranst.
-     Der letzte nimmt zwei Spalten und schließt die Reihe bündig ab. */
-  .detailStaende {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    width: 100%;
-    max-width: 520px;
+  /* Steht die Bewerbung schon außerhalb des Wegs – übernommen oder
+     abgelehnt –, sagt eine Zeile unter dem Feld, was das bedeutet. */
+  .standHinweis {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--muted-foreground);
   }
-  .detailStaende > button { width: 100%; }
-  .detailStaende > #uebernehmen { grid-column: span 2; }
+  .standHinweis[hidden] { display: none; }
 
+  /* Drei Knöpfe in der Fußzeile, links daneben das Löschen. Jeder so
+     breit, wie seine Beschriftung es braucht — in gleiche Drittel
+     gezwängt stieße "Anwärter übernehmen" an seine Ränder. */
+  .detailStaende {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  /* Schmal legt style.css die Fußzeile ohnehin untereinander; dann
+     nimmt auch jeder Knopf die volle Breite. */
   @media (max-width: 640px) {
-    .detailStaende { grid-template-columns: 1fr 1fr; max-width: none; }
+    .detailStaende { flex-direction: column; width: 100%; }
+    .detailStaende > button { width: 100%; }
+  }
+
+  /* Sieben Stände, sechs Pillen in style.css — der siebte bekommt seine
+     Farbe hier. `--chart-1` ist das Orange der Diagramme. */
+  .pill--orange {
+    background: color-mix(in oklab, var(--chart-1) 14%, transparent);
+    border-color: color-mix(in oklab, var(--chart-1) 28%, transparent);
+    color: color-mix(in oklab, var(--chart-1) 92%, var(--foreground));
   }
 
   /* ---------- Formular-Editor ---------- */
@@ -387,6 +407,16 @@
       <div class="kv" id="detailKv"></div>
 
       <div class="prioRow" id="prioRow" hidden>
+        <!-- Der Weg durch das Verfahren steht als Liste da, nicht mehr als
+             Reihe von Knöpfen: Er hat eine Reihenfolge, und die liest man
+             an einem Dropdown ab. Die Absage und die Übernahme fehlen
+             darin mit Absicht — beide haben ihren eigenen Knopf unten,
+             weil an ihnen mehr hängt als ein Wort in einer Spalte. -->
+        <div class="field full">
+          <label for="standWahl">Bearbeitungsstand</label>
+          <select id="standWahl"></select>
+          <div class="standHinweis" id="standHinweis" hidden></div>
+        </div>
         <div class="field">
           <label for="prio1">Ressort – Priorität 1</label>
           <select id="prio1"></select>
@@ -395,28 +425,17 @@
           <label for="prio2">Ressort – Priorität 2</label>
           <select id="prio2"></select>
         </div>
-        <!-- Der Knopf gehört zu den beiden Feldern darüber, nicht in die
-             Fußzeile: Dort stand er zwischen lauter Bearbeitungsständen. -->
-        <div class="prioSave">
-          <button class="btn-secondary btn-sm" id="prioSpeichern" type="button">
-            Ressorts speichern
-          </button>
-        </div>
       </div>
     </div>
 
-    <!-- Links das Löschen, rechts die Stände als Block — so wie es der
-         Fragen-Dialog weiter unten schon hält. Die fünf Stände passen in
-         keine Zeile; als Raster stehen sie wenigstens in Spalten
-         untereinander statt zerfranst umzubrechen. -->
+    <!-- Links das Löschen, rechts die drei Wege nach vorn: speichern, was
+         oben eingestellt ist – übernehmen – absagen. -->
     <div class="modalActions modalActions--split" id="detailActions">
       <button class="btn-secondary bewLoeschen" id="loeschen" type="button">Löschen</button>
       <div class="detailStaende">
-        <button class="btn-warning" id="standRueck" type="button">Rückmeldung</button>
-        <button class="btn-info" id="standKennen" type="button">Kennenlernen</button>
-        <button class="btn-purple" id="standPrios" type="button">Prios bestätigt</button>
+        <button class="btn-primary" id="speichern" type="button">Speichern</button>
+        <button class="btn-success" id="uebernehmen" type="button">Anwärter übernehmen</button>
         <button class="btn-danger" id="standAbgelehnt" type="button">Ablehnen</button>
-        <button class="btn-primary" id="uebernehmen" type="button">Als Anwärter übernehmen</button>
       </div>
     </div>
   </div>
@@ -733,14 +752,38 @@ $("logoutBtn")?.addEventListener("click", logout);
 /* ================================================================
    Bearbeitungsstände
    ================================================================ */
+/* Die Stände in der Reihenfolge, in der eine Bewerbung sie durchläuft.
+   Genau diese Reihe liest der Bewerber unter /bewerbung als Zeitstrahl —
+   jeder Stand ist dort ein Schritt, und `satz` ist der Satz, der dabei
+   steht. Er steht hier mit, damit im Portal nachzulesen ist, was der
+   Bewerber gerade sieht.
+
+   `wahl: false` heißt: nicht im Dropdown. Die Übernahme legt zugleich den
+   Anwärter an, die Absage will bestätigt sein — beide haben deshalb ihren
+   eigenen Knopf, tauchen im Feld aber als gewählter Eintrag auf, solange
+   die Bewerbung dort steht. */
 const STAENDE = {
-  offen:            { label: "Offen",           pill: "pill--neutral" },
-  rueckmeldung:     { label: "Rückmeldung",     pill: "pill--warning" },
-  kennenlernen:     { label: "Kennenlernen",    pill: "pill--info"    },
-  prios_bestaetigt: { label: "Prios bestätigt", pill: "pill--accent"  },
-  anwaerter:        { label: "Anwärter",        pill: "pill--success" },
-  abgelehnt:        { label: "Abgelehnt",       pill: "pill--danger"  }
+  offen:          { label: "Offen",                 pill: "pill--neutral", wahl: true,
+                    satz: "Deine Bewerbung ist bei uns eingegangen." },
+  geprueft:       { label: "Geprüft",               pill: "pill--info",    wahl: true,
+                    satz: "Wir prüfen deine Bewerbung." },
+  einladung:      { label: "Einladung versendet",   pill: "pill--warning", wahl: true,
+                    satz: "Wir haben Neuigkeiten für dich. Schau in dein Mail-Postfach." },
+  kennenlernen:   { label: "Anwesend Kennenlernen", pill: "pill--orange",  wahl: true,
+                    satz: "Schön, dass du beim Kennenlernevent dabei warst." },
+  prios_gesendet: { label: "Prios gesendet",        pill: "pill--accent",  wahl: true,
+                    satz: "Wir haben deine Priobestätigung erhalten." },
+  anwaerter:      { label: "Anwärter",              pill: "pill--success", wahl: false,
+                    satz: "Herzlich willkommen bei der Fachschaft!" },
+  abgelehnt:      { label: "Abgelehnt",             pill: "pill--danger",  wahl: false,
+                    satz: "Leider konnten wir dir keinen Platz anbieten." }
 };
+
+/* Der Stand, auf dem die Bewerbung steht, wenn der Bewerber selbst am Zug
+   ist: Nach dem Kennenlernevent bestätigt er unter /bewerbung mit seinem
+   Code seine beiden Ressortwünsche, und die Bewerbung rückt dadurch von
+   allein auf `prios_gesendet`. */
+const STAND_BEWERBER = "kennenlernen";
 
 let CAN_VIEW = false;
 let CAN_EDIT = false;
@@ -1006,6 +1049,36 @@ function antwortHtml(feld, wert) {
   return `<span class="antwortText">${esc(text)}</span>`;
 }
 
+/* Das Dropdown mit den Ständen. Zur Auswahl stehen die fünf Schritte des
+   Verfahrens; steht die Bewerbung schon auf `anwaerter` oder `abgelehnt`,
+   kommt dieser Stand als gewählter Eintrag dazu — abwählen lässt er sich
+   dort nicht, denn zurück führt keiner der beiden über dieses Feld. */
+function standWahlFuellen(z) {
+  const feld = $("standWahl");
+  const ausserhalb = STAENDE[z.status] && !STAENDE[z.status].wahl;
+
+  feld.innerHTML = Object.entries(STAENDE)
+    .filter(([k, v]) => v.wahl || k === z.status)
+    .map(([k, v]) =>
+      `<option value="${k}"${k === z.status ? " selected" : ""}` +
+      `${!v.wahl ? " disabled" : ""}>${esc(v.label)}</option>`).join("");
+
+  // Ein unbekannter Stand aus der Datenbank soll nicht stillschweigend zu
+  // "Offen" werden — dann steht er als eigener Eintrag da.
+  if (!STAENDE[z.status]) {
+    feld.insertAdjacentHTML("afterbegin",
+      `<option value="${esc(z.status)}" selected disabled>${esc(z.status)}</option>`);
+  }
+
+  const hinweis = $("standHinweis");
+  hinweis.hidden = !ausserhalb;
+  if (ausserhalb) {
+    hinweis.textContent = z.status === "anwaerter"
+      ? "Übernommen. Ein anderer Stand hier ändert nichts am Eintrag in der Anwärterliste."
+      : "Abgelehnt. Ein anderer Stand hier nimmt die Absage zurück.";
+  }
+}
+
 function detailOeffnen(id) {
   const z = zeilen.find((x) => x.id === id);
   if (!z) return;
@@ -1051,10 +1124,13 @@ function detailOeffnen(id) {
       <div class="kv__value">${v}</div>
     </div>`).join("");
 
-  /* Die Ressortwünsche darf der Vorstand nachziehen, wenn im Formular
-     etwas verrutscht ist. */
+  /* Den Stand und die Ressortwünsche darf der Vorstand nachziehen — der
+     eine im Lauf des Verfahrens, die anderen, wenn im Formular etwas
+     verrutscht ist. */
   $("prioRow").hidden = !CAN_EDIT;
   if (CAN_EDIT) {
+    standWahlFuellen(z);
+
     const aktive = ressorts.filter((r) => r.active);
     $("prio1").innerHTML = aktive.map((r) =>
       `<option value="${r.id}"${r.id === z.ressort_1_id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
@@ -1158,50 +1234,67 @@ $("loeschDlgOk").addEventListener("click", async () => {
   showToast(`${name} wurde gelöscht.`);
 });
 
-$("standRueck").addEventListener("click", async () => {
-  const name = vollerName(AKTIV || {});
-  if (await standSetzen("rueckmeldung")) showToast(`${name}: Rückmeldung`);
-});
-$("standKennen").addEventListener("click", async () => {
-  const name = vollerName(AKTIV || {});
-  if (await standSetzen("kennenlernen")) showToast(`${name}: Kennenlernen`);
-});
-$("standPrios").addEventListener("click", async () => {
-  const name = vollerName(AKTIV || {});
-  if (await standSetzen("prios_bestaetigt")) showToast(`${name}: Prios bestätigt`);
-});
 $("standAbgelehnt").addEventListener("click", async () => {
   if (!confirm("Bewerbung wirklich ablehnen?")) return;
   const name = vollerName(AKTIV || {});
   if (await standSetzen("abgelehnt")) showToast(`${name}: abgelehnt`);
 });
 
-/* ---- Ressortwünsche korrigieren ---- */
-$("prioSpeichern").addEventListener("click", async () => {
+/* ---- Speichern: Stand und Ressortwünsche in einem Zug ----
+   Beides steht im selben Kasten, also geht es auch zusammen zur
+   Datenbank. Geschrieben wird nur, was sich geändert hat — sonst
+   setzte ein Klick auf Speichern `status_am` neu, obwohl am Stand
+   nichts anders ist. */
+$("speichern").addEventListener("click", async () => {
   if (!AKTIV || !CAN_EDIT) return;
-  const eins = $("prio1").value;
-  const zwei = $("prio2").value || null;
+  const z = AKTIV;
+
+  const stand = $("standWahl").value;
+  const eins  = $("prio1").value;
+  const zwei  = $("prio2").value || null;
 
   if (zwei && zwei === eins) {
     showToast("Priorität 1 und 2 können nicht dasselbe Ressort sein.", true);
     return;
   }
 
-  const { data, error } = await sb.from("bewerbungen")
-    .update({ ressort_1_id: eins, ressort_2_id: zwei })
-    .eq("id", AKTIV.id)
-    .select("id,ressort_1_id,ressort_1,ressort_2_id,ressort_2")
-    .maybeSingle();
+  const aenderung = {};
+  if (stand && stand !== z.status)        aenderung.status = stand;
+  if (eins && eins !== z.ressort_1_id)    aenderung.ressort_1_id = eins;
+  if (zwei !== (z.ressort_2_id || null))  aenderung.ressort_2_id = zwei;
 
-  if (error || !data) {
-    if (error) console.error(error);
-    showToast(error ? "Die Ressorts ließen sich nicht speichern." : "Keine Berechtigung dafür.", true);
+  if (Object.keys(aenderung).length === 0) {
+    detailSchliessen();
+    showToast("Nichts zu speichern.");
     return;
   }
 
-  Object.assign(AKTIV, data);
+  const knopf = $("speichern");
+  knopf.disabled = true;
+
+  const { data, error } = await sb.from("bewerbungen")
+    .update(aenderung)
+    .eq("id", z.id)
+    .select("id,status,status_am,ressort_1_id,ressort_1,ressort_2_id,ressort_2")
+    .maybeSingle();
+
+  knopf.disabled = false;
+
+  if (error || !data) {
+    if (error) console.error(error);
+    showToast(error ? "Die Änderung ließ sich nicht speichern." : "Keine Berechtigung dafür.", true);
+    return;
+  }
+
+  Object.assign(z, data);
   zeichne();
-  showToast("Ressorts gespeichert");
+  detailSchliessen();
+
+  /* Nach dem Kennenlernevent liegt der nächste Schritt nicht mehr beim
+     Vorstand: Die Meldung sagt, worauf jetzt gewartet wird. */
+  showToast(aenderung.status === STAND_BEWERBER
+    ? `${vollerName(z)}: ${STAENDE[STAND_BEWERBER].label} — jetzt fehlt die Priobestätigung.`
+    : `${vollerName(z)} gespeichert.`);
 });
 
 /* ---- Als Anwärter übernehmen ---- */

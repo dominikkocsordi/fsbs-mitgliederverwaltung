@@ -33,8 +33,8 @@ hier hineinkopieren:
 <script src="https://portal.fsbs-hm.de/embed.js" defer></script>
 ```
 
-Fertig. Das ergibt das vollständige Formular mit dem Link „Schon beworben?
-Stand abrufen“ darunter.
+Fertig. Das ergibt das vollständige Formular, darüber die Schaltfläche
+„Schon beworben? Stand abrufen“.
 
 ### Nur das Formular
 

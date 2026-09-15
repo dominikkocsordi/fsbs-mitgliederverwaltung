@@ -701,8 +701,14 @@
         return;
       }
 
-      /* Zwischenstatus aus dem Bewerbungsprozess ausblenden */
-      const BEWERBUNG_EXCLUDE = ["abgelehnt", "kennenlernen", "rueckmeldung", "prios_bestaetigt"];
+      /* Zwischenstatus aus dem Bewerbungsprozess ausblenden. Die beiden
+         letzten Namen heißen seit dem Umbau auf sechs Schritte anders;
+         die alten stehen weiter mit drin, weil ältere Zeilen in dieser
+         Tabelle sie noch tragen können. */
+      const BEWERBUNG_EXCLUDE = [
+        "abgelehnt", "offen", "geprueft", "einladung", "kennenlernen",
+        "prios_gesendet", "rueckmeldung", "prios_bestaetigt"
+      ];
       ALL = (Array.isArray(data) ? data : []).filter(r => {
         const statusRaw = normalizeStatus(r?.[BEWERBUNG_STATUS_COL]);
         const ressort = normalizeRessort(r?.ressort);

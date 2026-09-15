@@ -543,6 +543,37 @@
     white-space: nowrap;
   }
 
+  /* ---------- Die Prioritäten bestätigen ---------- */
+  /* Wie der Zeitstrahl darüber gebaut, aber in der Seitenfarbe umrandet:
+     Hier ist etwas zu tun, und das soll man sehen, ohne es zu suchen. */
+  .bPrioKarte {
+    margin-top: 18px;
+    padding: 18px 16px 16px;
+    background: color-mix(in oklab, var(--primary) 6%, transparent);
+    border: 1px solid color-mix(in oklab, var(--primary) 32%, transparent);
+    border-radius: var(--radius-lg);
+    animation: fadeIn 0.45s var(--ease) both;
+  }
+  .bPrioKarte[hidden] { display: none; }
+
+  .bPrioKarte > h3 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0 0 6px;
+  }
+
+  .bPrioText {
+    margin: 0 0 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+    text-wrap: pretty;
+  }
+
+  .bPrioSenden { margin-top: 18px; }
+
   .bStandNeu { margin-top: 20px; }
 
   .bCodeBox[hidden], #zumStand[hidden],
@@ -622,6 +653,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     #stand { animation: none; }
+    .bPrioKarte { animation: none; }
     .bPill { transition: none; }
     .bPill:hover { transform: none; }
   }
@@ -898,6 +930,39 @@
           <h3>Deine Schritte</h3>
           <ol class="tl" id="tlListe"></ol>
         </div>
+
+        <!-- Der einzige Schritt, den der Bewerber selbst tut. Die Karte
+             steht nur da, solange er dran ist: nach dem Kennenlernevent
+             und vor der Übernahme. Vorbelegt ist, was in der Bewerbung
+             steht — hier lässt es sich ein letztes Mal ändern. -->
+        <div class="bPrioKarte" id="prioKarte" hidden>
+          <h3>Jetzt bist du dran</h3>
+          <p class="bPrioText">
+            Bestätige uns verbindlich, in welchen Ressorts du mitarbeiten
+            möchtest. Wir haben eingetragen, was du in deiner Bewerbung
+            angegeben hast — du kannst es noch einmal ändern.
+          </p>
+
+          <div class="fieldGrid">
+            <div class="field full">
+              <label for="prioEins">Ressort – Priorität 1</label>
+              <select id="prioEins" disabled></select>
+              <div class="bErr" id="prioEins-error"></div>
+            </div>
+            <div class="field full">
+              <label for="prioZwei">Ressort – Priorität 2 <span class="bOpt">Optional</span></label>
+              <select id="prioZwei" disabled></select>
+              <div class="bErr" id="prioZwei-error"></div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-primary btn--lg btn--block bPrioSenden"
+                  id="prioBestaetigen">
+            Auswahl verbindlich bestätigen
+          </button>
+          <p class="notice bad bNotice" id="prioNotice" role="alert" hidden></p>
+        </div>
+
         <button type="button" class="btn-secondary btn--block bStandNeu" id="standNeu">
           Anderen Code eingeben
         </button>
@@ -1367,12 +1432,24 @@
     frist.geschlossen = data.geschlossen === true;
   }
 
-  async function ressortsLaden() {
+  /* Einmal geholt, zweimal gebraucht: im Formular und — wenn es zum
+     Bestätigen kommt — in der Standabfrage. Wer nur seinen Stand
+     nachschaut, lädt sie erst dann, wenn sie wirklich gebraucht wird. */
+  let ressortListe = null;
+
+  async function ressortListeHolen() {
+    if (ressortListe) return ressortListe;
     const { data, error } = await sb.from("bewerbung_ressorts")
       .select("id,name")
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
     if (error) throw error;
+    ressortListe = data || [];
+    return ressortListe;
+  }
+
+  async function ressortsLaden() {
+    const data = await ressortListeHolen();
 
     for (const select of [$("ressort1"), $("ressort2")]) {
       for (const zeile of data) {
@@ -1535,20 +1612,26 @@
     String(roh ?? "").replace(/[^0-9a-z]/gi, "").toUpperCase()
       .replace(/O/g, "0").replace(/[IL]/g, "1");
 
-  /* Die sechs Schritte, die eine Bewerbung durchläuft. `stand` ist der
-     Bearbeitungsstand aus der Datenbank, der zu diesem Schritt gehört;
-     der erste hat keinen — er ist mit dem Absenden erledigt. */
+  /* Die sechs Schritte, die eine Bewerbung durchläuft. Zu jedem gehört
+     genau ein Bearbeitungsstand aus der Datenbank — das Portal stellt ihn
+     im selben Dropdown ein, aus dem diese Liste hier gelesen wird. */
   const SCHRITTE = [
-    { titel: "Deine Bewerbung ist bei uns eingegangen.", stand: null },
-    { titel: "Wir prüfen deine Bewerbung.", stand: "offen" },
+    { titel: "Deine Bewerbung ist bei uns eingegangen.", stand: "offen" },
+    { titel: "Wir prüfen deine Bewerbung.", stand: "geprueft" },
     { titel: "Wir haben Neuigkeiten für dich. Schau in dein Mail-Postfach.",
-      stand: "rueckmeldung" },
+      stand: "einladung" },
     { titel: "Schön, dass du beim Kennenlernevent dabei warst.",
       stand: "kennenlernen" },
     { titel: "Wir haben deine Priobestätigung erhalten.",
-      stand: "prios_bestaetigt" },
+      stand: "prios_gesendet" },
     { titel: "Herzlich willkommen bei der Fachschaft!", stand: "anwaerter" }
   ];
+
+  /* Der eine Schritt, an dem der Bewerber selbst am Zug ist: Nach dem
+     Kennenlernevent bestätigt er hier seine beiden Ressortwünsche. Damit
+     rückt die Bewerbung auf `prios_gesendet`, und es fehlt nur noch die
+     Übernahme durch den Vorstand. */
+  const STAND_BESTAETIGEN = "kennenlernen";
 
   const svg = (inhalt, breite) =>
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + breite +
@@ -1584,10 +1667,10 @@
         kurzDatum(z.stand_seit)));
 
     } else {
-      // Wie weit es ist. Ein unbekannter Stand landet bei der Prüfung —
-      // weiter war er nicht.
+      // Wie weit es ist. Ein unbekannter Stand landet beim ersten Schritt —
+      // dass die Bewerbung angekommen ist, stimmt in jedem Fall.
       const gefunden = SCHRITTE.findIndex((schritt) => schritt.stand === z.status);
-      const bis = gefunden < 1 ? 1 : gefunden;
+      const bis = gefunden < 0 ? 0 : gefunden;
       const letzter = SCHRITTE.length - 1;
 
       for (let i = 0; i < SCHRITTE.length; i++) {
@@ -1612,8 +1695,143 @@
     $("standErgebnis").hidden = false;
     ansicht("stand");
 
+    prioKarteZeigen(code, z);
+
     adresseSetzen("?code=" + encodeURIComponent(code));
   }
+
+  /* ============================================================
+     Die Prioritäten bestätigen
+     ------------------------------------------------------------
+     Der einzige Schritt, den der Bewerber selbst auslöst. Er steht
+     genau dann offen, wenn die Bewerbung auf `kennenlernen` steht:
+     Das Event ist vorbei, der Vorstand wartet auf die verbindliche
+     Antwort. Mit dem Bestätigen rückt sie auf `prios_gesendet` — und
+     danach fehlt nur noch die Übernahme, die der Vorstand im Portal
+     mit einem Knopf erledigt.
+     ============================================================ */
+  let prioCode = "";
+  let prioLaeuft = false;
+
+  function prioFelderFuellen(liste, z) {
+    const eins = $("prioEins"), zwei = $("prioZwei");
+
+    eins.innerHTML = liste.map((r) =>
+      `<option value="${r.id}">${esc(r.name)}</option>`).join("");
+    zwei.innerHTML = `<option value="">Keine Angabe</option>` + liste.map((r) =>
+      `<option value="${r.id}">${esc(r.name)}</option>`).join("");
+
+    /* Vorbelegt ist, was in der Bewerbung steht. Ein Ressort, das es
+       inzwischen nicht mehr gibt, steht nicht in der Liste — dann
+       bleibt das Feld auf dem ersten Eintrag und will bewusst
+       gewählt werden. */
+    if (z.ressort_1_id) eins.value = z.ressort_1_id;
+    if (z.ressort_2_id) zwei.value = z.ressort_2_id;
+
+    eins.disabled = false;
+    zwei.disabled = false;
+  }
+
+  async function prioKarteZeigen(code, z) {
+    const karte = $("prioKarte");
+    const dran = z.status === STAND_BESTAETIGEN;
+
+    karte.hidden = !dran;
+    $("prioNotice").hidden = true;
+    if (!dran) return;
+
+    prioCode = code;
+    loescheFehler($("prioEins"));
+    loescheFehler($("prioZwei"));
+    // Ein früherer Fehlversuch soll den Knopf nicht für immer sperren.
+    $("prioBestaetigen").disabled = false;
+
+    try {
+      const liste = await ressortListeHolen();
+      if (!liste.length) throw new Error("keine Ressorts hinterlegt");
+      prioFelderFuellen(liste, z);
+    } catch (err) {
+      console.error(err);
+      $("prioEins").disabled = true;
+      $("prioZwei").disabled = true;
+      $("prioBestaetigen").disabled = true;
+      $("prioNotice").textContent =
+        "Die Ressorts ließen sich nicht laden. Bitte lade die Seite neu.";
+      $("prioNotice").hidden = false;
+    }
+  }
+
+  /* Zwei Wünsche, nicht zweimal derselbe — dieselbe Regel wie im
+     Formular, und die Datenbank sagt es notfalls noch einmal. */
+  $("prioZwei").addEventListener("change", () => {
+    const zwei = $("prioZwei");
+    if (zwei.value && zwei.value === $("prioEins").value) {
+      setzeFehler(zwei, "Bitte ein anderes Ressort als bei Priorität 1 wählen.");
+    } else {
+      loescheFehler(zwei);
+    }
+  });
+  $("prioEins").addEventListener("change", () => loescheFehler($("prioZwei")));
+
+  $("prioBestaetigen").addEventListener("click", async () => {
+    if (prioLaeuft || !prioCode) return;
+
+    const eins = $("prioEins").value;
+    const zwei = $("prioZwei").value || null;
+    const notiz = $("prioNotice");
+    notiz.hidden = true;
+
+    if (!eins) {
+      setzeFehler($("prioEins"), "Bitte wähle dein erstes Ressort.");
+      return;
+    }
+    if (zwei && zwei === eins) {
+      setzeFehler($("prioZwei"), "Bitte ein anderes Ressort als bei Priorität 1 wählen.");
+      return;
+    }
+
+    const knopf = $("prioBestaetigen");
+    prioLaeuft = true;
+    knopf.disabled = true;
+    knopf.innerHTML = '<span class="spinner spinner--sm"></span>';
+
+    const { data, error } = await sb.rpc("bewerbung_prios_bestaetigen", {
+      p_code:         prioCode,
+      p_ressort_1_id: eins,
+      p_ressort_2_id: zwei
+    });
+
+    prioLaeuft = false;
+    knopf.disabled = false;
+    knopf.textContent = "Auswahl verbindlich bestätigen";
+
+    if (error) {
+      console.error(error);
+      notiz.textContent =
+        error.code === "PT409"
+          ? "Dieser Schritt ist gerade nicht dran. Bitte lade die Seite neu."
+        : error.code === "PT400"
+          ? "Diese Auswahl geht nicht. Bitte wähle zwei verschiedene Ressorts."
+        : error.code === "PT429"
+          ? "Das waren zu viele Versuche. Bitte in einigen Minuten noch einmal."
+        : error.code === "PGRST202"
+          ? "Die Bestätigung ist gerade nicht eingerichtet. Bitte schreib uns kurz."
+        : "Das ließ sich nicht speichern. Bitte später noch einmal versuchen.";
+      notiz.hidden = false;
+      return;
+    }
+
+    /* Die Funktion gibt dieselbe Zeile zurück wie die Abfrage — der
+       Zeitstrahl lässt sich damit sofort neu zeichnen, und die Karte
+       verschwindet von selbst, weil der Stand weitergerückt ist. */
+    const zeile = Array.isArray(data) ? data[0] : data;
+    if (zeile) {
+      standZeichnen(prioCode, zeile);
+      nachOben();
+    } else {
+      standAbrufen(prioCode);
+    }
+  });
 
   async function standAbrufen(roh) {
     const feld = $("code");

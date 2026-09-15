@@ -221,18 +221,21 @@ create table if not exists public.bewerbungen (
     notiz             text,
     created_at        timestamptz not null default now(),
 
-    -- Dieselben Stände, die die Liste im Portal schon kennt.
+    -- Dieselben Stände, die die Liste im Portal schon kennt. Die Reihenfolge
+    -- ist zugleich der Weg, den der Bewerber unter /bewerbung als Zeitstrahl
+    -- sieht: offen → geprueft → einladung → kennenlernen → prios_gesendet
+    -- → anwaerter. `abgelehnt` steht daneben und kann jeden Schritt beenden.
     constraint bewerbungen_status_bekannt
-        check (status in ('offen', 'rueckmeldung', 'kennenlernen',
-                          'prios_bestaetigt', 'anwaerter', 'abgelehnt')),
+        check (status in ('offen', 'geprueft', 'einladung', 'kennenlernen',
+                          'prios_gesendet', 'anwaerter', 'abgelehnt')),
 
     -- Eine Absage kann an jeder Stelle kommen. `status_vor_absage` hält fest,
     -- an welcher – für den Vorstand, nicht für den Bewerber: Der sieht unter
     -- /bewerbung nur, dass es nicht gereicht hat.
     constraint bewerbungen_absage_stand_bekannt
         check (status_vor_absage is null or status_vor_absage in
-               ('offen', 'rueckmeldung', 'kennenlernen',
-                'prios_bestaetigt', 'anwaerter')),
+               ('offen', 'geprueft', 'einladung', 'kennenlernen',
+                'prios_gesendet', 'anwaerter')),
 
     constraint bewerbungen_vorname_laenge  check (char_length(btrim(vorname))  between 1 and 80),
     constraint bewerbungen_nachname_laenge check (char_length(btrim(nachname)) between 1 and 80),
@@ -271,17 +274,50 @@ alter table public.bewerbung_formular add column if not exists titel text not nu
     default 'Bewerbung bei der Fachschaft Business School';
 alter table public.bewerbung_formular add column if not exists intro text;
 
+-- Die Stände heißen seit dem Umbau auf sechs Schritte anders, und einer ist
+-- dazugekommen. Was der Bewerber im Zeitstrahl liest, steht jetzt Schritt für
+-- Schritt in genau einem Stand:
+--
+--   offen           Deine Bewerbung ist bei uns eingegangen.
+--   geprueft        Wir prüfen deine Bewerbung.            (neu)
+--   einladung       Wir haben Neuigkeiten für dich.        (hieß rueckmeldung)
+--   kennenlernen    Schön, dass du beim Kennenlernevent dabei warst.
+--   prios_gesendet  Wir haben deine Priobestätigung erhalten. (hieß prios_bestaetigt)
+--   anwaerter       Herzlich willkommen bei der Fachschaft!
+--
+-- Erst die Prüfregeln weg, dann die Zeilen umschreiben, dann die Regeln in
+-- ihrer neuen Fassung zurück – andersherum wiese die alte Regel die neuen
+-- Werte ab. Ein zweiter Durchlauf findet nichts mehr zum Umschreiben und
+-- setzt nur dieselben Regeln noch einmal.
 do $$
 begin
-    if not exists (select 1 from pg_constraint
-                    where conrelid = 'public.bewerbungen'::regclass
-                      and conname  = 'bewerbungen_absage_stand_bekannt') then
-        alter table public.bewerbungen
-            add constraint bewerbungen_absage_stand_bekannt
-            check (status_vor_absage is null or status_vor_absage in
-                   ('offen', 'rueckmeldung', 'kennenlernen',
-                    'prios_bestaetigt', 'anwaerter'));
-    end if;
+    alter table public.bewerbungen drop constraint if exists bewerbungen_status_bekannt;
+    alter table public.bewerbungen drop constraint if exists bewerbungen_absage_stand_bekannt;
+
+    update public.bewerbungen
+       set status = case status
+                        when 'rueckmeldung'     then 'einladung'
+                        when 'prios_bestaetigt' then 'prios_gesendet'
+                        else status
+                    end,
+           status_vor_absage = case status_vor_absage
+                                   when 'rueckmeldung'     then 'einladung'
+                                   when 'prios_bestaetigt' then 'prios_gesendet'
+                                   else status_vor_absage
+                               end
+     where status in ('rueckmeldung', 'prios_bestaetigt')
+        or status_vor_absage in ('rueckmeldung', 'prios_bestaetigt');
+
+    alter table public.bewerbungen
+        add constraint bewerbungen_status_bekannt
+        check (status in ('offen', 'geprueft', 'einladung', 'kennenlernen',
+                          'prios_gesendet', 'anwaerter', 'abgelehnt'));
+
+    alter table public.bewerbungen
+        add constraint bewerbungen_absage_stand_bekannt
+        check (status_vor_absage is null or status_vor_absage in
+               ('offen', 'geprueft', 'einladung', 'kennenlernen',
+                'prios_gesendet', 'anwaerter'));
 end;
 $$;
 
@@ -918,13 +954,26 @@ $$;
 -- Der Code ist der ganze Schlüssel; mehr als diese vier Angaben gibt eine
 -- geratene Zeichenfolge deshalb auch nicht her.
 
+-- Die beiden Ressortwünsche kommen mit heraus: Steht die Bewerbung auf
+-- `kennenlernen`, zeigt die Seite sie als Dropdowns zur endgültigen
+-- Bestätigung. Neu ist daran nichts – der Bewerber hat sie selbst
+-- eingetragen und bekommt sie nur zurück.
+--
+-- `returns table` lässt sich nicht im Nachhinein erweitern; die alte
+-- Fassung muss deshalb erst weichen.
+drop function if exists public.bewerbung_stand(text);
+
 create or replace function public.bewerbung_stand(p_code text)
 returns table (
     vorname           text,
     status            text,
     status_vor_absage text,
     eingegangen_am    timestamptz,
-    stand_seit        timestamptz
+    stand_seit        timestamptz,
+    ressort_1_id      uuid,
+    ressort_1         text,
+    ressort_2_id      uuid,
+    ressort_2         text
 )
 language plpgsql
 volatile
@@ -937,7 +986,8 @@ declare
 begin
     perform public.bewerbung_stand_pruefen();
 
-    select b.vorname, b.status, b.status_vor_absage, b.created_at, b.status_am
+    select b.vorname, b.status, b.status_vor_absage, b.created_at, b.status_am,
+           b.ressort_1_id, b.ressort_1, b.ressort_2_id, b.ressort_2
       into v_zeile
       from public.bewerbungen b
      where b.code = v_code
@@ -949,6 +999,10 @@ begin
         status_vor_absage := v_zeile.status_vor_absage;
         eingegangen_am    := v_zeile.created_at;
         stand_seit        := v_zeile.status_am;
+        ressort_1_id      := v_zeile.ressort_1_id;
+        ressort_1         := v_zeile.ressort_1;
+        ressort_2_id      := v_zeile.ressort_2_id;
+        ressort_2         := v_zeile.ressort_2;
         return next;
         return;
     end if;
@@ -959,9 +1013,117 @@ begin
 end;
 $$;
 
+
+-- ---- Prioritäten bestätigen -------------------------------------------------
+-- Der letzte Schritt, den der Bewerber selbst tut. Nach dem Kennenlernevent
+-- steht seine Bewerbung auf `kennenlernen`; dann – und nur dann – darf er mit
+-- seinem Code seine beiden Ressortwünsche ein letztes Mal festlegen. Danach
+-- steht sie auf `prios_gesendet`, und es fehlt allein die Übernahme durch den
+-- Vorstand.
+--
+-- Der Code ist auch hier der ganze Schlüssel. Er ändert damit nichts, was er
+-- nicht ohnehin schon selbst eingetragen hat, und der Weg endet an dieser
+-- einen Stelle: Weiter als bis `prios_gesendet` kommt hier niemand.
+
+create or replace function public.bewerbung_prios_bestaetigen(
+    p_code         text,
+    p_ressort_1_id uuid,
+    p_ressort_2_id uuid default null
+)
+returns table (
+    vorname           text,
+    status            text,
+    status_vor_absage text,
+    eingegangen_am    timestamptz,
+    stand_seit        timestamptz,
+    ressort_1_id      uuid,
+    ressort_1         text,
+    ressort_2_id      uuid,
+    ressort_2         text
+)
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+    v_code  text := public.bewerbung_code_norm(p_code);
+    v_id    uuid;
+    v_stand text;
+    v_zeile record;
+begin
+    -- Dieselbe Bremse wie beim Nachschauen: Der Code ist dasselbe Geheimnis.
+    perform public.bewerbung_stand_pruefen();
+
+    select b.id, b.status into v_id, v_stand
+      from public.bewerbungen b
+     where b.code = v_code
+     limit 1;
+
+    if v_id is null then
+        perform public.bewerbung_stand_fehlschlag();
+        raise exception 'Diesen Bewerbungscode gibt es nicht'
+            using errcode = 'PT404';
+    end if;
+
+    if v_stand <> 'kennenlernen' then
+        raise exception 'Die Bestätigung ist bei diesem Stand nicht vorgesehen'
+            using errcode = 'PT409';
+    end if;
+
+    if p_ressort_1_id is null then
+        raise exception 'Ohne Priorität 1 geht es nicht'
+            using errcode = 'PT400';
+    end if;
+
+    if p_ressort_2_id is not null and p_ressort_2_id = p_ressort_1_id then
+        raise exception 'Priorität 1 und 2 können nicht dasselbe Ressort sein'
+            using errcode = 'PT400';
+    end if;
+
+    -- Der Trigger `bewerbungen_pflegen` prüft die Ressorts ebenfalls und füllt
+    -- die Klartext-Spalten. Hier steht die Prüfung nur, damit ein längst
+    -- abgeschaltetes Ressort einen verständlichen Fehler ergibt.
+    if not exists (select 1 from public.bewerbung_ressorts
+                    where id = p_ressort_1_id and active) then
+        raise exception 'Dieses Ressort gibt es nicht mehr (Priorität 1)'
+            using errcode = 'PT400';
+    end if;
+
+    if p_ressort_2_id is not null
+       and not exists (select 1 from public.bewerbung_ressorts
+                        where id = p_ressort_2_id and active) then
+        raise exception 'Dieses Ressort gibt es nicht mehr (Priorität 2)'
+            using errcode = 'PT400';
+    end if;
+
+    update public.bewerbungen b
+       set ressort_1_id = p_ressort_1_id,
+           ressort_2_id = p_ressort_2_id,
+           status       = 'prios_gesendet'
+     where b.id = v_id
+    returning b.vorname, b.status, b.status_vor_absage, b.created_at, b.status_am,
+              b.ressort_1_id, b.ressort_1, b.ressort_2_id, b.ressort_2
+      into v_zeile;
+
+    vorname           := v_zeile.vorname;
+    status            := v_zeile.status;
+    status_vor_absage := v_zeile.status_vor_absage;
+    eingegangen_am    := v_zeile.created_at;
+    stand_seit        := v_zeile.status_am;
+    ressort_1_id      := v_zeile.ressort_1_id;
+    ressort_1         := v_zeile.ressort_1;
+    ressort_2_id      := v_zeile.ressort_2_id;
+    ressort_2         := v_zeile.ressort_2;
+    return next;
+end;
+$$;
+
 grant execute on function public.bewerbung_abgeben(
     text, text, text, text, uuid, uuid, jsonb, uuid, text, text) to anon, authenticated;
 grant execute on function public.bewerbung_stand(text) to anon, authenticated;
+grant execute on function public.bewerbung_prios_bestaetigen(text, uuid, uuid)
+    to anon, authenticated;
 
 -- Den Code selbst vergibt allein die Datenbank. Postgres gibt neue
 -- Funktionen sonst an `public` frei – und damit auch an das Formular.
