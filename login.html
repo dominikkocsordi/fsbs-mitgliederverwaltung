@@ -20,6 +20,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script src="/app-shell.js"></script>
+  <script src="/passkey.js"></script>
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="style.css">
 
@@ -128,6 +129,36 @@
     .msg.error   { color: var(--danger); }
     .msg.success { color: var(--success); }
 
+    /* Passkey: der schnelle Weg, wenn das Gerät einen hat */
+    #btnPasskey {
+      width: 100%;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      font-size: 15px;
+    }
+
+    #btnPasskey svg { width: 18px; height: 18px; }
+
+    /* „oder“ zwischen den beiden Wegen — eine Linie, ein Wort */
+    .oder {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--faint-foreground);
+    }
+
+    .oder::before,
+    .oder::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+
     footer {
       margin-top: 24px;
       font-size: 12px;
@@ -153,6 +184,21 @@
       <!-- ========== SCHRITT 1: E-Mail ========== -->
       <div id="step1" class="step">
         <div class="formGrid">
+
+          <!-- Passkey: nur da, wo der Browser so etwas kennt -->
+          <div id="passkeyWrap" class="formGrid hidden">
+            <button class="btn-primary" id="btnPasskey" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/>
+                <path d="M17.5 12v3"/><path d="M20 12v2"/>
+              </svg>
+              Mit Passkey anmelden
+            </button>
+            <div id="msgPk" class="msg"></div>
+            <div class="oder">oder</div>
+          </div>
+
           <div class="field">
             <label for="email">E-Mail-Adresse</label>
             <input id="email" type="email" autocomplete="email"
@@ -223,6 +269,9 @@
   const msg1El     = document.getElementById("msg1");
   const msg2El     = document.getElementById("msg2");
   const pollWrap   = document.getElementById("pollWrap");
+  const passkeyWrap = document.getElementById("passkeyWrap");
+  const btnPasskey  = document.getElementById("btnPasskey");
+  const msgPkEl     = document.getElementById("msgPk");
 
   let currentEmail = "";
   let pollTimer    = null;
@@ -359,6 +408,52 @@
     if (pollWrap) pollWrap.style.display = "none";
   }
 
+  /* ============================================================
+     PASSKEY
+     ------------------------------------------------------------
+     Der zweite Weg hinein: Face ID, Fingerabdruck, Windows Hello.
+     Der Knopf erscheint nur dort, wo der Browser Passkeys überhaupt
+     kennt — sonst stünde da ein Versprechen, das niemand einlösen
+     könnte. Welcher Schlüssel passt, bietet das Gerät selbst an; auf
+     einem Rechner ohne eigenen kann das auch das Telefon sein.
+
+     Ein Konto entsteht dabei nicht. Wer keinen Passkey hinterlegt
+     hat, kommt hier nicht weiter und nimmt den Code; hinterlegen
+     lässt er sich erst drinnen, im Konto-Menü. Freischalten bleibt
+     Sache des Vorstands auf /nutzer.
+     ============================================================ */
+  function passkeyKnopfZeigen(){
+    if (!window.FSBSPasskey || !window.FSBSPasskey.verfuegbar()) return;
+
+    passkeyWrap.classList.remove("hidden");
+    /* Zwei kräftige Knöpfe übereinander wären einer zu viel — der
+       schnellere Weg steht vorn, der Code daneben. */
+    btnSend.classList.remove("btn-primary");
+    btnSend.classList.add("btn-secondary");
+  }
+
+  async function passkeyAnmelden(){
+    btnPasskey.disabled = true;
+    setMsg(msgPkEl, "Warte auf das Gerät …", null);
+
+    try {
+      const erg = await window.FSBSPasskey.anmelden(sb);
+      if (erg && erg.abgebrochen){
+        /* Abgebrochen – oder das Gerät hatte nichts Passendes. Beides
+           ist kein Fehler, nur ein Hinweis auf den anderen Weg. */
+        setMsg(msgPkEl, "Kein Passkey benutzt – mit dem Code geht es weiterhin.", null);
+        btnPasskey.disabled = false;
+        return;
+      }
+      setMsg(msgPkEl, "Eingeloggt – einen Moment …", "success");
+      stopPolling();
+      setTimeout(() => window.location.replace(APP_REDIRECT), 400);
+    } catch(err){
+      btnPasskey.disabled = false;
+      setMsg(msgPkEl, (err && err.message) || "Das hat nicht geklappt.", "error");
+    }
+  }
+
   /* --- Resend-Countdown --- */
   function startResendCountdown(){
     if (resendTimer) clearInterval(resendTimer);
@@ -380,6 +475,7 @@
 
   /* --- Events --- */
   btnSend.addEventListener("click", sendOtp);
+  btnPasskey.addEventListener("click", passkeyAnmelden);
 
   emailEl.addEventListener("keydown", e => {
     if (e.key === "Enter") sendOtp();
@@ -429,6 +525,7 @@
   /* --- Init --- */
   (async () => {
     await handleCallbackIfNeeded();
+    passkeyKnopfZeigen();
     if (!step1.classList.contains("hidden")) emailEl.focus();
   })();
 

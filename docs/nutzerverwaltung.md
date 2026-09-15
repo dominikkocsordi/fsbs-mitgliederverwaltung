@@ -128,3 +128,15 @@ Supabase-Oberfläche angelegt wurde.
 
 Solche Konten zählt `/nutzer` über der Liste auf und bietet beides an:
 Rolle nachtragen oder Konto löschen.
+
+---
+
+## Und wenn jemand den Code leid ist
+
+Wer drin ist, kann sich im Konto-Menü einen **Passkey** hinterlegen und
+meldet sich danach mit Face ID, Fingerabdruck oder Windows Hello an —
+ohne Umweg über das Postfach. Am Freischalten ändert das nichts: Der
+Passkey hängt an einem Konto, das hier angelegt wurde, und wer keins hat,
+hat auch nichts, woran ein Passkey hängen könnte.
+
+Einzurichten ist das einmal, siehe [passkeys.md](passkeys.md).
