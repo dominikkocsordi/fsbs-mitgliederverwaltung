@@ -3412,11 +3412,9 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   .kv { margin: 14px 0; }
 
 /* ---------- 7.4  Dashboard ---------- */
-/* Die Startseite ist keine Kachelwand mehr, sondern eine Seite mit
-   Gliederung: Begrüssung, darunter die Kennzahlen, darunter zwei
-   Spalten — links die Auswertungen, rechts, was zu tun ist und was
-   zuletzt geschehen ist. Welche Karten eine Rolle darin sieht,
-   entscheidet index.html; das Gerüst ist für beide dasselbe. */
+/* Die Startseite hält nur, was die Rolle wirklich braucht: eine Reihe
+   Kennzahlen und darunter, was offen ist. Auswertungen stehen auf den
+   Seiten, zu denen sie gehören. */
 
 .dash {
   display: flex;
@@ -3427,7 +3425,7 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 /* --- Begrüssung --- */
 .dashHello {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
@@ -3441,39 +3439,24 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   letter-spacing: -0.03em;
 }
 
-.dashHelloSub {
-  margin: 6px 0 0;
-  font-size: 13px;
-  color: var(--muted-foreground);
-}
-
 .dashHelloMeta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding-top: 4px;
 }
 
 /* --- Kennzahlen --- */
 .dashStats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 14px;
-}
-
-/* Damit die letzte Reihe aufgeht: der Vorstand hat sechs Kacheln (3x2),
-   der Ressortleiter vier (eine Reihe). Schmalere Fenster regelt oben
-   das mitwachsende Raster. */
-@media (min-width: 1001px) {
-  .dashStats--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .dashStats--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 .statTile {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px 18px;
+  padding: 18px 20px;
   background: var(--card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -3519,7 +3502,7 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 .statTile__value {
   margin-top: auto;
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1;
@@ -3528,174 +3511,30 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 .statTile__sub {
   font-size: 12px;
   color: var(--muted-foreground);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
-/* Töne: nur dort, wo eine Zahl etwas heisst — offene Vorgänge warm,
-   erledigte grün. Der Rest bleibt neutral. */
-.statTile.is-warn  { border-color: color-mix(in oklab, var(--warning) 34%, transparent); }
-.statTile.is-warn  .statTile__value { color: var(--warning); }
-.statTile.is-warn  .statTile__icon  { background: var(--warning-surface); border-color: color-mix(in oklab, var(--warning) 28%, transparent); }
-.statTile.is-info  { border-color: color-mix(in oklab, var(--info) 32%, transparent); }
-.statTile.is-info  .statTile__icon  { background: var(--info-surface); border-color: color-mix(in oklab, var(--info) 26%, transparent); }
-.statTile.is-ok    .statTile__icon  { background: var(--success-surface); border-color: color-mix(in oklab, var(--success) 26%, transparent); }
+/* Warm wird eine Kachel nur, wenn hinter der Zahl Arbeit steckt. */
+.statTile.is-warn { border-color: color-mix(in oklab, var(--warning) 34%, transparent); }
+.statTile.is-warn .statTile__value { color: var(--warning); }
+.statTile.is-warn .statTile__icon  { background: var(--warning-surface); border-color: color-mix(in oklab, var(--warning) 28%, transparent); }
 
-/* --- Zwei Spalten --- */
-.dashCols {
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-
-.dashCol {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-@media (max-width: 1000px) {
-  .dashCols { grid-template-columns: 1fr; }
-}
-
-/* --- Karte mit Kopfzeile --- */
+/* --- Was offen ist --- */
 .panel { padding: 20px; }
-
-.panelHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
 
 .panelTitle {
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
+  margin-bottom: 14px;
 }
-
-.panelSub {
-  margin-top: 3px;
-  font-size: 12px;
-  color: var(--muted-foreground);
-}
-
-.panelLink {
-  flex: 0 0 auto;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--primary);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.panelLink:hover { text-decoration: underline; }
 
 .panelEmpty {
-  padding: 14px 0 2px;
   font-size: 13px;
   color: var(--muted-foreground);
 }
 
-/* --- Balkenzeilen: Trichter der Bewerbungen, Ressortvergleich --- */
-.barRows {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
-}
-
-.barRow {
-  display: grid;
-  grid-template-columns: minmax(96px, 172px) minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-}
-
-.barRow__label {
-  font-size: 13px;
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.barRow__track {
-  height: 8px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  overflow: hidden;
-}
-
-.barRow__fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--primary);
-  min-width: 2px;
-  transition: width 0.5s var(--ease);
-}
-
-.barRow__value {
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  text-align: right;
-  min-width: 2ch;
-}
-
-.barRow__hint {
-  grid-column: 2 / -1;
-  margin-top: -4px;
-  font-size: 11px;
-  color: var(--faint-foreground);
-}
-
-.barRow.is-muted .barRow__label,
-.barRow.is-muted .barRow__value { color: var(--muted-foreground); }
-
-/* --- Gestapelter Balken: Mitglieder nach Stand --- */
-.stackBar {
-  display: flex;
-  height: 12px;
-  border-radius: 999px;
-  overflow: hidden;
-  background: var(--surface-2);
-}
-
-.stackBar span { display: block; height: 100%; }
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 16px;
-  margin-top: 14px;
-}
-
-.legendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  color: var(--muted-foreground);
-}
-
-.legendDot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  flex: 0 0 auto;
-}
-
-.legendItem strong {
-  color: var(--foreground);
-  font-weight: 600;
-}
-
-/* --- Was ansteht --- */
 .todoList {
   display: flex;
   flex-direction: column;
@@ -3712,6 +3551,7 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 }
 
 .todoItem:first-child { border-top: none; padding-top: 0; }
+.todoItem:last-child  { padding-bottom: 0; }
 .todoItem:hover .todoText { color: var(--primary); }
 
 .todoCount {
@@ -3733,7 +3573,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 .todoCount.warn { background: var(--warning-surface); border-color: color-mix(in oklab, var(--warning) 28%, transparent); color: var(--warning); }
 .todoCount.bad  { background: var(--danger-surface);  border-color: color-mix(in oklab, var(--danger) 28%, transparent);  color: var(--danger); }
 .todoCount.info { background: var(--info-surface);    border-color: color-mix(in oklab, var(--info) 28%, transparent);    color: var(--info); }
-.todoCount.ok   { background: var(--success-surface); border-color: color-mix(in oklab, var(--success) 28%, transparent); color: var(--success); }
 
 .todoText {
   font-size: 13px;
@@ -3741,117 +3580,14 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   transition: color 0.2s ease;
 }
 
-.todoText small {
-  display: block;
-  font-size: 11px;
-  color: var(--faint-foreground);
-}
-
-/* --- Zuletzt passiert --- */
-.feed {
-  display: flex;
-  flex-direction: column;
-}
-
-.feedItem {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
-  padding: 10px 0;
-  border-top: 1px solid var(--border-color);
-  color: inherit;
-  text-decoration: none;
-}
-
-.feedItem:first-child { border-top: none; padding-top: 0; }
-
-.feedIcon {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
-  background: var(--secondary);
-  border: 1px solid var(--border-color);
-  font-size: 13px;
-}
-
-.feedName {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.feedWhat {
-  display: block;
-  font-size: 11px;
-  color: var(--muted-foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.feedTime {
-  font-size: 11px;
-  color: var(--faint-foreground);
-  white-space: nowrap;
-}
-
-/* --- Listenzeilen: Team, Protokolle, Formulare --- */
-.miniRows {
-  display: flex;
-  flex-direction: column;
-}
-
-.miniRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid var(--border-color);
-  color: inherit;
-  text-decoration: none;
-}
-
-.miniRow:first-child { border-top: none; padding-top: 0; }
-
-.miniRow__text {
-  min-width: 0;
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.miniRow__text small {
-  display: block;
-  font-size: 11px;
-  color: var(--muted-foreground);
-}
-
-.miniRow__right {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted-foreground);
-}
-
-/* --- Ladezustand der Kacheln --- */
+/* Kachel, deren Zahl noch nachgeladen wird */
 .isPending { color: var(--faint-foreground); }
 
 @media (max-width: 640px) {
   .dashStats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .statTile { padding: 14px; }
-  .statTile__value { font-size: 24px; }
+  .statTile__value { font-size: 26px; }
   .panel { padding: 16px; }
-  .barRow { grid-template-columns: minmax(78px, 1fr) minmax(0, 1.2fr) auto; gap: 9px; }
 }
 
 @media (max-width: 380px) {
