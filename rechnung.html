@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<title>Rechnung einreichen – Fachschaft Business School</title>
+<meta name="theme-color" content="#f4f4f6">
+<meta name="description" content="Auslagen und Rechnungen bei der Fachschaft Business School e.V. der Hochschule München einreichen.">
+<meta name="robots" content="noindex">
+
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<style>
+  /* ============================================================
+     Rechnung einreichen — nur das Seitenlayout.
+     Karte, Felder, Knöpfe und Hinweisboxen kommen aus style.css;
+     die Seite steht wie die Bewerbung öffentlich und hat darum
+     keine Navigation.
+     ============================================================ */
+  .bg-gradient { position: fixed; inset: 0; z-index: -2; background: var(--background); }
+
+  .radial-glow {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 6%,
+                color-mix(in oklab, var(--primary) 16%, transparent), transparent 58%);
+    pointer-events: none;
+  }
+
+  .wrap {
+    min-height: 100svh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .wrap > .glass {
+    width: min(660px, 100%);
+    padding: 30px 22px 26px;
+    animation: fadeIn 0.55s var(--ease) both;
+  }
+
+  @media (min-width: 641px) { .wrap > .glass { padding: 42px 40px 34px; } }
+
+  /* ---------- Kopf der Karte ---------- */
+  .bHead { text-align: center; margin-bottom: 22px; }
+  .bHead .siteLogoImg { height: 30px; margin: 0 auto 18px; }
+
+  .bHead h1 {
+    font-size: clamp(22px, 4.4vw, 28px);
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  .bHead p {
+    margin: 10px auto 0;
+    max-width: 46ch;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+    text-wrap: pretty;
+  }
+
+  /* ---------- Abschnitte ---------- */
+  .bSection + .bSection { margin-top: 30px; }
+
+  .bSectionHead {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .bSectionNr {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint-foreground);
+  }
+
+  .bSectionHead h2 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  /* ---------- Felder ---------- */
+  .bForm .fieldGrid { gap: 15px; }
+
+  .bOpt { float: right; font-weight: 400; color: var(--faint-foreground); }
+
+  .bHint {
+    margin-top: 5px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--faint-foreground);
+  }
+
+  .bErr {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--danger);
+  }
+  .field:not(.has-error) .bErr { display: none; }
+  .field.has-error > label { color: var(--danger); }
+  .field.has-error input,
+  .field.has-error select,
+  .field.has-error textarea { border-color: var(--danger); }
+  .field.has-error input:focus,
+  .field.has-error select:focus,
+  .field.has-error textarea:focus {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--danger) 20%, transparent);
+  }
+
+  .bForm textarea {
+    min-height: 96px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+
+  .bCount {
+    float: right;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint-foreground);
+  }
+  .bCount.is-near { color: var(--warning); }
+
+  /* ---------- Betrag ---------- */
+  /* Das Eurozeichen steht im Feld, nicht daneben: Wer tippt, sieht sofort,
+     dass hier keine Währung mit dazugehört. */
+  /* Das Zeichen sitzt am Feld, nicht am ganzen Block darum: Deshalb die
+     Hülle — sonst hinge es auf Höhe der Beschriftung. */
+  .bMoneyBox { position: relative; display: flex; }
+  .bMoneyBox input {
+    width: 100%;
+    padding-right: 34px;
+    font-variant-numeric: tabular-nums;
+  }
+  .bMoneyBox::after {
+    content: "€";
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--faint-foreground);
+    pointer-events: none;
+  }
+
+  /* ---------- IBAN ---------- */
+  #iban {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Ein Häkchen, sobald die Prüfziffer stimmt. Es steht für sich —
+     eine Meldung „sieht gut aus“ wäre Lärm. */
+  .bIbanOk {
+    display: none;
+    margin-top: 6px;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--success);
+  }
+  .bIbanOk svg { width: 14px; height: 14px; flex: none; }
+  .field.is-ok .bIbanOk { display: flex; }
+
+  /* ---------- Der Beleg ---------- */
+  .bFile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px;
+    background: var(--surface-1);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-control);
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+  .bFile.is-over {
+    border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+    background: color-mix(in oklab, var(--primary) 8%, transparent);
+  }
+
+  .bFilePreview {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 58px;
+    height: 58px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface-2);
+    color: var(--faint-foreground);
+  }
+  .bFilePreview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .bFilePreview svg { width: 22px; height: 22px; }
+
+  .bFileBody { min-width: 0; flex: 1 1 auto; }
+  .bFileName {
+    display: block;
+    font-size: 13px;
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bFileMeta {
+    display: block;
+    margin-top: 3px;
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint-foreground);
+  }
+  .bFile input[type="file"] { display: none; }
+
+  .field.has-error .bFile { border-color: var(--danger); }
+
+  /* ---------- Einwilligung ---------- */
+  .bConsentField { margin-top: 26px; }
+
+  .bConsent {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    margin: 0;
+    padding: 13px 14px;
+    background: var(--surface-1);
+    border-radius: var(--radius-control);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    cursor: pointer;
+  }
+
+  /* style.css setzt appearance:none und ein Innenmaß auf alle input —
+     ein Kästchen verlöre dadurch sein Häkchen und würde 30 px breit.
+     Für Kästchen holen wir die Systemdarstellung zurück. */
+  .bConsent input[type="checkbox"] {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    margin: 1px 0 0;
+    padding: 0;
+    -webkit-appearance: checkbox;
+    appearance: auto;
+    accent-color: var(--primary);
+  }
+
+  .bConsentField .bErr { display: none; padding-left: 14px; }
+  .bConsentField.has-error .bErr { display: block; }
+  .bConsentField.has-error .bConsent {
+    background: color-mix(in oklab, var(--danger) 8%, transparent);
+  }
+
+  .bSubmit { margin-top: 26px; }
+  .bNotice { margin-top: 14px; }
+  .bNotice[hidden] { display: none; }
+
+  /* ---------- Ladezustand ---------- */
+  #laden {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px 0;
+    font-size: 14px;
+    color: var(--muted-foreground);
+  }
+  #laden[hidden] { display: none; }
+
+  /* ---------- Nach dem Absenden ---------- */
+  #fertig, #zu { text-align: center; padding: 8px 0 6px; animation: fadeIn 0.45s var(--ease) both; }
+  #fertig svg, #zu svg { display: block; margin: 0 auto 20px; }
+  #zu svg { color: var(--muted-foreground); }
+  #fertig .ring { fill: none; stroke: var(--success); stroke-width: 2; opacity: 0.32; }
+  #fertig .tick {
+    fill: none;
+    stroke: var(--success);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 34;
+    stroke-dashoffset: 34;
+    animation: bDraw 0.5s var(--ease) 0.14s forwards;
+  }
+  @keyframes bDraw { to { stroke-dashoffset: 0; } }
+
+  #fertig h2, #zu h2 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    margin: 0 0 6px;
+  }
+  #fertig p, #zu p {
+    margin: 0 auto;
+    max-width: 42ch;
+    color: var(--muted-foreground);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wrap > .glass, #fertig, #zu, #stand, #fertig .tick { animation: none; }
+    #fertig .tick { stroke-dashoffset: 0; }
+  }
+
+  /* ---------- Die Nummer auf der Danke-Seite ---------- */
+  .bCodeBox {
+    margin: 22px 0 20px;
+    padding: 18px 16px 16px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+
+  .bCodeLabel {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint-foreground);
+  }
+
+  .bCodeWert {
+    display: block;
+    margin: 8px 0 0;
+    font-family: var(--font-mono);
+    font-size: clamp(30px, 8vw, 40px);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-indent: 0.18em;
+    line-height: 1.1;
+  }
+
+  .bCodeHinweis {
+    margin: 12px auto 0;
+    max-width: 40ch;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  .bCodeKopie { margin-top: 12px; }
+
+  /* ---------- Stand abrufen ---------- */
+  #stand { animation: fadeIn 0.45s var(--ease) both; }
+  #stand[hidden] { display: none; }
+
+  .bStandKopf { text-align: center; margin-bottom: 22px; }
+  .bStandKopf h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .bStandKopf p {
+    margin: 0 auto;
+    max-width: 40ch;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+  }
+
+  #code {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* ---------- Die Karte zum Vorgang ---------- */
+  .bStandKarte {
+    padding: 18px 16px 6px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+
+  .bStandKopfzeile {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+
+  .bStandBetrag {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .bStandSub {
+    margin: 0 0 18px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+
+  /* ---------- Zeitstrahl ---------- */
+  .tl { list-style: none; margin: 0; padding: 0; }
+
+  .tlItem {
+    position: relative;
+    display: grid;
+    grid-template-columns: 26px 1fr auto;
+    gap: 0 13px;
+    align-items: start;
+    padding-bottom: 18px;
+  }
+  .tlItem:last-child { padding-bottom: 12px; }
+
+  .tlItem:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 28px;
+    bottom: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--border-color);
+  }
+  .tlItem.is-done::before { background: color-mix(in oklab, var(--success) 55%, transparent); }
+  .tlItem.is-done:has(+ .is-reject)::before { background: var(--border-color); }
+
+  .tlDot {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border-color);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--faint-foreground);
+  }
+  .tlDot svg { width: 14px; height: 14px; }
+
+  .is-done .tlDot {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--background);
+  }
+  .is-current .tlDot {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+  .is-reject .tlDot {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--background);
+  }
+
+  .tlTitel {
+    display: block;
+    padding-top: 4px;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--foreground);
+    text-wrap: pretty;
+  }
+  .is-todo .tlTitel { color: var(--faint-foreground); font-weight: 400; }
+  .is-reject .tlTitel { color: var(--danger); }
+
+  .tlDatum {
+    font-size: 11.5px;
+    font-variant-numeric: tabular-nums;
+    color: var(--faint-foreground);
+    padding-top: 5px;
+    white-space: nowrap;
+  }
+
+  .bStandNeu { margin-top: 20px; }
+
+  .bCodeBox[hidden], #zumStand[hidden],
+  #standForm[hidden], #standErgebnis[hidden] { display: none; }
+
+  /* ---------- Wechsel zwischen Formular und Abfrage ---------- */
+  .bWechsel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 0 0 26px;
+  }
+  .bWechsel[hidden] { display: none; }
+
+  .bPill {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    max-width: 100%;
+    min-height: 38px;
+    padding: 7px 16px 7px 13px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.35;
+    color: var(--muted-foreground);
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s ease, border-color 0.2s ease,
+                color 0.2s ease, box-shadow 0.2s ease,
+                transform 0.2s var(--ease);
+  }
+  .bPill[hidden] { display: none; }
+
+  .bPill svg { flex: none; width: 16px; height: 16px; color: var(--primary); }
+  .bPill b { font-weight: 600; color: var(--foreground); }
+
+  @media (hover: hover) {
+    .bPill:hover {
+      background: color-mix(in oklab, var(--primary) 9%, var(--surface-1));
+      border-color: color-mix(in oklab, var(--primary) 42%, transparent);
+      color: var(--foreground);
+      box-shadow: var(--shadow-soft);
+      transform: translateY(-1px);
+    }
+  }
+  .bPill:active { transform: translateY(0); box-shadow: none; }
+  .bPill:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bPill { transition: none; }
+    .bPill:hover { transform: none; }
+  }
+
+  /* Falle für automatisierte Einträge. */
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+  /* ---------- Sicherheitsprüfung ---------- */
+  .bCaptcha { margin-top: 22px; }
+  .bCaptcha[hidden] { display: none; }
+  .bCaptcha .bErr { text-align: center; }
+
+  .bCaptchaKasten {
+    display: flex;
+    justify-content: center;
+    min-height: 65px;
+  }
+
+  @media (max-width: 359px) {
+    .bCaptchaKasten { transform: scale(0.86); transform-origin: top center; }
+  }
+</style>
+</head>
+
+<body>
+<div class="bg-gradient"></div>
+<div class="radial-glow"></div>
+
+<div class="wrap">
+  <div class="glass">
+
+    <div class="bHead">
+      <img class="siteLogoImg siteLogoImg--light" src="/logo-mark-light.png"
+           alt="Fachschaft Business School e.V.">
+      <img class="siteLogoImg siteLogoImg--dark" src="/logo-mark-dark.png" alt="" aria-hidden="true">
+      <h1 id="titel">Rechnung &amp; Auslage einreichen</h1>
+      <p id="intro"></p>
+    </div>
+
+    <!-- Der Wechsel zwischen Formular und Abfrage. Er steht über allem
+         anderen: Wer nur wissen will, ob sein Geld unterwegs ist, soll
+         dafür nicht erst am ganzen Formular vorbeiscrollen. -->
+    <div class="bWechsel" id="wechsel" hidden>
+      <button type="button" class="bPill" id="zurAbfrage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3.5 2"/>
+        </svg>
+        <span>Schon eingereicht? <b>Stand abrufen</b></span>
+      </button>
+      <button type="button" class="bPill" id="zumFormular" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/>
+          <path d="m11 6-6 6 6 6"/>
+        </svg>
+        <span>Zurück zum <b>Formular</b></span>
+      </button>
+    </div>
+
+    <div id="laden">
+      <span class="spinner spinner--sm"></span>
+      <span>Formular wird geladen…</span>
+    </div>
+
+    <form id="form" class="bForm" novalidate autocomplete="on" hidden>
+
+      <div class="bSection">
+        <div class="bSectionHead">
+          <span class="bSectionNr">01</span>
+          <h2>Wer bist du?</h2>
+        </div>
+
+        <div class="fieldGrid">
+          <div class="field">
+            <label for="vorname">Vorname</label>
+            <input id="vorname" type="text" autocomplete="given-name" maxlength="80" required>
+            <div class="bErr" id="vorname-error"></div>
+          </div>
+
+          <div class="field">
+            <label for="nachname">Nachname</label>
+            <input id="nachname" type="text" autocomplete="family-name" maxlength="80" required>
+            <div class="bErr" id="nachname-error"></div>
+          </div>
+
+          <div class="field full">
+            <label for="email">E-Mail-Adresse <span class="bOpt">Optional</span></label>
+            <input id="email" type="email" autocomplete="email" inputmode="email" maxlength="160">
+            <div class="bHint">Falls wir zum Beleg etwas nachfragen müssen.</div>
+            <div class="bErr" id="email-error"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bSection">
+        <div class="bSectionHead">
+          <span class="bSectionNr">02</span>
+          <h2>Was hast du ausgelegt?</h2>
+        </div>
+
+        <div class="fieldGrid">
+          <div class="field full">
+            <label for="projekt">Projekt</label>
+            <select id="projekt" required disabled>
+              <option value="" selected hidden>Bitte auswählen</option>
+            </select>
+            <div class="bHint">Wofür war die Ausgabe? Ist nichts Passendes dabei: „Sonstiges“.</div>
+            <div class="bErr" id="projekt-error"></div>
+          </div>
+
+          <div class="field full">
+            <label for="beschreibung">
+              Was wurde gekauft?
+              <span class="bCount" id="beschreibungCount">0/2000</span>
+            </label>
+            <textarea id="beschreibung" maxlength="2000" required
+                      placeholder="z. B. Getränkeeinkauf in der Metro für das Fachschaftswochenende"></textarea>
+            <div class="bErr" id="beschreibung-error"></div>
+          </div>
+
+          <div class="field">
+            <label for="betrag">Betrag</label>
+            <div class="bMoneyBox">
+              <input id="betrag" type="text" inputmode="decimal" maxlength="12"
+                     placeholder="0,00" required>
+            </div>
+            <div class="bErr" id="betrag-error"></div>
+          </div>
+
+          <div class="field">
+            <label for="belegdatum">Datum des Belegs</label>
+            <input id="belegdatum" type="date" required>
+            <div class="bErr" id="belegdatum-error"></div>
+          </div>
+
+          <div class="field full" id="beleg-feld">
+            <label for="beleg">Beleg hochladen</label>
+            <!-- Kein `for` hier: Das Feld steht im Kasten, und ein label,
+                 das beides tut, öffnet in manchen Browsern zwei Dialoge. -->
+            <label class="bFile" id="belegKasten">
+              <span class="bFilePreview" id="belegVorschau">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 16V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/>
+                  <path d="M4.5 15v3.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V15"/>
+                </svg>
+              </span>
+              <span class="bFileBody">
+                <span class="bFileName" id="belegName">Foto oder PDF auswählen</span>
+                <span class="bFileMeta" id="belegMeta">Kassenbon, Rechnung oder Screenshot · bis 15 MB</span>
+              </span>
+              <input id="beleg" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,application/pdf,image/*,.pdf" required>
+            </label>
+            <div class="bErr" id="beleg-error"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bSection">
+        <div class="bSectionHead">
+          <span class="bSectionNr">03</span>
+          <h2>Wohin sollen wir überweisen?</h2>
+        </div>
+
+        <div class="fieldGrid">
+          <div class="field full" id="iban-feld">
+            <label for="iban">IBAN</label>
+            <input id="iban" type="text" inputmode="text" autocomplete="off"
+                   spellcheck="false" maxlength="42" placeholder="DE00 0000 0000 0000 0000 00" required>
+            <div class="bIbanOk">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m5 13 4 4 10-10"/>
+              </svg>
+              <span>Die Prüfziffer stimmt.</span>
+            </div>
+            <div class="bHint">Dein eigenes Konto — dorthin erstatten wir den Betrag. Die IBAN sieht nur der Vorstand.</div>
+            <div class="bErr" id="iban-error"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bConsentField" id="einwilligung-feld">
+        <label class="bConsent" for="einwilligung">
+          <input id="einwilligung" type="checkbox" required disabled>
+          <!-- Der Wortlaut steht in der Datenbank; dieser Satz ist nur da,
+               damit vor der Antwort nichts springt. Gespeichert wird immer
+               die Fassung aus der Datenbank. -->
+          <span id="einwilligung-text">Ich willige ein, dass die Fachschaft Business School e.V. die hier angegebenen Daten einschließlich meiner Bankverbindung zur Prüfung und Auszahlung dieser Auslage speichert und verarbeitet.</span>
+        </label>
+        <div class="bErr" id="einwilligung-error"></div>
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="webseite">Webseite</label>
+        <input id="webseite" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <!-- Der Kasten des Captcha-Anbieters. Er bleibt leer und verborgen,
+           solange in der Datenbank keine Prüfung eingerichtet ist. -->
+      <div class="field bCaptcha" id="captchaFeld" hidden>
+        <div class="bCaptchaKasten" id="captcha"></div>
+        <div class="bErr" id="captcha-error"></div>
+      </div>
+
+      <button id="submit" type="submit" class="btn-primary btn--lg btn--block bSubmit">Beleg einreichen</button>
+      <p class="notice bad bNotice" id="notice" role="alert" hidden></p>
+    </form>
+
+    <div id="zu" hidden>
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="3.5" y="10.5" width="17" height="10.5" rx="2.5"/>
+        <path d="M7.5 10.5V7a4.5 4.5 0 0 1 9 0v3.5"/>
+      </svg>
+      <h2>Zurzeit geschlossen</h2>
+      <p id="zu-text"></p>
+    </div>
+
+    <div id="fertig" hidden>
+      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+        <circle class="ring" cx="28" cy="28" r="25"/>
+        <path class="tick" d="M17 29 L25 37 L39 20"/>
+      </svg>
+      <h2>Beleg eingegangen</h2>
+      <p id="fertig-text"></p>
+
+      <div class="bCodeBox">
+        <span class="bCodeLabel">Deine Vorgangsnummer</span>
+        <b class="bCodeWert" id="fertig-code">–</b>
+        <button type="button" class="btn-secondary btn-sm bCodeKopie" id="codeKopieren">
+          Nummer kopieren
+        </button>
+        <p class="bCodeHinweis">
+          Schreib sie dir auf. Mit ihr siehst du jederzeit unter
+          portal.fsbs-hm.de/rechnung, wie weit die Erstattung ist.
+        </p>
+      </div>
+
+      <button type="button" class="btn-primary btn--block" id="zumStand">
+        Stand ansehen
+      </button>
+    </div>
+
+    <div id="stand" hidden>
+      <div class="bStandKopf">
+        <h2>Wie weit ist meine Erstattung?</h2>
+        <p>Gib die Vorgangsnummer ein, die du nach dem Einreichen bekommen hast.</p>
+      </div>
+
+      <form id="standForm" novalidate>
+        <div class="field">
+          <label for="code">Vorgangsnummer</label>
+          <input id="code" type="text" inputmode="latin" autocomplete="off"
+                 spellcheck="false" maxlength="7" placeholder="ABC12" required>
+          <div class="bErr" id="code-error"></div>
+        </div>
+        <button id="standSubmit" type="submit" class="btn-primary btn--lg btn--block bSubmit">
+          Stand abrufen
+        </button>
+      </form>
+
+      <div id="standErgebnis" hidden></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     Rechnungen & Auslagen — das öffentliche Formular
+     ------------------------------------------------------------
+     Für alle, die keinen Zugang zum Portal haben. Eingetragen wird
+     über `rechnung_einreichen()`: Die Tabelle selbst steht anon
+     nicht offen — dort stehen Bankverbindungen.
+
+     Was hier im Browser geprüft wird, ist Höflichkeit, keine
+     Sicherheit. Betrag, Datum, IBAN und das Captcha prüft die
+     Datenbank noch einmal, und ihre Antwort zählt.
+     ============================================================ */
+
+  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+
+  const BELEG_BUCKET = "belege";
+  const MAX_BYTES    = 15 * 1024 * 1024;
+
+  const $ = (id) => document.getElementById(id);
+
+  const form       = $("form");
+  const submit     = $("submit");
+  const notice     = $("notice");
+  const laden      = $("laden");
+  const wechsel    = $("wechsel");
+
+  /* ============================================================
+     Kleinkram
+     ============================================================ */
+  const feldVon = (el) => el.closest(".field, .bConsentField");
+
+  function setzeFehler(el, text) {
+    const feld = feldVon(el);
+    if (!feld) return;
+    feld.classList.add("has-error");
+    const err = feld.querySelector(".bErr");
+    if (err) err.textContent = text;
+  }
+
+  function loescheFehler(el) {
+    const feld = feldVon(el);
+    if (!feld) return;
+    feld.classList.remove("has-error");
+    const err = feld.querySelector(".bErr");
+    if (err) err.textContent = "";
+  }
+
+  function zeigeHinweis(text) {
+    notice.textContent = text;
+    notice.hidden = false;
+  }
+
+  function zuElement(el) {
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  const nachOben = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const euro = (n) =>
+    new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(n || 0);
+
+  const datumKurz = (wert) => {
+    if (!wert) return "";
+    const d = new Date(wert);
+    return isNaN(d) ? "" : d.toLocaleDateString("de-DE",
+      { day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+
+  const heute = () => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  };
+
+  /* Welche Ansicht gerade zu sehen ist. */
+  function ansicht(name) {
+    laden.hidden   = true;
+    form.hidden    = name !== "formular";
+    $("zu").hidden = name !== "zu";
+    $("fertig").hidden = name !== "fertig";
+    $("stand").hidden  = name !== "stand";
+
+    /* Der Umschalter steht nur dort, wo er hilft: Auf der Danke-Seite
+       führt schon ein Knopf zum Stand, und wenn zu ist, gibt es kein
+       Formular, zu dem zurückzukehren wäre. */
+    $("zurAbfrage").hidden  = name === "stand" || name === "fertig";
+    $("zumFormular").hidden = name !== "stand" || zustand.geschlossen;
+
+    // Eine Zeile, in der beide Knöpfe fehlen, ist nur Abstand.
+    wechsel.hidden = $("zurAbfrage").hidden && $("zumFormular").hidden;
+  }
+
+  /* ============================================================
+     Der Betrag
+     ------------------------------------------------------------
+     „12,50“, „12.50“ und „1.234,56“ meinen dasselbe. Was dabei
+     herauskommt, ist eine Zahl mit zwei Nachkommastellen — mehr
+     nimmt die Spalte nicht.
+     ============================================================ */
+  function betragLesen(text) {
+    const s = String(text || "").trim().replace(/\s/g, "").replace(/[^\d.,-]/g, "");
+    if (!s) return NaN;
+
+    let zahl;
+    if (s.includes(".") && s.includes(",")) {
+      // Das letzte Zeichen von beiden trennt die Nachkommastellen.
+      zahl = s.lastIndexOf(",") > s.lastIndexOf(".")
+        ? s.replace(/\./g, "").replace(",", ".")
+        : s.replace(/,/g, "");
+    } else if (s.includes(",")) {
+      zahl = s.replace(",", ".");
+    } else {
+      zahl = s;
+    }
+
+    const n = Number(zahl);
+    return isFinite(n) ? Math.round(n * 100) / 100 : NaN;
+  }
+
+  /* ============================================================
+     Die IBAN
+     ------------------------------------------------------------
+     Geprüft wird die Prüfziffer nach ISO 7064 (Modulo 97). Das
+     fängt den Zahlendreher ab, der sonst erst auffiele, wenn die
+     Überweisung zurückkommt — und das dauert Wochen.
+     ============================================================ */
+  const ibanRoh = (wert) => String(wert || "").replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+
+  function ibanGut(wert) {
+    const iban = ibanRoh(wert);
+    if (!/^[A-Z]{2}[0-9]{2}[0-9A-Z]{10,30}$/.test(iban)) return false;
+
+    // Die ersten vier Zeichen nach hinten, Buchstaben zu Zahlen (A = 10).
+    const gedreht = iban.slice(4) + iban.slice(0, 4);
+    let rest = 0;
+    for (const zeichen of gedreht) {
+      const teil = zeichen >= "A" ? String(zeichen.charCodeAt(0) - 55) : zeichen;
+      // Stückweise rechnen: Die ganze Zahl hat bis zu 38 Stellen und
+      // passt in keine Gleitkommazahl.
+      for (const ziffer of teil) rest = (rest * 10 + Number(ziffer)) % 97;
+    }
+    return rest === 1;
+  }
+
+  const ibanSchoen = (wert) => ibanRoh(wert).replace(/(.{4})/g, "$1 ").trim();
+
+  /* Beim Tippen in Vierergruppen setzen, ohne den Schreibpunkt zu
+     verlieren: gezählt wird, wie viele echte Zeichen links davon
+     stehen, und danach wird er wieder dorthin gesetzt. */
+  function ibanFormatieren(el) {
+    const vorher   = el.value;
+    const punkt    = el.selectionStart ?? vorher.length;
+    const davor    = ibanRoh(vorher.slice(0, punkt)).length;
+    const nachher  = ibanSchoen(vorher);
+    if (nachher === vorher) return;
+
+    el.value = nachher;
+
+    let neu = 0, gezaehlt = 0;
+    while (neu < nachher.length && gezaehlt < davor) {
+      if (/[0-9A-Z]/.test(nachher[neu])) gezaehlt++;
+      neu++;
+    }
+    try { el.setSelectionRange(neu, neu); } catch (e) { /* type=date u. ä. */ }
+  }
+
+  /* ============================================================
+     Der Beleg
+     ============================================================ */
+  const TYPEN = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+    heic: "image/heic", heif: "image/heif", gif: "image/gif", pdf: "application/pdf"
+  };
+
+  /* `crypto.randomUUID` gibt es nur in einem sicheren Kontext. Über https
+     ist das immer der Fall — aber wer die Seite einmal über http öffnet
+     oder einen älteren Browser benutzt, soll nicht an einer fehlenden
+     Funktion scheitern, sondern seinen Beleg loswerden. */
+  function kennung() {
+    if (window.crypto && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    if (window.crypto && crypto.getRandomValues) {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      const hex = [...b].map((z) => z.toString(16).padStart(2, "0")).join("");
+      return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) +
+             "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+    }
+    return "z" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+  }
+
+  let belegDatei = null;
+  let belegUrl   = null;
+
+  const endung = (name) => (String(name || "").split(".").pop() || "").toLowerCase();
+
+  /* Manche Geräte — iPhones vor allem — schicken eine Datei ohne Angabe
+     ihrer Art. Der Ordner nimmt nur bekannte Arten an, deshalb raten wir
+     sie aus der Endung, statt am Ende an `application/octet-stream` zu
+     scheitern. */
+  function typVon(datei) {
+    const angegeben = String(datei.type || "").toLowerCase();
+    if (TYPEN[endung(datei.name)]) return TYPEN[endung(datei.name)];
+    if (Object.values(TYPEN).includes(angegeben)) return angegeben;
+    return "";
+  }
+
+  const groesse = (bytes) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + " KB";
+    return (bytes / 1024 / 1024).toFixed(1).replace(".", ",") + " MB";
+  };
+
+  const DOKUMENT_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M6 3.5h8L19 8v12.5H6Z"/><path d="M14 3.5V8h5"/>' +
+    '<path d="M9 13h6"/><path d="M9 16.5h4"/></svg>';
+
+  function belegZeigen(datei) {
+    const vorschau = $("belegVorschau");
+    if (belegUrl) { URL.revokeObjectURL(belegUrl); belegUrl = null; }
+
+    if (!datei) {
+      vorschau.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" ' +
+        'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+        '<path d="M12 16V4"/><path d="m7.5 8.5 4.5-4.5 4.5 4.5"/>' +
+        '<path d="M4.5 15v3.5A1.5 1.5 0 0 0 6 20h12a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>';
+      $("belegName").textContent = "Foto oder PDF auswählen";
+      $("belegMeta").textContent = "Kassenbon, Rechnung oder Screenshot · bis 15 MB";
+      return;
+    }
+
+    const typ = typVon(datei);
+    if (typ.startsWith("image/") && typ !== "image/heic" && typ !== "image/heif") {
+      belegUrl = URL.createObjectURL(datei);
+      vorschau.innerHTML = '<img alt="">';
+      vorschau.firstChild.src = belegUrl;
+    } else {
+      vorschau.innerHTML = DOKUMENT_ICON;
+    }
+
+    $("belegName").textContent = datei.name;
+    $("belegMeta").textContent = groesse(datei.size) + " · zum Tauschen antippen";
+  }
+
+  function belegNehmen(datei) {
+    if (!datei) return;
+
+    if (!typVon(datei)) {
+      setzeFehler($("beleg"), "Bitte ein Foto (JPG, PNG, HEIC) oder ein PDF auswählen.");
+      return;
+    }
+    if (datei.size > MAX_BYTES) {
+      setzeFehler($("beleg"),
+        "Die Datei ist " + groesse(datei.size) + " groß — mehr als 15 MB nehmen wir nicht an. " +
+        "Ein Foto mit weniger Auflösung tut es auch.");
+      return;
+    }
+
+    belegDatei = datei;
+    loescheFehler($("beleg"));
+    belegZeigen(datei);
+  }
+
+  $("beleg").addEventListener("change", (e) => belegNehmen(e.target.files && e.target.files[0]));
+
+  /* Hineinziehen geht auch. Auf dem Telefon führt derselbe Kasten zur
+     Kamera — das erledigt das `label` von selbst. */
+  const kasten = $("belegKasten");
+  ["dragenter", "dragover"].forEach((art) =>
+    kasten.addEventListener(art, (e) => { e.preventDefault(); kasten.classList.add("is-over"); }));
+  ["dragleave", "drop"].forEach((art) =>
+    kasten.addEventListener(art, () => kasten.classList.remove("is-over")));
+  kasten.addEventListener("drop", (e) => {
+    e.preventDefault();
+    belegNehmen(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
+  });
+
+  /* ============================================================
+     Prüfen
+     ============================================================ */
+  const PFLICHT = "Bitte ausfüllen.";
+
+  function pruefeFeld(el) {
+    const wert = String(el.value || "").trim();
+
+    if (el.id === "vorname" || el.id === "nachname") {
+      if (!wert) { setzeFehler(el, PFLICHT); return false; }
+    }
+
+    if (el.id === "email" && wert) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(wert)) {
+        setzeFehler(el, "Diese Adresse sieht nicht vollständig aus.");
+        return false;
+      }
+    }
+
+    if (el.id === "projekt" && !wert) {
+      setzeFehler(el, "Bitte ein Projekt auswählen.");
+      return false;
+    }
+
+    if (el.id === "beschreibung") {
+      if (wert.length < 3) {
+        setzeFehler(el, "Ein Stichwort genügt — aber ganz ohne wissen wir nicht, worum es geht.");
+        return false;
+      }
+    }
+
+    if (el.id === "betrag") {
+      const n = betragLesen(wert);
+      if (!isFinite(n) || n <= 0) {
+        setzeFehler(el, "Bitte den Betrag eintragen, etwa 12,50.");
+        return false;
+      }
+      if (n > 100000) {
+        setzeFehler(el, "So viel nimmt das Formular nicht an. Bitte wende dich an den Vorstand.");
+        return false;
+      }
+    }
+
+    if (el.id === "belegdatum") {
+      if (!wert) { setzeFehler(el, "Bitte das Datum vom Beleg eintragen."); return false; }
+      if (wert > heute()) {
+        setzeFehler(el, "Das Datum liegt in der Zukunft.");
+        return false;
+      }
+      if (wert < "2000-01-01") {
+        setzeFehler(el, "Das Datum kann so nicht stimmen.");
+        return false;
+      }
+    }
+
+    if (el.id === "iban") {
+      if (!wert) { setzeFehler(el, "Ohne Konto können wir nichts überweisen."); return false; }
+      if (!ibanGut(wert)) {
+        setzeFehler(el, "Diese IBAN stimmt nicht — bitte noch einmal vergleichen.");
+        return false;
+      }
+    }
+
+    loescheFehler(el);
+    return true;
+  }
+
+  const PFLICHTFELDER = ["vorname", "nachname", "email", "projekt", "beschreibung",
+                         "betrag", "belegdatum", "iban"];
+
+  /* Erst melden, wenn das Feld verlassen wird — wer noch tippt, hat noch
+     nicht falsch getippt. Sitzt der Fehler schon, folgt die Meldung beim
+     Tippen mit und verschwindet, sobald es stimmt. */
+  PFLICHTFELDER.forEach((id) => {
+    const el = $(id);
+    el.addEventListener("blur", () => pruefeFeld(el));
+    el.addEventListener("input", () => {
+      if (feldVon(el).classList.contains("has-error")) pruefeFeld(el);
+    });
+  });
+
+  $("projekt").addEventListener("change", () => pruefeFeld($("projekt")));
+
+  const zaehler = $("beschreibungCount");
+  $("beschreibung").addEventListener("input", (e) => {
+    const n = e.target.value.length;
+    zaehler.textContent = n + "/2000";
+    zaehler.classList.toggle("is-near", n > 1800);
+  });
+
+  const ibanFeld = $("iban");
+  ibanFeld.addEventListener("input", () => {
+    ibanFormatieren(ibanFeld);
+    feldVon(ibanFeld).classList.toggle("is-ok", ibanGut(ibanFeld.value));
+  });
+  ibanFeld.addEventListener("blur", () => {
+    ibanFeld.value = ibanSchoen(ibanFeld.value);
+    pruefeFeld(ibanFeld);
+  });
+
+  /* Der Betrag bekommt beim Verlassen seine gewohnte Form. */
+  $("betrag").addEventListener("blur", (e) => {
+    const n = betragLesen(e.target.value);
+    if (isFinite(n) && n > 0) e.target.value = n.toFixed(2).replace(".", ",");
+  });
+
+  /* ============================================================
+     Was die Datenbank sagt
+     ============================================================ */
+  const zustand = { geschlossen: false, hinweisZu: "", einwilligung: null, projekte: [] };
+
+  async function stammdatenLaden() {
+    const [formular, projekte, einwilligung] = await Promise.all([
+      sb.from("rechnung_formular").select("titel,intro,geschlossen,hinweis_zu").maybeSingle(),
+      sb.from("rechnung_projekte").select("id,name").eq("active", true)
+        .order("sort_order", { ascending: true }).order("name", { ascending: true }),
+      sb.from("rechnung_einwilligung").select("id,text").eq("active", true)
+        .order("created_at", { ascending: false }).limit(1).maybeSingle()
+    ]);
+
+    if (formular.data) {
+      if (formular.data.titel) $("titel").textContent = formular.data.titel;
+      if (formular.data.intro) $("intro").textContent = formular.data.intro;
+      zustand.geschlossen = formular.data.geschlossen === true;
+      zustand.hinweisZu   = formular.data.hinweis_zu || "";
+    }
+
+    if (projekte.error) throw projekte.error;
+
+    zustand.projekte = projekte.data || [];
+    const auswahl = $("projekt");
+    auswahl.innerHTML = '<option value="" selected hidden>Bitte auswählen</option>' +
+      zustand.projekte.map((p) => {
+        const o = document.createElement("option");
+        o.value = p.id;
+        o.textContent = p.name;
+        return o.outerHTML;
+      }).join("");
+    auswahl.disabled = false;
+
+    if (einwilligung.data) {
+      zustand.einwilligung = einwilligung.data;
+      $("einwilligung-text").textContent = einwilligung.data.text;
+    }
+    $("einwilligung").disabled = false;
+  }
+
+  /* ============================================================
+     Sicherheitsprüfung
+     ------------------------------------------------------------
+     Welcher Anbieter und welcher Schlüssel: Das sagt die Datenbank
+     (`rechnung_schutz_info`), im Quelltext steht davon nichts. Ist
+     nichts eingerichtet, bleibt es beim versteckten Feld weiter
+     oben, und am Formular ändert sich nichts.
+
+     Geprüft wird das Token nicht hier, sondern in der Datenbank:
+     `rechnung_einreichen` fragt beim Anbieter nach, ob es echt ist.
+     ============================================================ */
+  const ANBIETER = {
+    turnstile: {
+      skript: "https://challenges.cloudflare.com/turnstile/v0/api.js" +
+              "?render=explicit&onload=fsbsPruefungBereit",
+      api: () => window.turnstile,
+      felder: (thema) => ({ theme: thema, language: "de" })
+    },
+    hcaptcha: {
+      skript: "https://js.hcaptcha.com/1/api.js?render=explicit&onload=fsbsPruefungBereit",
+      api: () => window.hcaptcha,
+      felder: (thema) => ({ theme: thema, hl: "de" })
+    }
+  };
+
+  const pruefung = {
+    verlangt: false, anbieter: "turnstile", siteKey: "",
+    widget: null, token: "", angefordert: false
+  };
+
+  const themaJetzt = () =>
+    document.documentElement.classList.contains("dark") ? "dark" : "light";
+
+  const pruefungFehler = (text) => setzeFehler($("captcha"), text);
+
+  async function schutzLaden() {
+    const { data, error } = await sb.rpc("rechnung_schutz_info");
+
+    if (error) {
+      /* PGRST202: supabase/rechnung-schutz.sql ist noch nicht gelaufen.
+         Dann gibt es keine Prüfung — und daran soll das Formular nicht
+         hängen bleiben, sonst nähme ein fehlendes Skript den Beleg mit. */
+      if (error.code !== "PGRST202") console.error(error);
+      return;
+    }
+
+    const zeile = Array.isArray(data) ? data[0] : data;
+    if (!zeile || zeile.captcha_aktiv !== true || !zeile.captcha_site_key) return;
+
+    pruefung.verlangt = true;
+    pruefung.anbieter = zeile.captcha_anbieter === "hcaptcha" ? "hcaptcha" : "turnstile";
+    pruefung.siteKey  = zeile.captcha_site_key;
+  }
+
+  function pruefungZeichnen() {
+    if (!pruefung.verlangt) return;
+    const anbieter = ANBIETER[pruefung.anbieter];
+    const api = anbieter.api();
+    if (!api) return;
+
+    const box = $("captcha");
+
+    /* Ein zweites `render` in denselben Kasten weist der Anbieter ab;
+       der alte muss erst fort. */
+    if (pruefung.widget !== null) {
+      try { api.remove(pruefung.widget); } catch (e) { /* schon fort */ }
+      pruefung.widget = null;
+    }
+    box.innerHTML = "";
+    pruefung.token = "";
+
+    pruefung.widget = api.render(box, Object.assign({
+      sitekey: pruefung.siteKey,
+      callback: (token) => { pruefung.token = token || ""; loescheFehler($("captcha")); },
+      "expired-callback": () => { pruefung.token = ""; },
+      "timeout-callback": () => { pruefung.token = ""; },
+      "error-callback":   () => { pruefung.token = ""; }
+    }, anbieter.felder(themaJetzt())));
+  }
+
+  /* Ein Token gilt nur einmal. Nach jedem Fehlschlag braucht es ein
+     neues — auch dann, wenn der Fehler ein ganz anderer war. */
+  function pruefungZuruecksetzen() {
+    if (!pruefung.verlangt) return;
+    pruefung.token = "";
+    if (pruefung.widget === null) return;
+
+    const api = ANBIETER[pruefung.anbieter].api();
+    if (!api) return;
+    try { api.reset(pruefung.widget); } catch (e) { pruefungZeichnen(); }
+  }
+
+  function pruefungVorbereiten() {
+    if (!pruefung.verlangt || pruefung.angefordert) return;
+    pruefung.angefordert = true;
+    $("captchaFeld").hidden = false;
+
+    window.fsbsPruefungBereit = pruefungZeichnen;
+
+    const skript = document.createElement("script");
+    skript.src = ANBIETER[pruefung.anbieter].skript;
+    skript.async = true;
+    skript.defer = true;
+    skript.onerror = () => {
+      submit.disabled = true;
+      pruefungFehler("Die Sicherheitsprüfung ließ sich nicht laden. Blockiert " +
+                     "vielleicht ein Adblocker die Seite? Bitte neu laden.");
+    };
+    document.head.appendChild(skript);
+
+    /* Der Kasten des Anbieters kennt hell und dunkel nur beim Zeichnen;
+       bei einem Wechsel entsteht er darum neu. Das Token fällt dabei
+       weg — gebraucht wird es erst beim Absenden. */
+    document.addEventListener("fsbs:themechange", () => {
+      if (pruefung.widget !== null) pruefungZeichnen();
+    });
+  }
+
+  /* ============================================================
+     Absenden
+     ============================================================ */
+  let laeuft = false;
+  let meineNummer = "";
+
+  async function belegHochladen() {
+    const typ  = typVon(belegDatei);
+    const name = "eingang/" + kennung() + "." + (endung(belegDatei.name) || "jpg");
+
+    const { error } = await sb.storage.from(BELEG_BUCKET).upload(name, belegDatei, {
+      contentType: typ,
+      upsert: false
+    });
+    if (error) throw error;
+    return name;
+  }
+
+  function knopfZurueck() {
+    laeuft = false;
+    submit.disabled = false;
+    submit.textContent = "Beleg einreichen";
+    pruefungZuruecksetzen();
+  }
+
+  function fertigZeigen(nummer) {
+    meineNummer = nummer || "";
+    $("fertig-text").textContent =
+      "Danke! Der Beleg liegt beim Vorstand. Sobald er geprüft ist, überweisen wir dir den Betrag.";
+    $("fertig-code").textContent = meineNummer || "–";
+    $("fertig").querySelector(".bCodeBox").hidden = !meineNummer;
+    $("zumStand").hidden = !meineNummer;
+    ansicht("fertig");
+    nachOben();
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (laeuft) return;
+
+    notice.hidden = true;
+    if (zustand.geschlossen) { ansicht("zu"); return; }
+
+    let erstesFehlendes = null;
+    for (const id of PFLICHTFELDER) {
+      if (!pruefeFeld($(id)) && !erstesFehlendes) erstesFehlendes = $(id);
+    }
+
+    if (!belegDatei) {
+      setzeFehler($("beleg"), "Ohne Beleg dürfen wir nichts erstatten.");
+      if (!erstesFehlendes) erstesFehlendes = $("belegKasten");
+    }
+
+    if (!$("einwilligung").checked) {
+      setzeFehler($("einwilligung"), "Ohne deine Einwilligung dürfen wir die Daten nicht speichern.");
+      if (!erstesFehlendes) erstesFehlendes = $("einwilligung");
+    } else {
+      loescheFehler($("einwilligung"));
+    }
+
+    if (erstesFehlendes) {
+      if (erstesFehlendes.focus) erstesFehlendes.focus({ preventScroll: true });
+      zuElement(erstesFehlendes);
+      return;
+    }
+
+    /* Die Prüfung erst hier abfragen: Wer noch ausfüllt, soll nicht von
+       einem ablaufenden Token gehetzt werden. */
+    if (pruefung.verlangt && !pruefung.token) {
+      pruefungFehler("Bitte bestätige noch kurz, dass du kein Bot bist.");
+      zuElement($("captchaFeld"));
+      return;
+    }
+
+    // Automatischer Eintrag: still bestätigen, aber nichts speichern.
+    if ($("webseite").value !== "") { fertigZeigen(""); return; }
+
+    laeuft = true;
+    submit.disabled = true;
+    submit.innerHTML = '<span class="spinner spinner--sm"></span>';
+
+    let pfad;
+    try {
+      pfad = await belegHochladen();
+    } catch (err) {
+      console.error(err);
+      knopfZurueck();
+      zeigeHinweis("Der Beleg ließ sich nicht hochladen. Bitte noch einmal versuchen — " +
+                   "oder ein kleineres Bild wählen.");
+      return;
+    }
+
+    const felder = {
+      p_vorname:      $("vorname").value.trim(),
+      p_nachname:     $("nachname").value.trim(),
+      p_email:        $("email").value.trim().toLowerCase() || null,
+      p_beschreibung: $("beschreibung").value.trim(),
+      p_projekt_id:   $("projekt").value || null,
+      p_betrag:       betragLesen($("betrag").value),
+      p_beleg_datum:  $("belegdatum").value,
+      p_iban:         ibanRoh($("iban").value),
+      p_beleg_pfad:   pfad,
+      p_beleg_name:   belegDatei.name.slice(0, 200),
+      p_beleg_typ:    typVon(belegDatei),
+      p_einwilligung_id: zustand.einwilligung ? zustand.einwilligung.id : null
+    };
+
+    /* Das Token kommt nur mit, wenn eine Prüfung verlangt wird — und das
+       kann sie nur, wenn supabase/rechnung-schutz.sql schon gelaufen ist.
+       PostgREST sucht die Funktion über die Namen der Argumente: Ein
+       `p_captcha_token` an eine Datenbank, die es noch nicht kennt, fände
+       dort gar keine Funktion mehr. */
+    if (pruefung.verlangt) felder.p_captcha_token = pruefung.token;
+
+    const { data: nummer, error } = await sb.rpc("rechnung_einreichen", felder);
+
+    if (!error) { fertigZeigen(nummer); return; }
+
+    knopfZurueck();
+
+    // Die Datenbank hat zugemacht.
+    if (error.code === "42501") { zustand.geschlossen = true; ansicht("zu"); nachOben(); return; }
+
+    // Das Captcha hat beim Anbieter nicht bestanden — meist ein Token,
+    // das zu lange herumlag.
+    if (error.code === "PT403") {
+      pruefungFehler("Die Sicherheitsprüfung ist abgelaufen. Bitte bestätige noch " +
+                     "einmal und sende dann erneut ab.");
+      zuElement($("captchaFeld"));
+      return;
+    }
+
+    // Zu viele Einreichungen von dieser Verbindung.
+    if (error.code === "PT429") {
+      zeigeHinweis("Von dieser Verbindung kamen gerade schon mehrere Belege. " +
+                   "Bitte versuch es später noch einmal — oder schreib uns kurz.");
+      return;
+    }
+
+    // Die Datenbank nennt das Feld im Klartext (IBAN, Datum, Betrag).
+    if (error.code === "23514") {
+      zeigeHinweis(error.message || "Eine Angabe hat die Prüfung nicht bestanden.");
+      return;
+    }
+
+    // PGRST202: PostgREST kennt `rechnung_einreichen` nicht. Entweder ist
+    // supabase/rechnungen.sql noch nicht gelaufen, oder PostgREST hat den
+    // Katalog noch nicht neu gelesen ("notify pgrst, 'reload schema'").
+    if (error.code === "PGRST202") {
+      console.error("rechnung_einreichen fehlt in der Datenbank:", error);
+      zeigeHinweis("Das Formular ist gerade nicht vollständig eingerichtet. " +
+                   "Bitte schreib uns kurz — wir kümmern uns darum.");
+      return;
+    }
+
+    console.error(error);
+    zeigeHinweis("Der Beleg ließ sich nicht speichern. Bitte später noch einmal versuchen.");
+  });
+
+  $("codeKopieren").addEventListener("click", async (e) => {
+    const knopf = e.currentTarget;
+    const zurueck = () => setTimeout(() => { knopf.textContent = "Nummer kopieren"; }, 1800);
+    try {
+      await navigator.clipboard.writeText(meineNummer);
+      knopf.textContent = "Kopiert";
+    } catch (err) {
+      knopf.textContent = "Bitte abschreiben";
+    }
+    zurueck();
+  });
+
+  /* ============================================================
+     Stand abrufen
+     ============================================================ */
+  const SCHRITTE = [
+    { schluessel: "offen",    titel: "Beleg eingegangen" },
+    { schluessel: "pruefung", titel: "Wird geprüft" },
+    { schluessel: "bezahlt",  titel: "Überwiesen" }
+  ];
+
+  const HAKEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" ' +
+                'stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4 10-10"/></svg>';
+  const KREUZ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" ' +
+                'stroke-linecap="round" stroke-linejoin="round"><path d="M7 7l10 10M17 7 7 17"/></svg>';
+
+  function standZeichnen(zeile) {
+    const ergebnis = $("standErgebnis");
+    const abgelehnt = zeile.status === "abgelehnt";
+    const jetzt = SCHRITTE.findIndex((s) => s.schluessel === zeile.status);
+
+    const punkte = SCHRITTE.map((schritt, i) => {
+      let klasse = "is-todo", punkt = String(i + 1);
+      if (!abgelehnt && i < jetzt)   { klasse = "is-done";    punkt = HAKEN; }
+      if (!abgelehnt && i === jetzt) { klasse = "is-current"; }
+      // Überwiesen ist das Ende des Weges: Dort steht kein Punkt mehr,
+      // an dem noch etwas offen wäre, sondern ein Haken.
+      if (zeile.status === "bezahlt") { klasse = "is-done";   punkt = HAKEN; }
+      if (abgelehnt && i === 0)      { klasse = "is-done";    punkt = HAKEN; }
+
+      let datum = "";
+      if (i === 0) datum = datumKurz(zeile.eingegangen_am);
+      if (i === jetzt && !abgelehnt && i > 0) datum = datumKurz(zeile.stand_seit);
+      if (schritt.schluessel === "bezahlt" && zeile.bezahlt_am) datum = datumKurz(zeile.bezahlt_am);
+
+      return '<li class="tlItem ' + klasse + '">' +
+             '<span class="tlDot">' + punkt + '</span>' +
+             '<span class="tlTitel">' + schritt.titel + '</span>' +
+             '<span class="tlDatum">' + datum + '</span></li>';
+    });
+
+    if (abgelehnt) {
+      punkte.push('<li class="tlItem is-reject"><span class="tlDot">' + KREUZ + '</span>' +
+                  '<span class="tlTitel">Nicht erstattet — bitte beim Vorstand nachfragen</span>' +
+                  '<span class="tlDatum">' + datumKurz(zeile.stand_seit) + '</span></li>');
+    }
+
+    const kopf = document.createElement("div");
+    kopf.className = "bStandKarte";
+    kopf.innerHTML =
+      '<div class="bStandKopfzeile">' +
+        '<span class="bStandBetrag"></span>' +
+      '</div>' +
+      '<p class="bStandSub"></p>' +
+      '<ul class="tl">' + punkte.join("") + '</ul>';
+
+    kopf.querySelector(".bStandBetrag").textContent = euro(Number(zeile.betrag));
+    kopf.querySelector(".bStandSub").textContent =
+      [zeile.vorname, zeile.projekt, "Beleg vom " + datumKurz(zeile.beleg_datum)]
+        .filter(Boolean).join(" · ");
+
+    ergebnis.innerHTML = "";
+    ergebnis.appendChild(kopf);
+
+    const neu = document.createElement("button");
+    neu.type = "button";
+    neu.className = "btn-secondary btn--block bStandNeu";
+    neu.textContent = "Andere Nummer abfragen";
+    neu.addEventListener("click", () => {
+      ergebnis.hidden = true;
+      $("standForm").hidden = false;
+      $("code").value = "";
+      $("code").focus();
+    });
+    ergebnis.appendChild(neu);
+
+    $("standForm").hidden = true;
+    ergebnis.hidden = false;
+  }
+
+  const standSubmit = $("standSubmit");
+
+  $("standForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const feld = $("code");
+    const nummer = feld.value.trim();
+
+    if (nummer.replace(/[^0-9A-Za-z]/g, "").length !== 5) {
+      setzeFehler(feld, "Die Nummer hat fünf Zeichen.");
+      feld.focus();
+      return;
+    }
+    loescheFehler(feld);
+
+    standSubmit.disabled = true;
+    standSubmit.innerHTML = '<span class="spinner spinner--sm"></span>';
+
+    const { data, error } = await sb.rpc("rechnung_stand", { p_code: nummer });
+
+    standSubmit.disabled = false;
+    standSubmit.textContent = "Stand abrufen";
+
+    if (error) {
+      if (error.code === "PT429") {
+        setzeFehler(feld, "Zu viele Versuche von dieser Verbindung. Bitte in einigen Minuten noch einmal.");
+      } else {
+        console.error(error);
+        setzeFehler(feld, "Das ließ sich gerade nicht abfragen. Bitte später noch einmal.");
+      }
+      return;
+    }
+
+    const zeile = Array.isArray(data) ? data[0] : data;
+    if (!zeile) {
+      setzeFehler(feld, "Diese Nummer kennen wir nicht. Bitte vergleiche sie noch einmal.");
+      return;
+    }
+
+    standZeichnen(zeile);
+    nachOben();
+  });
+
+  $("code").addEventListener("input", (e) => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 5);
+    if (feldVon(e.target).classList.contains("has-error")) loescheFehler(e.target);
+  });
+
+  /* ---- Der Wechsel zwischen beidem ---- */
+  $("zurAbfrage").addEventListener("click", () => {
+    ansicht("stand");
+    $("standErgebnis").hidden = true;
+    $("standForm").hidden = false;
+    nachOben();
+    $("code").focus({ preventScroll: true });
+  });
+
+  $("zumFormular").addEventListener("click", () => {
+    ansicht(zustand.geschlossen ? "zu" : "formular");
+    nachOben();
+  });
+
+  $("zumStand").addEventListener("click", () => {
+    ansicht("stand");
+    $("code").value = meineNummer;
+    $("standErgebnis").hidden = true;
+    $("standForm").hidden = false;
+    nachOben();
+    $("standForm").requestSubmit();
+  });
+
+  /* ============================================================
+     Los
+     ============================================================ */
+  (async function start() {
+    $("belegdatum").max   = heute();
+    $("belegdatum").value = heute();
+
+    try {
+      await Promise.all([stammdatenLaden(), schutzLaden()]);
+    } catch (err) {
+      console.error(err);
+      laden.hidden = true;
+      zeigeHinweis("Das Formular ließ sich nicht laden. Bitte die Seite neu laden.");
+      notice.hidden = false;
+      document.querySelector(".glass").appendChild(notice);
+      return;
+    }
+
+    pruefungVorbereiten();
+
+    const p = new URLSearchParams(window.location.search);
+    const mitgebracht = (p.get("code") || "").toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 5);
+
+    if (zustand.geschlossen) {
+      $("zu-text").textContent = zustand.hinweisZu ||
+        "Zurzeit nehmen wir keine Belege entgegen. Bitte wende dich an den Vorstand.";
+      ansicht("zu");
+    } else if (p.get("view") === "stand" || mitgebracht) {
+      ansicht("stand");
+    } else {
+      ansicht("formular");
+    }
+
+    if (mitgebracht) {
+      $("code").value = mitgebracht;
+      $("standForm").requestSubmit();
+    }
+  })();
+})();
+</script>
+
+<script>
+/* Der Dienst gehört zum Portal: Wer hier einmal war, soll ihn auch
+   dann öffnen können, wenn die Verbindung gerade schlecht ist. */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(console.warn);
+  });
+}
+</script>
+</body>
+</html>

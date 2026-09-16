@@ -21,6 +21,489 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/mobile-nav.css">
 
+<style>
+  /* ============================================================
+     Finanzen — was diese Seite über style.css hinaus braucht.
+     ============================================================ */
+
+  /* ---------- Der Streifen über allem ---------- */
+  /* Eine Zahl, die sagt, was zu tun ist: was der Verein gerade wem
+     schuldet. Alles andere auf der Seite erklärt sie nur. */
+  .finHero {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    padding: 18px 20px;
+    border-radius: var(--radius-card);
+    background: color-mix(in oklab, var(--primary) 7%, var(--card));
+    border: 1px solid color-mix(in oklab, var(--primary) 26%, transparent);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .finHeroText { min-width: 0; flex: 1 1 260px; }
+
+  .finHeroLabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+
+  .finHeroWert {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--font-display);
+    font-size: clamp(26px, 5vw, 34px);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+  }
+
+  .finHeroSub {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+
+  .finHeroAktion { flex: 0 0 auto; }
+
+  /* ---------- Kennzahlen ---------- */
+  .kLabel {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .kValue {
+    display: block;
+    margin-top: 6px;
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .kHint {
+    margin-top: 3px;
+    font-size: 12px;
+    color: var(--muted-foreground);
+  }
+
+  /* ---------- Steuerleiste ---------- */
+  .finTabsRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .finTabsRow .spacer { flex: 1 1 auto; }
+
+  .finFilterRow {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .finFilterRow input[type="search"] { flex: 1 1 240px; min-width: 180px; }
+  .finFilterRow select { flex: 0 1 170px; min-width: 140px; }
+
+  /* Auf dem Telefon nimmt jedes Feld eine ganze Zeile: Drei halbbreite
+     Auswahlfelder untereinander sähen aus wie ein Fehler im Umbruch. */
+  @media (max-width: 560px) {
+    .finFilterRow input[type="search"],
+    .finFilterRow select { flex: 1 1 100%; }
+  }
+
+  /* Einen Filter, der greift, soll man sehen — sonst sucht man später
+     eine Zeile, die nur ausgeblendet ist. */
+  .finFilterRow select.is-aktiv,
+  .finFilterRow input.is-aktiv {
+    border-color: color-mix(in oklab, var(--primary) 50%, transparent);
+    background: color-mix(in oklab, var(--primary) 7%, transparent);
+  }
+
+  /* ---------- Liste der Vorgänge ---------- */
+  .belegListe {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .belegZeile {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 4px 14px;
+    align-items: center;
+    width: 100%;
+    padding: 14px 16px;
+    text-align: left;
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+    transition: transform 0.22s var(--ease), border-color 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  @media (hover: hover) {
+    .belegZeile:hover {
+      transform: translateY(-1px);
+      border-color: color-mix(in oklab, var(--primary) 32%, transparent);
+      box-shadow: var(--shadow-card);
+    }
+  }
+  .belegZeile:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+  /* Die Kachel links trägt den Stand als Farbe. Sie steht nie allein:
+     rechts daneben sagt ein Wort dasselbe noch einmal. */
+  .belegIcon {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--surface-1);
+    color: var(--muted-foreground);
+  }
+  .belegIcon svg { width: 19px; height: 19px; }
+  .belegZeile.st-offen     .belegIcon { background: var(--warning-surface); color: var(--warning); }
+  .belegZeile.st-pruefung  .belegIcon { background: var(--info-surface);    color: var(--info); }
+  .belegZeile.st-bezahlt   .belegIcon { background: var(--success-surface); color: var(--success); }
+  .belegZeile.st-abgelehnt .belegIcon { background: var(--danger-surface);  color: var(--danger); }
+
+  .belegName {
+    font-weight: 600;
+    font-size: 14.5px;
+    letter-spacing: -0.012em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .belegBetrag {
+    grid-row: span 2;
+    align-self: center;
+    text-align: right;
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .belegZeile.st-bezahlt .belegBetrag { color: var(--muted-foreground); }
+  .belegZeile.st-abgelehnt .belegBetrag {
+    color: var(--faint-foreground);
+    text-decoration: line-through;
+  }
+
+  .belegMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+    font-size: 12.5px;
+    color: var(--muted-foreground);
+  }
+  .belegText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  @media (max-width: 560px) {
+    .belegZeile {
+      grid-template-columns: 42px minmax(0, 1fr);
+      row-gap: 8px;
+    }
+    .belegBetrag {
+      grid-row: auto;
+      grid-column: 2;
+      text-align: left;
+      font-size: 17px;
+    }
+  }
+
+  /* ---------- Auszahlungen ---------- */
+  .zahlKarte {
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+    padding: 18px 18px 14px;
+  }
+
+  .zahlKopf {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .zahlName {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  .zahlIban {
+    margin-top: 4px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--muted-foreground);
+    word-break: break-all;
+  }
+  .zahlIban.fehlt { color: var(--danger); font-family: var(--font-sans); }
+
+  .zahlSumme {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .zahlPosten {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 12px 0 0;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .zahlPosten li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 8px;
+    margin: 0 -8px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .zahlPosten li:hover { background: var(--surface-1); }
+  .zahlPosten .p1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .zahlPosten .p2 { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--muted-foreground); }
+  .zahlPosten code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--faint-foreground);
+    margin-right: 7px;
+  }
+
+  .zahlAktionen {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  /* ---------- Projekte: eine Balkenliste ---------- */
+  /* Eine Reihe, eine Größe — deshalb eine Farbe und keine Legende für
+     Reihen. Der Wert steht am Balken, nicht an einer Achse: Zwölf
+     Zeilen lesen sich so schneller, als zwölfmal zwischen Balken und
+     Achse hin- und herzusehen. */
+  .projListe { display: flex; flex-direction: column; gap: 2px; }
+
+  .projZeile {
+    display: grid;
+    grid-template-columns: minmax(120px, 1.1fr) minmax(0, 2.4fr) auto;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 9px 10px;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-control);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease;
+  }
+  .projZeile:hover { background: var(--surface-1); }
+  .projZeile:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+
+  .projName {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .projAnzahl {
+    display: block;
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--faint-foreground);
+  }
+
+  .projBahn {
+    display: block;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  /* Runde Enden am Balken, der an der Grundlinie links beginnt. */
+  .projBalken {
+    display: block;
+    height: 100%;
+    min-width: 4px;
+    border-radius: 0 5px 5px 0;
+    background: var(--primary);
+    transition: width 0.5s var(--ease);
+  }
+
+  /* Der noch offene Teil sitzt am rechten Ende desselben Balkens: Es
+     geht um eine Größe, die sich in zwei Zustände teilt, nicht um zwei
+     Reihen nebeneinander. Zwischen beiden bleibt ein Spalt in der
+     Farbe der Fläche darunter. */
+  .projOffen {
+    display: block;
+    height: 100%;
+    margin-left: auto;
+    border-radius: 0 5px 5px 0;
+    border-left: 2px solid var(--card);
+    background: var(--warning);
+  }
+
+  .projWert {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  @media (max-width: 560px) {
+    .projZeile { grid-template-columns: minmax(0, 1fr) auto; row-gap: 8px; }
+    .projBahn { grid-column: 1 / -1; grid-row: 2; }
+  }
+
+  .projLegende {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    font-size: 12px;
+    color: var(--muted-foreground);
+  }
+  .projLegende span { display: inline-flex; align-items: center; gap: 7px; }
+  .projLegende i {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: var(--primary);
+  }
+  .projLegende i.offen { background: var(--warning); }
+
+  /* ---------- Der Beleg im Dialog ---------- */
+  .belegBox {
+    margin: 4px 0 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--surface-1);
+    overflow: hidden;
+  }
+  .belegBox img,
+  .belegBox iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: var(--card);
+  }
+  .belegBox img { max-height: 420px; object-fit: contain; }
+  .belegBox iframe { height: 420px; }
+
+  .belegLeer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .belegLeer svg { width: 20px; height: 20px; flex: none; color: var(--faint-foreground); }
+
+  .belegFuss {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* ---------- Stand umstellen ---------- */
+  .statusBar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .statusBtn.is-active { box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent); }
+
+  /* ---------- Angaben im Dialog ---------- */
+  /* Zehn Kästen untereinander wären eine lange Rutschbahn; ab der
+     Breite, ab der zwei nebeneinander passen, stehen sie zu zweit.
+     Was lange Sätze trägt, bleibt über beide Spalten. */
+  @media (min-width: 620px) {
+    #kvGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-content: start;
+    }
+    #kvGrid .kvRow--voll { grid-column: 1 / -1; }
+  }
+
+  .kvWert { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+  .kvWert .mono { font-family: var(--font-mono); font-size: 13px; word-break: break-all; }
+
+  .kopierBtn {
+    height: 24px;
+    padding: 0 9px;
+    font-size: 11.5px;
+    border-radius: 999px;
+  }
+
+  .notizFeld { margin-top: 16px; }
+  .notizFeld textarea { min-height: 76px; resize: vertical; }
+  .notizStand { margin-top: 5px; font-size: 12px; color: var(--faint-foreground); }
+
+  /* ---------- Leere Zustände ---------- */
+  .leer {
+    padding: 44px 20px;
+    text-align: center;
+    color: var(--muted-foreground);
+    background: var(--card);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-card);
+  }
+  .leer b { display: block; margin-bottom: 4px; color: var(--foreground); font-size: 15px; }
+
+  .warnPille {
+    color: var(--warning);
+    border-color: color-mix(in oklab, var(--warning) 30%, transparent);
+    background: var(--warning-surface);
+  }
+
+  [hidden] { display: none !important; }
+</style>
 </head>
 <body>
 <div class="app">
@@ -64,9 +547,8 @@
       <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
       <div class="navLeft"></div>
       <div class="navRight">
-        <a class="navLink" id="belegeNavLink"
-           href="https://drive.google.com/drive/folders/1HRpbFYmXV-hL-CUD-A-AbZvjZiT1eDPuziX_V52G15Gs3DIDKGG1tsQGvx_rlZJYo7C_HJxF?usp=sharing"
-           target="_blank" rel="noopener" style="display:none;">Belege</a>
+        <a class="navLink" id="formularNavLink" href="/rechnung" target="_blank" rel="noopener"
+           title="Das öffentliche Formular ansehen" style="display:none;">Formular</a>
         <button class="btn-secondary" id="logoutBtn" type="button">Abmelden</button>
       </div>
     </div>
@@ -90,480 +572,1344 @@
     </div>
   </div>
 
-  <!-- KPIs -->
-  <div class="glass card" id="kpiCard" style="display:none;">
-    <div class="row">
-      <div style="font-weight:900;font-size:16px;">Übersicht</div>
-      <div class="spacer"></div>
-      <div class="pill" id="countPill">0</div>
+  <div id="inhalt" hidden>
+
+    <!-- Was zu tun ist -->
+    <div class="finHero" id="hero">
+      <div class="finHeroText">
+        <span class="finHeroLabel">Noch auszuzahlen</span>
+        <b class="finHeroWert" id="heroWert">–</b>
+        <div class="finHeroSub" id="heroSub">–</div>
+      </div>
+      <div class="finHeroAktion">
+        <button class="btn-primary" id="heroBtn" type="button">Auszahlungen ansehen</button>
+      </div>
     </div>
-    <div class="kpiGrid">
-      <div class="kpi kpi-open"><div class="kLabel">Rechnung offen</div><div class="kValue" id="kpiOpenSum">–</div><div class="kHint" id="kpiOpenCount">–</div></div>
-      <div class="kpi kpi-check"><div class="kLabel">In Prüfung</div><div class="kValue" id="kpiCheckSum">–</div><div class="kHint" id="kpiCheckCount">–</div></div>
-      <div class="kpi kpi-paid"><div class="kLabel">Bezahlt</div><div class="kValue" id="kpiPaidSum">–</div><div class="kHint" id="kpiPaidCount">–</div></div>
-      <div class="kpi kpi-total"><div class="kLabel">Gesamt</div><div class="kValue" id="kpiTotalSum">–</div><div class="kHint" id="kpiTotalCount">–</div></div>
+
+    <!-- Kennzahlen -->
+    <div class="glass card" id="kpiCard">
+      <div class="row">
+        <div style="font-weight:900;font-size:16px;">Übersicht</div>
+        <div class="spacer"></div>
+        <div class="pill" id="countPill">0</div>
+      </div>
+      <div class="kpiGrid">
+        <div class="kpi kpi-open"><div class="kLabel">Offen</div><div class="kValue" id="kpiOpenSum">–</div><div class="kHint" id="kpiOpenCount">–</div></div>
+        <div class="kpi kpi-check"><div class="kLabel">In Prüfung</div><div class="kValue" id="kpiCheckSum">–</div><div class="kHint" id="kpiCheckCount">–</div></div>
+        <div class="kpi kpi-paid"><div class="kLabel">Bezahlt</div><div class="kValue" id="kpiPaidSum">–</div><div class="kHint" id="kpiPaidCount">–</div></div>
+        <div class="kpi kpi-total"><div class="kLabel">Gesamt</div><div class="kValue" id="kpiTotalSum">–</div><div class="kHint" id="kpiTotalCount">–</div></div>
+      </div>
     </div>
+
+    <!-- Steuerleiste -->
+    <div class="glass card" id="controlsCard">
+      <div class="finFilterRow">
+        <input id="suche" placeholder="Suche (Name, Zweck, Projekt, Nummer, IBAN…)" type="search" />
+        <select id="fStatus" aria-label="Stand">
+          <option value="">Stand (alle)</option>
+          <option value="zuzahlen">Noch auszuzahlen</option>
+          <option value="offen">Offen</option>
+          <option value="pruefung">In Prüfung</option>
+          <option value="bezahlt">Bezahlt</option>
+          <option value="abgelehnt">Abgelehnt</option>
+        </select>
+        <select id="fProjekt" aria-label="Projekt"><option value="">Projekt (alle)</option></select>
+        <select id="fJahr" aria-label="Jahr"><option value="">Jahr (alle)</option></select>
+      </div>
+
+      <div class="finTabsRow">
+        <div class="tabs" role="tablist">
+          <button class="tabBtn active" data-ansicht="vorgaenge" type="button" role="tab">Vorgänge</button>
+          <button class="tabBtn" data-ansicht="auszahlungen" type="button" role="tab">Auszahlungen</button>
+          <button class="tabBtn" data-ansicht="projekte" type="button" role="tab">Projekte</button>
+        </div>
+        <div class="spacer"></div>
+        <button class="btn-secondary btn-sm" id="reloadBtn" type="button">↺ Neu laden</button>
+        <button class="btn-secondary btn-sm" id="exportBtn" type="button">⬇ CSV</button>
+        <button class="btn-primary btn-sm" id="neuBtn" type="button">+ Beleg erfassen</button>
+      </div>
+    </div>
+
+    <!-- Vorgänge -->
+    <div id="viewVorgaenge">
+      <div class="belegListe" id="belegListe"></div>
+      <div class="leer" id="leerVorgaenge" hidden>
+        <b>Nichts gefunden</b>
+        Für diese Auswahl gibt es keine Vorgänge.
+      </div>
+    </div>
+
+    <!-- Auszahlungen -->
+    <div id="viewAuszahlungen" hidden>
+      <div class="belegListe" id="zahlListe"></div>
+      <div class="leer" id="leerZahl" hidden>
+        <b>Nichts offen</b>
+        Es ist gerade niemandem etwas zu erstatten.
+      </div>
+    </div>
+
+    <!-- Projekte -->
+    <div id="viewProjekte" hidden>
+      <div class="glass card">
+        <div class="row" style="margin-bottom:14px;">
+          <div style="font-weight:900;font-size:16px;">Ausgaben je Projekt</div>
+          <div class="spacer"></div>
+          <div class="pill" id="projSummePill">–</div>
+        </div>
+        <div class="projListe" id="projListe"></div>
+        <div class="projLegende">
+          <span><i></i> bezahlt</span>
+          <span><i class="offen"></i> noch offen</span>
+          <span style="color:var(--faint-foreground);">Zeile anklicken, um das Projekt auszuwählen</span>
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <!-- Controls -->
-  <div class="glass card" id="controlsCard" style="display:none;">
-    <div class="controlsRow">
-      <input id="searchInput" placeholder="Suche (Name, Projekt, IBAN…)" type="search" />
-      <select id="filterStatus">
-        <option value="">Status (alle)</option>
-        <option value="Rechnung offen">Rechnung offen</option>
-        <option value="In Prüfung">In Prüfung</option>
-        <option value="Bezahlt">Bezahlt</option>
-      </select>
-      <select id="filterProj"><option value="">Projekt (alle)</option></select>
-    </div>
-    <div class="controlsBottom">
-      <button class="btn-secondary" id="reloadBtn" type="button">↺ Neu laden</button>
-      <button class="btn-primary" id="exportBtn" type="button">⬇ CSV Export</button>
-      <div class="spacer"></div>
-      <span class="pill" style="opacity:.7;font-size:11px;">Karte anklicken → Details</span>
-    </div>
-  </div>
-
-  <div id="cardGrid" class="cardGrid" style="display:none;"></div>
-  <div id="emptyState" class="emptyState" style="display:none;">Keine Einreichungen gefunden.</div>
-
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- Detail Dialog (native <dialog> – scrollTop wird bei jedem showModal() automatisch auf 0 gesetzt) -->
+<!-- Ein Vorgang -->
 <dialog id="detailDialog">
   <div class="dlgPanel">
     <div class="dlgHeader">
       <div>
-        <h2 class="dlgTitle" id="dlgTitle">Rechnung</h2>
+        <h2 class="dlgTitle" id="dlgTitle">Vorgang</h2>
         <div class="dlgSub" id="dlgSub">–</div>
       </div>
       <button class="btn-secondary closeX" id="dlgCloseBtn" type="button" aria-label="Schließen">✕</button>
     </div>
 
     <div class="statusBar">
-      <span style="font-size:12px;color:var(--muted);font-weight:700;flex:0 0 auto;">Status:</span>
-      <button class="btn-danger statusBtn" id="setOpenBtn" type="button">Rechnung offen</button>
-      <button class="btn-warn statusBtn" id="setCheckBtn" type="button">In Prüfung</button>
-      <button class="btn-ok statusBtn" id="setPaidBtn" type="button">Bezahlt ✓</button>
-      <a class="pill" id="belegLink" href="#" target="_blank" rel="noopener" style="text-decoration:none;display:none;">📎 Beleg</a>
+      <span style="font-size:12px;color:var(--muted-foreground);font-weight:600;flex:0 0 auto;">Stand:</span>
+      <button class="btn-amber statusBtn" data-status="offen" type="button">Offen</button>
+      <button class="btn-warn statusBtn" data-status="pruefung" type="button">In Prüfung</button>
+      <button class="btn-ok statusBtn" data-status="bezahlt" type="button">Bezahlt ✓</button>
+      <button class="btn-danger statusBtn" data-status="abgelehnt" type="button">Abgelehnt</button>
     </div>
 
+    <div class="belegBox" id="belegBox"></div>
+
     <div class="summaryRow">
-      <span class="pill"><span style="color:var(--muted)">Person:&nbsp;</span><strong id="dlgName">–</strong></span>
-      <span class="pill"><span style="color:var(--muted)">Summe:&nbsp;</span><strong id="dlgSum">–</strong></span>
-      <span class="pill"><span style="color:var(--muted)">Status:&nbsp;</span><strong id="dlgStatus">–</strong></span>
+      <span class="pill"><span style="color:var(--muted-foreground)">Betrag:&nbsp;</span><strong id="dlgBetrag">–</strong></span>
+      <span class="pill"><span style="color:var(--muted-foreground)">Nummer:&nbsp;</span><strong id="dlgCode">–</strong></span>
+      <span class="pill" id="dlgStatusPill">–</span>
     </div>
 
     <div class="kvGrid" id="kvGrid"></div>
 
+    <div class="field notizFeld">
+      <label for="dlgNotiz">Notiz <span style="color:var(--faint-foreground);font-weight:400;">— nur intern</span></label>
+      <textarea id="dlgNotiz" maxlength="2000" placeholder="z. B. „Beleg unleserlich, am 3.9. nachgefragt“"></textarea>
+      <div class="notizStand" id="notizStand"></div>
+    </div>
+
     <div class="dlgActions">
-      <button class="btn-secondary" id="dlgCloseBtn2" type="button">Schließen</button>
+      <button class="btn-danger btn-sm" id="dlgLoeschen" type="button">Löschen</button>
+      <div style="flex:1 1 auto;"></div>
+      <button class="btn-secondary" id="dlgBearbeiten" type="button">Bearbeiten</button>
+      <button class="btn-primary" id="dlgSpeichern" type="button">Notiz speichern</button>
     </div>
   </div>
 </dialog>
 
-<script>
-  const APP_URL = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
-  const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const PROFILES_TABLE = "profiles";
-  const REQUIRED_ROLE = "vorstand";
+<!-- Erfassen und bearbeiten -->
+<dialog id="editDialog">
+  <div class="dlgPanel">
+    <div class="dlgHeader">
+      <div>
+        <h2 class="dlgTitle" id="editTitle">Beleg erfassen</h2>
+        <div class="dlgSub" id="editSub">Für alles, was nicht über das Formular hereinkommt</div>
+      </div>
+      <button class="btn-secondary closeX" id="editCloseBtn" type="button" aria-label="Schließen">✕</button>
+    </div>
 
-  const F = {
-    ts:"Zeitstempel", fn:"Vorname", ln:"Nachname",
-    desc:"Beleg Erläuterung", proj:"Projekt", sum:"Beleg Summe",
-    date:"Beleg Datum", status:"Status", beleg:"Beleg hochladen", iban:"Dein IBAN"
+    <form id="editForm" novalidate>
+      <div class="fieldGrid">
+        <div class="field">
+          <label for="eVorname">Vorname</label>
+          <input id="eVorname" type="text" maxlength="80" required>
+        </div>
+        <div class="field">
+          <label for="eNachname">Nachname</label>
+          <input id="eNachname" type="text" maxlength="80" required>
+        </div>
+        <div class="field full">
+          <label for="eEmail">E-Mail <span style="color:var(--faint-foreground);font-weight:400;">— optional</span></label>
+          <input id="eEmail" type="email" maxlength="160">
+        </div>
+        <div class="field full">
+          <label for="eProjekt">Projekt</label>
+          <select id="eProjekt"><option value="">— ohne Projekt —</option></select>
+        </div>
+        <div class="field full">
+          <label for="eBeschreibung">Was wurde gekauft?</label>
+          <textarea id="eBeschreibung" maxlength="2000" required style="min-height:80px;"></textarea>
+        </div>
+        <div class="field">
+          <label for="eBetrag">Betrag in €</label>
+          <input id="eBetrag" type="text" inputmode="decimal" maxlength="12" placeholder="0,00" required>
+        </div>
+        <div class="field">
+          <label for="eDatum">Datum des Belegs</label>
+          <input id="eDatum" type="date" required>
+        </div>
+        <div class="field full">
+          <label for="eIban">IBAN</label>
+          <input id="eIban" type="text" maxlength="42" spellcheck="false"
+                 style="font-family:var(--font-mono);text-transform:uppercase;">
+        </div>
+        <div class="field">
+          <label for="eStatus">Stand</label>
+          <select id="eStatus">
+            <option value="offen">Offen</option>
+            <option value="pruefung">In Prüfung</option>
+            <option value="bezahlt">Bezahlt</option>
+            <option value="abgelehnt">Abgelehnt</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="eBezahltAm">Bezahlt am <span style="color:var(--faint-foreground);font-weight:400;">— optional</span></label>
+          <input id="eBezahltAm" type="date">
+        </div>
+        <div class="field full">
+          <label for="eBeleg">Beleg <span style="color:var(--faint-foreground);font-weight:400;" id="eBelegHinweis">— Foto oder PDF</span></label>
+          <input id="eBeleg" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,application/pdf,image/*,.pdf">
+        </div>
+      </div>
+
+      <p class="notice bad" id="editFehler" role="alert" hidden></p>
+
+      <div class="dlgActions">
+        <button class="btn-secondary" id="editAbbrechen" type="button">Abbrechen</button>
+        <button class="btn-primary" id="editSpeichern" type="submit">Speichern</button>
+      </div>
+    </form>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     Finanzen — Rechnungen & Auslagen
+     ------------------------------------------------------------
+     Die Zahlen standen bis zum Umzug in einer Google-Tabelle und
+     die Belege in einem Drive-Ordner. Beides liegt jetzt in
+     Supabase: `rechnungen` und der Ordner `belege`. Lesen und
+     ändern darf nur, wer Vorstand ist — das entscheiden die
+     Regeln der Datenbank, nicht diese Seite.
+     ============================================================ */
+
+  var SUPABASE_URL   = "https://hdhueuihmxbskiusenpe.supabase.co";
+  var SUPABASE_KEY   = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+  var sb             = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  var PROFILES_TABLE = "profiles";
+  var TABELLE        = "rechnungen";
+  var BUCKET         = "belege";
+  var LINK_DAUER     = 3600;
+
+  /* Der Wert im Filter für „kein Projekt eingetragen“. Ein leerer Wert
+     hieße dort schon „alle“, darum eine Zeichenfolge, die als Projekt
+     nicht vorkommen kann. */
+  var OHNE_PROJEKT = "--ohne-projekt--";
+
+  var STAND = {
+    offen:     { label: "Offen",      badge: "open"   },
+    pruefung:  { label: "In Prüfung", badge: "check"  },
+    bezahlt:   { label: "Bezahlt",    badge: "paid"   },
+    abgelehnt: { label: "Abgelehnt",  badge: "absent" }
   };
 
-  // Elements
-  const navWrap       = document.getElementById("navWrap");
-  const belegeNavLink = document.getElementById("belegeNavLink");
-  const statusPill    = document.getElementById("statusPill");
-  const countPill     = document.getElementById("countPill");
-  const denyWrap      = document.getElementById("denyWrap");
-  const kpiCard       = document.getElementById("kpiCard");
-  const controlsCard  = document.getElementById("controlsCard");
-  const cardGridEl    = document.getElementById("cardGrid");
-  const emptyState    = document.getElementById("emptyState");
-  const searchInput   = document.getElementById("searchInput");
-  const filterStatus  = document.getElementById("filterStatus");
-  const filterProj    = document.getElementById("filterProj");
-  const reloadBtn     = document.getElementById("reloadBtn");
-  const exportBtn     = document.getElementById("exportBtn");
-  const authBadge     = document.getElementById("authBadge");
-  const authDot       = document.getElementById("authDot");
-  const authState     = document.getElementById("authState");
-  const authMail      = document.getElementById("authMail");
-  const authAvatar    = document.getElementById("authAvatar");
-  const authCompact   = document.getElementById("authCompact");
-  const authNameInline= document.getElementById("authNameInline");
-  const authRolePill  = document.getElementById("authRolePill");
-  const authToggle    = document.getElementById("authToggle");
-  const authDetails   = document.getElementById("authDetails");
-  const logoutBtn     = document.getElementById("logoutBtn");
-  const logoutBtn2    = document.getElementById("logoutBtn2");
-  const dialog        = document.getElementById("detailDialog");
-  const dlgTitle      = document.getElementById("dlgTitle");
-  const dlgSub        = document.getElementById("dlgSub");
-  const dlgName       = document.getElementById("dlgName");
-  const dlgSum        = document.getElementById("dlgSum");
-  const dlgStatus     = document.getElementById("dlgStatus");
-  const kvGrid        = document.getElementById("kvGrid");
-  const belegLink     = document.getElementById("belegLink");
-  const setOpenBtn    = document.getElementById("setOpenBtn");
-  const setCheckBtn   = document.getElementById("setCheckBtn");
-  const setPaidBtn    = document.getElementById("setPaidBtn");
+  const $ = (id) => document.getElementById(id);
 
-  let ALL = [], ACTIVE_ROW = null, TOKEN = "", MY_ROLE = "";
+  let ALLE     = [];          // alle Zeilen, neueste zuerst
+  let PROJEKTE = [];          // für die Auswahlfelder
+  let ANSICHT  = "vorgaenge";
+  let AKTIV    = null;        // der Vorgang im Dialog
+  let EDIT_ID  = null;        // null = neu anlegen
 
-  // Helpers
-  const safe = v => v == null ? "" : String(v);
-  const esc  = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+  /* ============================================================
+     Kleinkram
+     ============================================================ */
+  const safe = (v) => (v == null ? "" : String(v));
+  const esc  = (s) => safe(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                             .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+                             .replace(/'/g, "&#039;");
 
-  function parseEUR(v) {
-    if (typeof v === "number" && isFinite(v)) return v;
-    const s = safe(v).trim().replace(/\s/g,"").replace(/[^\d.,-]/g,"");
-    if (!s) return 0;
-    if (s.includes(".") && s.includes(",")) return Number(s.replace(/\./g,"").replace(",",".")) || 0;
-    if (s.includes(",")) return Number(s.replace(",",".")) || 0;
-    return Number(s) || 0;
+  const euro = (n) =>
+    new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(Number(n) || 0);
+  const euroKurz = (n) =>
+    new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 })
+      .format(Number(n) || 0);
+
+  const zahl = (v) => (isFinite(Number(v)) ? Number(v) : 0);
+
+  function betragLesen(text) {
+    const s = safe(text).trim().replace(/\s/g, "").replace(/[^\d.,-]/g, "");
+    if (!s) return NaN;
+    let roh;
+    if (s.includes(".") && s.includes(",")) {
+      // Das letzte der beiden Zeichen trennt die Nachkommastellen.
+      roh = s.lastIndexOf(",") > s.lastIndexOf(".")
+        ? s.replace(/\./g, "").replace(",", ".")
+        : s.replace(/,/g, "");
+    } else if (s.includes(",")) {
+      roh = s.replace(",", ".");
+    } else {
+      roh = s;
+    }
+    const n = Number(roh);
+    return isFinite(n) ? Math.round(n * 100) / 100 : NaN;
   }
-  const fmtEUR = n => new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR"}).format(n||0);
-  const pl = n => `${n} ${n===1?"Vorgang":"Vorgänge"}`;
-  const tsKey = row => safe(row?.[F.ts]).trim();
 
-  function normStatus(s) {
-    const t = safe(s).trim().toLowerCase();
-    if (t.includes("prüfung")) return "In Prüfung";
-    if (t.includes("bezahlt")) return "Bezahlt";
-    return "Rechnung offen";
+  const datum = (wert) => {
+    if (!wert) return "";
+    const d = new Date(wert);
+    return isNaN(d) ? "" : d.toLocaleDateString("de-DE",
+      { day: "2-digit", month: "2-digit", year: "numeric" });
+  };
+
+  const datumZeit = (wert) => {
+    if (!wert) return "";
+    const d = new Date(wert);
+    if (isNaN(d)) return "";
+    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+           ", " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const jahrVon    = (wert) => safe(wert).slice(0, 4);
+  const ibanSchoen = (v) => safe(v).replace(/(.{4})/g, "$1 ").trim();
+  const name       = (r) => (safe(r.vorname) + " " + safe(r.nachname)).trim() || "Ohne Namen";
+  const anzahl     = (n) => n + (n === 1 ? " Vorgang" : " Vorgänge");
+
+  let toastTimer;
+  function toast(text, schlecht) {
+    const el = $("toast");
+    el.textContent = text;
+    el.classList.toggle("error", !!schlecht);
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove("show"), 2800);
   }
-  function statusCls(st) {
-    if (st==="Bezahlt") return "paid";
-    if (st==="In Prüfung") return "check";
-    return "open";
+
+  async function kopieren(text, was) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(was + " kopiert");
+    } catch (err) {
+      toast("Kopieren ging nicht — bitte von Hand", true);
+    }
   }
+
+  /* `crypto.randomUUID` gibt es nur in einem sicheren Kontext. Über https
+     ist das immer der Fall — aber wer die Seite einmal über http öffnet
+     oder einen älteren Browser benutzt, soll nicht an einer fehlenden
+     Funktion scheitern, sondern seinen Beleg loswerden. */
+  function kennung() {
+    if (window.crypto && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    if (window.crypto && crypto.getRandomValues) {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40;
+      b[8] = (b[8] & 0x3f) | 0x80;
+      const hex = [...b].map((z) => z.toString(16).padStart(2, "0")).join("");
+      return hex.slice(0, 8) + "-" + hex.slice(8, 12) + "-" + hex.slice(12, 16) +
+             "-" + hex.slice(16, 20) + "-" + hex.slice(20);
+    }
+    return "z" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+  }
+
+  function knopf(text, klasse, beiKlick) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = klasse;
+    b.textContent = text;
+    b.addEventListener("click", beiKlick);
+    return b;
+  }
+
+  /* ============================================================
+     Anmeldung und Zugang
+     ------------------------------------------------------------
+     Wie auf den übrigen Seiten. Wer kein Vorstand ist, sieht
+     nichts; die Regeln in der Datenbank sagen dasselbe noch
+     einmal — diese Prüfung erspart nur den leeren Bildschirm.
+     ============================================================ */
+  const normRolle = (v) => safe(v).trim().toLowerCase();
 
   function hashStr(s) {
     let h = 2166136261;
-    for (let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}
-    return h>>>0;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
   }
-  function initialsEmail(e) {
-    const local=(e||"").split("@")[0]||"u";
-    const p=local.split(/[.\-_]+/).filter(Boolean);
-    return ((p[0]?.[0]||local[0]||"u")+(p[1]?.[0]||local[1]||"")).toUpperCase()||"U";
+  function initialenMail(e) {
+    const lokal = (e || "").split("@")[0] || "u";
+    const p = lokal.split(/[.\-_]+/).filter(Boolean);
+    return ((p[0] || lokal)[0] + ((p[1] || "")[0] || "")).toUpperCase() || "U";
   }
-  function initialsText(t) {
-    const p=(t||"").trim().split(/\s+/).filter(Boolean);
-    return ((p[0]?.[0]||"U")+(p[1]?.[0]||"")).toUpperCase()||"U";
-  }
-
-  // Toast
-  let _tt;
-  function showToast(msg,isError=false){
-    const el=document.getElementById("toast");
-    el.textContent=msg; el.classList.toggle("error",isError); el.classList.add("show");
-    clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove("show"),2800);
+  function initialenText(t) {
+    const p = safe(t).trim().split(/\s+/).filter(Boolean);
+    return (((p[0] || "U")[0]) + ((p[1] || "")[0] || "")).toUpperCase() || "U";
   }
 
-  // Auth UI
-  function setAvatar(email){
-    const e=(email||"").trim().toLowerCase();
-    if(!e){authAvatar.classList.add("hidden");return;}
-    const h=hashStr(e),hue=h%360,hue2=(hue+38)%360;
-    authAvatar.textContent=initialsEmail(e);
-    authAvatar.classList.remove("hidden");
-    authAvatar.style.background=`linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`;
+  function setzeAvatar(email) {
+    const e = safe(email).trim().toLowerCase();
+    const avatar = $("authAvatar");
+    if (!e) { avatar.classList.add("hidden"); return; }
+    const h = hashStr(e), hue = h % 360, hue2 = (hue + 38) % 360;
+    avatar.textContent = initialenMail(e);
+    avatar.classList.remove("hidden");
+    avatar.style.background =
+      "linear-gradient(135deg,hsla(" + hue + ",85%,55%,.55),hsla(" + hue2 + ",85%,55%,.35))";
   }
-  function setAuthUI(ok,email=""){
-    authDot.classList.toggle("ok",ok);
-    if(ok){
-      authState.classList.add("hidden");
-      authCompact.classList.remove("hidden");
-      authMail.textContent=email; setAvatar(email);
+
+  function setzeAuthUI(ok, email) {
+    $("authDot").classList.toggle("ok", ok);
+    if (ok) {
+      $("authState").classList.add("hidden");
+      $("authCompact").classList.remove("hidden");
+      $("authMail").textContent = email || "";
+      setzeAvatar(email);
     } else {
-      authState.classList.remove("hidden");
-      authState.textContent="nicht eingeloggt";
-      authCompact.classList.add("hidden"); setAvatar("");
-    }
-  }
-  function normRole(v){return String(v||"").trim().toLowerCase();}
-  function setRolePill(role){
-    const r=normRole(role);
-    authRolePill.textContent=r||"unbekannt";
-    authRolePill.classList.toggle("vorstand",r==="vorstand");
-  }
-  authToggle?.addEventListener("click",e=>{e.stopPropagation();authDetails.classList.toggle("hidden");});
-  document.addEventListener("click",e=>{if(!authBadge?.contains(e.target))authDetails.classList.add("hidden");});
-
-  const pageLoader = document.getElementById("pageLoader");
-
-  // Access
-  function applyAccess(ok){
-    navWrap.style.display=ok?"block":"none";
-    if(belegeNavLink) belegeNavLink.style.display=ok?"inline-flex":"none";
-    // Diese Seite steht nur dem Vorstand offen: wer sie sieht, sieht alles.
-    window.FSBSNav?.setRole(ok?"vorstand":"");
-    denyWrap.style.display=ok?"none":"block";
-    if(!ok){
-      pageLoader.classList.add("hidden");
-      kpiCard.style.display="none";
-      controlsCard.style.display="none";
-      cardGridEl.style.display="none";
-      cardGridEl.innerHTML="";ALL=[];
+      $("authState").classList.remove("hidden");
+      $("authState").textContent = "nicht eingeloggt";
+      $("authCompact").classList.add("hidden");
+      setzeAvatar("");
     }
   }
 
-  async function doLogout(){await sb.auth.signOut();location.href="/login";}
-  logoutBtn?.addEventListener("click",doLogout);
-  logoutBtn2?.addEventListener("click",doLogout);
+  $("authToggle").addEventListener("click", (e) => {
+    e.stopPropagation();
+    $("authDetails").classList.toggle("hidden");
+  });
+  document.addEventListener("click", (e) => {
+    if (!$("authBadge").contains(e.target)) $("authDetails").classList.add("hidden");
+  });
 
-  // API
-  async function apiGetRows(){
-    const res=await fetch(`${APP_URL}?token=${encodeURIComponent(TOKEN)}`);
-    const text=await res.text();
-    let json; try{json=JSON.parse(text);}catch{throw new Error("API: kein JSON – "+text.slice(0,120));}
-    if(json?.error) throw new Error("API: "+json.error);
-    return Array.isArray(json.rows)?json.rows:[];
+  async function abmelden() { await sb.auth.signOut(); location.href = "/login"; }
+  $("logoutBtn").addEventListener("click", abmelden);
+  $("logoutBtn2").addEventListener("click", abmelden);
+
+  function zugang(ok) {
+    $("navWrap").style.display = ok ? "block" : "none";
+    $("formularNavLink").style.display = ok ? "inline-flex" : "none";
+    // Diese Seite steht nur dem Vorstand offen: Wer sie sieht, sieht alles.
+    if (window.FSBSNav) window.FSBSNav.setRole(ok ? "vorstand" : "");
+    $("denyWrap").style.display = ok ? "none" : "block";
+    if (!ok) {
+      $("pageLoader").classList.add("hidden");
+      $("inhalt").hidden = true;
+      ALLE = [];
+    }
   }
-  async function apiSetStatus(ts,status){
-    const res=await fetch(`${APP_URL}?token=${encodeURIComponent(TOKEN)}`,{
-      method:"POST",
-      headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body:JSON.stringify({timestamp:ts,status,token:TOKEN})
+
+  /* ============================================================
+     Laden
+     ============================================================ */
+  async function laden() {
+    $("statusPill").textContent = "Lade…";
+
+    const [belege, projekte] = await Promise.all([
+      sb.from(TABELLE).select("*").order("created_at", { ascending: false }),
+      sb.from("rechnung_projekte").select("id,name,active,sort_order")
+        .order("sort_order", { ascending: true }).order("name", { ascending: true })
+    ]);
+
+    if (belege.error) throw belege.error;
+
+    ALLE = (belege.data || []).map((r) => {
+      if (!STAND[r.status]) r.status = "offen";
+      return r;
     });
-    if(!res.ok) throw new Error("POST "+res.status);
+    PROJEKTE = projekte.data || [];
+
+    filterFuellen();
+    zeichnen();
+
+    $("pageLoader").classList.add("hidden");
+    $("inhalt").hidden = false;
+    $("statusPill").textContent = anzahl(ALLE.length);
   }
 
-  // Filter
-  function filtered(){
-    const txt=safe(searchInput.value).trim().toLowerCase();
-    const st=safe(filterStatus.value).trim();
-    const pr=safe(filterProj.value).trim();
-    return ALL.filter(r=>{
-      if(st&&normStatus(r[F.status])!==st) return false;
-      if(pr&&safe(r[F.proj]).trim()!==pr) return false;
-      if(txt){
-        const blob=[r[F.fn],r[F.ln],r[F.proj],r[F.iban],r[F.desc]].map(safe).join(" ").toLowerCase();
-        if(!blob.includes(txt)) return false;
+  function filterFuellen() {
+    /* Die Projektliste, dazu alles, was in den Zeilen sonst noch an
+       Klartext steht: Die übernommenen Einträge tragen Namen, die es
+       als Projekt womöglich nicht mehr gibt, und die sollen filterbar
+       bleiben. */
+    const ausZeilen = ALLE.map((r) => safe(r.projekt).trim()).filter(Boolean);
+    const namen = [...new Set(PROJEKTE.map((p) => p.name).concat(ausZeilen))]
+      .sort((a, b) => a.localeCompare(b, "de"));
+
+    const wahl = $("fProjekt").value;
+    $("fProjekt").innerHTML =
+      '<option value="">Projekt (alle)</option>' +
+      namen.map((n) => '<option value="' + esc(n) + '">' + esc(n) + "</option>").join("") +
+      '<option value="' + OHNE_PROJEKT + '">— ohne Projekt —</option>';
+    $("fProjekt").value = wahl;
+
+    const jahre = [...new Set(ALLE.map((r) => jahrVon(r.beleg_datum)).filter(Boolean))]
+      .sort().reverse();
+    const jahrWahl = $("fJahr").value;
+    $("fJahr").innerHTML = '<option value="">Jahr (alle)</option>' +
+      jahre.map((j) => '<option value="' + esc(j) + '">' + esc(j) + "</option>").join("");
+    $("fJahr").value = jahrWahl;
+
+    // Im Erfassen-Dialog nur, was noch benutzt wird.
+    $("eProjekt").innerHTML = '<option value="">— ohne Projekt —</option>' +
+      PROJEKTE.filter((p) => p.active)
+        .map((p) => '<option value="' + esc(p.id) + '">' + esc(p.name) + "</option>").join("");
+  }
+
+  /* ============================================================
+     Filtern
+     ============================================================ */
+  function gefiltert() {
+    const text = safe($("suche").value).trim().toLowerCase();
+    const st   = $("fStatus").value;
+    const pr   = $("fProjekt").value;
+    const jahr = $("fJahr").value;
+
+    return ALLE.filter((r) => {
+      if (st === "zuzahlen") {
+        if (r.status !== "offen" && r.status !== "pruefung") return false;
+      } else if (st && r.status !== st) {
+        return false;
+      }
+
+      if (pr === OHNE_PROJEKT) {
+        if (safe(r.projekt).trim()) return false;
+      } else if (pr && safe(r.projekt).trim() !== pr) {
+        return false;
+      }
+
+      if (jahr && jahrVon(r.beleg_datum) !== jahr) return false;
+
+      if (text) {
+        const heu = [r.vorname, r.nachname, r.projekt, r.projekt_roh, r.beschreibung,
+                     r.iban, r.code, r.notiz, r.email].map(safe).join(" ").toLowerCase();
+        if (!heu.includes(text)) return false;
       }
       return true;
     });
   }
 
-  // KPIs
-  function updateKPIs(){
-    const sum=rows=>rows.reduce((a,r)=>a+parseEUR(r[F.sum]),0);
-    const open=ALL.filter(r=>normStatus(r[F.status])==="Rechnung offen");
-    const check=ALL.filter(r=>normStatus(r[F.status])==="In Prüfung");
-    const paid=ALL.filter(r=>normStatus(r[F.status])==="Bezahlt");
-    document.getElementById("kpiOpenSum").textContent=fmtEUR(sum(open));
-    document.getElementById("kpiOpenCount").textContent=pl(open.length);
-    document.getElementById("kpiCheckSum").textContent=fmtEUR(sum(check));
-    document.getElementById("kpiCheckCount").textContent=pl(check.length);
-    document.getElementById("kpiPaidSum").textContent=fmtEUR(sum(paid));
-    document.getElementById("kpiPaidCount").textContent=pl(paid.length);
-    document.getElementById("kpiTotalSum").textContent=fmtEUR(sum(ALL));
-    document.getElementById("kpiTotalCount").textContent=`${ALL.length} gesamt`;
-  }
-
-  function fillProjFilter(){
-    const projs=[...new Set(ALL.map(r=>safe(r[F.proj]).trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"de"));
-    filterProj.innerHTML=`<option value="">Projekt (alle)</option>`+projs.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join("");
-  }
-
-  // Render
-  function render(){
-    const rows=filtered();
-    countPill.textContent=`${rows.length} / ${ALL.length}`;
-    statusPill.textContent=`Geladen: ${ALL.length}`;
-    cardGridEl.innerHTML="";
-    emptyState.style.display=rows.length?"none":"block";
-
-    rows.forEach(r=>{
-      const name=(safe(r[F.fn])+" "+safe(r[F.ln])).trim()||"Unbekannt";
-      const proj=safe(r[F.proj]).trim()||"—";
-      const sum=parseEUR(r[F.sum]);
-      const st=normStatus(r[F.status]);
-      const hasBeleg=safe(r[F.beleg]).trim().startsWith("http");
-
-      const card=document.createElement("div");
-      card.className="rCard";
-      card.setAttribute("role","button");
-      card.setAttribute("tabindex","0");
-      const date=safe(r[F.date]).trim();
-      card.innerHTML=`
-        <div class="cardTop">
-          <div class="cardLeft">
-            <div class="iconBox">💶</div>
-            <div>
-              <div class="cardName">${esc(name)}</div>
-              <div class="cardSub">${esc(proj)}${date?` · ${esc(date)}`:""}</div>
-            </div>
-          </div>
-          <div class="cardAmount">${esc(fmtEUR(sum))}</div>
-        </div>
-        <div class="cardMeta">
-          <span class="statusBadge ${statusCls(st)}">${esc(st)}</span>
-          ${hasBeleg?`<span class="metaPill">📎 Beleg vorhanden</span>`:""}
-        </div>`;
-      card.addEventListener("click",()=>openDialog(r));
-      card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openDialog(r);}});
-      cardGridEl.appendChild(card);
+  function filterHervorheben() {
+    ["suche", "fStatus", "fProjekt", "fJahr"].forEach((id) => {
+      $(id).classList.toggle("is-aktiv", safe($(id).value) !== "");
     });
   }
 
-  // Dialog
-  function openDialog(row){
-    ACTIVE_ROW=row;
-    const name=(safe(row[F.fn])+" "+safe(row[F.ln])).trim()||"Rechnung";
-    const proj=safe(row[F.proj]).trim();
-    const date=safe(row[F.date]).trim();
-    const st=normStatus(row[F.status]);
-    const sum=parseEUR(row[F.sum]);
-    const beleg=safe(row[F.beleg]).trim();
+  /* ============================================================
+     Zeichnen
+     ============================================================ */
+  const summe = (zeilen) => zeilen.reduce((a, r) => a + zahl(r.betrag), 0);
 
-    dlgTitle.textContent=name;
-    dlgSub.textContent=[proj,date].filter(Boolean).join(" · ")||"—";
-    dlgName.textContent=name;
-    dlgSum.textContent=fmtEUR(sum);
-    dlgStatus.textContent=st;
+  function zeichnen() {
+    const zeilen = gefiltert();
+    filterHervorheben();
+    kennzahlen(zeilen);
 
-    [setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.classList.remove("is-active"));
-    if(st==="Rechnung offen") setOpenBtn.classList.add("is-active");
-    else if(st==="In Prüfung") setCheckBtn.classList.add("is-active");
-    else if(st==="Bezahlt") setPaidBtn.classList.add("is-active");
+    $("viewVorgaenge").hidden    = ANSICHT !== "vorgaenge";
+    $("viewAuszahlungen").hidden = ANSICHT !== "auszahlungen";
+    $("viewProjekte").hidden     = ANSICHT !== "projekte";
 
-    if(beleg.startsWith("http")){belegLink.href=beleg;belegLink.style.display="inline-flex";}
-    else{belegLink.style.display="none";}
-
-    const fields=[
-      ["Projekt",safe(row[F.proj])],
-      ["Beleg Summe",fmtEUR(sum)],
-      ["Beleg Datum",safe(row[F.date])],
-      ["Status",st],
-      ["Erläuterung",safe(row[F.desc])],
-      ["Beleg-URL",safe(row[F.beleg])],
-      ["IBAN",safe(row[F.iban])],
-      ["Zeitstempel",safe(row[F.ts])],
-    ];
-    kvGrid.innerHTML="";
-    fields.forEach(([k,v])=>{
-      const row=document.createElement("div"); row.className="kvRow";
-      const kEl=document.createElement("div"); kEl.className="kvLabel"; kEl.textContent=k;
-      const vEl=document.createElement("div"); vEl.className="kvValue";
-      const val=safe(v).trim();
-      if(val.startsWith("http")) vEl.innerHTML=`<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`;
-      else vEl.textContent=val||"—";
-      row.appendChild(kEl); row.appendChild(vEl); kvGrid.appendChild(row);
-    });
-
-    // showModal() öffnet den Dialog neu – Browser setzt scrollTop automatisch auf 0
-    dialog.showModal();
+    if (ANSICHT === "vorgaenge")    vorgaengeZeichnen(zeilen);
+    if (ANSICHT === "auszahlungen") auszahlungenZeichnen(zeilen);
+    if (ANSICHT === "projekte")     projekteZeichnen(zeilen);
   }
 
-  function closeDialog(){dialog.close();ACTIVE_ROW=null;}
+  function kennzahlen(zeilen) {
+    const offen = zeilen.filter((r) => r.status === "offen");
+    const pruef = zeilen.filter((r) => r.status === "pruefung");
+    const bez   = zeilen.filter((r) => r.status === "bezahlt");
 
-  document.getElementById("dlgCloseBtn").addEventListener("click",closeDialog);
-  document.getElementById("dlgCloseBtn2").addEventListener("click",closeDialog);
-  // Klick auf Backdrop schließt Dialog
-  dialog.addEventListener("click",e=>{
-    const r=dialog.getBoundingClientRect();
-    if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom) closeDialog();
+    $("kpiOpenSum").textContent    = euro(summe(offen));
+    $("kpiOpenCount").textContent  = anzahl(offen.length);
+    $("kpiCheckSum").textContent   = euro(summe(pruef));
+    $("kpiCheckCount").textContent = anzahl(pruef.length);
+    $("kpiPaidSum").textContent    = euro(summe(bez));
+    $("kpiPaidCount").textContent  = anzahl(bez.length);
+    $("kpiTotalSum").textContent   = euro(summe(zeilen));
+    $("kpiTotalCount").textContent = zeilen.length + " in dieser Auswahl";
+    $("countPill").textContent     = zeilen.length + " / " + ALLE.length;
+
+    /* Der Streifen oben zählt immer alles, nie nur die Auswahl: Was der
+       Verein schuldet, ändert sich nicht dadurch, dass jemand filtert. */
+    const zuZahlen = ALLE.filter((r) => r.status === "offen" || r.status === "pruefung");
+    const ohneIban = zuZahlen.filter((r) => !safe(r.iban).trim()).length;
+    const leute    = new Set(zuZahlen.map(empfaenger)).size;
+
+    $("heroWert").textContent = euro(summe(zuZahlen));
+    $("heroSub").textContent = zuZahlen.length === 0
+      ? "Alles erledigt — es steht nichts offen."
+      : anzahl(zuZahlen.length) + " an " + leute + (leute === 1 ? " Person" : " Personen") +
+        (ohneIban ? " · " + ohneIban + " ohne IBAN" : "");
+    $("heroBtn").hidden = zuZahlen.length === 0;
+  }
+
+  /* ---- Die Vorgänge ---- */
+  const GELD_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/>' +
+    '<path d="M6 12h.01M18 12h.01"/></svg>';
+
+  function vorgaengeZeichnen(zeilen) {
+    const liste = $("belegListe");
+    liste.innerHTML = "";
+    $("leerVorgaenge").hidden = zeilen.length > 0;
+
+    zeilen.forEach((r) => {
+      const el = document.createElement("button");
+      el.type = "button";
+      el.className = "belegZeile st-" + r.status;
+
+      const stand = STAND[r.status];
+      const teile = ['<span class="statusBadge ' + stand.badge + '">' + esc(stand.label) + "</span>"];
+
+      if (!r.beleg_pfad) {
+        teile.push('<span class="metaPill warnPille">' +
+          (r.drive_link ? "Beleg noch bei Drive" : "ohne Beleg") + "</span>");
+      }
+      if (safe(r.projekt).trim()) {
+        teile.push('<span class="metaPill">' + esc(r.projekt) + "</span>");
+      }
+      teile.push("<span>" + esc(datum(r.beleg_datum)) + "</span>");
+      teile.push('<span class="belegText">' + esc(r.beschreibung) + "</span>");
+
+      el.innerHTML =
+        '<span class="belegIcon">' + GELD_ICON + "</span>" +
+        '<span class="belegName">' + esc(name(r)) + "</span>" +
+        '<span class="belegBetrag">' + esc(euro(r.betrag)) + "</span>" +
+        '<span class="belegMeta">' + teile.join("") + "</span>";
+
+      el.addEventListener("click", () => detailOeffnen(r));
+      liste.appendChild(el);
+    });
+  }
+
+  /* ---- Die Auszahlungen ---- */
+  /* Gruppiert wird nach Konto, nicht nach Namen: Wer zweimal eingereicht
+     hat, bekommt eine Überweisung. Fehlt die IBAN, steht die Person für
+     sich — dann ist ohnehin nachzufragen. */
+  const empfaenger = (r) => safe(r.iban).trim() || ("ohne:" + name(r).toLowerCase());
+
+  function auszahlungenZeichnen(zeilen) {
+    const offen = zeilen.filter((r) => r.status === "offen" || r.status === "pruefung");
+    const liste = $("zahlListe");
+    liste.innerHTML = "";
+    $("leerZahl").hidden = offen.length > 0;
+
+    const gruppen = new Map();
+    offen.forEach((r) => {
+      const schluessel = empfaenger(r);
+      if (!gruppen.has(schluessel)) gruppen.set(schluessel, []);
+      gruppen.get(schluessel).push(r);
+    });
+
+    [...gruppen.entries()]
+      .sort((a, b) => summe(b[1]) - summe(a[1]))
+      .forEach(([schluessel, posten]) => liste.appendChild(zahlKarte(schluessel, posten)));
+  }
+
+  function zahlKarte(schluessel, posten) {
+    const iban = schluessel.indexOf("ohne:") === 0 ? "" : schluessel;
+    const karte = document.createElement("div");
+    karte.className = "zahlKarte";
+
+    const zweck = "Erstattung FSBS " + posten.map((p) => p.code).join(", ");
+
+    karte.innerHTML =
+      '<div class="zahlKopf">' +
+        '<div style="min-width:0;">' +
+          '<div class="zahlName">' + esc(name(posten[0])) + "</div>" +
+          (iban
+            ? '<div class="zahlIban">' + esc(ibanSchoen(iban)) + "</div>"
+            : '<div class="zahlIban fehlt">Keine IBAN hinterlegt — bitte nachfragen</div>') +
+        "</div>" +
+        '<div class="zahlSumme">' + esc(euro(summe(posten))) + "</div>" +
+      "</div>" +
+      '<ul class="zahlPosten">' +
+        posten.map((p) =>
+          '<li><span class="p1"><code>' + esc(p.code) + "</code>" + esc(p.beschreibung) +
+          '</span><span class="p2">' + esc(euro(p.betrag)) + "</span></li>").join("") +
+      "</ul>" +
+      '<div class="zahlAktionen"></div>';
+
+    const aktionen = karte.querySelector(".zahlAktionen");
+
+    if (iban) {
+      aktionen.appendChild(knopf("IBAN kopieren", "btn-secondary btn-sm",
+        () => kopieren(iban, "IBAN")));
+      aktionen.appendChild(knopf("Verwendungszweck kopieren", "btn-secondary btn-sm",
+        () => kopieren(zweck, "Verwendungszweck")));
+      aktionen.appendChild(knopf("Betrag kopieren", "btn-secondary btn-sm",
+        () => kopieren(summe(posten).toFixed(2).replace(".", ","), "Betrag")));
+    }
+
+    aktionen.appendChild(knopf(
+      posten.length === 1 ? "Als bezahlt eintragen"
+                          : "Alle " + posten.length + " als bezahlt eintragen",
+      "btn-primary btn-sm",
+      () => {
+        const frage = posten.length === 1
+          ? "Diesen Vorgang über " + euro(summe(posten)) + " als bezahlt eintragen?"
+          : posten.length + " Vorgänge über zusammen " + euro(summe(posten)) +
+            " als bezahlt eintragen?";
+        if (!confirm(frage)) return;
+        standSetzenViele(posten, "bezahlt");
+      }));
+
+    // Ein Weg in den einzelnen Vorgang: Wer nachsehen will, klickt den
+    // Posten an.
+    karte.querySelectorAll(".zahlPosten li").forEach((li, i) => {
+      li.addEventListener("click", () => detailOeffnen(posten[i]));
+    });
+
+    return karte;
+  }
+
+  /* ---- Die Projekte ---- */
+  /* Eine Größe je Zeile — die Summe der Ausgaben —, darum eine Farbe und
+     keine Legende für Reihen. Der hellere Teil rechts im Balken zeigt,
+     was davon noch offen ist; das ist derselbe Betrag, kein zweiter. */
+  function projekteZeichnen(zeilen) {
+    const ohneAbgelehnt = zeilen.filter((r) => r.status !== "abgelehnt");
+    const nach = new Map();
+
+    ohneAbgelehnt.forEach((r) => {
+      const p = safe(r.projekt).trim() || "Ohne Projekt";
+      if (!nach.has(p)) nach.set(p, { name: p, summe: 0, offen: 0, anzahl: 0 });
+      const e = nach.get(p);
+      e.summe  += zahl(r.betrag);
+      e.anzahl += 1;
+      if (r.status !== "bezahlt") e.offen += zahl(r.betrag);
+    });
+
+    const liste    = [...nach.values()].sort((a, b) => b.summe - a.summe);
+    const groesste = liste.length ? liste[0].summe : 0;
+    const gesamt   = liste.reduce((a, e) => a + e.summe, 0);
+
+    $("projSummePill").textContent = euro(gesamt) + " gesamt";
+
+    const box = $("projListe");
+    box.innerHTML = "";
+
+    if (!liste.length) {
+      const leer = document.createElement("div");
+      leer.className = "leer";
+      leer.style.border = "0";
+      leer.style.background = "none";
+      leer.textContent = "Für diese Auswahl gibt es nichts zu zeigen.";
+      box.appendChild(leer);
+      return;
+    }
+
+    liste.forEach((e) => {
+      const anteil = groesste > 0 ? (e.summe / groesste) * 100 : 0;
+      const offenAnteil = e.summe > 0 ? (e.offen / e.summe) * 100 : 0;
+
+      const zeile = document.createElement("button");
+      zeile.type = "button";
+      zeile.className = "projZeile";
+      zeile.title = e.name + ": " + euro(e.summe) + " in " + anzahl(e.anzahl) +
+                    (e.offen > 0 ? " · " + euro(e.offen) + " noch offen" : " · alles bezahlt");
+
+      zeile.innerHTML =
+        "<span>" +
+          '<span class="projName">' + esc(e.name) + "</span>" +
+          '<span class="projAnzahl">' + esc(anzahl(e.anzahl)) +
+          (e.offen > 0 ? " · " + esc(euroKurz(e.offen)) + " offen" : "") + "</span>" +
+        "</span>" +
+        '<span class="projBahn"><span class="projBalken" style="width:' + anteil.toFixed(1) + '%">' +
+        (offenAnteil > 0
+          ? '<span class="projOffen" style="width:' + offenAnteil.toFixed(1) + '%"></span>'
+          : "") +
+        "</span></span>" +
+        '<span class="projWert">' + esc(euro(e.summe)) + "</span>";
+
+      zeile.addEventListener("click", () => {
+        $("fProjekt").value = e.name === "Ohne Projekt" ? OHNE_PROJEKT : e.name;
+        ansichtSetzen("vorgaenge");
+      });
+
+      box.appendChild(zeile);
+    });
+  }
+
+  /* ============================================================
+     Ansicht wechseln
+     ============================================================ */
+  function ansichtSetzen(welche) {
+    ANSICHT = welche;
+    document.querySelectorAll(".tabBtn").forEach((b) =>
+      b.classList.toggle("active", b.dataset.ansicht === welche));
+    zeichnen();
+  }
+
+  document.querySelectorAll(".tabBtn").forEach((b) =>
+    b.addEventListener("click", () => ansichtSetzen(b.dataset.ansicht)));
+
+  $("heroBtn").addEventListener("click", () => {
+    // Die Auszahlungsliste zeigt ohnehin nur Offenes; ein Standfilter
+    // könnte sie hier nur leerer machen, als sie sein soll.
+    $("fStatus").value = "";
+    ansichtSetzen("auszahlungen");
+    $("viewAuszahlungen").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // Status ändern
-  async function setStatus(status){
-    if(!ACTIVE_ROW) return;
-    const ts=tsKey(ACTIVE_ROW);
-    [setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.disabled=true);
-    try{
-      await apiSetStatus(ts,status);
-      const i=ALL.findIndex(r=>tsKey(r)===ts);
-      if(i>=0) ALL[i][F.status]=status;
-      if(ACTIVE_ROW) ACTIVE_ROW[F.status]=status;
-      const st=normStatus(status);
-      dlgStatus.textContent=st;
-      [setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.classList.remove("is-active"));
-      if(st==="Rechnung offen") setOpenBtn.classList.add("is-active");
-      else if(st==="In Prüfung") setCheckBtn.classList.add("is-active");
-      else if(st==="Bezahlt") setPaidBtn.classList.add("is-active");
-      updateKPIs(); render();
-      showToast("Status gespeichert: "+st);
-    }catch(err){showToast("Fehler: "+err.message,true);}
-    finally{[setOpenBtn,setCheckBtn,setPaidBtn].forEach(b=>b.disabled=false);}
-  }
-  setOpenBtn.addEventListener("click",()=>setStatus("Rechnung offen"));
-  setCheckBtn.addEventListener("click",()=>setStatus("In Prüfung"));
-  setPaidBtn.addEventListener("click",()=>setStatus("Bezahlt"));
+  ["suche", "fStatus", "fProjekt", "fJahr"].forEach((id) =>
+    $(id).addEventListener("input", zeichnen));
 
-  // Daten laden
-  async function fetchRows(){
-    statusPill.textContent="Lade…";
-    try{
-      ALL=await apiGetRows();
-      ALL=ALL.map(r=>{if(!safe(r[F.status]).trim()) r[F.status]="Rechnung offen"; return r;});
-      fillProjFilter(); updateKPIs(); render();
-      pageLoader.classList.add("hidden");
-      kpiCard.style.display="block";
-      controlsCard.style.display="block";
-      cardGridEl.style.display="grid";
-    }catch(err){
-      statusPill.textContent="Fehler";
-      showToast("Laden fehlgeschlagen: "+err.message,true);
-      pageLoader.classList.add("hidden");
+  $("reloadBtn").addEventListener("click", async () => {
+    try { await laden(); toast("Neu geladen"); }
+    catch (err) { toast("Laden fehlgeschlagen: " + err.message, true); }
+  });
+
+  /* ============================================================
+     Ein Vorgang im Dialog
+     ============================================================ */
+  function detailOeffnen(zeile) {
+    AKTIV = zeile;
+
+    $("dlgTitle").textContent = name(zeile);
+    $("dlgSub").textContent = [safe(zeile.projekt).trim(), datum(zeile.beleg_datum)]
+      .filter(Boolean).join(" · ") || "—";
+    $("dlgBetrag").textContent = euro(zeile.betrag);
+    $("dlgCode").textContent = zeile.code || "—";
+
+    standAnzeigen(zeile);
+
+    $("dlgNotiz").value = safe(zeile.notiz);
+    $("notizStand").textContent = zeile.status_am
+      ? "Stand zuletzt geändert am " + datumZeit(zeile.status_am)
+      : "";
+
+    angabenZeichnen(zeile);
+    $("detailDialog").showModal();
+    belegZeigen(zeile);          // holt den Link nach; der Dialog steht schon
+  }
+
+  function standAnzeigen(zeile) {
+    const stand = STAND[zeile.status];
+    const pille = $("dlgStatusPill");
+    pille.className = "pill statusBadge " + stand.badge;
+    pille.textContent = stand.label;
+    document.querySelectorAll(".statusBtn").forEach((b) =>
+      b.classList.toggle("is-active", b.dataset.status === zeile.status));
+  }
+
+  // Diese Angaben tragen ganze Sätze und bekommen die volle Breite.
+  const LANG = ["Zweck", "Projekt", "Herkunft"];
+
+  const HERKUNFT = {
+    formular: "Über das Formular /rechnung",
+    portal:   "Im Portal erfasst",
+    import:   "Aus dem Google-Formular übernommen"
+  };
+
+  function angabenZeichnen(zeile) {
+    const felder = [
+      ["Eingereicht von", name(zeile)],
+      ["E-Mail", safe(zeile.email)],
+      ["Projekt", safe(zeile.projekt) +
+        (zeile.projekt_roh && zeile.projekt_roh !== zeile.projekt
+          ? "  (im Formular: „" + zeile.projekt_roh + "“)" : "")],
+      ["Zweck", safe(zeile.beschreibung)],
+      ["Betrag", euro(zeile.betrag)],
+      ["Belegdatum", datum(zeile.beleg_datum)],
+      ["IBAN", safe(zeile.iban) ? ibanSchoen(zeile.iban) : "", safe(zeile.iban)],
+      ["Bezahlt am", datum(zeile.bezahlt_am)],
+      ["Eingegangen", datumZeit(zeile.created_at)],
+      ["Herkunft", HERKUNFT[zeile.quelle] || safe(zeile.quelle)]
+    ];
+
+    const grid = $("kvGrid");
+    grid.innerHTML = "";
+
+    felder.forEach(([schild, wert, zumKopieren]) => {
+      const text = safe(wert).trim();
+      if (!text) return;
+
+      const reihe = document.createElement("div");
+      reihe.className = "kvRow" + (LANG.indexOf(schild) >= 0 ? " kvRow--voll" : "");
+
+      const links = document.createElement("div");
+      links.className = "kvLabel";
+      links.textContent = schild;
+
+      const rechts = document.createElement("div");
+      rechts.className = "kvValue";
+
+      const huelle = document.createElement("div");
+      huelle.className = "kvWert";
+
+      const span = document.createElement("span");
+      if (schild === "IBAN") span.className = "mono";
+      span.textContent = text;
+      huelle.appendChild(span);
+
+      if (zumKopieren) {
+        huelle.appendChild(knopf("kopieren", "btn-secondary kopierBtn",
+          () => kopieren(zumKopieren, schild)));
+      }
+
+      rechts.appendChild(huelle);
+      reihe.appendChild(links);
+      reihe.appendChild(rechts);
+      grid.appendChild(reihe);
+    });
+  }
+
+  /* ---- Der Beleg ---- */
+  const AUGE_AUS =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4l16 16"/>' +
+    '<path d="M9.9 5.3A9 9 0 0 1 12 5c5 0 9 5 9 7a11 11 0 0 1-2.4 3.2"/>' +
+    '<path d="M6.3 7.8C4.2 9.2 3 11.2 3 12c0 2 4 7 9 7 1.3 0 2.5-.3 3.6-.8"/></svg>';
+
+  function hinweisKasten(text) {
+    const div = document.createElement("div");
+    div.className = "belegLeer";
+    div.innerHTML = AUGE_AUS;
+    const span = document.createElement("span");
+    span.textContent = text;
+    div.appendChild(span);
+    return div;
+  }
+
+  function verweis(text, url, herunterladen) {
+    const a = document.createElement("a");
+    a.className = "btn-secondary btn-sm";
+    a.href = url;
+    a.textContent = text;
+    if (herunterladen) {
+      a.download = herunterladen;
+    } else {
+      a.target = "_blank";
+      a.rel = "noopener";
     }
+    return a;
   }
 
-  // CSV Export
-  function exportCSV(){
-    const headers=[F.ts,F.fn,F.ln,F.proj,F.sum,F.date,F.status,F.desc,F.beleg,F.iban];
-    const lines=[headers.join(";")];
-    filtered().forEach(r=>lines.push(headers.map(h=>`"${safe(r[h]).replace(/"/g,'""')}"`).join(";")));
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(new Blob(["﻿"+lines.join("\n")],{type:"text/csv;charset=utf-8"}));
-    a.download=`rechnungen_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click(); URL.revokeObjectURL(a.href);
+  async function belegZeigen(zeile) {
+    const box = $("belegBox");
+    box.innerHTML = '<div class="belegLeer"><span class="spinner spinner--sm"></span>' +
+                    "<span>Beleg wird geholt…</span></div>";
+
+    if (!zeile.beleg_pfad) {
+      box.innerHTML = "";
+      box.appendChild(hinweisKasten(zeile.drive_link
+        ? "Der Beleg liegt noch bei Google Drive. Die Migration holt ihn hierher."
+        : "Zu diesem Vorgang liegt kein Beleg vor."));
+
+      if (zeile.drive_link) {
+        const fuss = document.createElement("div");
+        fuss.className = "belegFuss";
+        fuss.appendChild(verweis("Bei Google Drive öffnen", zeile.drive_link));
+        box.appendChild(fuss);
+      }
+      return;
+    }
+
+    const { data, error } = await sb.storage.from(BUCKET)
+      .createSignedUrl(zeile.beleg_pfad, LINK_DAUER);
+
+    // Der Dialog kann inzwischen zu sein oder einen anderen Vorgang zeigen.
+    if (AKTIV !== zeile) return;
+
+    if (error || !data || !data.signedUrl) {
+      box.innerHTML = "";
+      box.appendChild(hinweisKasten("Der Beleg ließ sich nicht öffnen."));
+      return;
+    }
+
+    const url = data.signedUrl;
+    const istPdf = safe(zeile.beleg_typ).indexOf("pdf") >= 0 ||
+                   safe(zeile.beleg_pfad).toLowerCase().endsWith(".pdf");
+
+    box.innerHTML = "";
+
+    if (istPdf) {
+      const rahmen = document.createElement("iframe");
+      rahmen.src = url;
+      rahmen.title = "Beleg zu " + name(zeile);
+      box.appendChild(rahmen);
+    } else {
+      const bild = document.createElement("img");
+      bild.src = url;
+      bild.alt = "Beleg zu " + name(zeile);
+      // HEIC aus einem iPhone zeigt kein Browser an; dann bleiben die
+      // Knöpfe darunter, und der Beleg lässt sich herunterladen.
+      bild.addEventListener("error", () => {
+        box.innerHTML = "";
+        box.appendChild(hinweisKasten(
+          "Dieses Bildformat zeigt der Browser nicht an — bitte herunterladen."));
+        box.appendChild(belegFuss(url, zeile));
+      });
+      box.appendChild(bild);
+    }
+
+    box.appendChild(belegFuss(url, zeile));
   }
 
-  [searchInput,filterStatus,filterProj].forEach(el=>el?.addEventListener("input",render));
-  reloadBtn?.addEventListener("click",fetchRows);
-  exportBtn?.addEventListener("click",exportCSV);
+  function belegFuss(url, zeile) {
+    const fuss = document.createElement("div");
+    fuss.className = "belegFuss";
+    fuss.appendChild(verweis("In neuem Tab öffnen", url));
+    fuss.appendChild(verweis("Herunterladen", url,
+      (zeile.code || "beleg") + "-" + (zeile.beleg_name || "beleg")));
+    if (zeile.drive_link) fuss.appendChild(verweis("Original bei Drive", zeile.drive_link));
+    return fuss;
+  }
 
-  // Init
-  (async()=>{
-    applyAccess(false);
-    const {data}=await sb.auth.getSession();
-    const session=data?.session;
-    setAuthUI(!!session,session?.user?.email||"");
-    if(!session){location.href="/login";return;}
+  function detailSchliessen() { $("detailDialog").close(); }
 
-    const uid=session.user.id, email=session.user.email||"";
-    const {data:profile}=await sb.from(PROFILES_TABLE).select("role,display_name").eq("id",uid).maybeSingle();
+  $("dlgCloseBtn").addEventListener("click", detailSchliessen);
+  $("detailDialog").addEventListener("click", (e) => {
+    const r = $("detailDialog").getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+      detailSchliessen();
+    }
+  });
+  // Auch beim Schließen mit Esc: Der Rahmen soll nicht im Hintergrund
+  // weiterladen, und ein Beleg gehört nicht in den Speicher, wenn ihn
+  // niemand ansieht.
+  $("detailDialog").addEventListener("close", () => {
+    $("belegBox").innerHTML = "";
+    AKTIV = null;
+  });
 
-    MY_ROLE=normRole(profile?.role);
-    const dn=(profile?.display_name||"").trim();
-    authNameInline.textContent=dn||email.split("@")[0];
-    setRolePill(MY_ROLE);
-    if(dn){authAvatar.textContent=initialsText(dn);}
-    authBadge.title=`${dn||email} · ${MY_ROLE||"unbekannt"}`;
+  /* ============================================================
+     Ändern
+     ============================================================ */
+  function zeileErsetzen(neu) {
+    const i = ALLE.findIndex((r) => r.id === neu.id);
+    if (i >= 0) ALLE[i] = neu;
+  }
 
-    if(MY_ROLE!==REQUIRED_ROLE){statusPill.textContent="Kein Zugriff";applyAccess(false);return;}
+  async function standSetzen(neu) {
+    if (!AKTIV) return;
+    const knoepfe = [...document.querySelectorAll(".statusBtn")];
+    knoepfe.forEach((b) => (b.disabled = true));
 
-    applyAccess(true);
+    const { data, error } = await sb.from(TABELLE)
+      .update({ status: neu }).eq("id", AKTIV.id).select().single();
 
-    const {data:secret}=await sb.from("app_secrets").select("value").eq("key","finance_sheet_token").maybeSingle();
-    TOKEN=secret?.value||"";
-    if(!TOKEN){statusPill.textContent="Token fehlt";return;}
+    knoepfe.forEach((b) => (b.disabled = false));
 
-    await fetchRows();
+    if (error) { toast("Nicht gespeichert: " + error.message, true); return; }
+
+    zeileErsetzen(data);
+    AKTIV = data;
+    standAnzeigen(data);
+    $("notizStand").textContent = "Stand zuletzt geändert am " + datumZeit(data.status_am);
+    angabenZeichnen(data);
+    zeichnen();
+    toast("Stand: " + STAND[data.status].label);
+  }
+
+  async function standSetzenViele(posten, neu) {
+    const ids = posten.map((p) => p.id);
+    const { data, error } = await sb.from(TABELLE)
+      .update({ status: neu }).in("id", ids).select();
+
+    if (error) { toast("Nicht gespeichert: " + error.message, true); return; }
+
+    (data || []).forEach(zeileErsetzen);
+    zeichnen();
+    toast(ids.length === 1 ? "Als bezahlt eingetragen"
+                           : ids.length + " als bezahlt eingetragen");
+  }
+
+  document.querySelectorAll(".statusBtn").forEach((b) =>
+    b.addEventListener("click", () => standSetzen(b.dataset.status)));
+
+  $("dlgSpeichern").addEventListener("click", async () => {
+    if (!AKTIV) return;
+    const el = $("dlgSpeichern");
+    el.disabled = true;
+
+    const { data, error } = await sb.from(TABELLE)
+      .update({ notiz: $("dlgNotiz").value }).eq("id", AKTIV.id).select().single();
+
+    el.disabled = false;
+    if (error) { toast("Nicht gespeichert: " + error.message, true); return; }
+
+    zeileErsetzen(data);
+    AKTIV = data;
+    toast("Notiz gespeichert");
+  });
+
+  $("dlgLoeschen").addEventListener("click", async () => {
+    if (!AKTIV) return;
+    const zeile = AKTIV;
+    if (!confirm("Diesen Vorgang endgültig löschen?\n\n" + name(zeile) + " · " +
+                 euro(zeile.betrag) + "\n\nDer Beleg im Ordner bleibt bestehen.")) return;
+
+    const { error } = await sb.from(TABELLE).delete().eq("id", zeile.id);
+    if (error) { toast("Löschen ging nicht: " + error.message, true); return; }
+
+    ALLE = ALLE.filter((r) => r.id !== zeile.id);
+    detailSchliessen();
+    zeichnen();
+    toast("Vorgang gelöscht");
+  });
+
+  /* ============================================================
+     Erfassen und bearbeiten
+     ------------------------------------------------------------
+     Ein Formular für beides; `EDIT_ID` sagt, was gemeint ist.
+     ============================================================ */
+  function editOeffnen(zeile) {
+    EDIT_ID = zeile ? zeile.id : null;
+    $("editFehler").hidden = true;
+
+    $("editTitle").textContent = zeile ? "Vorgang bearbeiten" : "Beleg erfassen";
+    $("editSub").textContent = zeile
+      ? "Nummer " + zeile.code
+      : "Für alles, was nicht über das Formular hereinkommt";
+
+    $("eVorname").value      = zeile ? safe(zeile.vorname) : "";
+    $("eNachname").value     = zeile ? safe(zeile.nachname) : "";
+    $("eEmail").value        = zeile ? safe(zeile.email) : "";
+    $("eBeschreibung").value = zeile ? safe(zeile.beschreibung) : "";
+    $("eBetrag").value       = zeile ? zahl(zeile.betrag).toFixed(2).replace(".", ",") : "";
+    $("eDatum").value        = zeile ? safe(zeile.beleg_datum)
+                                     : new Date().toISOString().slice(0, 10);
+    $("eIban").value         = zeile ? ibanSchoen(zeile.iban) : "";
+    $("eStatus").value       = zeile ? zeile.status : "offen";
+    $("eBezahltAm").value    = zeile ? safe(zeile.bezahlt_am) : "";
+    $("eBeleg").value        = "";
+
+    /* Das Projekt über die Liste. Trägt die Zeile nur Klartext — so
+       kamen die übernommenen Einträge herein —, bleibt die Auswahl leer,
+       und der Klartext bleibt unberührt, solange niemand etwas wählt. */
+    const passend = zeile && PROJEKTE.find((p) => p.id === zeile.projekt_id);
+    $("eProjekt").value = passend ? passend.id : "";
+
+    $("eBelegHinweis").textContent = zeile && zeile.beleg_pfad
+      ? "— es liegt schon einer vor; ein neuer tritt an seine Stelle"
+      : "— Foto oder PDF";
+
+    $("editDialog").showModal();
+  }
+
+  $("neuBtn").addEventListener("click", () => editOeffnen(null));
+
+  $("dlgBearbeiten").addEventListener("click", () => {
+    if (!AKTIV) return;
+    const zeile = AKTIV;      // `close` setzt AKTIV zurück
+    detailSchliessen();
+    editOeffnen(zeile);
+  });
+
+  const editSchliessen = () => $("editDialog").close();
+  $("editCloseBtn").addEventListener("click", editSchliessen);
+  $("editAbbrechen").addEventListener("click", editSchliessen);
+
+  const TYPEN = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+    heic: "image/heic", heif: "image/heif", gif: "image/gif", pdf: "application/pdf"
+  };
+
+  async function belegHochladen(datei) {
+    const endung = (datei.name.split(".").pop() || "").toLowerCase();
+    const typ = TYPEN[endung] || datei.type;
+    if (!typ) throw new Error("Dieses Dateiformat nimmt der Ordner nicht an.");
+
+    const pfad = "portal/" + kennung() + "." + (endung || "jpg");
+    const { error } = await sb.storage.from(BUCKET)
+      .upload(pfad, datei, { contentType: typ, upsert: false });
+    if (error) throw error;
+
+    return { pfad: pfad, name: datei.name.slice(0, 200), typ: typ };
+  }
+
+  $("editForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const fehler = $("editFehler");
+    fehler.hidden = true;
+
+    const betrag = betragLesen($("eBetrag").value);
+    const iban   = safe($("eIban").value).replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+
+    const meckern = (text) => { fehler.textContent = text; fehler.hidden = false; };
+
+    if (!$("eVorname").value.trim() || !$("eNachname").value.trim()) {
+      return meckern("Vor- und Nachname fehlen.");
+    }
+    if ($("eBeschreibung").value.trim().length < 3) {
+      return meckern("Bitte kurz beschreiben, was gekauft wurde.");
+    }
+    if (!isFinite(betrag) || betrag <= 0) {
+      return meckern("Der Betrag fehlt oder ist nicht zu lesen.");
+    }
+    if (!$("eDatum").value) {
+      return meckern("Das Belegdatum fehlt.");
+    }
+
+    const el = $("editSpeichern");
+    el.disabled = true;
+    el.textContent = "Speichert…";
+
+    try {
+      const projektId = $("eProjekt").value || null;
+      const daten = {
+        vorname:      $("eVorname").value.trim(),
+        nachname:     $("eNachname").value.trim(),
+        email:        $("eEmail").value.trim() || null,
+        beschreibung: $("eBeschreibung").value.trim(),
+        projekt_id:   projektId,
+        betrag:       betrag,
+        beleg_datum:  $("eDatum").value,
+        iban:         iban || null,
+        status:       $("eStatus").value,
+        bezahlt_am:   $("eBezahltAm").value || null
+      };
+
+      // Ohne Zuordnung trägt der Trigger keinen Klartext nach — beim
+      // Anlegen muss die Seite ihn also selbst leer setzen.
+      if (!projektId && !EDIT_ID) daten.projekt = null;
+
+      const datei = $("eBeleg").files && $("eBeleg").files[0];
+      if (datei) {
+        const hoch = await belegHochladen(datei);
+        daten.beleg_pfad = hoch.pfad;
+        daten.beleg_name = hoch.name;
+        daten.beleg_typ  = hoch.typ;
+      }
+
+      let antwort;
+      if (EDIT_ID) {
+        antwort = await sb.from(TABELLE).update(daten).eq("id", EDIT_ID).select().single();
+      } else {
+        daten.quelle = "portal";
+        antwort = await sb.from(TABELLE).insert(daten).select().single();
+      }
+      if (antwort.error) throw antwort.error;
+
+      if (EDIT_ID) zeileErsetzen(antwort.data);
+      else ALLE.unshift(antwort.data);
+
+      editSchliessen();
+      filterFuellen();
+      zeichnen();
+      toast(EDIT_ID ? "Gespeichert" : "Vorgang " + antwort.data.code + " angelegt");
+    } catch (err) {
+      console.error(err);
+      meckern(err.message || "Das ließ sich nicht speichern.");
+    } finally {
+      el.disabled = false;
+      el.textContent = "Speichern";
+    }
+  });
+
+  /* ============================================================
+     CSV
+     ------------------------------------------------------------
+     Semikolon und ein BOM davor: So öffnet Excel die Datei auf
+     Anhieb richtig, ohne Import-Dialog.
+     ============================================================ */
+  $("exportBtn").addEventListener("click", () => {
+    const kopf = ["Nummer", "Eingegangen", "Vorname", "Nachname", "E-Mail", "Projekt",
+                  "Zweck", "Betrag", "Belegdatum", "Stand", "Bezahlt am", "IBAN",
+                  "Notiz", "Beleg", "Herkunft"];
+
+    const zeilen = gefiltert().map((r) => [
+      r.code, datumZeit(r.created_at), r.vorname, r.nachname, r.email,
+      r.projekt, r.beschreibung, zahl(r.betrag).toFixed(2).replace(".", ","),
+      datum(r.beleg_datum), STAND[r.status].label, datum(r.bezahlt_am),
+      ibanSchoen(r.iban), r.notiz,
+      r.beleg_pfad ? "im Ordner" : (r.drive_link || "fehlt"), r.quelle
+    ]);
+
+    const text = [kopf].concat(zeilen)
+      .map((z) => z.map((f) => '"' + safe(f).replace(/"/g, '""') + '"').join(";"))
+      .join("\r\n");
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" }));
+    a.download = "rechnungen_" + new Date().toISOString().slice(0, 10) + ".csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  /* ============================================================
+     Los
+     ============================================================ */
+  (async function start() {
+    zugang(false);
+
+    const { data } = await sb.auth.getSession();
+    const sitzung = data && data.session;
+    setzeAuthUI(!!sitzung, sitzung ? sitzung.user.email : "");
+    if (!sitzung) { location.href = "/login"; return; }
+
+    const uid = sitzung.user.id;
+    const email = sitzung.user.email || "";
+
+    const { data: profil } = await sb.from(PROFILES_TABLE)
+      .select("role,display_name").eq("id", uid).maybeSingle();
+
+    const rolle   = normRolle(profil && profil.role);
+    const anzeige = safe(profil && profil.display_name).trim();
+
+    $("authNameInline").textContent = anzeige || email.split("@")[0];
+    $("authRolePill").textContent = rolle || "unbekannt";
+    $("authRolePill").classList.toggle("vorstand", rolle === "vorstand");
+    if (anzeige) $("authAvatar").textContent = initialenText(anzeige);
+    $("authBadge").title = (anzeige || email) + " · " + (rolle || "unbekannt");
+
+    if (rolle !== "vorstand") {
+      $("statusPill").textContent = "Kein Zugriff";
+      zugang(false);
+      return;
+    }
+
+    zugang(true);
+
+    try {
+      await laden();
+    } catch (err) {
+      console.error(err);
+      $("pageLoader").classList.add("hidden");
+      $("statusPill").textContent = "Fehler";
+
+      /* PGRST205 (oder 42P01): Die Tabelle gibt es noch nicht, weil
+         supabase/rechnungen.sql noch nicht gelaufen ist. Das ist keine
+         Störung, sondern ein fehlender Schritt — und die Meldung soll
+         das auch sagen, statt „Fehler beim Laden“. */
+      const fehlt = err.code === "PGRST205" || err.code === "42P01";
+
+      const kasten = document.createElement("div");
+      kasten.className = "denyBox";
+
+      const titel = document.createElement("div");
+      titel.style.cssText = "font-weight:900;font-size:16px;";
+      titel.textContent = fehlt ? "Noch nicht eingerichtet" : "Daten nicht erreichbar";
+
+      const text = document.createElement("div");
+      text.style.cssText = "margin-top:6px;color:var(--muted-foreground);";
+      text.textContent = fehlt
+        ? "Bitte einmal supabase/rechnungen.sql im Supabase-SQL-Editor ausführen."
+        : (err.message || "Unbekannter Fehler");
+
+      kasten.appendChild(titel);
+      kasten.appendChild(text);
+
+      $("denyWrap").innerHTML = "";
+      $("denyWrap").appendChild(kasten);
+      $("denyWrap").style.display = "block";
+    }
   })();
+})();
 </script>
 <script>
 if ("serviceWorker" in navigator) {

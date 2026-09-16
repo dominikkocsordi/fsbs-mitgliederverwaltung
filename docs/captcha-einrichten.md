@@ -3,6 +3,11 @@
 Das Bewerbungsformular kann vor dem Absenden ein Captcha verlangen. Bis
 das eingerichtet ist, bleibt es aus, und am Formular ändert sich nichts.
 
+Dasselbe gilt für das Formular unter `portal.fsbs-hm.de/rechnung`. Es
+braucht dafür keine eigenen Schlüssel — steht hier erst einmal ein
+Widget, benutzt es dieselben. Wie es eingeschaltet wird, steht am Ende
+dieser Seite unter [Das zweite Formular](#das-zweite-formular).
+
 Geprüft wird das Token **in der Datenbank**, nicht im Browser:
 `bewerbung_abgeben` fragt bei Cloudflare nach, ob es echt ist. Wer das
 Formular umgeht und die Funktion selbst aufruft, kommt damit also genauso
@@ -155,3 +160,50 @@ Das versteckte Feld „Webseite“ im Formular bleibt bestehen. Es kostet
 nichts, fällt keinem Menschen auf, und schlichte Skripte füllen es aus.
 Wer es ausfüllt, bekommt eine Bestätigung zu sehen — gespeichert wird
 nichts.
+
+---
+
+## Das zweite Formular
+
+`portal.fsbs-hm.de/rechnung` — Rechnungen und Auslagen — ist genauso
+gebaut: Das Token prüft `rechnung_einreichen` in der Datenbank, und wer
+das Formular umgeht, kommt damit nicht weiter.
+
+Voraussetzung ist, dass `supabase/rechnungen.sql` und
+`supabase/rechnung-schutz.sql` gelaufen sind. Dann genügt:
+
+```sql
+update public.rechnung_schutz set captcha_aktiv = true where id;
+```
+
+Eigene Schlüssel sind nicht nötig. `captcha_erben` steht auf `true`:
+Solange in `rechnung_schutz` keine eingetragen sind, gelten die aus
+`bewerbung_schutz`. Das darf so sein — beide Formulare stehen unter
+derselben Adresse, und ein Turnstile-Schlüssel gilt für eine Domain,
+nicht für eine Seite.
+
+Eingeschaltet wird trotzdem eigens. Ein Kasten, der von selbst auf einer
+Seite auftaucht, weil jemand an einer anderen etwas geändert hat, wäre
+eine Überraschung an der falschen Stelle.
+
+Eigene Schlüssel gehen auch; dann zieht das Erben nicht mehr:
+
+```sql
+update public.rechnung_schutz set
+    captcha_anbieter = 'turnstile',
+    captcha_site_key = '0x4AAAAAAA…',
+    captcha_secret   = '0x4AAAAAAA…',
+    captcha_aktiv    = true
+ where id;
+```
+
+Nachsehen, was die Seite zu sehen bekommt:
+
+```sql
+select * from public.rechnung_schutz_info();
+```
+
+Die Bremse je IP-Adresse gibt es dort ebenfalls, mit eigenen Zahlen:
+zwölf Einreichungen je Stunde, zwölf unbekannte Vorgangsnummern je zehn
+Minuten. Sie steht in `public.rechnung_schutz`, gezählt wird in
+`public.rechnung_versuche`. Mehr dazu in [rechnungen.md](rechnungen.md).

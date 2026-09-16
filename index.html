@@ -147,7 +147,6 @@ const CAND_STATUS_COL = "bewerbung_status";
 
 /* Apps Script: Anwesenheit MV und die Belegliste der Finanzen */
 const MV_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJtYsEQbqqrp0gyfPp5caDitVndT1SwiLTSi1ybtf63_27UUv07wnlESYrP5-Cf2SEtA/exec";
-const FINANZ_APP_URL     = "https://script.google.com/macros/s/AKfycbxvGgyKd8-zZ87ZvB1lPX4WcVpv5KYvx7ikEYxhvgDtJ4I8XOmAvT_IsIB5p4vloc3A/exec";
 
 /* Eine Bewerbung, die noch im Verfahren steckt — dieselben Stände
    wie auf /bewerbungen, ohne `anwaerter` und `abgelehnt`. */
@@ -491,7 +490,7 @@ function rendereVorstand(daten){
                sub:`${bewUngeprueft} ungeprüft` }),
     statTile({ label:"Anwärter", value:String(anwOffen), icon:"👶🏼", href:"/anwaerter",
                sub:"offen" }),
-    statTile({ label:"Offene Belege", value:`<span class="isPending" id="finWert">…</span>`, icon:"🧾",
+    statTile({ label:"Belege offen", value:`<span class="isPending" id="finWert">…</span>`, icon:"🧾",
                href:"/rechnungen", id:"finTile", sub:`<span id="finSub">wird geladen…</span>` }),
   ].join("");
 
@@ -506,8 +505,7 @@ function rendereVorstand(daten){
                        text:"Konten ohne Profil" }));
   offenKarte(offen);
 
-  /* Die Belegliste hängt an einer Tabelle bei Google und wird
-     nachgeladen, statt das Dashboard aufzuhalten. */
+  /* Die Belegliste wird nachgeladen, statt das Dashboard aufzuhalten. */
   ladeFinanzen();
 }
 
@@ -562,13 +560,18 @@ function rendereRessortleiter(daten, me){
 /* ============================================================
    Belegliste (Finanzen) — nur Vorstand, nur nachgeladen
    ------------------------------------------------------------
-   Die Zahlen stehen in einer Tabelle bei Google, den Zugang dazu
-   hält `app_secrets`. Klappt eines von beidem nicht, bleibt die
-   Kachel stehen und sagt das.
+   Seit dem Umzug weg vom Google-Formular steht alles in
+   `rechnungen`. Lesen darf die Tabelle nur der Vorstand; für
+   alle anderen käme eine leere Liste zurück, und die Kachel
+   wird ihnen gar nicht erst angeboten.
+
+   Gezählt wird, was noch Geld kostet: offen und in Prüfung.
+   Wer sich das Dashboard ansieht, will wissen, was der Verein
+   schuldet — nicht, was schon überwiesen ist.
    ============================================================ */
 async function ladeFinanzen(){
-  const wert = document.getElementById("finWert");
-  const sub  = document.getElementById("finSub");
+  const wert   = document.getElementById("finWert");
+  const sub    = document.getElementById("finSub");
   const kachel = document.getElementById("finTile");
   if (!wert || !sub) return;
 
@@ -579,47 +582,32 @@ async function ladeFinanzen(){
   };
 
   try{
-    const { data: secret } = await sb.from("app_secrets")
-      .select("value").eq("key","finance_sheet_token").maybeSingle();
+    const { data, error } = await sb.from("rechnungen")
+      .select("betrag,status")
+      .in("status", ["offen", "pruefung"]);
 
-    const token = secret?.value || "";
-    if (!token) return zeigeFehler("Kein Zugang hinterlegt");
+    if (error) throw error;
 
-    const res = await fetch(`${FINANZ_APP_URL}?token=${encodeURIComponent(token)}`, { cache:"no-store" });
-    const json = await res.json();
-    if (json?.error) throw new Error(json.error);
-
-    const zeilen = Array.isArray(json.rows) ? json.rows : [];
-
-    /* Dieselbe Lesart wie auf /rechnungen: alles ohne erkennbaren
-       Stand gilt als offen. */
-    const stand = (r) => {
-      const t = safe(r["Status"]).trim().toLowerCase();
-      if (t.includes("prüfung")) return "pruefung";
-      if (t.includes("bezahlt")) return "bezahlt";
-      return "offen";
-    };
-    const betrag = (v) => {
-      if (typeof v === "number" && isFinite(v)) return v;
-      const s = safe(v).trim().replace(/\s/g,"").replace(/[^\d.,-]/g,"");
-      if (!s) return 0;
-      if (s.includes(".") && s.includes(",")) return Number(s.replace(/\./g,"").replace(",",".")) || 0;
-      if (s.includes(",")) return Number(s.replace(",",".")) || 0;
-      return Number(s) || 0;
-    };
-    const euro = (n) => new Intl.NumberFormat("de-DE", { style:"currency", currency:"EUR", maximumFractionDigits:0 }).format(n || 0);
-
-    const offen = zeilen.filter(r => stand(r) === "offen");
-    const pruefung = zeilen.filter(r => stand(r) === "pruefung");
-    const summe = offen.reduce((a, r) => a + betrag(r["Beleg Summe"]), 0);
+    const zeilen   = data || [];
+    const pruefung = zeilen.filter(r => r.status === "pruefung");
+    const summe    = zeilen.reduce((a, r) => a + (Number(r.betrag) || 0), 0);
+    const euro     = (n) => new Intl.NumberFormat("de-DE",
+      { style:"currency", currency:"EUR", maximumFractionDigits:0 }).format(n || 0);
 
     wert.classList.remove("isPending");
-    wert.textContent = String(offen.length);
-    sub.textContent = `${euro(summe)} offen · ${pruefung.length} in Prüfung`;
-    if (kachel && offen.length > 0) kachel.classList.add("is-warn");
+    wert.textContent = String(zeilen.length);
+    sub.textContent = zeilen.length === 0
+      ? "nichts offen"
+      : `${euro(summe)} auszuzahlen · ${pruefung.length} in Prüfung`;
+
+    if (kachel && zeilen.length > 0) kachel.classList.add("is-warn");
   } catch(err){
     console.warn("Dashboard: Belegliste nicht erreichbar —", err?.message || err);
-    zeigeFehler("Belegliste nicht erreichbar");
+
+    // PGRST205: supabase/rechnungen.sql ist noch nicht gelaufen.
+    zeigeFehler(err?.code === "PGRST205"
+      ? "Noch nicht eingerichtet"
+      : "Belegliste nicht erreichbar");
   }
 }
 
