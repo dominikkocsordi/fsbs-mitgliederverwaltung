@@ -175,6 +175,44 @@
   }
   .loeschWarn[hidden] { display: none; }
 
+  /* Die Kette vor dem Leeren: zwei Schritte, einer nach dem anderen.
+     Ein erledigter Schritt tritt zurück, damit sichtbar bleibt, was
+     noch fehlt. */
+  .purgeSteps { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+
+  .purgeStep {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-control);
+    background: var(--surface-1);
+  }
+  .purgeStep.is-done {
+    border-color: color-mix(in oklab, var(--success) 32%, transparent);
+    background: color-mix(in oklab, var(--success) 8%, transparent);
+  }
+  .purgeStepText { flex: 1 1 220px; font-size: 13px; line-height: 1.55; }
+  .purgeStepText strong { display: block; }
+  .purgeStepText code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface-2);
+  }
+  .purgeStep input[type="text"] { flex: 1 1 220px; min-width: 0; }
+
+  .purgeHint {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--danger);
+  }
+  .purgeHint:empty { display: none; }
+
   /* Der Code, wie ihn der Bewerber vor sich hat: gleiche Breite je
      Zeichen, damit sich 0 und O beim Vorlesen nicht in die Quere kommen. */
   .bewCode {
@@ -443,7 +481,7 @@
   </div>
 </dialog>
 
-<!-- Ressort-Auswahl bei der Übernahme -->
+<!-- Eine einzelne Bewerbung löschen -->
 <dialog id="loeschDlg">
   <div class="dlgShell" style="max-width:440px;">
     <div class="sheetHandle" aria-hidden="true"></div>
@@ -473,6 +511,56 @@
   </div>
 </dialog>
 
+<!-- Am Semesterende: die ganze Liste leeren -->
+<dialog id="purgeDlg">
+  <div class="dlgShell" style="max-width:520px;">
+    <div class="sheetHandle" aria-hidden="true"></div>
+    <div class="modalHeader">
+      <div>
+        <h2 class="modalTitle">Alle Bewerbungen löschen</h2>
+        <div class="modalSub" id="purgeSub">–</div>
+      </div>
+      <button class="btn-secondary closeX" id="purgeClose" type="button" aria-label="Schließen">✕</button>
+    </div>
+    <div class="modalBody">
+      <p class="loeschText">
+        Jede Bewerbung samt Antworten und Foto wird entfernt — auch die
+        abgelehnten, auch die übernommenen. Gedacht ist das für den
+        Semesterwechsel, wenn die nächsten Bewerbungen hereinkommen. Danach
+        führt jeder Code, den ein Bewerber noch hat, ins Leere, und
+        zurückholen lässt sich nichts.
+      </p>
+
+      <ol class="purgeSteps">
+        <li class="purgeStep" id="purgeStep1">
+          <div class="purgeStepText">
+            <strong>1 · Erst sichern</strong>
+            Alle Bewerbungen als CSV-Datei — mit jeder Frage als eigener
+            Spalte. Die Fotos sind darin nicht enthalten.
+          </div>
+          <button class="btn-secondary btn-sm" id="purgeCsv" type="button">CSV herunterladen</button>
+        </li>
+
+        <li class="purgeStep" id="purgeStep2">
+          <div class="purgeStepText">
+            <strong>2 · Dann bestätigen</strong>
+            Tipp <code>ALLE BEWERBUNGEN LÖSCHEN</code> ab. Wortgleich.
+          </div>
+          <input id="purgeSatz" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="ALLE BEWERBUNGEN LÖSCHEN" disabled>
+        </li>
+      </ol>
+
+      <div class="purgeHint" id="purgeHinweis"></div>
+    </div>
+    <div class="modalActions">
+      <button class="btn-secondary" id="purgeAbbruch" type="button">Abbrechen</button>
+      <button class="btn-danger" id="purgeOk" type="button" disabled>Endgültig löschen</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Ressort-Auswahl bei der Übernahme -->
 <dialog id="ressortDlg">
   <div class="dlgShell" style="max-width:440px;">
     <div class="sheetHandle" aria-hidden="true"></div>
@@ -669,6 +757,12 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const LOGIN_PAGE = "/login";
 const ANWAERTER_TABELLE = "anwaerter";
 const FOTO_BUCKET = "bewerbungen";
+
+/* Was eine Bewerbung ausmacht — einmal aufgezählt, damit die Liste und die
+   Sicherung vor dem Leeren nicht auseinanderlaufen. */
+const BEW_SPALTEN =
+  "id,vorname,nachname,email,telefon,ressort_1_id,ressort_1,ressort_2_id,ressort_2," +
+  "antworten,fragen,einwilligung_text,code,status,status_am,created_at";
 
 /* Der Link, den die Anwärterliste in `photo_url` bekommt. Er läuft
    nicht ab, solange das Bild liegt — so wie die Drive-Links vorher. */
@@ -868,6 +962,9 @@ function renderPage() {
              placeholder="Name, E-Mail, Code, Ressort oder Antwort suchen">
       <select class="toolbar__select" id="ressortFeld"><option value="">Ressort (alle)</option></select>
       <button class="btn-secondary btn-sm" id="neuLaden" type="button">Aktualisieren</button>
+      <button class="btn-secondary btn-sm" id="csvBtn" type="button"
+              title="Die angezeigte Liste als CSV-Datei">CSV</button>
+      ${CAN_EDIT ? `<button class="btn-danger btn-sm" id="purgeBtn" type="button">Alle löschen</button>` : ``}
       <div class="toolbar__spacer"></div>
       <span class="toolbar__count" id="anzahl"></span>
     </div>
@@ -878,6 +975,8 @@ function renderPage() {
   $("sucheFeld").addEventListener("input", (e) => { suche = e.target.value.trim().toLowerCase(); zeichne(); });
   $("ressortFeld").addEventListener("change", (e) => { ressortFilter = e.target.value; zeichne(); });
   $("neuLaden").addEventListener("click", () => laden());
+  $("csvBtn").addEventListener("click", () => csvDatei("bewerbungen", bewerbungenTabelle(zeilen.filter(passt))));
+  if (CAN_EDIT) $("purgeBtn").addEventListener("click", purgeOeffnen);
   $("statGrid").addEventListener("click", (e) => {
     const kachel = e.target.closest("button[data-filter]");
     if (kachel) { filter = kachel.dataset.filter; zeichne(); }
@@ -1355,6 +1454,190 @@ $("ressortDlgOk").addEventListener("click", async () => {
 });
 
 /* ================================================================
+   CSV und das Leeren am Semesterende
+   ================================================================ */
+/* Semikolon und ein BOM davor: So öffnet Excel die Datei auf Anhieb
+   richtig, ohne Import-Dialog. */
+function csvDatei(name, tabelle) {
+  if (tabelle.length < 2) { showToast("Da ist nichts zu exportieren.", true); return; }
+
+  const text = tabelle
+    .map((z) => z.map((f) => '"' + safe(f).replaceAll('"', '""') + '"').join(";"))
+    .join("\r\n");
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + text], { type: "text/csv;charset=utf-8" }));
+  a.download = `${name}_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* Kopfzeile und Zeilen in einem: vorn die festen Angaben, dahinter je
+   eine Spalte für jede Frage, die in den Antworten vorkommt — auch für
+   die, die im Formular längst abgeschaltet ist. Sonst fehlte in der
+   Sicherung genau das, was den Bewerber ausmacht. */
+function bewerbungenTabelle(rows) {
+  const schluessel = [];
+  rows.forEach((z) => Object.keys(z.antworten || {}).forEach((k) => {
+    if (!schluessel.includes(k)) schluessel.push(k);
+  }));
+
+  const label = (k) => felder.find((f) => f.feld_key === k)?.label || k;
+
+  const kopf = ["Code", "Eingegangen", "Stand", "Stand seit", "Vorname", "Nachname",
+                "E-Mail", "Telefon", "Ressort 1", "Ressort 2", "Einwilligung"]
+    .concat(schluessel.map(label));
+
+  return [kopf].concat(rows.map((z) => [
+    z.code, zeitText(z.created_at), STAENDE[z.status]?.label || z.status, zeitText(z.status_am),
+    z.vorname, z.nachname, z.email, z.telefon, z.ressort_1, z.ressort_2, z.einwilligung_text
+  ].concat(schluessel.map((k) => {
+    const w = z.antworten?.[k];
+    return Array.isArray(w) ? w.join(", ") : w;
+  }))));
+}
+
+/* PostgREST gibt höchstens 1000 Zeilen auf einmal heraus. Eine Sicherung,
+   die bei Zeile 1000 aufhört, ist keine — also seitenweise. */
+async function alleBewerbungen() {
+  const SEITE = 1000;
+  let alle = [];
+
+  for (let von = 0; ; von += SEITE) {
+    const { data, error } = await sb.from("bewerbungen").select(BEW_SPALTEN)
+      .order("created_at", { ascending: false })
+      .range(von, von + SEITE - 1);
+
+    if (error) throw error;
+    alle = alle.concat(data || []);
+    if (!data || data.length < SEITE) break;
+  }
+
+  return alle;
+}
+
+/* Zwei Schritte, und keiner lässt sich überspringen: sichern, abtippen.
+   Erst dann wird der rote Knopf anfassbar. Die Datenbank prüft dasselbe
+   noch einmal — sie nimmt den Satz nur wortgleich und nur, wenn die
+   Anzahl seither dieselbe geblieben ist. */
+const PURGE_SATZ = "ALLE BEWERBUNGEN LÖSCHEN";
+const purgeDlg = $("purgeDlg");
+let PURGE_ROH = [];
+let PURGE_GESICHERT = false;
+
+function purgeSchritte() {
+  const satzOk = $("purgeSatz").value.trim() === PURGE_SATZ;
+
+  $("purgeStep1").classList.toggle("is-done", PURGE_GESICHERT);
+  $("purgeStep2").classList.toggle("is-done", PURGE_GESICHERT && satzOk);
+
+  $("purgeSatz").disabled = !PURGE_GESICHERT;
+  $("purgeOk").disabled = !(PURGE_GESICHERT && satzOk && PURGE_ROH.length > 0);
+}
+
+/* Zählen und mitbringen, was gelöscht würde — und damit die Kette auf
+   Anfang: Eine CSV-Datei von vorhin gehört zu einer Liste von vorhin. */
+async function purgeZaehlen() {
+  PURGE_ROH = [];
+  PURGE_GESICHERT = false;
+  $("purgeCsv").disabled = true;
+  $("purgeSub").textContent = "Wird gezählt…";
+  purgeSchritte();
+
+  try {
+    PURGE_ROH = await alleBewerbungen();
+  } catch (err) {
+    console.error(err);
+    $("purgeSub").textContent = "—";
+    $("purgeHinweis").textContent = "Die Liste ließ sich nicht laden.";
+    return;
+  }
+
+  $("purgeSub").textContent = PURGE_ROH.length === 1
+    ? "1 Bewerbung in der Tabelle"
+    : `${PURGE_ROH.length} Bewerbungen in der Tabelle`;
+
+  if (!PURGE_ROH.length) {
+    $("purgeHinweis").textContent = "Es liegt keine Bewerbung mehr vor.";
+    return;
+  }
+
+  $("purgeCsv").disabled = false;
+  purgeSchritte();
+}
+
+async function purgeOeffnen() {
+  if (!CAN_EDIT) return;
+
+  $("purgeSatz").value = "";
+  $("purgeHinweis").textContent = "";
+  purgeDlg.showModal();
+
+  await purgeZaehlen();
+}
+
+const purgeSchliessen = () => { if (purgeDlg.open) purgeDlg.close(); };
+$("purgeClose").addEventListener("click", purgeSchliessen);
+$("purgeAbbruch").addEventListener("click", purgeSchliessen);
+purgeDlg.addEventListener("click", (e) => { if (e.target === purgeDlg) purgeSchliessen(); });
+
+$("purgeCsv").addEventListener("click", () => {
+  if (!PURGE_ROH.length) return;
+  csvDatei("bewerbungen_alle", bewerbungenTabelle(PURGE_ROH));
+  PURGE_GESICHERT = true;
+  $("purgeHinweis").textContent = "";
+  purgeSchritte();
+  $("purgeSatz").focus();
+});
+
+$("purgeSatz").addEventListener("input", purgeSchritte);
+
+$("purgeOk").addEventListener("click", async () => {
+  if (!CAN_EDIT || $("purgeOk").disabled) return;
+
+  const knopf = $("purgeOk");
+  knopf.disabled = true;
+  knopf.textContent = "Löscht…";
+  $("purgeHinweis").textContent = "";
+
+  /* Die Fotos liegen außerhalb der Tabelle und gehen nicht von selbst mit.
+     Welche es sind, sagen die Zeilen — also jetzt, solange es sie gibt. */
+  const pfade = PURGE_ROH.map(fotoPfad).filter(Boolean);
+
+  const { data, error } = await sb.rpc("bewerbungen_alle_loeschen", {
+    p_bestaetigung: $("purgeSatz").value.trim(),
+    p_anzahl: PURGE_ROH.length
+  });
+
+  knopf.textContent = "Endgültig löschen";
+
+  if (error) {
+    console.error(error);
+    $("purgeHinweis").textContent = error.code === "PGRST202"
+      ? "Die Datenbank kennt das Leeren noch nicht — supabase/semester-zuruecksetzen.sql fehlt."
+      : (error.message || "Das Leeren ist fehlgeschlagen.");
+
+    /* Stimmte die Anzahl nicht, ist in der Zwischenzeit eine Bewerbung
+       hereingekommen — dann taugt auch die eben gezogene Datei nicht mehr,
+       und die Kette beginnt von vorn. */
+    if (error.code === "23514") await purgeZaehlen();
+    else purgeSchritte();
+    return;
+  }
+
+  for (let i = 0; i < pfade.length; i += 100) {
+    const { error: fotoFehler } = await sb.storage.from(FOTO_BUCKET).remove(pfade.slice(i, i + 100));
+    if (fotoFehler) console.error("Fotos blieben liegen:", fotoFehler);
+  }
+  fotoLinks.clear();
+
+  purgeSchliessen();
+  showToast(`${data} Bewerbungen gelöscht. Die CSV-Datei ist jetzt das Einzige, was davon bleibt.`);
+  await laden();
+});
+
+
+/* ================================================================
    Formular-Editor
    ================================================================ */
 const editorDlg = $("editorDlg");
@@ -1722,8 +2005,7 @@ async function laden() {
   $("statusPill").textContent = "Lade…";
 
   const { data, error } = await sb.from("bewerbungen")
-    .select("id,vorname,nachname,email,telefon,ressort_1_id,ressort_1,ressort_2_id,ressort_2," +
-            "antworten,fragen,einwilligung_text,code,status,status_am,created_at")
+    .select(BEW_SPALTEN)
     .order("created_at", { ascending: false });
 
   if (error) {

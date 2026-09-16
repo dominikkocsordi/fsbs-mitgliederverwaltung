@@ -25,6 +25,49 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/mobile-nav.css">
 
+  <style>
+    /* Die Kette vor dem Leeren: zwei Schritte, einer nach dem anderen,
+       und erst dann der rote Knopf. Ein erledigter Schritt tritt zurück,
+       damit sichtbar bleibt, was noch fehlt. */
+    .purgeText { margin: 0 0 14px; font-size: 14px; line-height: 1.6; }
+    .purgeText strong { color: var(--danger); }
+
+    .purgeSteps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+
+    .purgeStep {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--surface-1);
+    }
+    .purgeStep.is-done {
+      border-color: color-mix(in oklab, var(--success) 32%, transparent);
+      background: color-mix(in oklab, var(--success) 8%, transparent);
+    }
+    .purgeStepText { flex: 1 1 220px; font-size: 13px; line-height: 1.55; }
+    .purgeStepText strong { display: block; font-size: 13px; }
+    .purgeStepText code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--surface-2);
+    }
+    .purgeStep input[type="text"] { flex: 1 1 220px; min-width: 0; }
+
+    .purgeHint {
+      margin-top: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--danger);
+    }
+    .purgeHint:empty { display: none; }
+  </style>
+
 </head>
 
 <body>
@@ -97,6 +140,9 @@
         <select id="fStatus"></select>
         <select id="sortBy"></select>
         <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
+        <button class="btn-secondary" id="csvBtn" type="button"
+                title="Die angezeigte Liste als CSV-Datei">CSV</button>
+        <button class="btn-danger" id="purgeBtn" type="button" hidden>Alle löschen</button>
 
         <div class="right wide" style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
           <div class="pill" id="countPill">0</div>
@@ -179,6 +225,55 @@
     </div>
   </div>
 
+  <!-- ALLE LÖSCHEN -->
+  <div class="modalOverlay" id="purgeOverlay">
+    <div class="glass modal" onclick="event.stopPropagation()">
+      <div class="modalHeader">
+        <div>
+          <h2 class="modalTitle">Alle Anwärter löschen</h2>
+          <div class="modalSub" id="purgeSub">–</div>
+        </div>
+        <button class="btn-secondary closeX" id="purgeCloseBtn" type="button" aria-label="Schließen">✕</button>
+      </div>
+
+      <div class="card" style="padding:12px; margin:0;">
+        <p class="purgeText">
+          Die Anwärterliste wird <strong>vollständig</strong> geleert — jede
+          Zeile, auch die abgelehnten und die längst übernommenen. Gedacht ist
+          das für den Semesterwechsel, wenn die nächsten Anwärter kommen.
+          Zurückholen lässt sich nichts.
+        </p>
+
+        <ol class="purgeSteps">
+          <li class="purgeStep" id="purgeStep1">
+            <div class="purgeStepText">
+              <strong>1 · Erst sichern</strong>
+              Die ganze Tabelle als CSV-Datei — mit allen Spalten, auch denen,
+              die die Liste oben nicht zeigt.
+            </div>
+            <button class="btn-secondary btn-mini" id="purgeCsvBtn" type="button">CSV herunterladen</button>
+          </li>
+
+          <li class="purgeStep" id="purgeStep2">
+            <div class="purgeStepText">
+              <strong>2 · Dann bestätigen</strong>
+              Tipp <code>ALLE ANWÄRTER LÖSCHEN</code> ab. Wortgleich.
+            </div>
+            <input id="purgeSatz" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="ALLE ANWÄRTER LÖSCHEN" disabled>
+          </li>
+        </ol>
+
+        <div class="purgeHint" id="purgeHinweis"></div>
+
+        <div class="row" style="margin-top:14px; justify-content:flex-end;">
+          <button class="btn-secondary" id="purgeCancelBtn" type="button">Abbrechen</button>
+          <button class="btn-danger" id="purgeOkBtn" type="button" disabled>Endgültig löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     /* ========= Supabase config ========= */
     const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
@@ -242,6 +337,8 @@
     const fStatus  = document.getElementById("fStatus");
     const sortBy   = document.getElementById("sortBy");
     const reloadBtn = document.getElementById("reloadBtn");
+    const csvBtn    = document.getElementById("csvBtn");
+    const purgeBtn  = document.getElementById("purgeBtn");
     const countPill = document.getElementById("countPill");
     const tbody = document.getElementById("tbody");
     const empty = document.getElementById("empty");
@@ -259,9 +356,26 @@
     const editPhoto = document.getElementById("editPhoto");
     const editPhotoLink = document.getElementById("editPhotoLink");
 
+    const purgeOverlay   = document.getElementById("purgeOverlay");
+    const purgeSub       = document.getElementById("purgeSub");
+    const purgeStep1     = document.getElementById("purgeStep1");
+    const purgeStep2     = document.getElementById("purgeStep2");
+    const purgeCsvBtn    = document.getElementById("purgeCsvBtn");
+    const purgeSatz      = document.getElementById("purgeSatz");
+    const purgeHinweis   = document.getElementById("purgeHinweis");
+    const purgeOkBtn     = document.getElementById("purgeOkBtn");
+    const purgeCloseBtn  = document.getElementById("purgeCloseBtn");
+    const purgeCancelBtn = document.getElementById("purgeCancelBtn");
+
     /* ========= State ========= */
     let ALL = [];
     let EDITING = null;
+
+    /* Wortgleich so, wie es `anwaerter_alle_loeschen()` in der Datenbank
+       erwartet — die Kette im Browser ist die eine Hälfte des Riegels. */
+    const PURGE_SATZ = "ALLE ANWÄRTER LÖSCHEN";
+    let PURGE_ROH = [];         // die ganze Tabelle, ungefiltert
+    let PURGE_GESICHERT = false;
 
     const safe = (v) => (v === null || v === undefined) ? "" : String(v);
     const esc = (s) => String(s)
@@ -516,6 +630,10 @@
     }
 
     function applyRoleUX(){
+      /* Die Ressortleitung liest die Liste — leeren tut sie niemand außer
+         dem Vorstand, und was sie nicht darf, steht ihr auch nicht im Weg. */
+      purgeBtn.hidden = !CAN_EDIT;
+
       if (!CAN_EDIT && MY_RESSORT && RESSORTS_FIXED.includes(MY_RESSORT)){
         fRessort.value = MY_RESSORT;
         fRessort.disabled = false;
@@ -548,7 +666,10 @@
       return Number.isFinite(t) ? t : 0;
     }
 
-    function render(){
+    /* Was die Liste gerade zeigt — gefiltert und sortiert. `render()`
+       zeichnet daraus die Tabelle, der CSV-Knopf schreibt dasselbe in eine
+       Datei: Wer exportiert, bekommt, was er vor sich sieht. */
+    function sichtbareZeilen(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
       const sf = safe(fStatus.value).trim();
@@ -589,6 +710,12 @@
 
         return 0;
       });
+
+      return rows;
+    }
+
+    function render(){
+      const rows = sichtbareZeilen();
 
       countPill.textContent = `${rows.length} / ${ALL.length}`;
       tbody.innerHTML = "";
@@ -916,6 +1043,160 @@
       toggleMail(id, !now);
     }
 
+    /* ========= CSV =========
+       Semikolon und ein BOM davor: So öffnet Excel die Datei auf Anhieb
+       richtig, ohne Import-Dialog. Welche Spalten hineinkommen, steht nicht
+       im Quelltext — genommen wird, was die Zeilen mitbringen. Eine
+       Sicherung, der eine Spalte fehlt, weil sie erst nach dieser Seite
+       dazukam, wäre keine. */
+    function csvSpalten(rows){
+      const namen = [];
+      rows.forEach(r => Object.keys(r || {}).forEach(k => {
+        if (!namen.includes(k)) namen.push(k);
+      }));
+      return namen;
+    }
+
+    function csvFeld(wert){
+      if (wert === null || wert === undefined) return "";
+      if (typeof wert === "object") return JSON.stringify(wert);
+      return String(wert);
+    }
+
+    function csvDatei(name, rows){
+      if (!rows.length) return alert("Da ist nichts zu exportieren.");
+
+      const spalten = csvSpalten(rows);
+      const text = [spalten].concat(rows.map(r => spalten.map(s => csvFeld(r[s]))))
+        .map(z => z.map(f => '"' + f.replaceAll('"', '""') + '"').join(";"))
+        .join("\r\n");
+
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob(["\ufeff" + text], { type: "text/csv;charset=utf-8" }));
+      a.download = `${name}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    /* PostgREST gibt höchstens 1000 Zeilen auf einmal heraus. Eine Sicherung,
+       die bei Zeile 1000 aufhört, ist keine — also seitenweise. */
+    async function alleZeilen(){
+      const SEITE = 1000;
+      let zeilen = [];
+
+      for (let von = 0; ; von += SEITE){
+        const { data, error } = await sb
+          .from(CANDIDATES_TABLE)
+          .select("*")
+          .order("id", { ascending: true })
+          .range(von, von + SEITE - 1);
+
+        if (error) throw error;
+        zeilen = zeilen.concat(data || []);
+        if (!data || data.length < SEITE) break;
+      }
+
+      return zeilen;
+    }
+
+    /* ========= Alle löschen =========
+       Drei Schritte, und keiner lässt sich überspringen: sichern, abtippen,
+       löschen. Die Datenbank prüft dieselben Dinge noch einmal — sie nimmt
+       den Satz nur wortgleich und nur, wenn die Anzahl seither dieselbe
+       geblieben ist. */
+    function purgeSchritte(){
+      const satzOk = purgeSatz.value.trim() === PURGE_SATZ;
+
+      purgeStep1.classList.toggle("is-done", PURGE_GESICHERT);
+      purgeStep2.classList.toggle("is-done", PURGE_GESICHERT && satzOk);
+
+      purgeSatz.disabled = !PURGE_GESICHERT;
+      purgeOkBtn.disabled = !(PURGE_GESICHERT && satzOk && PURGE_ROH.length > 0);
+    }
+
+    function purgeSchliessen(){
+      purgeOverlay.classList.remove("show");
+      document.body.classList.remove("modal-open");
+    }
+
+    /* Zählen und mitbringen, was gelöscht würde — und damit die Kette auf
+       Anfang: Eine CSV-Datei von vorhin gehört zu einer Liste von vorhin.
+
+       Gesichert wird, was in der Tabelle steht, nicht, was die Liste oben
+       zeigt: Die blendet die Zwischenstände aus dem Bewerbungsverfahren
+       aus, und gelöscht werden sie trotzdem. */
+    async function purgeZaehlen(){
+      PURGE_ROH = [];
+      PURGE_GESICHERT = false;
+      purgeCsvBtn.disabled = true;
+      purgeSub.textContent = "Wird gezählt…";
+      purgeSchritte();
+
+      try {
+        PURGE_ROH = await alleZeilen();
+      } catch (err){
+        purgeSub.textContent = "—";
+        purgeHinweis.textContent = "Die Liste ließ sich nicht laden: " + (err?.message || err);
+        return;
+      }
+
+      purgeSub.textContent = PURGE_ROH.length === 1
+        ? "1 Zeile in der Tabelle"
+        : `${PURGE_ROH.length} Zeilen in der Tabelle`;
+
+      if (!PURGE_ROH.length){
+        purgeHinweis.textContent = "Die Anwärterliste ist schon leer.";
+        return;
+      }
+
+      purgeCsvBtn.disabled = false;
+      purgeSchritte();
+    }
+
+    async function purgeOeffnen(){
+      if (!CAN_EDIT) return alert("Keine Berechtigung: Nur Vorstand darf die Liste leeren.");
+
+      purgeSatz.value = "";
+      purgeHinweis.textContent = "";
+
+      document.body.classList.add("modal-open");
+      purgeOverlay.classList.add("show");
+
+      await purgeZaehlen();
+    }
+
+    async function purgeAusfuehren(){
+      if (!CAN_EDIT || purgeOkBtn.disabled) return;
+
+      purgeOkBtn.disabled = true;
+      purgeOkBtn.textContent = "Löscht…";
+      purgeHinweis.textContent = "";
+
+      const { data, error } = await sb.rpc("anwaerter_alle_loeschen", {
+        p_bestaetigung: purgeSatz.value.trim(),
+        p_anzahl: PURGE_ROH.length
+      });
+
+      purgeOkBtn.textContent = "Endgültig löschen";
+
+      if (error){
+        purgeHinweis.textContent = error.code === "PGRST202"
+          ? "Die Datenbank kennt das Leeren noch nicht — supabase/semester-zuruecksetzen.sql fehlt."
+          : (error.message || "Das Leeren ist fehlgeschlagen.");
+
+        /* Stimmte die Anzahl nicht, ist in der Zwischenzeit etwas
+           dazugekommen — dann taugt auch die eben gezogene Datei nicht
+           mehr, und die Kette beginnt von vorn. */
+        if (error.code === "23514") await purgeZaehlen();
+        else purgeSchritte();
+        return;
+      }
+
+      purgeSchliessen();
+      alert(`${data} Anwärter gelöscht. Die CSV-Datei ist jetzt das Einzige, was davon bleibt.`);
+      await fetchCandidates();
+    }
+
     function wireFilters(){
       q.addEventListener("input", render);
       fRessort.addEventListener("change", render);
@@ -924,6 +1205,25 @@
     }
 
     reloadBtn.addEventListener("click", fetchCandidates);
+
+    csvBtn.addEventListener("click", () => csvDatei("anwaerter", sichtbareZeilen()));
+
+    purgeBtn.addEventListener("click", purgeOeffnen);
+    purgeCsvBtn.addEventListener("click", () => {
+      if (!PURGE_ROH.length) return;
+      csvDatei("anwaerter_alle", PURGE_ROH);
+      PURGE_GESICHERT = true;
+      purgeHinweis.textContent = "";
+      purgeSchritte();
+      purgeSatz.focus();
+    });
+    purgeSatz.addEventListener("input", purgeSchritte);
+    purgeOkBtn.addEventListener("click", purgeAusfuehren);
+    purgeCloseBtn.addEventListener("click", purgeSchliessen);
+    purgeCancelBtn.addEventListener("click", purgeSchliessen);
+    purgeOverlay.addEventListener("click", (e)=>{
+      if (e.target === purgeOverlay) purgeSchliessen();
+    });
 
     saveEditBtn.addEventListener("click", saveEdit);
     closeEditBtn.addEventListener("click", closeEdit);
@@ -959,7 +1259,9 @@
     });
 
     document.addEventListener("keydown", (e)=>{
-      if (e.key === "Escape" && editOverlay.classList.contains("show")) closeEdit();
+      if (e.key !== "Escape") return;
+      if (editOverlay.classList.contains("show")) closeEdit();
+      if (purgeOverlay.classList.contains("show")) purgeSchliessen();
     });
 
     /* ========= Init ========= */
