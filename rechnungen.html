@@ -826,6 +826,26 @@
 
   const $ = (id) => document.getElementById(id);
 
+  /* app-shell.js baut Kopfzeile und Navigationsleiste um, sobald das
+     Dokument fertig geladen ist: Die Navigationspunkte wandern in die neue
+     Kopfzeile, ihre Hülle `#navWrap` verschwindet dabei ganz aus dem
+     Dokument.
+
+     Das geschieht mitten in der Anmeldung — die wartet auf `getSession()`
+     und läuft genau dann weiter. Wer einen dieser Knoten erst danach über
+     seine ID sucht, bekommt `null`, und der erste Zugriff darauf reißt die
+     Anmeldung mit: Die Seite bliebe bei „Kein Zugriff“ stehen, obwohl der
+     Zugriff besteht.
+
+     Deshalb werden sie hier einmal gemerkt, solange sie noch alle da sind.
+     Auf einen abgehängten Knoten zu schreiben ist unschädlich; auf `null`
+     zu schreiben nicht. */
+  const kopf = {};
+  ["navWrap", "formularNavLink", "statusPill", "authBadge", "authDot",
+   "authState", "authAvatar", "authCompact", "authNameInline", "authRolePill",
+   "authToggle", "authDetails", "authMail", "logoutBtn", "logoutBtn2"]
+    .forEach((id) => { kopf[id] = $(id); });
+
   let ALLE     = [];          // alle Zeilen, neueste zuerst
   let PROJEKTE = [];          // für die Auswahlfelder
   let ANSICHT  = "vorgaenge";
@@ -959,7 +979,7 @@
 
   function setzeAvatar(email) {
     const e = safe(email).trim().toLowerCase();
-    const avatar = $("authAvatar");
+    const avatar = kopf.authAvatar;
     if (!e) { avatar.classList.add("hidden"); return; }
     const h = hashStr(e), hue = h % 360, hue2 = (hue + 38) % 360;
     avatar.textContent = initialenMail(e);
@@ -969,35 +989,39 @@
   }
 
   function setzeAuthUI(ok, email) {
-    $("authDot").classList.toggle("ok", ok);
+    kopf.authDot.classList.toggle("ok", ok);
     if (ok) {
-      $("authState").classList.add("hidden");
-      $("authCompact").classList.remove("hidden");
-      $("authMail").textContent = email || "";
+      kopf.authState.classList.add("hidden");
+      kopf.authCompact.classList.remove("hidden");
+      kopf.authMail.textContent = email || "";
       setzeAvatar(email);
     } else {
-      $("authState").classList.remove("hidden");
-      $("authState").textContent = "nicht eingeloggt";
-      $("authCompact").classList.add("hidden");
+      kopf.authState.classList.remove("hidden");
+      kopf.authState.textContent = "nicht eingeloggt";
+      kopf.authCompact.classList.add("hidden");
       setzeAvatar("");
     }
   }
 
-  $("authToggle").addEventListener("click", (e) => {
+  kopf.authToggle.addEventListener("click", (e) => {
     e.stopPropagation();
-    $("authDetails").classList.toggle("hidden");
+    kopf.authDetails.classList.toggle("hidden");
   });
   document.addEventListener("click", (e) => {
-    if (!$("authBadge").contains(e.target)) $("authDetails").classList.add("hidden");
+    if (!kopf.authBadge.contains(e.target)) kopf.authDetails.classList.add("hidden");
   });
 
   async function abmelden() { await sb.auth.signOut(); location.href = "/login"; }
-  $("logoutBtn").addEventListener("click", abmelden);
-  $("logoutBtn2").addEventListener("click", abmelden);
+  kopf.logoutBtn.addEventListener("click", abmelden);
+  kopf.logoutBtn2.addEventListener("click", abmelden);
 
   function zugang(ok) {
-    $("navWrap").style.display = ok ? "block" : "none";
-    $("formularNavLink").style.display = ok ? "inline-flex" : "none";
+    // Beide sind gemerkt, können aber fehlen, wenn jemand am Aufbau der
+    // Seite etwas ändert. Ein Gürtel zum Hosenträger.
+    if (kopf.navWrap) kopf.navWrap.style.display = ok ? "block" : "none";
+    if (kopf.formularNavLink) {
+      kopf.formularNavLink.style.display = ok ? "inline-flex" : "none";
+    }
     // Diese Seite steht nur dem Vorstand offen: Wer sie sieht, sieht alles.
     if (window.FSBSNav) window.FSBSNav.setRole(ok ? "vorstand" : "");
     $("denyWrap").style.display = ok ? "none" : "block";
@@ -1012,7 +1036,7 @@
      Laden
      ============================================================ */
   async function laden() {
-    $("statusPill").textContent = "Lade…";
+    kopf.statusPill.textContent = "Lade…";
 
     const [belege, projekte] = await Promise.all([
       sb.from(TABELLE).select("*").order("created_at", { ascending: false }),
@@ -1033,7 +1057,7 @@
 
     $("pageLoader").classList.add("hidden");
     $("inhalt").hidden = false;
-    $("statusPill").textContent = anzahl(ALLE.length);
+    kopf.statusPill.textContent = anzahl(ALLE.length);
   }
 
   function filterFuellen() {
@@ -1861,14 +1885,14 @@
     const rolle   = normRolle(profil && profil.role);
     const anzeige = safe(profil && profil.display_name).trim();
 
-    $("authNameInline").textContent = anzeige || email.split("@")[0];
-    $("authRolePill").textContent = rolle || "unbekannt";
-    $("authRolePill").classList.toggle("vorstand", rolle === "vorstand");
-    if (anzeige) $("authAvatar").textContent = initialenText(anzeige);
-    $("authBadge").title = (anzeige || email) + " · " + (rolle || "unbekannt");
+    kopf.authNameInline.textContent = anzeige || email.split("@")[0];
+    kopf.authRolePill.textContent = rolle || "unbekannt";
+    kopf.authRolePill.classList.toggle("vorstand", rolle === "vorstand");
+    if (anzeige) kopf.authAvatar.textContent = initialenText(anzeige);
+    kopf.authBadge.title = (anzeige || email) + " · " + (rolle || "unbekannt");
 
     if (rolle !== "vorstand") {
-      $("statusPill").textContent = "Kein Zugriff";
+      kopf.statusPill.textContent = "Kein Zugriff";
       zugang(false);
       return;
     }
@@ -1880,7 +1904,7 @@
     } catch (err) {
       console.error(err);
       $("pageLoader").classList.add("hidden");
-      $("statusPill").textContent = "Fehler";
+      kopf.statusPill.textContent = "Fehler";
 
       /* PGRST205 (oder 42P01): Die Tabelle gibt es noch nicht, weil
          supabase/rechnungen.sql noch nicht gelaufen ist. Das ist keine
