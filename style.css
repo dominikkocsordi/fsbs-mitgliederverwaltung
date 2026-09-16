@@ -1269,6 +1269,18 @@ button.btn-ghost {
               box-shadow 0.2s ease, transform 0.2s var(--ease), opacity 0.2s ease;
 }
 
+/* `hidden` heißt zu. `display: inline-flex` machte wieder auf und gewann –
+   ein Knopf, den eine Seite einer Rolle nicht zeigen wollte, stand trotzdem
+   da. Dieselbe Regel unten für die zweite Knopf-Familie. */
+.btn-primary[hidden],
+.btn-secondary[hidden],
+.btn-danger[hidden],
+.btn-ghost[hidden],
+.btn-success[hidden],
+.btn-info[hidden],
+.btn-warning[hidden],
+.btn-accent[hidden] { display: none; }
+
 .btn:active,
 .btn-primary:active,
 .btn-secondary:active,
@@ -1988,6 +2000,12 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 .modalActions--split { justify-content: space-between; }
 
+/* `display: flex` schlägt das `hidden` des Browsers — eine Knopfreihe, die
+   eine Seite ausdrücklich zumacht, stand sonst trotzdem da. Auf den
+   Bewerbungen hing genau das daran: Die Ressortleitung sah „Übernehmen“
+   und „Ablehnen“, obwohl die Seite sie ihr nie zugedacht hatte. */
+.modalActions[hidden] { display: none; }
+
 .closeX {
   width: 34px;
   height: 34px;
@@ -2532,6 +2550,20 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease);
 }
+
+.btn-done[hidden],
+.btn-ok[hidden],
+.btn-warn[hidden],
+.btn-amber[hidden],
+.btn-purple[hidden],
+.btn-export[hidden],
+.btn-pick[hidden],
+.btn-mini[hidden],
+.statusBtn[hidden],
+.baustein-btn[hidden],
+.block-act[hidden],
+.protoItemDel[hidden],
+.miniLink[hidden] { display: none; }
 
 .btn-done:not(:disabled):hover,
 .btn-ok:not(:disabled):hover,

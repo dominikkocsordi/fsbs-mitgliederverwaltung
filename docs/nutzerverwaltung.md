@@ -32,8 +32,9 @@ Funktion fehlt.
 ## Einmal: das SQL laufen lassen
 
 Im Supabase-SQL-Editor **`supabase/nutzer.sql`** ausführen, danach
-**`supabase/rollen.sql`**. Beide Skripte sind wiederholbar; ein zweiter
-Durchlauf ändert nichts und löscht nichts.
+**`supabase/rollen.sql`** und **`supabase/mitglieder-anwaerter.sql`**. Alle
+drei Skripte sind wiederholbar; ein zweiter Durchlauf ändert nichts und
+löscht nichts.
 
 Es legt an:
 
@@ -48,6 +49,12 @@ Es legt an:
 * eine Sperre für den letzten Vorstand: die letzte Vorstandszeile lässt
   sich weder herabstufen noch löschen. Sonst stünde das Portal ohne
   jemanden da, der Rollen vergeben kann.
+
+`mitglieder-anwaerter.sql` setzt dazu die Regeln an `members` und
+`anwaerter`: lesen darf Vorstand und Ressortleitung, schreiben nur der
+Vorstand. Vorher stand das nur in den Seiten — und in der anderen Richtung
+war es zu streng: Wo die Datenbank das Lesen auf den Vorstand begrenzt
+hatte, blieben die beiden Listen für die Ressortleitung schlicht leer.
 
 ---
 
@@ -97,11 +104,18 @@ hinterlegt, die bisher gefehlt hat.
 
 ## Die Rollen
 
-| Rolle | Sieht |
-|---|---|
-| `vorstand` | alles — Dashboard, Mitglieder, Anwärter, Bewerbungen, Finanzen, Protokoll, Zeugnisse, Zutritte, Nutzer |
-| `ressortleiter` | Dashboard (eigenes Ressort), Mitglieder, Anwärter, Bewerbungen |
-| `protokollfuehrer` | ausschließlich das Protokoll |
+| Rolle | Sieht | Ändert |
+|---|---|---|
+| `vorstand` | alles — Dashboard, Mitglieder, Anwärter, Bewerbungen, Finanzen, Protokoll, Zeugnisse, Zutritte, Nutzer | alles |
+| `ressortleiter` | Dashboard (eigenes Ressort), Mitglieder, Anwärter, Bewerbungen | nichts — überall nur Leserechte |
+| `protokollfuehrer` | ausschließlich das Protokoll | das Protokoll |
+
+Die **Ressortleitung liest, und dabei bleibt es.** Auf `/members` und
+`/anwaerter` sind die Knöpfe zum Anlegen, Bearbeiten und Löschen aus; auf
+`/bewerbungen` fehlt die ganze Fußzeile der Detailansicht — „Speichern“,
+„Anwärter übernehmen“, „Ablehnen“ und „Löschen“ sieht dort nur der
+Vorstand. Die Datenbank sagt dasselbe noch einmal: Wer an den Seiten vorbei
+schreiben will, kommt an den Zugriffsregeln nicht vorbei.
 
 Ändern geht auf `/nutzer` mit einem Klick auf die Zeile. Die neue Rolle
 gilt, sobald die Person die Seite neu lädt.
