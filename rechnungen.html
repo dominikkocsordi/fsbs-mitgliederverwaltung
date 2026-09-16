@@ -807,6 +807,38 @@
 
   var SUPABASE_URL   = "https://hdhueuihmxbskiusenpe.supabase.co";
   var SUPABASE_KEY   = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+
+  /* Kommt die Bibliothek nicht durch — Werbeblocker, Firewall der
+     Hochschule, CDN gerade weg —, dann bricht hier alles Weitere ab und
+     die Seite bliebe stumm beim Ladebalken stehen. Lieber einen Satz,
+     der sagt, woran es liegt. */
+  if (typeof supabase === "undefined" || !supabase.createClient) {
+    document.getElementById("pageLoader").classList.add("hidden");
+
+    var kasten = document.createElement("div");
+    kasten.className = "denyBox";
+
+    var titel = document.createElement("div");
+    titel.style.cssText = "font-weight:900;font-size:16px;";
+    titel.textContent = "Datenbank nicht geladen";
+
+    var satz = document.createElement("div");
+    satz.style.cssText = "margin-top:6px;color:var(--muted-foreground);";
+    satz.textContent =
+      "supabase-js kam nicht durch — meist ein Werbeblocker oder ein Netz, " +
+      "das cdn.jsdelivr.net sperrt. Ohne Blocker oder in einem anderen Netz " +
+      "noch einmal öffnen.";
+
+    kasten.appendChild(titel);
+    kasten.appendChild(satz);
+
+    var wrap = document.getElementById("denyWrap");
+    wrap.innerHTML = "";
+    wrap.appendChild(kasten);
+    wrap.style.display = "block";
+    return;
+  }
+
   var sb             = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var PROFILES_TABLE = "profiles";
   var TABELLE        = "rechnungen";
@@ -1856,7 +1888,7 @@
     const uid = sitzung.user.id;
     const email = sitzung.user.email || "";
 
-    const { data: profil } = await sb.from(PROFILES_TABLE)
+    const { data: profil, error: profilFehler } = await sb.from(PROFILES_TABLE)
       .select("role,display_name").eq("id", uid).maybeSingle();
 
     const rolle   = normRolle(profil && profil.role);
@@ -1871,12 +1903,18 @@
     if (rolle !== "vorstand") {
       $("statusPill").textContent = "Kein Zugriff";
 
-      /* Dazusagen, was gelesen wurde. „Ich bin doch Vorstand“ klärt sich
-         fast immer daran, dass in `profiles` ein anderes Wort steht — und
-         das sieht man nur, wenn die Seite es nennt. */
-      $("denyRolle").textContent = rolle
-        ? "Angemeldet als " + email + " mit der Rolle „" + rolle + "“."
-        : "Für " + email + " ist keine Rolle hinterlegt.";
+      /* Dazusagen, was gelesen wurde — und für welches Konto. „Ich bin doch
+         Vorstand“ hat drei ganz verschiedene Ursachen: ein anderes Wort in
+         `profiles`, gar keine Zeile, oder eine Abfrage, die unterwegs
+         scheitert. Die Kennung steht dabei, damit sie sich gegen die Zeile
+         in der Datenbank halten lässt. */
+      $("denyRolle").textContent = profilFehler
+        ? "Das Profil ließ sich nicht lesen: "
+          + (profilFehler.message || profilFehler.code || "unbekannter Fehler")
+          + " — Konto " + email + " (" + uid + ")."
+        : rolle
+          ? "Gelesen wurde die Rolle „" + rolle + "“ für " + email + " (" + uid + ")."
+          : "Zu " + email + " (" + uid + ") steht keine Zeile in der Nutzerverwaltung.";
 
       zugang(false);
       return;
