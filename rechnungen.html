@@ -24,106 +24,189 @@
 <style>
   /* ============================================================
      Finanzen — was diese Seite über style.css hinaus braucht.
+     ------------------------------------------------------------
+     Eine Spalte, in der jeder Block für sich steht: oben die eine
+     Summe, darunter die Steuerung, darunter die Liste. Kästen in
+     Kästen gibt es nicht: Was zusammengehört, trennt eine
+     Haarlinie, kein zweiter Rahmen.
      ============================================================ */
 
-  /* ---------- Der Streifen über allem ---------- */
-  /* Eine Zahl, die sagt, was zu tun ist: was der Verein gerade wem
-     schuldet. Alles andere auf der Seite erklärt sie nur. */
-  .finHero {
+  #inhalt {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    gap: 18px;
+  }
+  @media (min-width: 641px) { #inhalt { gap: 24px; } }
+
+  /* ---------- Die Summe über allem ---------- */
+  /* Eine Zahl, die sagt, was zu tun ist: was der Verein gerade wem
+     schuldet. Die vier Zahlen darunter teilen dieselbe Summe auf —
+     deshalb stehen sie in derselben Karte und nicht in vier eigenen. */
+  .finSum {
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+
+  .finSumKopf {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
     gap: 18px;
     flex-wrap: wrap;
-    padding: 18px 20px;
-    border-radius: var(--radius-card);
-    background: color-mix(in oklab, var(--primary) 7%, var(--card));
-    border: 1px solid color-mix(in oklab, var(--primary) 26%, transparent);
-    box-shadow: var(--shadow-soft);
+    padding: 20px;
   }
+  @media (min-width: 641px) { .finSumKopf { padding: 24px; } }
 
-  .finHeroText { min-width: 0; flex: 1 1 260px; }
+  .finSumText { min-width: 0; flex: 1 1 260px; }
 
-  .finHeroLabel {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-    color: var(--muted-foreground);
-  }
-
-  .finHeroWert {
-    display: block;
-    margin-top: 2px;
-    font-family: var(--font-display);
-    font-size: clamp(26px, 5vw, 34px);
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.1;
-  }
-
-  .finHeroSub {
-    margin-top: 4px;
+  .finSumLabel {
     font-size: 13px;
+    font-weight: 500;
     color: var(--muted-foreground);
   }
 
-  .finHeroAktion { flex: 0 0 auto; }
-
-  /* ---------- Kennzahlen ---------- */
-  .kLabel {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-  }
-  .kValue {
+  .finSumWert {
     display: block;
-    margin-top: 6px;
+    margin-top: 4px;
     font-family: var(--font-display);
-    font-size: 21px;
+    font-size: clamp(30px, 6vw, 40px);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.05;
+  }
+
+  .finSumSub {
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--muted-foreground);
+  }
+
+  /* Vier Zahlen in einer Zeile, getrennt durch Linien statt durch
+     vier eigene Rahmen. */
+  .finZahlen {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border-color);
+  }
+
+  .finZahl {
+    min-width: 0;
+    padding: 14px 20px;
+    border-left: 1px solid var(--border-color);
+  }
+  @media (min-width: 641px) { .finZahl { padding: 16px 24px; } }
+  .finZahl:first-child { border-left: 0; }
+
+  .finZahlLabel {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+  .finZahlLabel i {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--faint-foreground);
+  }
+  .finZahl--offen   .finZahlLabel i { background: var(--warning); }
+  .finZahl--pruef   .finZahlLabel i { background: var(--info); }
+  .finZahl--bezahlt .finZahlLabel i { background: var(--success); }
+  .finZahl--gesamt  .finZahlLabel i { background: var(--chart-5); }
+
+  .finZahlWert {
+    display: block;
+    margin-top: 5px;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
     font-variant-numeric: tabular-nums;
   }
-  .kHint {
-    margin-top: 3px;
-    font-size: 12px;
-    color: var(--muted-foreground);
+
+  .finZahlSub {
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--faint-foreground);
+  }
+
+  /* Vier Spalten werden auf dem Telefon zu zweien — vier Zahlen
+     nebeneinander wären dort nur noch Ziffernsalat. */
+  @media (max-width: 720px) {
+    .finZahlen { grid-template-columns: 1fr 1fr; }
+    .finZahl:nth-child(odd) { border-left: 0; }
+    .finZahl:nth-child(n + 3) { border-top: 1px solid var(--border-color); }
   }
 
   /* ---------- Steuerleiste ---------- */
-  .finTabsRow {
+  /* Ohne eigene Karte: Suche, Filter und Reiter sind Bedienung,
+     kein Inhalt — ein Rahmen darum machte aus zwei Blöcken drei. */
+  .finBar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .finBarZeile {
     display: flex;
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
-    margin-top: 12px;
   }
-  .finTabsRow .spacer { flex: 1 1 auto; }
+  .finBarZeile .spacer { flex: 1 1 auto; }
 
-  .finFilterRow {
+  .finFilter {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
   }
-  .finFilterRow input[type="search"] { flex: 1 1 240px; min-width: 180px; }
-  .finFilterRow select { flex: 0 1 170px; min-width: 140px; }
+  /* Die Suche bekommt den größten Teil des Platzes; die Auswahlfelder
+     wachsen mit, damit eine umgebrochene Zeile ausgefüllt bleibt statt
+     mit einem einsamen schmalen Feld zu enden. */
+  .finFilter input[type="search"] { flex: 3 1 240px; min-width: 180px; }
+  .finFilter select { flex: 1 1 150px; min-width: 150px; }
 
-  /* Auf dem Telefon nimmt jedes Feld eine ganze Zeile: Drei halbbreite
-     Auswahlfelder untereinander sähen aus wie ein Fehler im Umbruch. */
+  /* Auf dem Telefon nimmt die Suche die ganze Zeile, die Auswahlfelder
+     stehen zu zweit — das letzte wächst auf die volle Breite und sieht
+     damit gewollt aus, nicht wie ein Fehler im Umbruch. */
   @media (max-width: 560px) {
-    .finFilterRow input[type="search"],
-    .finFilterRow select { flex: 1 1 100%; }
+    .finFilter input[type="search"] { flex: 1 1 100%; }
+    .finFilter select { flex: 1 1 calc(50% - 5px); min-width: 0; }
   }
 
   /* Einen Filter, der greift, soll man sehen — sonst sucht man später
      eine Zeile, die nur ausgeblendet ist. */
-  .finFilterRow select.is-aktiv,
-  .finFilterRow input.is-aktiv {
+  .finFilter select.is-aktiv,
+  .finFilter input.is-aktiv {
     border-color: color-mix(in oklab, var(--primary) 50%, transparent);
     background: color-mix(in oklab, var(--primary) 7%, transparent);
   }
+
+  /* Was die Auswahl ergibt — eine Zeile statt vier Kacheln. */
+  .finErgebnis {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 0 2px;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .finErgebnis .spacer { flex: 1 1 auto; }
+  .finErgebnis b {
+    color: var(--foreground);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .finErgebnis .tr { color: var(--faint-foreground); }
 
   /* ---------- Liste der Vorgänge ---------- */
   .belegListe {
@@ -134,11 +217,11 @@
 
   .belegZeile {
     display: grid;
-    grid-template-columns: 42px minmax(0, 1fr) auto;
-    gap: 4px 14px;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 14px;
     align-items: center;
     width: 100%;
-    padding: 14px 16px;
+    padding: 13px 16px;
     text-align: left;
     background: var(--card);
     border: 1px solid var(--border-color);
@@ -158,43 +241,71 @@
   .belegZeile:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
   /* Die Kachel links trägt den Stand als Farbe. Sie steht nie allein:
-     rechts daneben sagt ein Wort dasselbe noch einmal. */
+     rechts unten am Betrag sagt ein Wort dasselbe noch einmal. */
   .belegIcon {
-    grid-row: span 2;
     display: grid;
     place-items: center;
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 12px;
     background: var(--surface-1);
     color: var(--muted-foreground);
   }
-  .belegIcon svg { width: 19px; height: 19px; }
+  .belegIcon svg { width: 18px; height: 18px; }
   .belegZeile.st-offen     .belegIcon { background: var(--warning-surface); color: var(--warning); }
   .belegZeile.st-pruefung  .belegIcon { background: var(--info-surface);    color: var(--info); }
   .belegZeile.st-bezahlt   .belegIcon { background: var(--success-surface); color: var(--success); }
   .belegZeile.st-abgelehnt .belegIcon { background: var(--danger-surface);  color: var(--danger); }
 
-  .belegName {
-    font-weight: 600;
-    font-size: 14.5px;
-    letter-spacing: -0.012em;
+  .belegHaupt { min-width: 0; }
+
+  .belegName,
+  .belegMeta {
+    display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .belegBetrag {
-    grid-row: span 2;
-    align-self: center;
-    text-align: right;
-    font-family: var(--font-display);
-    font-size: 19px;
+  .belegName {
     font-weight: 600;
-    letter-spacing: -0.02em;
+    font-size: 14.5px;
+    letter-spacing: -0.012em;
+  }
+
+  /* Eine Zeile Klartext statt einer Reihe Pillen: Projekt, Datum und
+     Zweck sind Beiwerk und sollen den Namen nicht überstimmen. */
+  .belegMeta {
+    margin-top: 3px;
+    font-size: 12.5px;
+    color: var(--muted-foreground);
+  }
+  .belegWarn { color: var(--warning); font-weight: 500; }
+
+  .belegRechts { text-align: right; }
+
+  .belegBetrag {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+
+  .belegStand {
+    display: block;
+    margin-top: 3px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--muted-foreground);
+  }
+  .belegZeile.st-offen    .belegStand { color: var(--warning); }
+  .belegZeile.st-pruefung .belegStand { color: var(--info); }
+  .belegZeile.st-bezahlt  .belegStand { color: var(--success); }
+  .belegZeile.st-abgelehnt .belegStand { color: var(--danger); }
 
   .belegZeile.st-bezahlt .belegBetrag { color: var(--muted-foreground); }
   .belegZeile.st-abgelehnt .belegBetrag {
@@ -202,33 +313,10 @@
     text-decoration: line-through;
   }
 
-  .belegMeta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    min-width: 0;
-    font-size: 12.5px;
-    color: var(--muted-foreground);
-  }
-  .belegText {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
-  }
-
-  @media (max-width: 560px) {
-    .belegZeile {
-      grid-template-columns: 42px minmax(0, 1fr);
-      row-gap: 8px;
-    }
-    .belegBetrag {
-      grid-row: auto;
-      grid-column: 2;
-      text-align: left;
-      font-size: 17px;
-    }
+  @media (max-width: 430px) {
+    .belegZeile { gap: 11px; padding: 12px 13px; }
+    .belegName { font-size: 14px; }
+    .belegBetrag { font-size: 16px; }
   }
 
   /* ---------- Auszahlungen ---------- */
@@ -237,7 +325,7 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-soft);
-    padding: 18px 18px 14px;
+    padding: 18px 20px 16px;
   }
 
   .zahlKopf {
@@ -252,7 +340,7 @@
     font-family: var(--font-display);
     font-size: 16px;
     font-weight: 600;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.02em;
   }
 
   .zahlIban {
@@ -262,20 +350,20 @@
     color: var(--muted-foreground);
     word-break: break-all;
   }
-  .zahlIban.fehlt { color: var(--danger); font-family: var(--font-sans); }
+  .zahlIban.fehlt { color: var(--warning); font-family: var(--font-sans); font-weight: 500; }
 
   .zahlSumme {
     font-family: var(--font-display);
     font-size: 22px;
     font-weight: 600;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
 
   .zahlPosten {
     list-style: none;
     margin: 14px 0 0;
-    padding: 12px 0 0;
+    padding: 10px 0 0;
     border-top: 1px solid var(--border-color);
   }
 
@@ -284,11 +372,12 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 12px;
-    padding: 6px 8px;
+    padding: 7px 8px;
     margin: 0 -8px;
     border-radius: var(--radius-sm);
     font-size: 13px;
     cursor: pointer;
+    transition: background 0.15s ease;
   }
   .zahlPosten li:hover { background: var(--surface-1); }
   .zahlPosten .p1 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -300,12 +389,16 @@
     margin-right: 7px;
   }
 
+  /* Ein kräftiger Knopf je Karte; das Kopieren steht daneben und
+     nimmt sich zurück. */
   .zahlAktionen {
     display: flex;
+    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
     margin-top: 14px;
   }
+  .zahlAktionen .spacer { flex: 1 1 auto; }
 
   /* ---------- Projekte: eine Balkenliste ---------- */
   /* Eine Reihe, eine Größe — deshalb eine Farbe und keine Legende für
@@ -395,8 +488,8 @@
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
-    margin-top: 14px;
-    padding-top: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
     border-top: 1px solid var(--border-color);
     font-size: 12px;
     color: var(--muted-foreground);
@@ -409,10 +502,114 @@
     background: var(--primary);
   }
   .projLegende i.offen { background: var(--warning); }
+  .projLegende .hinweis { color: var(--faint-foreground); }
+
+  /* ---------- Dialoge ---------- */
+  /* Kopf und Fußleiste stehen, dazwischen rollt alles gemeinsam.
+     Vorher rollte nur die Angabenliste — auf dem Telefon blieb von
+     ihr zwischen Beleg und Knöpfen nichts übrig. */
+  .dlgBody {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  @media (max-width: 640px) { .dlgBody { padding: 4px 18px 16px; } }
+
+  /* Die Angabenliste rollt jetzt mit dem Körper, nicht mehr für sich. */
+  .dlgBody .kvGrid {
+    flex: 0 0 auto;
+    overflow: visible;
+    padding: 0;
+  }
+
+  /* Zehn Kästen untereinander wären eine lange Rutschbahn; ab der
+     Breite, ab der zwei nebeneinander passen, stehen sie zu zweit.
+     Was lange Sätze trägt, bleibt über beide Spalten. */
+  @media (min-width: 620px) {
+    .dlgBody .kvGrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-content: start;
+    }
+    .dlgBody .kvRow--voll { grid-column: 1 / -1; }
+  }
+
+  .kvWert { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+  .kvWert .mono { font-family: var(--font-mono); font-size: 13px; word-break: break-all; }
+
+  .kopierBtn {
+    height: 24px;
+    padding: 0 9px;
+    font-size: 11.5px;
+    border-radius: 999px;
+  }
+
+  /* Betrag, Nummer und Stand — das Wichtigste des Vorgangs in einem
+     Block, nicht in drei Pillen nebeneinander. */
+  .detKopf {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    background: var(--surface-1);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+  .detLabel { font-size: 12px; font-weight: 500; color: var(--muted-foreground); }
+  .detBetrag {
+    display: block;
+    margin-top: 2px;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .detRechts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .detCode { font-family: var(--font-mono); font-size: 12px; color: var(--faint-foreground); }
+
+  /* ---------- Stand umstellen ---------- */
+  /* Ein Schalter mit vier Stellungen statt vier bunter Knöpfe: Es ist
+     eine Entscheidung, und nur eine Stellung gilt. */
+  .standWahl {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--secondary);
+    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+  }
+
+  .standBtn {
+    flex: 1 1 auto;
+    height: 32px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .standBtn:hover:not(:disabled) { color: var(--foreground); }
+  .standBtn.is-active { font-weight: 600; }
+  .standBtn[data-status="offen"].is-active     { background: var(--warning); color: var(--on-warning); }
+  .standBtn[data-status="pruefung"].is-active  { background: var(--info);    color: var(--on-info); }
+  .standBtn[data-status="bezahlt"].is-active   { background: var(--success); color: var(--on-success); }
+  .standBtn[data-status="abgelehnt"].is-active { background: var(--danger);  color: var(--on-danger); }
 
   /* ---------- Der Beleg im Dialog ---------- */
   .belegBox {
-    margin: 4px 0 16px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     background: var(--surface-1);
@@ -446,60 +643,75 @@
     border-top: 1px solid var(--border-color);
   }
 
-  /* ---------- Stand umstellen ---------- */
-  .statusBar {
+  /* Die Fußleiste schiebt alles nach rechts; der Zwischenraum hält das
+     Löschen auf der anderen Seite. Auf dem Telefon steht jeder Knopf
+     für sich, der wichtigste oben — wie in den übrigen Dialogen. */
+  .dlgActions .spacer { flex: 1 1 auto; }
+
+  @media (max-width: 560px) {
+    .dlgActions { flex-direction: column-reverse; align-items: stretch; }
+    .dlgActions > .spacer { display: none; }
+    .dlgActions > button { width: 100%; }
+  }
+
+  /* Löschen steht nicht neben dem Speichern, sondern auf der anderen
+     Seite — und trägt seine Farbe erst, wenn man darauf zielt. */
+  .loeschBtn { color: var(--danger); }
+  .loeschBtn:not(:disabled):hover { background: var(--danger-surface); color: var(--danger); }
+
+  /* Das Formular ist selbst die Körperspalte des Dialogs: Ohne das
+     rollte es nicht, sondern würde unten abgeschnitten. */
+  #editForm {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .statusBtn.is-active { box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent); }
-
-  /* ---------- Angaben im Dialog ---------- */
-  /* Zehn Kästen untereinander wären eine lange Rutschbahn; ab der
-     Breite, ab der zwei nebeneinander passen, stehen sie zu zweit.
-     Was lange Sätze trägt, bleibt über beide Spalten. */
-  @media (min-width: 620px) {
-    #kvGrid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-content: start;
-    }
-    #kvGrid .kvRow--voll { grid-column: 1 / -1; }
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
   }
 
-  .kvWert { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
-  .kvWert .mono { font-family: var(--font-mono); font-size: 13px; word-break: break-all; }
-
-  .kopierBtn {
-    height: 24px;
-    padding: 0 9px;
-    font-size: 11.5px;
-    border-radius: 999px;
-  }
-
-  .notizFeld { margin-top: 16px; }
   .notizFeld textarea { min-height: 76px; resize: vertical; }
-  .notizStand { margin-top: 5px; font-size: 12px; color: var(--faint-foreground); }
+  .notizStand { margin-top: 6px; font-size: 12px; color: var(--faint-foreground); }
 
-  /* ---------- Leere Zustände ---------- */
+  .optional { color: var(--faint-foreground); font-weight: 400; }
+
+  /* ---------- Leere Zustände und Hinweise ---------- */
   .leer {
     padding: 44px 20px;
     text-align: center;
+    font-size: 13.5px;
     color: var(--muted-foreground);
     background: var(--card);
     border: 1px dashed var(--border-color);
     border-radius: var(--radius-card);
   }
-  .leer b { display: block; margin-bottom: 4px; color: var(--foreground); font-size: 15px; }
+  .leer b {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--foreground);
+  }
 
-  .warnPille {
-    color: var(--warning);
-    border-color: color-mix(in oklab, var(--warning) 30%, transparent);
-    background: var(--warning-surface);
+  .denyTitel {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--foreground);
+  }
+  .denyText {
+    margin-top: 6px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  .denyAktionen {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 16px;
   }
 
   [hidden] { display: none !important; }
@@ -519,7 +731,7 @@
         <div class="subtitle">Rechnungen &amp; Auslagen</div>
       </div>
     </div>
-    <div class="brandRight" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+    <div class="brandRight">
       <div class="pill" id="statusPill">–</div>
       <div class="authFloating" id="authBadge">
         <span class="dot" id="authDot"></span>
@@ -561,74 +773,90 @@
   </div>
 
   <!-- Kein Zugriff -->
-  <div class="glass card" id="denyWrap" style="display:none;">
+  <div class="card" id="denyWrap" style="display:none;">
     <div class="denyBox">
-      <div style="font-weight:900;font-size:16px;">Kein Zugriff</div>
-      <div style="margin-top:6px;color:var(--muted-foreground);">Diese Seite ist nur für <b>Vorstand</b>.</div>
-      <div style="margin-top:6px;color:var(--muted-foreground);" id="denyRolle"></div>
-      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <div class="denyTitel">Kein Zugriff</div>
+      <div class="denyText">Diese Seite ist nur für <b>Vorstand</b>.</div>
+      <div class="denyText" id="denyRolle"></div>
+      <div class="denyAktionen">
         <button class="btn-secondary" id="logoutBtn2" type="button">Abmelden</button>
-        <a class="pill" href="/" style="text-decoration:none;">Zum Dashboard</a>
+        <a class="btn-ghost btn-sm" href="/">Zum Dashboard</a>
       </div>
     </div>
   </div>
 
   <div id="inhalt" hidden>
 
-    <!-- Was zu tun ist -->
-    <div class="finHero" id="hero">
-      <div class="finHeroText">
-        <span class="finHeroLabel">Noch auszuzahlen</span>
-        <b class="finHeroWert" id="heroWert">–</b>
-        <div class="finHeroSub" id="heroSub">–</div>
+    <!-- Was zu tun ist. Diese Zahlen zählen immer alles, nie nur die
+         Auswahl — was der Verein schuldet, ändert kein Filter. -->
+    <section class="finSum">
+      <div class="finSumKopf">
+        <div class="finSumText">
+          <span class="finSumLabel">Noch auszuzahlen</span>
+          <b class="finSumWert" id="sumWert">–</b>
+          <div class="finSumSub" id="sumSub">–</div>
+        </div>
+        <button class="btn-primary" id="sumBtn" type="button">Auszahlungen ansehen</button>
       </div>
-      <div class="finHeroAktion">
-        <button class="btn-primary" id="heroBtn" type="button">Auszahlungen ansehen</button>
-      </div>
-    </div>
 
-    <!-- Kennzahlen -->
-    <div class="glass card" id="kpiCard">
-      <div class="row">
-        <div style="font-weight:900;font-size:16px;">Übersicht</div>
-        <div class="spacer"></div>
-        <div class="pill" id="countPill">0</div>
+      <div class="finZahlen">
+        <div class="finZahl finZahl--offen">
+          <div class="finZahlLabel"><i></i>Offen</div>
+          <b class="finZahlWert" id="zOffenWert">–</b>
+          <div class="finZahlSub" id="zOffenSub">–</div>
+        </div>
+        <div class="finZahl finZahl--pruef">
+          <div class="finZahlLabel"><i></i>In Prüfung</div>
+          <b class="finZahlWert" id="zPruefWert">–</b>
+          <div class="finZahlSub" id="zPruefSub">–</div>
+        </div>
+        <div class="finZahl finZahl--bezahlt">
+          <div class="finZahlLabel"><i></i>Bezahlt</div>
+          <b class="finZahlWert" id="zBezahltWert">–</b>
+          <div class="finZahlSub" id="zBezahltSub">–</div>
+        </div>
+        <div class="finZahl finZahl--gesamt" title="Alle Vorgänge ohne die abgelehnten">
+          <div class="finZahlLabel"><i></i>Gesamt</div>
+          <b class="finZahlWert" id="zGesamtWert">–</b>
+          <div class="finZahlSub" id="zGesamtSub">–</div>
+        </div>
       </div>
-      <div class="kpiGrid">
-        <div class="kpi kpi-open"><div class="kLabel">Offen</div><div class="kValue" id="kpiOpenSum">–</div><div class="kHint" id="kpiOpenCount">–</div></div>
-        <div class="kpi kpi-check"><div class="kLabel">In Prüfung</div><div class="kValue" id="kpiCheckSum">–</div><div class="kHint" id="kpiCheckCount">–</div></div>
-        <div class="kpi kpi-paid"><div class="kLabel">Bezahlt</div><div class="kValue" id="kpiPaidSum">–</div><div class="kHint" id="kpiPaidCount">–</div></div>
-        <div class="kpi kpi-total"><div class="kLabel">Gesamt</div><div class="kValue" id="kpiTotalSum">–</div><div class="kHint" id="kpiTotalCount">–</div></div>
-      </div>
-    </div>
+    </section>
 
     <!-- Steuerleiste -->
-    <div class="glass card" id="controlsCard">
-      <div class="finFilterRow">
-        <input id="suche" placeholder="Suche (Name, Zweck, Projekt, Nummer, IBAN…)" type="search" />
-        <select id="fStatus" aria-label="Stand">
-          <option value="">Stand (alle)</option>
-          <option value="zuzahlen">Noch auszuzahlen</option>
-          <option value="offen">Offen</option>
-          <option value="pruefung">In Prüfung</option>
-          <option value="bezahlt">Bezahlt</option>
-          <option value="abgelehnt">Abgelehnt</option>
-        </select>
-        <select id="fProjekt" aria-label="Projekt"><option value="">Projekt (alle)</option></select>
-        <select id="fJahr" aria-label="Jahr"><option value="">Jahr (alle)</option></select>
-      </div>
-
-      <div class="finTabsRow">
+    <div class="finBar">
+      <div class="finBarZeile">
         <div class="tabs" role="tablist">
           <button class="tabBtn active" data-ansicht="vorgaenge" type="button" role="tab">Vorgänge</button>
           <button class="tabBtn" data-ansicht="auszahlungen" type="button" role="tab">Auszahlungen</button>
           <button class="tabBtn" data-ansicht="projekte" type="button" role="tab">Projekte</button>
         </div>
         <div class="spacer"></div>
-        <button class="btn-secondary btn-sm" id="reloadBtn" type="button">↺ Neu laden</button>
-        <button class="btn-secondary btn-sm" id="exportBtn" type="button">⬇ CSV</button>
-        <button class="btn-primary btn-sm" id="neuBtn" type="button">+ Beleg erfassen</button>
+        <button class="iconBtn" id="reloadBtn" type="button" title="Neu laden" aria-label="Neu laden">↻</button>
+        <button class="btn-secondary btn-sm" id="exportBtn" type="button">CSV</button>
+        <button class="btn-primary btn-sm" id="neuBtn" type="button">Beleg erfassen</button>
       </div>
+
+      <div class="finFilter">
+        <input id="suche" placeholder="Suchen — Name, Zweck, Projekt, Nummer, IBAN" type="search" />
+        <select id="fStatus" aria-label="Stand">
+          <option value="">Stand: alle</option>
+          <option value="zuzahlen">Noch auszuzahlen</option>
+          <option value="offen">Offen</option>
+          <option value="pruefung">In Prüfung</option>
+          <option value="bezahlt">Bezahlt</option>
+          <option value="abgelehnt">Abgelehnt</option>
+        </select>
+        <select id="fProjekt" aria-label="Projekt"><option value="">Projekt: alle</option></select>
+        <select id="fJahr" aria-label="Jahr"><option value="">Jahr: alle</option></select>
+      </div>
+    </div>
+
+    <!-- Was die Auswahl ergibt -->
+    <div class="finErgebnis">
+      <span id="ergebnisText">–</span>
+      <div class="spacer"></div>
+      <button class="btn-ghost btn-xs" id="filterReset" type="button" hidden>Filter zurücksetzen</button>
     </div>
 
     <!-- Vorgänge -->
@@ -651,17 +879,12 @@
 
     <!-- Projekte -->
     <div id="viewProjekte" hidden>
-      <div class="glass card">
-        <div class="row" style="margin-bottom:14px;">
-          <div style="font-weight:900;font-size:16px;">Ausgaben je Projekt</div>
-          <div class="spacer"></div>
-          <div class="pill" id="projSummePill">–</div>
-        </div>
+      <div class="card">
         <div class="projListe" id="projListe"></div>
         <div class="projLegende">
           <span><i></i> bezahlt</span>
           <span><i class="offen"></i> noch offen</span>
-          <span style="color:var(--faint-foreground);">Zeile anklicken, um das Projekt auszuwählen</span>
+          <span class="hinweis">Zeile anklicken, um das Projekt auszuwählen</span>
         </div>
       </div>
     </div>
@@ -683,33 +906,42 @@
       <button class="btn-secondary closeX" id="dlgCloseBtn" type="button" aria-label="Schließen">✕</button>
     </div>
 
-    <div class="statusBar">
-      <span style="font-size:12px;color:var(--muted-foreground);font-weight:600;flex:0 0 auto;">Stand:</span>
-      <button class="btn-amber statusBtn" data-status="offen" type="button">Offen</button>
-      <button class="btn-warn statusBtn" data-status="pruefung" type="button">In Prüfung</button>
-      <button class="btn-ok statusBtn" data-status="bezahlt" type="button">Bezahlt ✓</button>
-      <button class="btn-danger statusBtn" data-status="abgelehnt" type="button">Abgelehnt</button>
-    </div>
+    <div class="dlgBody">
+      <div class="detKopf">
+        <div>
+          <span class="detLabel">Betrag</span>
+          <b class="detBetrag" id="dlgBetrag">–</b>
+        </div>
+        <div class="detRechts">
+          <span class="statusBadge" id="dlgStatusPill">–</span>
+          <span class="detCode" id="dlgCode">–</span>
+        </div>
+      </div>
 
-    <div class="belegBox" id="belegBox"></div>
+      <div class="field">
+        <div class="field__label">Stand</div>
+        <div class="standWahl">
+          <button class="standBtn statusBtn" data-status="offen" type="button">Offen</button>
+          <button class="standBtn statusBtn" data-status="pruefung" type="button">In Prüfung</button>
+          <button class="standBtn statusBtn" data-status="bezahlt" type="button">Bezahlt</button>
+          <button class="standBtn statusBtn" data-status="abgelehnt" type="button">Abgelehnt</button>
+        </div>
+      </div>
 
-    <div class="summaryRow">
-      <span class="pill"><span style="color:var(--muted-foreground)">Betrag:&nbsp;</span><strong id="dlgBetrag">–</strong></span>
-      <span class="pill"><span style="color:var(--muted-foreground)">Nummer:&nbsp;</span><strong id="dlgCode">–</strong></span>
-      <span class="pill" id="dlgStatusPill">–</span>
-    </div>
+      <div class="belegBox" id="belegBox"></div>
 
-    <div class="kvGrid" id="kvGrid"></div>
+      <div class="kvGrid" id="kvGrid"></div>
 
-    <div class="field notizFeld">
-      <label for="dlgNotiz">Notiz <span style="color:var(--faint-foreground);font-weight:400;">— nur intern</span></label>
-      <textarea id="dlgNotiz" maxlength="2000" placeholder="z. B. „Beleg unleserlich, am 3.9. nachgefragt“"></textarea>
-      <div class="notizStand" id="notizStand"></div>
+      <div class="field notizFeld">
+        <label for="dlgNotiz">Notiz <span class="optional">— nur intern</span></label>
+        <textarea id="dlgNotiz" maxlength="2000" placeholder="z. B. „Beleg unleserlich, am 3.9. nachgefragt“"></textarea>
+        <div class="notizStand" id="notizStand"></div>
+      </div>
     </div>
 
     <div class="dlgActions">
-      <button class="btn-danger btn-sm" id="dlgLoeschen" type="button">Löschen</button>
-      <div style="flex:1 1 auto;"></div>
+      <button class="btn-ghost btn-sm loeschBtn" id="dlgLoeschen" type="button">Löschen</button>
+      <div class="spacer"></div>
       <button class="btn-secondary" id="dlgBearbeiten" type="button">Bearbeiten</button>
       <button class="btn-primary" id="dlgSpeichern" type="button">Notiz speichern</button>
     </div>
@@ -728,62 +960,65 @@
     </div>
 
     <form id="editForm" novalidate>
-      <div class="fieldGrid">
-        <div class="field">
-          <label for="eVorname">Vorname</label>
-          <input id="eVorname" type="text" maxlength="80" required>
+      <div class="dlgBody">
+        <div class="fieldGrid">
+          <div class="field">
+            <label for="eVorname">Vorname</label>
+            <input id="eVorname" type="text" maxlength="80" required>
+          </div>
+          <div class="field">
+            <label for="eNachname">Nachname</label>
+            <input id="eNachname" type="text" maxlength="80" required>
+          </div>
+          <div class="field full">
+            <label for="eEmail">E-Mail <span class="optional">— optional</span></label>
+            <input id="eEmail" type="email" maxlength="160">
+          </div>
+          <div class="field full">
+            <label for="eProjekt">Projekt</label>
+            <select id="eProjekt"><option value="">— ohne Projekt —</option></select>
+          </div>
+          <div class="field full">
+            <label for="eBeschreibung">Was wurde gekauft?</label>
+            <textarea id="eBeschreibung" maxlength="2000" required style="min-height:80px;"></textarea>
+          </div>
+          <div class="field">
+            <label for="eBetrag">Betrag in €</label>
+            <input id="eBetrag" type="text" inputmode="decimal" maxlength="12" placeholder="0,00" required>
+          </div>
+          <div class="field">
+            <label for="eDatum">Datum des Belegs</label>
+            <input id="eDatum" type="date" required>
+          </div>
+          <div class="field full">
+            <label for="eIban">IBAN</label>
+            <input id="eIban" type="text" maxlength="42" spellcheck="false"
+                   style="font-family:var(--font-mono);text-transform:uppercase;">
+          </div>
+          <div class="field">
+            <label for="eStatus">Stand</label>
+            <select id="eStatus">
+              <option value="offen">Offen</option>
+              <option value="pruefung">In Prüfung</option>
+              <option value="bezahlt">Bezahlt</option>
+              <option value="abgelehnt">Abgelehnt</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="eBezahltAm">Bezahlt am <span class="optional">— optional</span></label>
+            <input id="eBezahltAm" type="date">
+          </div>
+          <div class="field full">
+            <label for="eBeleg">Beleg <span class="optional" id="eBelegHinweis">— Foto oder PDF</span></label>
+            <input id="eBeleg" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,application/pdf,image/*,.pdf">
+          </div>
         </div>
-        <div class="field">
-          <label for="eNachname">Nachname</label>
-          <input id="eNachname" type="text" maxlength="80" required>
-        </div>
-        <div class="field full">
-          <label for="eEmail">E-Mail <span style="color:var(--faint-foreground);font-weight:400;">— optional</span></label>
-          <input id="eEmail" type="email" maxlength="160">
-        </div>
-        <div class="field full">
-          <label for="eProjekt">Projekt</label>
-          <select id="eProjekt"><option value="">— ohne Projekt —</option></select>
-        </div>
-        <div class="field full">
-          <label for="eBeschreibung">Was wurde gekauft?</label>
-          <textarea id="eBeschreibung" maxlength="2000" required style="min-height:80px;"></textarea>
-        </div>
-        <div class="field">
-          <label for="eBetrag">Betrag in €</label>
-          <input id="eBetrag" type="text" inputmode="decimal" maxlength="12" placeholder="0,00" required>
-        </div>
-        <div class="field">
-          <label for="eDatum">Datum des Belegs</label>
-          <input id="eDatum" type="date" required>
-        </div>
-        <div class="field full">
-          <label for="eIban">IBAN</label>
-          <input id="eIban" type="text" maxlength="42" spellcheck="false"
-                 style="font-family:var(--font-mono);text-transform:uppercase;">
-        </div>
-        <div class="field">
-          <label for="eStatus">Stand</label>
-          <select id="eStatus">
-            <option value="offen">Offen</option>
-            <option value="pruefung">In Prüfung</option>
-            <option value="bezahlt">Bezahlt</option>
-            <option value="abgelehnt">Abgelehnt</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="eBezahltAm">Bezahlt am <span style="color:var(--faint-foreground);font-weight:400;">— optional</span></label>
-          <input id="eBezahltAm" type="date">
-        </div>
-        <div class="field full">
-          <label for="eBeleg">Beleg <span style="color:var(--faint-foreground);font-weight:400;" id="eBelegHinweis">— Foto oder PDF</span></label>
-          <input id="eBeleg" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/gif,application/pdf,image/*,.pdf">
-        </div>
+
+        <p class="notice bad" id="editFehler" role="alert" hidden></p>
       </div>
 
-      <p class="notice bad" id="editFehler" role="alert" hidden></p>
-
       <div class="dlgActions">
+        <div class="spacer"></div>
         <button class="btn-secondary" id="editAbbrechen" type="button">Abbrechen</button>
         <button class="btn-primary" id="editSpeichern" type="submit">Speichern</button>
       </div>
@@ -819,11 +1054,11 @@
     kasten.className = "denyBox";
 
     var titel = document.createElement("div");
-    titel.style.cssText = "font-weight:900;font-size:16px;";
+    titel.className = "denyTitel";
     titel.textContent = "Datenbank nicht geladen";
 
     var satz = document.createElement("div");
-    satz.style.cssText = "margin-top:6px;color:var(--muted-foreground);";
+    satz.className = "denyText";
     satz.textContent =
       "supabase-js kam nicht durch — meist ein Werbeblocker oder ein Netz, " +
       "das cdn.jsdelivr.net sperrt. Ohne Blocker oder in einem anderen Netz " +
@@ -977,6 +1212,13 @@
     return "z" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
   }
 
+  const KOPIER_ICON =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ' +
+    'style="width:14px;height:14px;flex:none;">' +
+    '<rect x="9" y="9" width="11" height="11" rx="2.5"/>' +
+    '<path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5v-9A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5"/></svg>';
+
   function knopf(text, klasse, beiKlick) {
     const b = document.createElement("button");
     b.type = "button";
@@ -1113,7 +1355,7 @@
 
     const wahl = $("fProjekt").value;
     $("fProjekt").innerHTML =
-      '<option value="">Projekt (alle)</option>' +
+      '<option value="">Projekt: alle</option>' +
       namen.map((n) => '<option value="' + esc(n) + '">' + esc(n) + "</option>").join("") +
       '<option value="' + OHNE_PROJEKT + '">— ohne Projekt —</option>';
     $("fProjekt").value = wahl;
@@ -1121,7 +1363,7 @@
     const jahre = [...new Set(ALLE.map((r) => jahrVon(r.beleg_datum)).filter(Boolean))]
       .sort().reverse();
     const jahrWahl = $("fJahr").value;
-    $("fJahr").innerHTML = '<option value="">Jahr (alle)</option>' +
+    $("fJahr").innerHTML = '<option value="">Jahr: alle</option>' +
       jahre.map((j) => '<option value="' + esc(j) + '">' + esc(j) + "</option>").join("");
     $("fJahr").value = jahrWahl;
 
@@ -1141,7 +1383,10 @@
     const jahr = $("fJahr").value;
 
     return ALLE.filter((r) => {
-      if (st === "zuzahlen") {
+      // In den Auszahlungen zählt nur der Empfänger, nicht der Stand.
+      if (ANSICHT === "auszahlungen") {
+        /* nichts: der Stand-Filter ist dort ausgeblendet */
+      } else if (st === "zuzahlen") {
         if (r.status !== "offen" && r.status !== "pruefung") return false;
       } else if (st && r.status !== st) {
         return false;
@@ -1164,21 +1409,43 @@
     });
   }
 
+  /* Welche Filter im Augenblick überhaupt greifen: Der Stand zählt in
+     den Auszahlungen nicht mit, weil er dort nicht angewandt wird. */
+  function filterFelder() {
+    const felder = ["suche", "fProjekt", "fJahr"];
+    if (ANSICHT !== "auszahlungen") felder.push("fStatus");
+    return felder;
+  }
+
+  const filterGesetzt = () => filterFelder().some((id) => safe($(id).value) !== "");
+
   function filterHervorheben() {
     ["suche", "fStatus", "fProjekt", "fJahr"].forEach((id) => {
       $(id).classList.toggle("is-aktiv", safe($(id).value) !== "");
     });
   }
 
+  $("filterReset").addEventListener("click", () => {
+    ["suche", "fStatus", "fProjekt", "fJahr"].forEach((id) => { $(id).value = ""; });
+    zeichnen();
+  });
+
   /* ============================================================
      Zeichnen
      ============================================================ */
   const summe = (zeilen) => zeilen.reduce((a, r) => a + zahl(r.betrag), 0);
 
+  const offenGruppe = (r) => r.status === "offen" || r.status === "pruefung";
+
   function zeichnen() {
     const zeilen = gefiltert();
     filterHervorheben();
-    kennzahlen(zeilen);
+    summeZeichnen();
+
+    /* In den Auszahlungen steht ohnehin nur, was noch offen ist — dort
+       wäre ein Stand-Filter nur eine Falle. */
+    $("fStatus").hidden = ANSICHT === "auszahlungen";
+    $("filterReset").hidden = !filterGesetzt();
 
     $("viewVorgaenge").hidden    = ANSICHT !== "vorgaenge";
     $("viewAuszahlungen").hidden = ANSICHT !== "auszahlungen";
@@ -1189,33 +1456,44 @@
     if (ANSICHT === "projekte")     projekteZeichnen(zeilen);
   }
 
-  function kennzahlen(zeilen) {
-    const offen = zeilen.filter((r) => r.status === "offen");
-    const pruef = zeilen.filter((r) => r.status === "pruefung");
-    const bez   = zeilen.filter((r) => r.status === "bezahlt");
+  /* Die Zeile über der Liste sagt, was die Auswahl ergibt. Jede Ansicht
+     zählt dabei das, was in ihr steht. */
+  function ergebnis(teile) {
+    $("ergebnisText").innerHTML = teile.join(' <span class="tr">\u00b7</span> ');
+  }
 
-    $("kpiOpenSum").textContent    = euro(summe(offen));
-    $("kpiOpenCount").textContent  = anzahl(offen.length);
-    $("kpiCheckSum").textContent   = euro(summe(pruef));
-    $("kpiCheckCount").textContent = anzahl(pruef.length);
-    $("kpiPaidSum").textContent    = euro(summe(bez));
-    $("kpiPaidCount").textContent  = anzahl(bez.length);
-    $("kpiTotalSum").textContent   = euro(summe(zeilen));
-    $("kpiTotalCount").textContent = zeilen.length + " in dieser Auswahl";
-    $("countPill").textContent     = zeilen.length + " / " + ALLE.length;
+  const stark = (text) => "<b>" + esc(text) + "</b>";
 
-    /* Der Streifen oben zählt immer alles, nie nur die Auswahl: Was der
-       Verein schuldet, ändert sich nicht dadurch, dass jemand filtert. */
-    const zuZahlen = ALLE.filter((r) => r.status === "offen" || r.status === "pruefung");
+  /* Die Zahlen oben zählen immer alles, nie nur die Auswahl: Was der
+     Verein schuldet, ändert sich nicht dadurch, dass jemand filtert.
+     Was die Auswahl ergibt, steht eine Zeile über der Liste. */
+  function summeZeichnen() {
+    const offen    = ALLE.filter((r) => r.status === "offen");
+    const pruef    = ALLE.filter((r) => r.status === "pruefung");
+    const bez      = ALLE.filter((r) => r.status === "bezahlt");
+    const gesamt   = ALLE.filter((r) => r.status !== "abgelehnt");
+    const zuZahlen = ALLE.filter(offenGruppe);
+
     const ohneIban = zuZahlen.filter((r) => !safe(r.iban).trim()).length;
     const leute    = new Set(zuZahlen.map(empfaenger)).size;
 
-    $("heroWert").textContent = euro(summe(zuZahlen));
-    $("heroSub").textContent = zuZahlen.length === 0
+    $("sumWert").textContent = euro(summe(zuZahlen));
+    $("sumSub").textContent = zuZahlen.length === 0
       ? "Alles erledigt — es steht nichts offen."
       : anzahl(zuZahlen.length) + " an " + leute + (leute === 1 ? " Person" : " Personen") +
         (ohneIban ? " · " + ohneIban + " ohne IBAN" : "");
-    $("heroBtn").hidden = zuZahlen.length === 0;
+    $("sumBtn").hidden = zuZahlen.length === 0;
+
+    const zahl4 = [
+      ["zOffen",   offen],
+      ["zPruef",   pruef],
+      ["zBezahlt", bez],
+      ["zGesamt",  gesamt]
+    ];
+    zahl4.forEach(([id, satz]) => {
+      $(id + "Wert").textContent = euro(summe(satz));
+      $(id + "Sub").textContent  = anzahl(satz.length);
+    });
   }
 
   /* ---- Die Vorgänge ---- */
@@ -1230,29 +1508,43 @@
     liste.innerHTML = "";
     $("leerVorgaenge").hidden = zeilen.length > 0;
 
+    const nochOffen = summe(zeilen.filter(offenGruppe));
+    ergebnis([
+      stark(zeilen.length) + " von " + ALLE.length + (ALLE.length === 1 ? " Vorgang" : " Vorgängen"),
+      stark(euro(summe(zeilen))),
+      nochOffen > 0 ? "davon " + stark(euro(nochOffen)) + " offen" : null
+    ].filter(Boolean));
+
     zeilen.forEach((r) => {
       const el = document.createElement("button");
       el.type = "button";
       el.className = "belegZeile st-" + r.status;
 
-      const stand = STAND[r.status];
-      const teile = ['<span class="statusBadge ' + stand.badge + '">' + esc(stand.label) + "</span>"];
-
+      /* Eine Zeile Klartext statt einer Reihe Pillen. Den Stand trägt
+         die Kachel links als Farbe und das Wort unter dem Betrag. */
+      const teile = [];
       if (!r.beleg_pfad) {
-        teile.push('<span class="metaPill warnPille">' +
-          (r.drive_link ? "Beleg noch bei Drive" : "ohne Beleg") + "</span>");
+        teile.push('<span class="belegWarn">' +
+          (r.drive_link ? "Beleg bei Drive" : "ohne Beleg") + "</span>");
       }
-      if (safe(r.projekt).trim()) {
-        teile.push('<span class="metaPill">' + esc(r.projekt) + "</span>");
-      }
-      teile.push("<span>" + esc(datum(r.beleg_datum)) + "</span>");
-      teile.push('<span class="belegText">' + esc(r.beschreibung) + "</span>");
+      if (safe(r.projekt).trim())      teile.push(esc(r.projekt));
+      if (datum(r.beleg_datum))        teile.push(esc(datum(r.beleg_datum)));
+      if (safe(r.beschreibung).trim()) teile.push(esc(r.beschreibung));
 
       el.innerHTML =
         '<span class="belegIcon">' + GELD_ICON + "</span>" +
-        '<span class="belegName">' + esc(name(r)) + "</span>" +
-        '<span class="belegBetrag">' + esc(euro(r.betrag)) + "</span>" +
-        '<span class="belegMeta">' + teile.join("") + "</span>";
+        '<span class="belegHaupt">' +
+          '<span class="belegName">' + esc(name(r)) + "</span>" +
+          '<span class="belegMeta">' + teile.join(" \u00b7 ") + "</span>" +
+        "</span>" +
+        '<span class="belegRechts">' +
+          '<span class="belegBetrag">' + esc(euro(r.betrag)) + "</span>" +
+          '<span class="belegStand">' + esc(STAND[r.status].label) + "</span>" +
+        "</span>";
+
+      // Was die Zeile abschneidet, steht wenigstens im Titel.
+      el.title = name(r) + " \u00b7 " + euro(r.betrag) +
+                 (safe(r.beschreibung).trim() ? "\n" + r.beschreibung : "");
 
       el.addEventListener("click", () => detailOeffnen(r));
       liste.appendChild(el);
@@ -1281,6 +1573,11 @@
     [...gruppen.entries()]
       .sort((a, b) => summe(b[1]) - summe(a[1]))
       .forEach(([schluessel, posten]) => liste.appendChild(zahlKarte(schluessel, posten)));
+
+    ergebnis([
+      stark(gruppen.size) + " Empfänger",
+      stark(euro(summe(offen))) + " auszuzahlen"
+    ]);
   }
 
   function zahlKarte(schluessel, posten) {
@@ -1310,13 +1607,23 @@
     const aktionen = karte.querySelector(".zahlAktionen");
 
     if (iban) {
-      aktionen.appendChild(knopf("IBAN kopieren", "btn-secondary btn-sm",
-        () => kopieren(iban, "IBAN")));
-      aktionen.appendChild(knopf("Verwendungszweck kopieren", "btn-secondary btn-sm",
-        () => kopieren(zweck, "Verwendungszweck")));
-      aktionen.appendChild(knopf("Betrag kopieren", "btn-secondary btn-sm",
-        () => kopieren(summe(posten).toFixed(2).replace(".", ","), "Betrag")));
+      /* Drei Knöpfe, die dasselbe tun — das Zeichen sagt es einmal, die
+         Beschriftung sagt, womit. */
+      const kopierKnopf = (schild, wert) => {
+        const b = knopf("", "btn-ghost btn-sm", () => kopieren(wert, schild));
+        b.innerHTML = KOPIER_ICON;
+        b.appendChild(document.createTextNode(schild));
+        b.title = schild + " kopieren";
+        return b;
+      };
+      aktionen.appendChild(kopierKnopf("IBAN", iban));
+      aktionen.appendChild(kopierKnopf("Verwendungszweck", zweck));
+      aktionen.appendChild(kopierKnopf("Betrag", summe(posten).toFixed(2).replace(".", ",")));
     }
+
+    const luecke = document.createElement("div");
+    luecke.className = "spacer";
+    aktionen.appendChild(luecke);
 
     aktionen.appendChild(knopf(
       posten.length === 1 ? "Als bezahlt eintragen"
@@ -1361,7 +1668,10 @@
     const groesste = liste.length ? liste[0].summe : 0;
     const gesamt   = liste.reduce((a, e) => a + e.summe, 0);
 
-    $("projSummePill").textContent = euro(gesamt) + " gesamt";
+    ergebnis([
+      stark(liste.length) + (liste.length === 1 ? " Projekt" : " Projekte"),
+      stark(euro(gesamt)) + " Ausgaben"
+    ]);
 
     const box = $("projListe");
     box.innerHTML = "";
@@ -1421,12 +1731,12 @@
   document.querySelectorAll(".tabBtn").forEach((b) =>
     b.addEventListener("click", () => ansichtSetzen(b.dataset.ansicht)));
 
-  $("heroBtn").addEventListener("click", () => {
+  $("sumBtn").addEventListener("click", () => {
     // Die Auszahlungsliste zeigt ohnehin nur Offenes; ein Standfilter
     // könnte sie hier nur leerer machen, als sie sein soll.
     $("fStatus").value = "";
     ansichtSetzen("auszahlungen");
-    $("viewAuszahlungen").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("viewAuszahlungen").scrollIntoView({ behavior: "smooth", block: "center" });
   });
 
   ["suche", "fStatus", "fProjekt", "fJahr"].forEach((id) =>
@@ -1480,14 +1790,14 @@
   };
 
   function angabenZeichnen(zeile) {
+    /* Name und Betrag stehen schon im Kopf des Dialogs — hier wären
+       sie nur dasselbe ein zweites Mal. */
     const felder = [
-      ["Eingereicht von", name(zeile)],
       ["E-Mail", safe(zeile.email)],
       ["Projekt", safe(zeile.projekt) +
         (zeile.projekt_roh && zeile.projekt_roh !== zeile.projekt
           ? "  (im Formular: „" + zeile.projekt_roh + "“)" : "")],
       ["Zweck", safe(zeile.beschreibung)],
-      ["Betrag", euro(zeile.betrag)],
       ["Belegdatum", datum(zeile.beleg_datum)],
       ["IBAN", safe(zeile.iban) ? ibanSchoen(zeile.iban) : "", safe(zeile.iban)],
       ["Bezahlt am", datum(zeile.bezahlt_am)],
@@ -1975,11 +2285,11 @@
       kasten.className = "denyBox";
 
       const titel = document.createElement("div");
-      titel.style.cssText = "font-weight:900;font-size:16px;";
+      titel.className = "denyTitel";
       titel.textContent = fehlt ? "Noch nicht eingerichtet" : "Daten nicht erreichbar";
 
       const text = document.createElement("div");
-      text.style.cssText = "margin-top:6px;color:var(--muted-foreground);";
+      text.className = "denyText";
       text.textContent = fehlt
         ? "Bitte einmal supabase/rechnungen.sql im Supabase-SQL-Editor ausführen."
         : (err.message || "Unbekannter Fehler");
