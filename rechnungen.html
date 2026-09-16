@@ -975,6 +975,15 @@
      ============================================================ */
   const normRolle = (v) => safe(v).trim().toLowerCase();
 
+  /* Geschrieben steht die Rolle klein in der Datenbank; im Pill soll sie
+     aussehen wie auf allen übrigen Seiten. */
+  function rolleLabel(r) {
+    if (r === "vorstand")         return "Vorstand";
+    if (r === "ressortleiter")    return "Ressortleiter";
+    if (r === "protokollfuehrer") return "Protokollführer";
+    return "Unbekannt";
+  }
+
   function hashStr(s) {
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -1895,10 +1904,10 @@
     const anzeige = safe(profil && profil.display_name).trim();
 
     $("authNameInline").textContent = anzeige || email.split("@")[0];
-    $("authRolePill").textContent = rolle || "unbekannt";
+    $("authRolePill").textContent = rolleLabel(rolle);
     $("authRolePill").classList.toggle("vorstand", rolle === "vorstand");
     if (anzeige) $("authAvatar").textContent = initialenText(anzeige);
-    $("authBadge").title = (anzeige || email) + " · " + (rolle || "unbekannt");
+    $("authBadge").title = (anzeige || email) + " · " + rolleLabel(rolle);
 
     if (rolle !== "vorstand") {
       $("statusPill").textContent = "Kein Zugriff";
