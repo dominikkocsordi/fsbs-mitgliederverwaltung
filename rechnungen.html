@@ -565,6 +565,7 @@
     <div class="denyBox">
       <div style="font-weight:900;font-size:16px;">Kein Zugriff</div>
       <div style="margin-top:6px;color:var(--muted-foreground);">Diese Seite ist nur für <b>Vorstand</b>.</div>
+      <div style="margin-top:6px;color:var(--muted-foreground);" id="denyRolle"></div>
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn-secondary" id="logoutBtn2" type="button">Abmelden</button>
         <a class="pill" href="/" style="text-decoration:none;">Zum Dashboard</a>
@@ -806,6 +807,38 @@
 
   var SUPABASE_URL   = "https://hdhueuihmxbskiusenpe.supabase.co";
   var SUPABASE_KEY   = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+
+  /* Kommt die Bibliothek nicht durch — Werbeblocker, Firewall der
+     Hochschule, CDN gerade weg —, dann bricht hier alles Weitere ab und
+     die Seite bliebe stumm beim Ladebalken stehen. Lieber einen Satz,
+     der sagt, woran es liegt. */
+  if (typeof supabase === "undefined" || !supabase.createClient) {
+    document.getElementById("pageLoader").classList.add("hidden");
+
+    var kasten = document.createElement("div");
+    kasten.className = "denyBox";
+
+    var titel = document.createElement("div");
+    titel.style.cssText = "font-weight:900;font-size:16px;";
+    titel.textContent = "Datenbank nicht geladen";
+
+    var satz = document.createElement("div");
+    satz.style.cssText = "margin-top:6px;color:var(--muted-foreground);";
+    satz.textContent =
+      "supabase-js kam nicht durch — meist ein Werbeblocker oder ein Netz, " +
+      "das cdn.jsdelivr.net sperrt. Ohne Blocker oder in einem anderen Netz " +
+      "noch einmal öffnen.";
+
+    kasten.appendChild(titel);
+    kasten.appendChild(satz);
+
+    var wrap = document.getElementById("denyWrap");
+    wrap.innerHTML = "";
+    wrap.appendChild(kasten);
+    wrap.style.display = "block";
+    return;
+  }
+
   var sb             = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var PROFILES_TABLE = "profiles";
   var TABELLE        = "rechnungen";
@@ -961,6 +994,15 @@
      einmal — diese Prüfung erspart nur den leeren Bildschirm.
      ============================================================ */
   const normRolle = (v) => safe(v).trim().toLowerCase();
+
+  /* Geschrieben steht die Rolle klein in der Datenbank; im Pill soll sie
+     aussehen wie auf allen übrigen Seiten. */
+  function rolleLabel(r) {
+    if (r === "vorstand")         return "Vorstand";
+    if (r === "ressortleiter")    return "Ressortleiter";
+    if (r === "protokollfuehrer") return "Protokollführer";
+    return "Unbekannt";
+  }
 
   function hashStr(s) {
     let h = 2166136261;
@@ -1879,20 +1921,37 @@
     const uid = sitzung.user.id;
     const email = sitzung.user.email || "";
 
-    const { data: profil } = await sb.from(PROFILES_TABLE)
+    const { data: profil, error: profilFehler } = await sb.from(PROFILES_TABLE)
       .select("role,display_name").eq("id", uid).maybeSingle();
 
     const rolle   = normRolle(profil && profil.role);
     const anzeige = safe(profil && profil.display_name).trim();
 
     kopf.authNameInline.textContent = anzeige || email.split("@")[0];
-    kopf.authRolePill.textContent = rolle || "unbekannt";
+    kopf.authRolePill.textContent = rolleLabel(rolle);
     kopf.authRolePill.classList.toggle("vorstand", rolle === "vorstand");
     if (anzeige) kopf.authAvatar.textContent = initialenText(anzeige);
-    kopf.authBadge.title = (anzeige || email) + " · " + (rolle || "unbekannt");
+    kopf.authBadge.title = (anzeige || email) + " · " + rolleLabel(rolle);
 
     if (rolle !== "vorstand") {
       kopf.statusPill.textContent = "Kein Zugriff";
+
+      /* Dazusagen, was gelesen wurde — und für welches Konto. „Ich bin doch
+         Vorstand“ hat drei ganz verschiedene Ursachen: ein anderes Wort in
+         `profiles`, gar keine Zeile, oder eine Abfrage, die unterwegs
+         scheitert. Die Kennung steht dabei, damit sie sich gegen die Zeile
+         in der Datenbank halten lässt.
+
+         `#denyRolle` steht im Kasten „Kein Zugriff“ und damit in `.app` —
+         den rührt app-shell.js nicht an, anders als die Kopfzeile. */
+      $("denyRolle").textContent = profilFehler
+        ? "Das Profil ließ sich nicht lesen: "
+          + (profilFehler.message || profilFehler.code || "unbekannter Fehler")
+          + " — Konto " + email + " (" + uid + ")."
+        : rolle
+          ? "Gelesen wurde die Rolle „" + rolle + "“ für " + email + " (" + uid + ")."
+          : "Zu " + email + " (" + uid + ") steht keine Zeile in der Nutzerverwaltung.";
+
       zugang(false);
       return;
     }

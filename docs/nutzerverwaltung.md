@@ -31,8 +31,9 @@ Funktion fehlt.
 
 ## Einmal: das SQL laufen lassen
 
-Im Supabase-SQL-Editor **`supabase/nutzer.sql`** ausführen. Das Skript ist
-wiederholbar; ein zweiter Durchlauf ändert nichts und löscht nichts.
+Im Supabase-SQL-Editor **`supabase/nutzer.sql`** ausführen, danach
+**`supabase/rollen.sql`**. Beide Skripte sind wiederholbar; ein zweiter
+Durchlauf ändert nichts und löscht nichts.
 
 Es legt an:
 
@@ -104,6 +105,40 @@ hinterlegt, die bisher gefehlt hat.
 
 Ändern geht auf `/nutzer` mit einem Klick auf die Zeile. Die neue Rolle
 gilt, sobald die Person die Seite neu lädt.
+
+Mehr als diese drei gibt es nicht. Jede Seite und die Datenbank
+vergleichen die Rolle Zeichen für Zeichen mit genau diesen Wörtern.
+
+---
+
+## „Kein Zugriff“, obwohl die Rolle stimmt
+
+Steht in der Spalte `role` etwas anderes als eines der drei Wörter —
+`Admin`, `Vorsitz`, `Protokollführer` mit ü, ein Tippfehler, ein alter
+Import —, dann ist das für das Portal keine bekannte Rolle. Die Person
+sieht überall „Kein Zugriff“, obwohl auf `/nutzer` etwas Vernünftiges
+steht. Am deutlichsten fällt das bei den **Finanzen** auf: Die Seite
+steht allein dem Vorstand offen und nennt darum unter „Kein Zugriff“
+auch die Rolle, die sie gelesen hat.
+
+Nachsehen lässt sich das im SQL-Editor:
+
+```sql
+select u.email, p.role
+  from public.profiles p
+  left join auth.users u on u.id = p.id
+ order by p.role, u.email;
+```
+
+Geradeziehen tut es **`supabase/rollen.sql`**: Das Skript gleicht jeden
+vorhandenen Wert auf eine der drei Rollen an, schreibt in die Meldungen,
+welche Zeile wohin gewandert ist, und verriegelt die Spalte — über den
+Trigger und eine Prüfregel an der Tabelle — gegen jede vierte Rolle.
+
+Zum Vorstand macht das Skript niemanden: Nur was schon mit `vorstand`
+beginnt, bleibt Vorstand, alles Unbekannte landet bei `ressortleiter`.
+Wer Vorstand sein soll, bekommt die Rolle danach auf `/nutzer` mit einem
+Klick.
 
 ---
 
