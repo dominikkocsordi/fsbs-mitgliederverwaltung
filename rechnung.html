@@ -667,10 +667,11 @@
         <div class="fieldGrid">
           <div class="field full">
             <label for="projekt">Projekt</label>
-            <select id="projekt" required disabled>
-              <option value="" selected hidden>Bitte auswählen</option>
-            </select>
-            <div class="bHint">Wofür war die Ausgabe? Ist nichts Passendes dabei: „Sonstiges“.</div>
+            <input id="projekt" type="text" list="projektVorschlaege" maxlength="120"
+                   autocomplete="off" placeholder="z. B. FS Wochenende" required disabled>
+            <datalist id="projektVorschlaege"></datalist>
+            <div class="bHint">Wofür war die Ausgabe? Schreib es hin, wie es heißt — die
+              Vorschläge im Feld sind nur ein Angebot, kein Rahmen.</div>
             <div class="bErr" id="projekt-error"></div>
           </div>
 
@@ -1141,7 +1142,7 @@
     }
 
     if (el.id === "projekt" && !wert) {
-      setzeFehler(el, "Bitte ein Projekt auswählen.");
+      setzeFehler(el, "Bitte trag ein Projekt ein.");
       return false;
     }
 
@@ -1232,10 +1233,18 @@
      ============================================================ */
   const zustand = { geschlossen: false, hinweisZu: "", einwilligung: null, projekte: [] };
 
+  /* Der Rückfall, falls `rechnung_projekte` leer ist: ein paar Namen, die
+     ohnehin jedes Semester wiederkommen. Vorschläge, mehr nicht — getippt
+     werden darf alles. */
+  const PROJEKT_VORSCHLAEGE = [
+    "Anwärterprojekt", "FS Wochenende", "Semester Closing",
+    "Semester Opening", "Stadtrallye"
+  ];
+
   async function stammdatenLaden() {
     const [formular, projekte, einwilligung] = await Promise.all([
       sb.from("rechnung_formular").select("titel,intro,geschlossen,hinweis_zu").maybeSingle(),
-      sb.from("rechnung_projekte").select("id,name").eq("active", true)
+      sb.from("rechnung_projekte").select("name").eq("active", true)
         .order("sort_order", { ascending: true }).order("name", { ascending: true }),
       sb.from("rechnung_einwilligung").select("id,text").eq("active", true)
         .order("created_at", { ascending: false }).limit(1).maybeSingle()
@@ -1248,18 +1257,22 @@
       zustand.hinweisZu   = formular.data.hinweis_zu || "";
     }
 
-    if (projekte.error) throw projekte.error;
+    /* Die Vorschläge sind kein Grund, das Formular anzuhalten: Getippt
+       werden darf ohnehin alles. */
+    if (projekte.error) console.warn("Projektvorschläge nicht geladen:", projekte.error);
 
-    zustand.projekte = projekte.data || [];
-    const auswahl = $("projekt");
-    auswahl.innerHTML = '<option value="" selected hidden>Bitte auswählen</option>' +
-      zustand.projekte.map((p) => {
-        const o = document.createElement("option");
-        o.value = p.id;
-        o.textContent = p.name;
-        return o.outerHTML;
-      }).join("");
-    auswahl.disabled = false;
+    /* Das Projekt ist ein freies Feld: Was hier aus der Datenbank kommt,
+       steht nur als Vorschlag im Feld. Sagt die Liste nichts — weil sie
+       noch niemand gepflegt hat —, tun es die Namen aus dem Quelltext. */
+    zustand.projekte = (projekte.data || []).map((p) => p.name).filter(Boolean);
+    const vorschlaege = zustand.projekte.length ? zustand.projekte : PROJEKT_VORSCHLAEGE;
+
+    $("projektVorschlaege").innerHTML = vorschlaege.map((name) => {
+      const o = document.createElement("option");
+      o.value = name;
+      return o.outerHTML;
+    }).join("");
+    $("projekt").disabled = false;
 
     if (einwilligung.data) {
       zustand.einwilligung = einwilligung.data;
@@ -1483,7 +1496,7 @@
       p_nachname:     $("nachname").value.trim(),
       p_email:        $("email").value.trim().toLowerCase() || null,
       p_beschreibung: $("beschreibung").value.trim(),
-      p_projekt_id:   $("projekt").value || null,
+      p_projekt:      $("projekt").value.trim(),
       p_betrag:       betragLesen($("betrag").value),
       p_beleg_datum:  $("belegdatum").value,
       p_iban:         ibanRoh($("iban").value),

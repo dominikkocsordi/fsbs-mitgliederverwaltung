@@ -24,14 +24,18 @@
 create extension if not exists pgcrypto;
 
 
--- 1 ---------------------------------------------------------------- Projekte
--- Wofür das Geld ausgegeben wurde. Im Google-Formular war das ein freies
--- Textfeld, und entsprechend sah die Auswertung aus: „FS Wochenende“,
--- „Fs-We“ und „FS Wochenende “ waren drei Projekte. Hier ist es eine Liste,
--- die der Vorstand pflegt.
+-- 1 -------------------------------------------------------------- Vorschläge
+-- Wofür das Geld ausgegeben wurde. Das Feld im Formular ist frei: Was dort
+-- steht, steht so in der Zeile – ein Projekt, das es vorher nicht gab,
+-- braucht niemanden zu fragen.
 --
--- `active = false` blendet einen Eintrag aus dem Formular aus, ohne die
--- bereits eingereichten Belege zu verlieren.
+-- Diese Tabelle ist deshalb keine Auswahl, sondern eine Handreichung: Ihre
+-- aktiven Namen stehen als Vorschläge im Feld, damit „FS Wochenende“ nicht
+-- wieder als „Fs-We“ und „FS Wochenende “ in der Auswertung landet.
+--
+-- `active = false` nimmt einen Namen aus den Vorschlägen, ohne die bereits
+-- eingereichten Belege zu verlieren: Deren Projekt steht als Klartext in
+-- ihrer eigenen Zeile und bleibt filterbar.
 
 create table if not exists public.rechnung_projekte (
     id         uuid primary key default gen_random_uuid(),
@@ -72,6 +76,21 @@ insert into public.rechnung_projekte (name, sort_order) values
     ('Software',                  180),
     ('Sonstiges',                 999)
 on conflict (name) do nothing;
+
+-- Vorgeschlagen wird nur eine Handvoll: Eine Liste, die man erst lesen muss,
+-- nimmt dem freien Feld seinen Sinn. Die übrigen Namen bleiben stehen – im
+-- Portal sind sie weiter Filter –, sie stehen nur nicht mehr im Feld.
+--
+-- Das ist die eine Stelle, an der ein zweiter Durchlauf etwas zurückdreht:
+-- Wer andere Vorschläge will, setzt `active` danach selbst.
+with vorschlag (name) as (
+    values ('Anwärterprojekt'), ('FS Wochenende'), ('Semester Closing'),
+           ('Semester Opening'), ('Stadtrallye')
+)
+update public.rechnung_projekte p
+   set active = (exists (select 1 from vorschlag v where v.name = p.name))
+ where p.active is distinct from
+       (exists (select 1 from vorschlag v where v.name = p.name));
 
 
 -- 2 ------------------------------------------------------------- Einwilligung
@@ -377,9 +396,9 @@ begin
         new.code := public.rechnung_code_neu();
     end if;
 
-    -- Der Klartext des Projekts. Ohne Zuordnung bleibt stehen, was
-    -- mitgeschickt wurde – der Import bringt Namen mit, die es als Projekt
-    -- (noch) nicht gibt.
+    -- Das Projekt ist Klartext. Der Import schickt statt des Namens eine
+    -- Zuordnung mit – dann kommt der Name aus der Liste. Alles andere ist
+    -- getippt und gilt, wie es getippt wurde.
     if new.projekt_id is not null then
         select name into new.projekt
           from public.rechnung_projekte
@@ -390,6 +409,11 @@ begin
         end if;
     else
         new.projekt := nullif(btrim(coalesce(new.projekt, '')), '');
+
+        -- Ein Projektname, der länger ist als diese Zeile, ist keiner.
+        if char_length(new.projekt) > 120 then
+            raise exception 'Der Projektname ist zu lang' using errcode = '23514';
+        end if;
     end if;
 
     new.projekt_roh := nullif(btrim(coalesce(new.projekt_roh, '')), '');
@@ -448,6 +472,9 @@ begin
         new.iban := null;
     end if;
 
+    -- Das Projekt lässt sich im Portal frei überschreiben. Wer den Klartext
+    -- ändert, löst ihn damit von der Vorschlagsliste: Eine Zuordnung, die auf
+    -- einen anderen Namen zeigt, wäre nur noch eine falsche Fährte.
     if new.projekt_id is distinct from old.projekt_id then
         if new.projekt_id is null then
             new.projekt := null;
@@ -458,6 +485,13 @@ begin
             if new.projekt is null then
                 raise exception 'Unbekanntes Projekt' using errcode = '23514';
             end if;
+        end if;
+    elsif new.projekt is distinct from old.projekt then
+        new.projekt    := nullif(btrim(coalesce(new.projekt, '')), '');
+        new.projekt_id := null;
+
+        if char_length(new.projekt) > 120 then
+            raise exception 'Der Projektname ist zu lang' using errcode = '23514';
         end if;
     end if;
 
@@ -700,12 +734,19 @@ $anlegen$;
 -- gewöhnliche INSERT-Anweisung könnte das nicht, ohne zugleich die ganze
 -- Zeile zum Lesen freizugeben.
 
+-- Das Projekt kam früher als Kennung aus der Auswahlliste. Jetzt ist es
+-- Klartext, und damit ändert sich die Unterschrift der Funktion: Die alte
+-- muss weg, sonst stünden zwei nebeneinander und PostgREST wüsste bei einem
+-- Aufruf nicht, welche gemeint ist.
+drop function if exists public.rechnung_einreichen(
+    text, text, text, text, uuid, numeric, date, text, text, text, text, uuid, text);
+
 create or replace function public.rechnung_einreichen(
     p_vorname         text,
     p_nachname        text,
     p_email           text,
     p_beschreibung    text,
-    p_projekt_id      uuid,
+    p_projekt         text,
     p_betrag          numeric,
     p_beleg_datum     date,
     p_iban            text,
@@ -740,11 +781,16 @@ begin
         raise exception 'Bitte gib eine gültige IBAN an' using errcode = '23514';
     end if;
 
+    -- Ohne Projekt wüsste hinterher niemand, wofür das Geld weg ist.
+    if nullif(btrim(coalesce(p_projekt, '')), '') is null then
+        raise exception 'Bitte trag ein Projekt ein' using errcode = '23514';
+    end if;
+
     insert into public.rechnungen
-        (vorname, nachname, email, beschreibung, projekt_id, betrag, beleg_datum,
+        (vorname, nachname, email, beschreibung, projekt, betrag, beleg_datum,
          iban, beleg_pfad, beleg_name, beleg_typ, einwilligung_id, quelle)
     values
-        (p_vorname, p_nachname, p_email, p_beschreibung, p_projekt_id, p_betrag,
+        (p_vorname, p_nachname, p_email, p_beschreibung, p_projekt, p_betrag,
          p_beleg_datum, p_iban, p_beleg_pfad, p_beleg_name, p_beleg_typ,
          p_einwilligung_id, 'formular')
     returning code into v_code;
@@ -754,7 +800,7 @@ end;
 $$;
 
 grant execute on function public.rechnung_einreichen(
-    text, text, text, text, uuid, numeric, date, text, text, text, text, uuid, text)
+    text, text, text, text, text, numeric, date, text, text, text, text, uuid, text)
     to anon, authenticated;
 
 

@@ -13,7 +13,7 @@ Was sich dadurch ändert:
 | Formular               | Google Forms                | `portal.fsbs-hm.de/rechnung`             |
 | Schutz vor Bots        | keiner                      | Captcha + Bremse je IP-Adresse           |
 | Beleg                  | Google Drive                | Supabase, im Portal ansehbar             |
-| Projekt                | freies Textfeld             | Liste, die der Vorstand pflegt           |
+| Projekt                | freies Textfeld             | freies Feld mit ein paar Vorschlägen     |
 | IBAN                   | ungeprüft                   | Prüfziffer wird geprüft                  |
 | Stand für den Einreicher | nicht einsehbar           | Vorgangsnummer → Stand abrufbar          |
 | Auszahlen              | Zeile für Zeile abtippen    | nach Konto gebündelt, zum Kopieren       |
@@ -33,9 +33,15 @@ Im Supabase-SQL-Editor, in dieser Reihenfolge:
 2. `supabase/rechnung-schutz.sql` — Captcha und die Bremse je IP-Adresse
 
 Beide Skripte sind wiederholbar: Ein zweiter Durchlauf ändert nichts und
-löscht nichts. Auch die Reihenfolge eines späteren zweiten Durchlaufs ist
-gleichgültig — ein erneutes `rechnungen.sql` schaltet den Schutz nicht wieder
-ab.
+löscht nichts — bis auf die Vorschläge im Projektfeld, siehe unten unter
+[Projekte](#projekte). Auch die Reihenfolge eines späteren zweiten Durchlaufs
+ist gleichgültig — ein erneutes `rechnungen.sql` schaltet den Schutz nicht
+wieder ab.
+
+> Läuft das Portal schon: `rechnungen.sql` muss noch einmal durch, sonst
+> nimmt das Formular nichts mehr an. Das Projekt ist jetzt ein freies Feld,
+> und `rechnung_einreichen()` bekommt es als Text statt als Kennung — die
+> Seite ruft die Funktion also anders auf, als die Datenbank sie kennt.
 
 Danach steht `/rechnungen` im Portal auf den neuen Daten, und
 `portal.fsbs-hm.de/rechnung` nimmt Belege entgegen.
@@ -186,22 +192,35 @@ Formular dient auch zum Nachbessern eines bestehenden Vorgangs
 
 ### Projekte
 
-Sie stehen in `public.rechnung_projekte` und erscheinen im Formular in der
-Reihenfolge von `sort_order`.
+Das Projekt ist ein freies Feld — im Formular wie im Portal. Wer einen Beleg
+für etwas einreicht, das es so noch nie gab, tippt es einfach hin; niemand
+muss vorher eine Liste ergänzen.
+
+Was in `public.rechnung_projekte` auf `active = true` steht, erscheint im Feld
+als Vorschlag, in der Reihenfolge von `sort_order`. Nach `rechnungen.sql` sind
+das fünf: Anwärterprojekt, FS Wochenende, Semester Closing, Semester Opening,
+Stadtrallye. Die übrigen Namen bleiben in der Tabelle stehen und sind im
+Portal weiter Filter, sie stehen nur nicht mehr im Feld.
 
 ```sql
--- eines hinzufügen
+-- einen Vorschlag hinzufügen
 insert into public.rechnung_projekte (name, sort_order) values ('Sommerfest', 125);
 
--- eines ausblenden, ohne die bisherigen Belege zu verlieren
+-- einen aus den Vorschlägen nehmen
 update public.rechnung_projekte set active = false where name = 'Stadtrallye';
 
--- umbenennen: die schon eingereichten Belege behalten den alten Klartext
-update public.rechnung_projekte set name = 'FS-Wochenende' where name = 'FS Wochenende';
+-- nachsehen, was gerade vorgeschlagen wird
+select name, sort_order from public.rechnung_projekte
+ where active order by sort_order, name;
 ```
 
-Ein Projekt zu löschen geht auch, nimmt den betroffenen Zeilen aber die
-Zuordnung. `active = false` ist fast immer das Richtige.
+Die Vorschläge sind das Einzige, was ein zweiter Durchlauf von
+`rechnungen.sql` zurückdreht: Er stellt genau diese fünf wieder her. Wer
+andere vorschlagen will, setzt `active` danach noch einmal.
+
+Ein Projekt umzubenennen oder zu löschen ändert nichts an den schon
+eingereichten Belegen: Deren Projekt steht als Klartext in ihrer eigenen
+Zeile.
 
 ### Das Formular zumachen
 

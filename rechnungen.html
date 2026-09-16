@@ -975,8 +975,10 @@
             <input id="eEmail" type="email" maxlength="160">
           </div>
           <div class="field full">
-            <label for="eProjekt">Projekt</label>
-            <select id="eProjekt"><option value="">— ohne Projekt —</option></select>
+            <label for="eProjekt">Projekt <span class="optional">— optional</span></label>
+            <input id="eProjekt" type="text" list="eProjektVorschlaege" maxlength="120"
+                   autocomplete="off" placeholder="frei eintragen">
+            <datalist id="eProjektVorschlaege"></datalist>
           </div>
           <div class="field full">
             <label for="eBeschreibung">Was wurde gekauft?</label>
@@ -1367,10 +1369,15 @@
       jahre.map((j) => '<option value="' + esc(j) + '">' + esc(j) + "</option>").join("");
     $("fJahr").value = jahrWahl;
 
-    // Im Erfassen-Dialog nur, was noch benutzt wird.
-    $("eProjekt").innerHTML = '<option value="">— ohne Projekt —</option>' +
-      PROJEKTE.filter((p) => p.active)
-        .map((p) => '<option value="' + esc(p.id) + '">' + esc(p.name) + "</option>").join("");
+    /* Im Erfassen-Dialog ist das Projekt ein freies Feld. Vorgeschlagen
+       wird, was die Liste noch führt — und dazu alles, was in den Zeilen
+       schon steht: Ein Name, den es zweimal gibt, ist ein Name zu viel. */
+    const vorschlaege = [...new Set(
+      PROJEKTE.filter((p) => p.active).map((p) => p.name).concat(ausZeilen)
+    )].sort((a, b) => a.localeCompare(b, "de"));
+
+    $("eProjektVorschlaege").innerHTML =
+      vorschlaege.map((n) => '<option value="' + esc(n) + '"></option>').join("");
   }
 
   /* ============================================================
@@ -2063,11 +2070,9 @@
     $("eBezahltAm").value    = zeile ? safe(zeile.bezahlt_am) : "";
     $("eBeleg").value        = "";
 
-    /* Das Projekt über die Liste. Trägt die Zeile nur Klartext — so
-       kamen die übernommenen Einträge herein —, bleibt die Auswahl leer,
-       und der Klartext bleibt unberührt, solange niemand etwas wählt. */
-    const passend = zeile && PROJEKTE.find((p) => p.id === zeile.projekt_id);
-    $("eProjekt").value = passend ? passend.id : "";
+    /* Das Projekt steht als Klartext in der Zeile — genau das kommt
+       ins Feld, und genau das geht auch wieder zurück. */
+    $("eProjekt").value = zeile ? safe(zeile.projekt) : "";
 
     $("eBelegHinweis").textContent = zeile && zeile.beleg_pfad
       ? "— es liegt schon einer vor; ein neuer tritt an seine Stelle"
@@ -2136,23 +2141,18 @@
     el.textContent = "Speichert…";
 
     try {
-      const projektId = $("eProjekt").value || null;
       const daten = {
         vorname:      $("eVorname").value.trim(),
         nachname:     $("eNachname").value.trim(),
         email:        $("eEmail").value.trim() || null,
         beschreibung: $("eBeschreibung").value.trim(),
-        projekt_id:   projektId,
+        projekt:      $("eProjekt").value.trim() || null,
         betrag:       betrag,
         beleg_datum:  $("eDatum").value,
         iban:         iban || null,
         status:       $("eStatus").value,
         bezahlt_am:   $("eBezahltAm").value || null
       };
-
-      // Ohne Zuordnung trägt der Trigger keinen Klartext nach — beim
-      // Anlegen muss die Seite ihn also selbst leer setzen.
-      if (!projektId && !EDIT_ID) daten.projekt = null;
 
       const datei = $("eBeleg").files && $("eBeleg").files[0];
       if (datei) {
