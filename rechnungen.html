@@ -565,6 +565,7 @@
     <div class="denyBox">
       <div style="font-weight:900;font-size:16px;">Kein Zugriff</div>
       <div style="margin-top:6px;color:var(--muted-foreground);">Diese Seite ist nur für <b>Vorstand</b>.</div>
+      <div style="margin-top:6px;color:var(--muted-foreground);" id="denyRolle"></div>
       <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
         <button class="btn-secondary" id="logoutBtn2" type="button">Abmelden</button>
         <a class="pill" href="/" style="text-decoration:none;">Zum Dashboard</a>
@@ -1869,6 +1870,14 @@
 
     if (rolle !== "vorstand") {
       $("statusPill").textContent = "Kein Zugriff";
+
+      /* Dazusagen, was gelesen wurde. „Ich bin doch Vorstand“ klärt sich
+         fast immer daran, dass in `profiles` ein anderes Wort steht — und
+         das sieht man nur, wenn die Seite es nennt. */
+      $("denyRolle").textContent = rolle
+        ? "Angemeldet als " + email + " mit der Rolle „" + rolle + "“."
+        : "Für " + email + " ist keine Rolle hinterlegt.";
+
       zugang(false);
       return;
     }
