@@ -131,60 +131,53 @@
     </div>
 
     <!-- CONTENT -->
-    <div class="glass card hidden" id="contentCard">
+    <div class="anwInhalt hidden" id="contentCard">
 
-      <!-- ✅ nicer filters layout -->
-      <div class="filters">
-        <input class="wide" id="q" placeholder="Suche (Name, Mail, Ressort…)" />
-        <select id="fRessort"></select>
-        <select id="fStatus"></select>
-        <select id="sortBy"></select>
-        <button class="btn-secondary" id="reloadBtn" type="button">Neu laden</button>
-        <button class="btn-secondary" id="csvBtn" type="button"
-                title="Die angezeigte Liste als CSV-Datei">CSV</button>
-        <button class="btn-danger" id="purgeBtn" type="button" hidden>Alle löschen</button>
+      <!-- Die Kacheln zählen nicht nur, sie filtern auch: ein Klick setzt den
+           Status, ein zweiter nimmt ihn zurück. -->
+      <div class="statGrid" id="statGrid" aria-label="Anwärter nach Status"></div>
 
-        <div class="right wide" style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
-          <div class="pill" id="countPill">0</div>
-        </div>
-      </div>
+      <div class="glass card--tight">
+        <div class="toolbar">
+          <input class="toolbar__search" id="q" type="search"
+                 placeholder="Name, Mail oder Ressort suchen" />
+          <select class="toolbar__select" id="fRessort"></select>
+          <select class="toolbar__select" id="sortBy" aria-label="Sortierung"></select>
+          <span class="toolbar__count" id="countPill">0</span>
 
-      <div class="miniDash" aria-label="Mini Dashboard">
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Alle Einträge</div>
-            <div class="dashHint">sichtbar</div>
+          <!-- Die drei Knöpfe bleiben beieinander, statt einzeln umzubrechen. -->
+          <div class="anwWerkzeuge">
+            <button class="btn-secondary btn-sm" id="reloadBtn" type="button">Aktualisieren</button>
+            <button class="btn-secondary btn-sm" id="csvBtn" type="button"
+                    title="Die angezeigte Liste als CSV-Datei">CSV</button>
+            <button class="btn-danger btn-sm" id="purgeBtn" type="button" hidden>Alle löschen</button>
           </div>
-          <div class="dashValue" id="dashTotal">0</div>
-        </div>
-
-        <div class="dashCard">
-          <div>
-            <div class="dashLabel">Dein Ressort</div>
-            <div class="dashHint" id="dashMineHint">–</div>
-          </div>
-          <div class="dashValue" id="dashMine">0</div>
         </div>
       </div>
 
-      <div class="tableWrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Ressort</th>
-              <th>Email</th>
-              <th>Telefon</th>
-              <th>Status</th>
-              <th>Mail</th>
-              <th style="width:340px;">Aktionen</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>
+      <div class="tableCard nurBreit">
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="avatarTh"></th>
+                <th>Name &amp; Kontakt</th>
+                <th>Ressort</th>
+                <th>Status</th>
+                <th class="anwMailTh">Mail</th>
+                <th class="anwAktionenTh">Aktionen</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
       </div>
 
-      <div id="empty" class="empty hidden">Keine Einträge gefunden.</div>
+      <!-- Dieselben Zeilen als Karten — unter 720 px tritt die Tabelle
+           zurück und diese Liste nimmt ihren Platz ein. -->
+      <div class="memberCardGrid" id="karten"></div>
+
+      <div id="empty" class="hidden"></div>
     </div>
 
   </div>
@@ -334,18 +327,15 @@
 
     const q = document.getElementById("q");
     const fRessort = document.getElementById("fRessort");
-    const fStatus  = document.getElementById("fStatus");
     const sortBy   = document.getElementById("sortBy");
     const reloadBtn = document.getElementById("reloadBtn");
     const csvBtn    = document.getElementById("csvBtn");
     const purgeBtn  = document.getElementById("purgeBtn");
     const countPill = document.getElementById("countPill");
-    const tbody = document.getElementById("tbody");
-    const empty = document.getElementById("empty");
-
-    const dashTotal = document.getElementById("dashTotal");
-    const dashMine  = document.getElementById("dashMine");
-    const dashMineHint = document.getElementById("dashMineHint");
+    const statGrid  = document.getElementById("statGrid");
+    const tbody  = document.getElementById("tbody");
+    const karten = document.getElementById("karten");
+    const empty  = document.getElementById("empty");
 
     const editOverlay = document.getElementById("editOverlay");
     const editSub = document.getElementById("editSub");
@@ -370,6 +360,10 @@
     /* ========= State ========= */
     let ALL = [];
     let EDITING = null;
+
+    /* Der Statusfilter sitzt nicht mehr in einem Auswahlfeld, sondern in den
+       Kacheln über der Liste. Leer heißt: alle. */
+    let STATUS_FILTER = "";
 
     /* Wortgleich so, wie es `anwaerter_alle_loeschen()` in der Datenbank
        erwartet — die Kette im Browser ist die eine Hälfte des Riegels. */
@@ -399,41 +393,14 @@
       return "open";
     }
 
-    function statusMeta(statusRaw){
-      if (isVollmitglied(statusRaw)) {
-        return {
-          label: "Übernommen",
-          dot: "var(--success)",
-          bgA: "color-mix(in oklab, var(--success) 20%, transparent)",
-          bgB: "color-mix(in oklab, var(--success) 10%, transparent)",
-          border: "color-mix(in oklab, var(--success) 32%, transparent)",
-          fg: "var(--success)"
-        };
-      }
-      if (isAnwaerterAbgelehnt(statusRaw)) {
-        return {
-          label: "Abgelehnt",
-          dot: "var(--danger)",
-          bgA: "color-mix(in oklab, var(--danger) 20%, transparent)",
-          bgB: "color-mix(in oklab, var(--danger) 10%, transparent)",
-          border: "color-mix(in oklab, var(--danger) 32%, transparent)",
-          fg: "var(--danger)"
-        };
-      }
-      return {
-        label: "Offen",
-        dot: "var(--faint-foreground)",
-        bgA: "var(--surface-2)",
-        bgB: "var(--surface-1)",
-        border: "var(--border-color)",
-        fg: "var(--muted-foreground)"
-      };
-    }
-    function statusPillStyle(meta){
-      return `background: linear-gradient(135deg, ${meta.bgA}, ${meta.bgB});
-              border-color: ${meta.border};
-              color: ${meta.fg || "var(--foreground)"};`;
-    }
+    /* Drei Stände, drei Pillen aus dem Haus-Baukasten. Die Kacheln über der
+       Liste tragen dieselben Namen und dieselben Töne. */
+    const STATUS_META = {
+      open:     { label: "Offen",      pill: "pill--neutral", ton: "stat--warning" },
+      full:     { label: "Übernommen", pill: "pill--success", ton: "stat--success" },
+      rejected: { label: "Abgelehnt",  pill: "pill--danger",  ton: "stat--danger"  }
+    };
+    function statusMeta(statusRaw){ return STATUS_META[statusKey(statusRaw)]; }
 
     const RESSORT_COLORS = {
       "Externe Events":   ["color-mix(in oklab, var(--chart-1) 22%, transparent)", "color-mix(in oklab, var(--chart-1) 12%, transparent)"],
@@ -583,7 +550,6 @@
 
           setCompactIdentity(res.data.display_name, email);
           setRolePill(MY_ROLE || "ressortleiter");
-          dashMineHint.textContent = MY_RESSORT || "–";
 
           window.FSBSNav?.setRole(MY_ROLE);
           return;
@@ -595,7 +561,6 @@
       CAN_EDIT = (MY_ROLE === "vorstand");
 
       setRolePill(MY_ROLE || "ressortleiter");
-      dashMineHint.textContent = MY_RESSORT || "–";
       /* Welche Punkte die Rolle sieht, entscheidet app-shell.js. */
       window.FSBSNav?.setRole(MY_ROLE);
     }
@@ -610,21 +575,14 @@
         `<option value="">Ressort (alle)</option>` +
         RESSORTS_FIXED.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join("");
     }
-    function fillStatusFilter(){
-      fStatus.innerHTML = `
-        <option value="">Status (alle)</option>
-        <option value="full">Übernommen</option>
-        <option value="rejected">Abgelehnt</option>
-      `;
-    }
     function fillSort(){
       sortBy.innerHTML = `
-        <option value="created_desc">Sort: Neueste zuerst</option>
-        <option value="created_asc">Sort: Älteste zuerst</option>
-        <option value="name_asc">Sort: Name A→Z</option>
-        <option value="name_desc">Sort: Name Z→A</option>
-        <option value="status">Sort: Status</option>
-        <option value="mail_first">Sort: Mail offen zuerst</option>
+        <option value="created_desc">Neueste zuerst</option>
+        <option value="created_asc">Älteste zuerst</option>
+        <option value="name_asc">Name A→Z</option>
+        <option value="name_desc">Name Z→A</option>
+        <option value="status">Nach Status</option>
+        <option value="mail_first">Mail offen zuerst</option>
       `;
       sortBy.value = "created_desc";
     }
@@ -650,12 +608,61 @@
       return (a + b).toUpperCase() || "•";
     }
 
-    function updateMiniDash(){
-      dashTotal.textContent = String(ALL.length);
-      const mine = (MY_RESSORT ? ALL.filter(r => safe(r.ressort).trim() === MY_RESSORT).length : 0);
-      dashMine.textContent = String(mine);
-      dashMineHint.textContent = MY_RESSORT || "–";
+    /* Die Kacheln zählen, was der übrige Filter übrig lässt — nach Ressort
+       und Suche, aber vor dem Status. Sonst stünde neben „Offen“ immer die
+       Zahl, die man gerade angeklickt hat. */
+    const STAT_KACHELN = [
+      { key: "",         label: "Alle Anwärter" },
+      { key: "open",     label: "Offen"      },
+      { key: "full",     label: "Übernommen" },
+      { key: "rejected", label: "Abgelehnt"  }
+    ];
+
+    function renderStats(basis){
+      const zaehle = (key) => key
+        ? basis.filter(r => statusKey(r?.[BEWERBUNG_STATUS_COL]) === key).length
+        : basis.length;
+
+      const kacheln = STAT_KACHELN.map(k => {
+        const aktiv = STATUS_FILTER === k.key;
+        const ton = k.key ? STATUS_META[k.key].ton : "";
+        return `<button type="button" class="stat stat--filter ${ton}${aktiv ? " is-active" : ""}"
+                        data-status="${k.key}" aria-pressed="${aktiv ? "true" : "false"}">
+          <div class="stat__label">${esc(k.label)}</div>
+          <div class="stat__value">${zaehle(k.key)}</div>
+        </button>`;
+      });
+
+      /* Wer ein Ressort hat, bekommt eine Kachel dafür — sie schaltet das
+         Auswahlfeld daneben um, nicht den Status. */
+      if (MY_RESSORT){
+        const meins = ALL.filter(r => safe(r.ressort).trim() === MY_RESSORT).length;
+        const aktiv = safe(fRessort.value).trim() === MY_RESSORT;
+        kacheln.push(`<button type="button" class="stat stat--filter stat--info${aktiv ? " is-active" : ""}"
+                              data-ressort="1" aria-pressed="${aktiv ? "true" : "false"}">
+          <div class="stat__label">Dein Ressort</div>
+          <div class="stat__value">${meins}</div>
+          <div class="stat__hint">${esc(MY_RESSORT)}</div>
+        </button>`);
+      }
+
+      statGrid.innerHTML = kacheln.join("");
     }
+
+    statGrid.addEventListener("click", (e) => {
+      const kachel = e.target.closest("button[data-status], button[data-ressort]");
+      if (!kachel) return;
+
+      if (kachel.dataset.ressort){
+        const an = safe(fRessort.value).trim() === MY_RESSORT;
+        fRessort.value = an ? "" : MY_RESSORT;
+      } else {
+        const key = kachel.dataset.status;
+        /* Ein zweiter Klick auf dieselbe Kachel nimmt den Filter zurück. */
+        STATUS_FILTER = (STATUS_FILTER === key) ? "" : key;
+      }
+      render();
+    });
 
     function compareStrings(a,b){
       return a.localeCompare(b, "de", { sensitivity: "base" });
@@ -666,22 +673,29 @@
       return Number.isFinite(t) ? t : 0;
     }
 
-    /* Was die Liste gerade zeigt — gefiltert und sortiert. `render()`
-       zeichnet daraus die Tabelle, der CSV-Knopf schreibt dasselbe in eine
-       Datei: Wer exportiert, bekommt, was er vor sich sieht. */
-    function sichtbareZeilen(){
+    /* Alles außer dem Status — daraus zählen die Kacheln. */
+    function ohneStatusgefiltert(){
       const text = safe(q.value).trim().toLowerCase();
       const rf = safe(fRessort.value).trim();
-      const sf = safe(fStatus.value).trim();
-      const so = safe(sortBy.value).trim();
 
-      let rows = ALL.filter(r => {
+      return ALL.filter(r => {
         if (rf && safe(r.ressort).trim() !== rf) return false;
-        if (sf && statusKey(r?.[BEWERBUNG_STATUS_COL]) !== sf) return false;
         if (!text) return true;
         const hay = [r.vorname, r.nachname, r.email, r.ressort].map(safe).join(" ").toLowerCase();
         return hay.includes(text);
       });
+    }
+
+    /* Was die Liste gerade zeigt — gefiltert und sortiert. `render()`
+       zeichnet daraus Tabelle und Karten, der CSV-Knopf schreibt dasselbe in
+       eine Datei: Wer exportiert, bekommt, was er vor sich sieht. */
+    function sichtbareZeilen(){
+      const so = safe(sortBy.value).trim();
+
+      let rows = ohneStatusgefiltert();
+      if (STATUS_FILTER){
+        rows = rows.filter(r => statusKey(r?.[BEWERBUNG_STATUS_COL]) === STATUS_FILTER);
+      }
 
       rows.sort((a,b)=>{
         if (so === "created_desc") return getCreatedAt(b) - getCreatedAt(a);
@@ -714,106 +728,161 @@
       return rows;
     }
 
+    /* Was eine Zeile über sich weiß. Tabelle und Karte lesen dasselbe —
+       so kann keine von beiden einen anderen Stand anzeigen. */
+    function zeileDaten(r){
+      const stRaw = r?.[BEWERBUNG_STATUS_COL];
+      const abgelehnt = isAnwaerterAbgelehnt(stRaw);
+      const uebernommen = isVollmitglied(stRaw);
+      const entschieden = abgelehnt || uebernommen;
+
+      return {
+        name:      (safe(r.vorname) + " " + safe(r.nachname)).trim() || "—",
+        email:     safe(r.email).trim(),
+        telefon:   safe(r.telefon).trim(),
+        ressort:   safe(r.ressort).trim(),
+        thumb:     safe(r.photo_thumb).trim(),
+        photo:     safe(r.photo_url).trim(),
+        initialen: initialsFromName(r.vorname, r.nachname),
+        meta:      statusMeta(stRaw),
+        editAus:   !CAN_EDIT,
+        vollAus:   !CAN_EDIT || entschieden,
+        ablehnAus: !CAN_EDIT || entschieden,
+        mailSchaltbar: CAN_EDIT && entschieden,
+        mailGesetzt:   !!r?.[MAIL_BOOL_COL]
+      };
+    }
+
+    /* Gibt es ein Foto, führt das Bildchen selbst hin — dann braucht es
+       keine zweite Zeile „Foto öffnen“ unter dem Namen. */
+    function avatarHtml(d){
+      const kreis = `<div class="avatarSmall">${
+        d.thumb
+          ? `<img src="${esc(d.thumb)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"
+                  onerror="this.parentElement.textContent='${esc(d.initialen)}';" />`
+          : esc(d.initialen)
+      }</div>`;
+
+      return d.photo
+        ? `<a class="anwFoto" href="${esc(d.photo)}" target="_blank" rel="noopener" title="Foto öffnen">${kreis}</a>`
+        : kreis;
+    }
+
+    /* Mail und Telefon teilen sich eine Zeile unter dem Namen — eine eigene
+       Spalte für die Nummer sprengte die Breite der Tabelle. */
+    function kontaktHtml(d){
+      const teile = [];
+      if (d.email) teile.push(`<a class="anwMail" href="mailto:${esc(d.email)}">${esc(d.email)}</a>`);
+      if (d.telefon) teile.push(`<a class="anwTel" href="tel:${esc(d.telefon)}">${esc(d.telefon)}</a>`);
+      return teile.length ? teile.join(' <span class="anwLeer">·</span> ') : `<span class="anwLeer">kein Kontakt hinterlegt</span>`;
+    }
+
+    function mailSchalterHtml(r, d){
+      const titel = d.mailSchaltbar
+        ? (d.mailGesetzt ? "Mail: verschickt" : "Mail: offen")
+        : "Erst nach Übernehmen oder Ablehnen — und nur für den Vorstand";
+
+      return `<div class="mailToggle ${d.mailGesetzt ? "on" : ""} ${d.mailSchaltbar ? "" : "disabled"}"
+                   role="switch"
+                   aria-checked="${d.mailGesetzt ? "true" : "false"}"
+                   tabindex="${d.mailSchaltbar ? "0" : "-1"}"
+                   title="${esc(titel)}"
+                   data-action="mail" data-id="${r.id}">
+        <span class="mailToggleIcon">✉️</span>
+        <span class="mailKnob"></span>
+      </div>`;
+    }
+
+    function aktionenHtml(r, d, groesse){
+      return `<button class="btn-secondary ${groesse}" data-action="edit" data-id="${r.id}"
+                      ${d.editAus ? "disabled" : ""} type="button">Bearbeiten</button>
+        <button class="btn-done ${groesse}" data-action="full" data-id="${r.id}"
+                ${d.vollAus ? "disabled" : ""} type="button">Vollmitglied</button>
+        <button class="btn-danger ${groesse}" data-action="reject" data-id="${r.id}"
+                ${d.ablehnAus ? "disabled" : ""} type="button">Ablehnen</button>`;
+    }
+
+    function zeileHtml(r){
+      const d = zeileDaten(r);
+      return `<tr>
+        <td class="avatarCell">${avatarHtml(d)}</td>
+
+        <td>
+          <div class="nameStack">
+            <span class="nameBold">${esc(d.name)}</span>
+            <span class="emailMuted">${kontaktHtml(d)}</span>
+          </div>
+        </td>
+
+        <td><span class="ressortPill" style="${pillRessortStyle(d.ressort)}">${esc(d.ressort || "—")}</span></td>
+
+        <td><span class="pill ${d.meta.pill}">${esc(d.meta.label)}</span></td>
+
+        <td>${mailSchalterHtml(r, d)}</td>
+
+        <td class="anwAktionenTd"><div class="actions">${aktionenHtml(r, d, "btn-xs")}</div></td>
+      </tr>`;
+    }
+
+    function karteHtml(r){
+      const d = zeileDaten(r);
+      return `<div class="memberCard anwKarte">
+        <div class="cardTop">
+          ${avatarHtml(d)}
+          <div class="nameStack">
+            <span class="cardName">${esc(d.name)}</span>
+            ${d.email
+              ? `<a class="cardEmail" href="mailto:${esc(d.email)}">${esc(d.email)}</a>`
+              : `<span class="cardEmail anwLeer">keine Mail hinterlegt</span>`}
+          </div>
+        </div>
+
+        <div class="pillRow">
+          <span class="ressortPill" style="${pillRessortStyle(d.ressort)}">${esc(d.ressort || "ohne Ressort")}</span>
+          <span class="pill ${d.meta.pill}">${esc(d.meta.label)}</span>
+        </div>
+
+        <div class="anwKarteZeilen">
+          <div class="anwKarteZeile">
+            <span class="anwKarteLabel">Telefon</span>
+            ${d.telefon
+              ? `<a class="anwTel" href="tel:${esc(d.telefon)}">${esc(d.telefon)}</a>`
+              : `<span class="anwLeer">nicht angegeben</span>`}
+          </div>
+          <div class="anwKarteZeile">
+            <span class="anwKarteLabel">Mail verschickt</span>
+            ${mailSchalterHtml(r, d)}
+          </div>
+        </div>
+
+        <div class="anwKarteAktionen">${aktionenHtml(r, d, "btn-sm")}</div>
+      </div>`;
+    }
+
     function render(){
-      const rows = sichtbareZeilen();
+      const basis = ohneStatusgefiltert();
+      const rows  = sichtbareZeilen();
 
-      countPill.textContent = `${rows.length} / ${ALL.length}`;
-      tbody.innerHTML = "";
+      renderStats(basis);
+
+      countPill.textContent = rows.length === ALL.length
+        ? `${ALL.length} Einträge`
+        : `${rows.length} von ${ALL.length}`;
+
+      tbody.innerHTML  = rows.map(zeileHtml).join("");
+      karten.innerHTML = rows.map(karteHtml).join("");
+
       empty.classList.toggle("hidden", rows.length !== 0);
-
-      rows.forEach(r => {
-        const thumb = safe(r.photo_thumb).trim();
-        const photo = safe(r.photo_url).trim();
-
-        const stRaw = r?.[BEWERBUNG_STATUS_COL];
-        const rejectedAlready = isAnwaerterAbgelehnt(stRaw);
-        const fullAlready = isVollmitglied(stRaw);
-
-        const editDisabled = !CAN_EDIT;
-        const rejectDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
-        const fullDisabled = !CAN_EDIT || rejectedAlready || fullAlready;
-
-        const meta = statusMeta(stRaw);
-
-        const mailEligible = (fullAlready || rejectedAlready);
-        const mailCanToggle = CAN_EDIT && mailEligible;
-
-        const mailChecked = !!r?.[MAIL_BOOL_COL];
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>
-            <div class="nameCell">
-              <div class="avatarSmall">
-                ${
-                  thumb
-                    ? `<img src="${esc(thumb)}" alt="Foto" loading="lazy" decoding="async" referrerpolicy="no-referrer"
-                        onerror="this.remove(); this.parentElement.textContent='${esc(initialsFromName(r.vorname, r.nachname))}';" />`
-                    : `${esc(initialsFromName(r.vorname, r.nachname))}`
-                }
-              </div>
-              <div class="nameMeta">
-                <strong>${esc((safe(r.vorname)+" "+safe(r.nachname)).trim() || "—")}</strong>
-                <div class="miniLink">
-                  ${
-                    photo
-                      ? `<a href="${esc(photo)}" target="_blank" rel="noopener">Foto öffnen</a>`
-                      : `<span>kein Foto</span>`
-                  }
-                </div>
-              </div>
-            </div>
-          </td>
-
-          <td>
-            <span class="ressortPill" style="${pillRessortStyle(safe(r.ressort) || "—")}">
-              ${esc(safe(r.ressort) || "—")}
-            </span>
-          </td>
-
-          <td>${esc(safe(r.email) || "—")}</td>
-          <td>${r.telefon ? `<a href="tel:${esc(safe(r.telefon))}" style="color:var(--primary);text-decoration:none;">${esc(safe(r.telefon))}</a>` : `<span style="color:var(--faint-foreground)">—</span>`}</td>
-
-          <td>
-            <span class="statusPill" style="${statusPillStyle(meta)}">
-              <span class="statusDot" style="background:${meta.dot}; box-shadow: 0 0 0 3px ${meta.border};"></span>
-              ${esc(meta.label)}
-            </span>
-          </td>
-
-          <td>
-            <div
-              class="mailToggle ${mailChecked ? "on" : ""} ${mailCanToggle ? "" : "disabled"}"
-              role="switch"
-              aria-checked="${mailChecked ? "true" : "false"}"
-              tabindex="${mailCanToggle ? "0" : "-1"}"
-              title="${mailCanToggle ? (mailChecked ? "Mail: gesendet" : "Mail: offen") : "Erst nach Übernehmen/Ablehnen verfügbar (und nur Vorstand)"}"
-              data-action="mail"
-              data-id="${r.id}"
-              data-checked="${mailChecked ? "1" : "0"}"
-            >
-              <span class="mailToggleIcon">✉️</span>
-              <span class="mailKnob"></span>
-            </div>
-          </td>
-
-          <td>
-            <div class="actions">
-              <button class="btn-secondary btn-mini" data-action="edit" data-id="${r.id}"
-                ${editDisabled ? "disabled" : ""} type="button">Bearbeiten</button>
-
-              <button class="btn-done btn-mini" data-action="full" data-id="${r.id}"
-                ${fullDisabled ? "disabled" : ""} type="button">Vollmitglied</button>
-
-              <button class="btn-danger btn-mini" data-action="reject" data-id="${r.id}"
-                ${rejectDisabled ? "disabled" : ""} type="button">Ablehnen</button>
-            </div>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      updateMiniDash();
+      if (!rows.length){
+        const nochNichts = ALL.length === 0;
+        empty.innerHTML = `<div class="empty">
+          <div class="empty__icon">🗂️</div>
+          <div class="empty__title">${nochNichts ? "Noch keine Anwärter" : "Nichts gefunden"}</div>
+          <div>${nochNichts
+            ? "Aus den Bewerbungen kommt hier an, wer übernommen wurde."
+            : "Andere Suche, anderer Filter — dann taucht wieder etwas auf."}</div>
+        </div>`;
+      }
     }
 
     async function fetchCandidates(){
@@ -1200,7 +1269,6 @@
     function wireFilters(){
       q.addEventListener("input", render);
       fRessort.addEventListener("change", render);
-      fStatus.addEventListener("change", render);
       sortBy.addEventListener("change", render);
     }
 
@@ -1233,7 +1301,9 @@
       if (e.target === editOverlay) closeEdit();
     });
 
-    tbody.addEventListener("click", (e)=>{
+    /* Tabelle und Karten tragen dieselben Knöpfe, also hören sie auch auf
+       dieselbe Hand. */
+    function listeGeklickt(e){
       const mail = e.target.closest('[data-action="mail"]');
       if (mail) { handleMailToggleEl(mail); return; }
 
@@ -1247,15 +1317,20 @@
       if (action === "edit" && row) openEdit(row);
       if (action === "full" && row) makeFullMember(row);
       if (action === "reject") rejectCandidate(id);
-    });
+    }
 
-    tbody.addEventListener("keydown", (e)=>{
+    function listeGetippt(e){
       const mail = e.target.closest('[data-action="mail"]');
       if (!mail) return;
       if (e.key === "Enter" || e.key === " "){
         e.preventDefault();
         handleMailToggleEl(mail);
       }
+    }
+
+    [tbody, karten].forEach(el => {
+      el.addEventListener("click", listeGeklickt);
+      el.addEventListener("keydown", listeGetippt);
     });
 
     document.addEventListener("keydown", (e)=>{
@@ -1267,7 +1342,6 @@
     /* ========= Init ========= */
     (async () => {
       fillRessortFilter();
-      fillStatusFilter();
       fillSort();
       wireFilters();
 

@@ -53,20 +53,6 @@
   /* ---------- Kennzahlen als Filter ---------- */
   .statGrid { margin-bottom: 18px; }
 
-  /* Sieben Kacheln in der Standardbreite ergeben auf dem Handy vier
-     Reihen, bevor die Liste anfängt. Schmaler passen sie in zwei. */
-  @media (max-width: 719px) {
-    .statGrid { grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
-    .statGrid .stat { padding: 12px; gap: 2px; }
-    .statGrid .stat__value { font-size: 22px; }
-    .statGrid .stat__label { font-size: 11px; }
-  }
-  .stat--filter { cursor: pointer; text-align: left; font: inherit; color: inherit; }
-  .stat--filter.is-active {
-    border-color: color-mix(in oklab, var(--primary) 45%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
-  }
-
   /* ---------- Bewerbungskarte ---------- */
   .bewGrid {
     display: grid;

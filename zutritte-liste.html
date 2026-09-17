@@ -28,20 +28,6 @@
   /* Die Kennzahlen sind zugleich der Filter. */
   .statGrid { margin-bottom: 18px; }
 
-  /* Fünf Kacheln in der Standardbreite ergeben auf dem Handy drei Reihen,
-     bevor die Liste anfängt. Schmaler und flacher passen sie in eine. */
-  @media (max-width: 719px) {
-    .statGrid { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
-    .statGrid .stat { padding: 12px; gap: 2px; }
-    .statGrid .stat__value { font-size: 22px; }
-    .statGrid .stat__label { font-size: 11px; }
-  }
-  .stat--filter { cursor: pointer; text-align: left; font: inherit; color: inherit; }
-  .stat--filter.is-active {
-    border-color: color-mix(in oklab, var(--primary) 45%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
-  }
-
   /* Die drei Knöpfe pro Zeile stehen nebeneinander und brechen nicht um. */
   .standCell { display: flex; gap: 6px; white-space: nowrap; }
   .standCell .btn-xs { padding: 0 10px; }
@@ -62,10 +48,6 @@
 
   /* Während eine Änderung läuft, ist die Zeile kurz gedämpft. */
   .is-saving { opacity: 0.5; pointer-events: none; }
-
-  /* Unter 720 px blendet style.css jede Tabelle aus und erwartet eine
-     Kartenliste – .memberCardGrid schaltet sich dort von selbst ein. */
-  @media (max-width: 719px) { .nurBreit { display: none; } }
 
   #karten .memberCard { cursor: default; }
   #karten .memberCard:hover {

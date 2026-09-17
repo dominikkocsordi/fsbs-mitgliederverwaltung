@@ -22,6 +22,32 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="/mobile-nav.css">
 
+  <style>
+    /* Die Karten dieser Seite sind zum Lesen da, nicht zum Anklicken —
+       also ohne Zeiger und ohne das Anheben beim Darüberfahren. */
+    #cardGrid .memberCard { cursor: default; }
+    #cardGrid .memberCard:hover {
+      transform: none;
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-soft);
+    }
+    #cardGrid .pillRow { margin-top: 12px; }
+
+    .mvKarteZeile {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--foreground);
+    }
+    .mvKarteLabel {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--faint-foreground);
+      margin-bottom: 2px;
+    }
+  </style>
+
 </head>
 <body>
 <div class="app">
@@ -87,21 +113,27 @@
     <!-- Error state -->
     <div class="stateBox error-state hidden" id="errorBox"></div>
 
-    <!-- Table -->
-    <div class="tableWrap hidden" id="tableWrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>E-Mail</th>
-            <th>Status</th>
-            <th>Grund (bei Abwesenheit)</th>
-            <th>Stimmübertragung</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
+    <!-- Tabelle für breite Fenster -->
+    <div class="tableCard nurBreit hidden" id="tableWrap">
+      <div class="tableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>E-Mail</th>
+              <th>Status</th>
+              <th>Grund (bei Abwesenheit)</th>
+              <th>Stimmübertragung</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
     </div>
+
+    <!-- Dieselben Zeilen als Karten. Unter 720 px blendet style.css die
+         Tabelle aus und zeigt stattdessen diese Liste. -->
+    <div class="memberCardGrid hidden" id="cardGrid"></div>
 
     <!-- Empty state -->
     <div class="stateBox empty hidden" id="emptyBox">Keine Einträge gefunden.</div>
@@ -206,8 +238,17 @@
   const loadingBox   = $("loadingBox");
   const errorBox     = $("errorBox");
   const tableWrap    = $("tableWrap");
+  const cardGrid     = $("cardGrid");
   const emptyBox     = $("emptyBox");
   const tbody        = $("tbody");
+
+  /* Tabelle und Kartenliste zeigen dieselben Zeilen; welche von beiden zu
+     sehen ist, entscheidet die Fensterbreite in style.css. Hier gehen sie
+     deshalb immer gemeinsam auf und zu. */
+  function listeZeigen(sichtbar) {
+    tableWrap.classList.toggle("hidden", !sichtbar);
+    cardGrid.classList.toggle("hidden", !sichtbar);
+  }
 
   /* ── KPI update ── */
   function updateKpis() {
@@ -251,12 +292,12 @@
     countPill.textContent = `${rows.length} / ${allRows.length}`;
 
     if (!rows.length) {
-      tableWrap.classList.add("hidden");
+      listeZeigen(false);
       emptyBox.classList.remove("hidden");
       return;
     }
     emptyBox.classList.add("hidden");
-    tableWrap.classList.remove("hidden");
+    listeZeigen(true);
 
     tbody.innerHTML = rows.map(r => {
       const present    = isPresent(r._status);
@@ -274,6 +315,35 @@
         <td class="reasonText">${reason}</td>
         <td>${delegation}</td>
       </tr>`;
+    }).join("");
+
+    /* Auf dem Handy steht dieselbe Zeile als Karte: Name und Mail obenauf,
+       darunter der Status, und Grund wie Stimmübertragung nur dann, wenn es
+       etwas zu lesen gibt. */
+    cardGrid.innerHTML = rows.map(r => {
+      const present = isPresent(r._status);
+      const mail = r._email
+        ? `<a class="cardEmail" href="mailto:${esc(r._email)}">${esc(r._email)}</a>`
+        : `<span class="cardEmail">keine Mail hinterlegt</span>`;
+      const grund = !present && r._reason
+        ? `<div class="mvKarteZeile"><span class="mvKarteLabel">Grund</span>${esc(r._reason)}</div>`
+        : "";
+      const stimme = r._delegation
+        ? `<div class="mvKarteZeile"><span class="mvKarteLabel">Stimmübertragung</span>${esc(r._delegation)}</div>`
+        : "";
+      return `<div class="memberCard">
+        <div class="cardTop">
+          <div class="nameStack">
+            <span class="cardName">${esc(r._name)}</span>
+            ${mail}
+          </div>
+        </div>
+        <div class="pillRow">
+          <span class="pill ${present ? "pill--success" : "pill--danger"}">${present ? "Anwesend" : "Abwesend"}</span>
+          ${r._delegation ? '<span class="pill pill--accent">Stimme übertragen</span>' : ""}
+        </div>
+        ${grund}${stimme}
+      </div>`;
     }).join("");
   }
 
@@ -333,7 +403,7 @@
     reloadBtn.disabled = true;
     loadingBox.classList.remove("hidden");
     errorBox.classList.add("hidden");
-    tableWrap.classList.add("hidden");
+    listeZeigen(false);
     emptyBox.classList.add("hidden");
     statusPill.textContent = "Lade…";
     statusPill.className = "pill status";

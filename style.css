@@ -1162,6 +1162,20 @@ h1 {
   border-color: color-mix(in oklab, var(--primary) 32%, transparent);
 }
 
+/* Eine Kachel, die zugleich filtert. Sie ist ein Knopf, soll aber aussehen
+   wie ihre Nachbarn — und zeigen, wenn sie gedrückt ist. */
+.stat--filter {
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.stat--filter.is-active {
+  border-color: color-mix(in oklab, var(--primary) 45%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
 .stat__head {
   display: flex;
   align-items: flex-start;
@@ -2234,7 +2248,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
    ============================================================ */
 
 /* ---------- Karten ---------- */
-.dashCard,
 .card-bew,
 .rCard,
 .chartBox,
@@ -2281,7 +2294,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 /* ---------- Kennzahlen ---------- */
 .kpiGrid,
 .kpis,
-.miniDash,
 .statGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -2289,8 +2301,7 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 }
 
 .kpi,
-.kpiCard,
-.dashCard {
+.kpiCard {
   background: var(--card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -2304,7 +2315,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 }
 
 .kpiCard:hover,
-.dashCard:hover,
 .kpi:hover { border-color: color-mix(in oklab, var(--primary) 28%, transparent); }
 
 .kpiTop,
@@ -2318,7 +2328,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 .kpiTitle,
 .kpiLabel,
 .kLabel,
-.dashLabel,
 .kpi .label {
   font-size: 12px;
   font-weight: 500;
@@ -2329,7 +2338,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 .kpiValue,
 .kValue,
-.dashValue,
 .kpi .value {
   font-family: var(--font-display);
   font-size: 28px;
@@ -2341,7 +2349,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 .kpiSub,
 .kHint,
-.dashHint,
 .kpi .sub {
   font-size: 12px;
   color: var(--muted-foreground);
@@ -2616,7 +2623,6 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 /* ---------- Werkzeugleisten ---------- */
 .filterBar,
-.filters,
 .controls,
 .controlsRow,
 .controlsBottom,
@@ -2634,16 +2640,13 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 }
 
 .filterBar,
-.filters,
 .controls { margin-bottom: 18px; }
 
 .filterBar .searchInput,
-.filters .searchInput,
 .controlsRow input[type="search"],
 .controlsRow input[type="text"] { flex: 1 1 240px; min-width: 180px; }
 
 .filterBar select,
-.filters select,
 .controlsRow select { flex: 0 1 180px; min-width: 150px; }
 
 .filterBar .countText,
@@ -2922,8 +2925,12 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 .memberCard .cardActions button { width: 100%; }
 
+/* Unter 720 px tritt eine Tabelle zurück und eine Kartenliste nimmt ihren
+   Platz ein. Zurück tritt aber nur, wer `nurBreit` trägt: Vorher galt die
+   Regel für jede `.tableWrap`, und Seiten ohne Kartenliste — Anwärter, MV —
+   zeigten auf dem Handy gar nichts mehr. Wer Karten hat, sagt es also. */
 @media (max-width: 719px) {
-  .tableWrap { display: none; }
+  .nurBreit { display: none; }
   .memberCardGrid { display: grid; }
 }
 
@@ -3408,14 +3415,94 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   }
 
 /* ---------- 7.2  Anwärter ---------- */
-/* Filterzeile: Suche ganz links, Aktionen rechts */
-  .filters .wide { flex: 1 1 240px; min-width: 180px; }
-  .filters .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+/* Kacheln, Werkzeugleiste und Liste stehen als eigene Karten untereinander —
+   nicht mehr alles zusammen in einer großen. */
+  .anwInhalt { display: grid; gap: 16px; }
+
+  /* Suche und Auswahlfelder links, Zähler und Knöpfe rechts — und die drei
+     Knöpfe brechen gemeinsam um, nicht einzeln. */
+  .anwWerkzeuge { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+
+  @media (min-width: 641px) {
+    /* Damit alles in eine Zeile passt: die Suche gibt nach, und
+       „Neueste zuerst“ bekommt ein paar Pixel mehr als „Ressort (alle)“. */
+    .anwInhalt .toolbar__search { flex: 1 1 200px; }
+    .anwInhalt .toolbar__select { flex: 0 1 160px; min-width: 140px; }
+    .anwInhalt #sortBy { flex: 0 1 180px; }
+    .anwInhalt .toolbar__count { margin-left: auto; }
+  }
 
   @media (max-width: 640px) {
-    .filters .wide { flex: 1 1 100%; }
-    .filters .right { width: 100%; justify-content: space-between; }
+    /* „Neueste zuerst“ wird neben dem Ressort abgeschnitten — auf dem Handy
+       bekommt die Sortierung deshalb eine eigene Zeile. */
+    .anwInhalt #sortBy { flex: 1 1 100%; }
+    .anwInhalt .toolbar__count { flex: 1 1 100%; }
+    .anwWerkzeuge { flex: 1 1 100%; }
+    .anwWerkzeuge button { flex: 1 1 0; min-width: 0; justify-content: center; }
   }
+
+  /* Sechs Spalten passen mit der Standardpolsterung nicht in die
+     Inhaltsbreite — 10 px je Seite reichen. Die Knopfzeile bleibt dabei
+     einzeilig; wird das Fenster doch zu schmal, schiebt `.tableWrap`. */
+  .anwInhalt th,
+  .anwInhalt td { padding-left: 10px; padding-right: 10px; }
+
+  .anwMailTh { width: 1%; }
+  .anwAktionenTh { width: 1%; text-align: right; }
+  .anwAktionenTd .actions { justify-content: flex-end; flex-wrap: nowrap; gap: 6px; }
+
+  .anwLeer { color: var(--faint-foreground); }
+
+  .anwTel { color: var(--primary); text-decoration: none; white-space: nowrap; }
+  .anwTel:hover { text-decoration: underline; }
+
+  .anwMail { text-decoration: none; }
+  .anwMail:hover { color: var(--primary); text-decoration: underline; }
+
+  /* Gibt es ein Foto, führt das Bildchen selbst hin. */
+  .anwFoto { display: inline-flex; border-radius: 999px; }
+  .anwFoto:hover .avatarSmall { border-color: color-mix(in oklab, var(--primary) 45%, transparent); }
+
+  /* Dieselbe Zeile als Karte, fürs Handy. Sie ist zum Lesen und Drücken da,
+     aber nicht als Ganzes anklickbar — also ohne Zeiger und ohne Anheben. */
+  .anwKarte { cursor: default; }
+  .anwKarte:hover {
+    transform: none;
+    border-color: var(--border-color);
+    box-shadow: var(--shadow-soft);
+  }
+  .anwKarte .pillRow { margin: 12px 0; }
+
+  .anwKarteZeilen {
+    display: grid;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .anwKarteZeile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .anwKarteLabel {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--faint-foreground);
+  }
+
+  /* Drei Knöpfe, die sich die Breite teilen und umbrechen, wenn sie zu
+     dritt nicht mehr lesbar wären. */
+  .anwKarteAktionen {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(98px, 1fr));
+    gap: 8px;
+  }
+  .anwKarteAktionen button { width: 100%; }
 
   /* Fotovorschau im Bearbeiten-Dialog */
   .photoPreview {

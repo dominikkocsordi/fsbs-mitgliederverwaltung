@@ -325,12 +325,21 @@
   .card, .glass { padding: 16px; }
 
   /* Kennzahlen: zwei nebeneinander */
-  .kpiGrid, .kpis, .miniDash, .statGrid {
+  .kpiGrid, .kpis {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-  .kpi, .kpiCard, .dashCard, .stat { padding: 14px 16px; }
-  .kpiValue, .kValue, .dashValue, .stat__value, .kpi .value { font-size: 23px; }
+  .kpi, .kpiCard, .stat { padding: 14px 16px; }
+  .kpiValue, .kValue, .stat__value, .kpi .value { font-size: 23px; }
+
+  /* Die Kacheln, die zugleich filtern, sind zu fünft oder zu siebt unterwegs.
+     Zu zweit in einer Reihe füllten sie den halben Schirm, bevor die Liste
+     anfängt — schmaler und flacher passen sie in zwei Reihen. */
+  .statGrid { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+  .statGrid .stat { padding: 12px; gap: 2px; }
+  .statGrid .stat__value { font-size: 22px; }
+  .statGrid .stat__label { font-size: 11px; }
+  .statGrid .stat__hint { font-size: 11px; }
 
   /* Karten-Raster einspaltig */
   .grid, .cardGrid { grid-template-columns: 1fr; gap: 12px; }
