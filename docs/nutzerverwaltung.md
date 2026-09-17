@@ -106,7 +106,7 @@ hinterlegt, die bisher gefehlt hat.
 
 | Rolle | Sieht | Ändert |
 |---|---|---|
-| `vorstand` | alles — Dashboard, Mitglieder, Anwärter, Bewerbungen, Finanzen, Protokoll, Zeugnisse, Zutritte, Nutzer | alles |
+| `vorstand` | alles — Dashboard, Mitglieder, Anwärter, Bewerbungen, Finanzen, Protokoll, Schreiben, Zutritte, Nutzer | alles |
 | `ressortleiter` | Dashboard (eigenes Ressort), Mitglieder, Anwärter, Bewerbungen | nichts — überall nur Leserechte |
 | `protokollfuehrer` | ausschließlich das Protokoll | das Protokoll |
 

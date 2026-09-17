@@ -73,8 +73,12 @@
                     '<path d="M3.5 7.5 6 4h12l2.5 3.5"/><path d="M9.5 11.5h5"/>'),
     minutes:   icon('<path d="M6 3.5h9.5L19 7v13.5H6Z"/><path d="M15.5 3.5V7H19"/>' +
                     '<path d="M9 11.5h6"/><path d="M9 15h4"/>'),
-    diploma:   icon('<path d="M12 3.5 21 8l-9 4.5L3 8Z"/><path d="M7 10.5V15c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-4.5"/>' +
-                    '<path d="M21 8v5"/>'),
+    /* Schreiben: ein Blatt und die Feder daran — die Seite stellt
+       nicht mehr nur Zeugnisse aus, sondern jedes Schreiben, das
+       im Namen des Vereins hinausgeht. */
+    compose:   icon('<path d="M6 3.5h8.5L18 7v5.5"/><path d="M14.5 3.5V7H18"/>' +
+                    '<path d="M6 3.5v17h6"/><path d="M9 9.5h5"/><path d="M9 13h3.5"/>' +
+                    '<path d="M19.4 14.4a1.5 1.5 0 0 1 2.1 2.1l-4.6 4.6-2.8.7.7-2.8Z"/>'),
     /* Nutzer: der Schlüssel — wer hier steht, kommt ins Portal. */
     key:       icon('<circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/><path d="M17.5 12v3"/><path d="M20 12v2"/>')
   };
@@ -91,7 +95,7 @@
     { id: 'navApps',       href: '/bewerbungen',    label: 'Bewerbungen', icon: ICONS.userPlus,  rollen: ['vorstand', 'ressortleiter'] },
     { id: 'navFinanzen',   href: '/rechnungen',     label: 'Finanzen',    icon: ICONS.finance,   rollen: ['vorstand'] },
     { id: 'navProtokoll',  href: '/protokoll',      label: 'Protokoll',   icon: ICONS.minutes,   rollen: ['vorstand', 'protokollfuehrer'] },
-    { id: 'navZeugnisse',  href: '/zeugnisse',      label: 'Zeugnisse',   icon: ICONS.diploma,   rollen: ['vorstand'] },
+    { id: 'navSchreiben',  href: '/schreiben',      label: 'Schreiben',   icon: ICONS.compose,   rollen: ['vorstand'] },
     { id: 'navNutzer',     href: '/nutzer',         label: 'Nutzer',      icon: ICONS.key,       rollen: ['vorstand'] }
   ];
 

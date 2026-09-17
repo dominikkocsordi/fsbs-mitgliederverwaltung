@@ -3923,6 +3923,408 @@ to   { opacity: 1; transform: translateY(0); }
       to   { opacity: 1; transform: translateY(0); }
     }
 
+/* ---------- 7.8  Schreiben-Composer ---------- */
+/* Die Seite /schreiben: links die Schritte, auf Wunsch das Blatt.
+   Die Absätze borgen sich die Bausteine des Protokoll-Editors
+   (.block, .blockHeader, .blockFields) — hier steht nur, was es
+   dort nicht schon gibt. */
+
+.composerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.composerMeta {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  letter-spacing: -0.01em;
+}
+
+.composerStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- Schritt-Karte --- */
+.stepCard {
+  background: var(--card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 18px 20px;
+}
+
+.stepHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.stepNum {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 28%, transparent);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stepTitle {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.stepHint {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  margin-top: 3px;
+  line-height: 1.45;
+  max-width: 62ch;
+}
+
+.stepActions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* --- Art des Schreibens --- */
+.artGruppe + .artGruppe { margin-top: 16px; }
+
+.artGruppeTitel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint-foreground);
+  margin-bottom: 9px;
+}
+
+.artGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.artCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  height: auto;
+  padding: 13px 14px;
+  text-align: left;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  color: var(--foreground);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease);
+}
+
+.artCard:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.artCard.active {
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 42%, transparent);
+}
+
+.artIcon { font-size: 18px; line-height: 1.25; flex: 0 0 auto; }
+
+.artLabel {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.artKurz {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  margin-top: 3px;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.artCard.active .artLabel { color: var(--primary); }
+
+/* --- Empfänger --- */
+.empfZeile { margin-bottom: 4px; }
+
+.empfChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 14px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, transparent);
+  max-width: 100%;
+}
+
+.empfChipName { font-size: 13.5px; font-weight: 600; letter-spacing: -0.01em; }
+.empfChipMeta { font-size: 12px; color: var(--muted-foreground); }
+
+.empfChipWeg {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.empfChipWeg:hover { background: var(--surface-2); color: var(--foreground); }
+
+.empfLeer { font-size: 13px; color: var(--muted-foreground); }
+
+.mpItem.active {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+.mpEmpty {
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+/* --- Aufzählungen in einem Absatz --- */
+.bulletList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.bulletRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bulletDot { flex: 0 0 auto; color: var(--faint-foreground); font-size: 16px; line-height: 1; }
+.bulletRow input { flex: 1 1 auto; min-width: 0; height: 36px; font-size: 14px; }
+.bulletRow .iconBtn { width: 32px; height: 32px; font-size: 12px; }
+
+/* --- Satzungsauszug --- */
+.satzChips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.satzChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: auto;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-1);
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  text-align: left;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.satzChip:hover { background: var(--surface-2); color: var(--foreground); }
+
+.satzChip.active {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 34%, transparent);
+  color: var(--primary);
+}
+
+.satzChipRef { font-weight: 600; white-space: nowrap; }
+
+.satzQuote {
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-left: 3px solid color-mix(in oklab, var(--primary) 40%, transparent);
+  border-radius: 0 var(--radius-control) var(--radius-control) 0;
+  background: var(--surface-1);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted-foreground);
+}
+
+.satzQuote p { margin: 0 0 8px; }
+.satzQuote p:last-child { margin-bottom: 0; }
+.satzQuote b { color: var(--foreground); }
+
+.satzLeer { margin-top: 10px; font-size: 12.5px; color: var(--faint-foreground); }
+
+/* --- Unterschriften --- */
+.signGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.signCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+}
+
+.signCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint-foreground);
+}
+
+.signCardHead .iconBtn { width: 28px; height: 28px; font-size: 12px; }
+
+/* --- Das Blatt --- */
+.sheetWrap { display: flex; justify-content: center; }
+
+.briefSheet {
+  width: 100%;
+  max-width: 720px;
+  padding: 46px 52px 40px;
+  background: var(--card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: var(--shadow-pop);
+  color: var(--foreground);
+  font-size: 13.5px;
+  line-height: 1.68;
+}
+
+@media (max-width: 640px) {
+  .briefSheet { padding: 26px 22px 30px; font-size: 13px; }
+}
+
+.briefSheet p { margin: 0 0 11px; }
+
+.briefKopf {
+  border-bottom: 2px solid var(--foreground);
+  padding-bottom: 8px;
+  margin-bottom: 26px;
+}
+
+.briefKopfName {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.briefKopfZeile { font-size: 11px; color: var(--muted-foreground); margin-top: 3px; }
+
+.briefAbsender {
+  font-size: 10px;
+  color: var(--faint-foreground);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 3px;
+  margin-bottom: 10px;
+}
+
+.briefAnschrift { margin-bottom: 28px; line-height: 1.5; }
+
+.briefDatum {
+  text-align: right;
+  font-size: 12.5px;
+  color: var(--muted-foreground);
+  margin-bottom: 24px;
+}
+
+.briefBetreff { font-weight: 700; margin-bottom: 20px; }
+
+.briefTitel {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 8px 0 26px;
+}
+
+.briefListe { margin: 6px 0 14px; padding-left: 20px; }
+.briefListe li { margin: 4px 0; }
+
+.briefZitat {
+  margin: 18px 0;
+  padding: 12px 16px;
+  border-left: 2px solid var(--border-strong);
+  background: var(--surface-1);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+}
+
+.briefZitatKopf {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--faint-foreground);
+  margin-bottom: 7px;
+}
+
+.briefZitat p { margin: 0 0 7px; }
+.briefZitat p:last-child { margin-bottom: 0; }
+.briefZitat b { color: var(--foreground); }
+
+.briefGruss { margin-top: 20px; }
+.briefOrt { margin-top: 22px; }
+
+.briefSig { width: 100%; border-collapse: collapse; margin-top: 56px; }
+
+.briefSigZelle {
+  border-top: 1px solid var(--border-strong);
+  padding-top: 7px;
+  text-align: center;
+  font-size: 12.5px;
+  vertical-align: top;
+}
+
+.briefSigRolle { font-size: 11px; color: var(--muted-foreground); }
+.briefSigLuecke { width: 8%; }
+
+.briefFuss {
+  margin-top: 36px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--faint-foreground);
+}
+
 /* ============================================================
    KONTO — E-Mail ändern, Passkeys
    Der Dialog aus konto.js. Er borgt sich Kopf, Körper und

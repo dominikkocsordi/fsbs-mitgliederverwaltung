@@ -1,0 +1,1414 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FSBS">
+<title>Schreiben · FSBS</title>
+<meta name="theme-color" content="#f4f4f6">
+<link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="manifest" href="/favicon/site.webmanifest">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="/app-shell.js"></script>
+<script src="/passkey.js"></script>
+<script src="/konto.js"></script>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/mobile-nav.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="brandLeft">
+      <a class="brandLogo" href="/" title="FSBS Intern">
+        <img src="logo.png" alt="FSBS Logo"
+             onerror="this.style.display='none'; this.parentElement.textContent='FS';" />
+      </a>
+      <div>
+        <h1>Schreiben</h1>
+        <div class="subtitle">Zeugnisse, Bescheinigungen und Austrittsschreiben — aus einer Vorlage, auf Vereinsbriefpapier</div>
+      </div>
+    </div>
+    <div>
+      <div class="authFloating" id="authBadge" title="Login-Status">
+        <span class="dot warn" id="authDot"></span>
+        <div class="authAvatar hidden" id="authAvatar">U</div>
+        <div class="authInfo">
+          <div class="authTopLine">
+            <div class="authState" id="authState">nicht eingeloggt</div>
+            <div class="authCompact hidden" id="authCompact">
+              <span class="authNameInline" id="authNameInline">User</span>
+              <span class="rolePill" id="authRolePill">Rolle</span>
+              <button class="authChevron" id="authToggle" aria-label="Details" type="button">⌄</button>
+            </div>
+          </div>
+          <div class="authDetails hidden" id="authDetails">
+            <div class="authMail" id="authMail"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="glass navWrap" data-nav>
+    <div class="nav">
+      <button class="hamburger" id="hamburger" aria-label="Menü öffnen" aria-expanded="false" type="button">☰</button>
+      <div class="navLeft"></div>
+      <div class="navRight">
+        <button class="btn-secondary" onclick="logout()" type="button">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="pageLoader" id="pageLoader">
+    <div class="spinnerRing"></div>
+    <span>Daten werden geladen…</span>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="mainContent" style="display:none;"></div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://hdhueuihmxbskiusenpe.supabase.co";
+const SUPABASE_KEY = "sb_publishable_H6YjVStNvwY-VnZuZCYDxw_mOWEvAAW";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const LOGIN_PAGE = "/login";
+
+/* ---- Helfer ---- */
+function esc(s){ const d=document.createElement("div"); d.textContent=String(s??""); return d.innerHTML; }
+
+let toastTimer;
+function showToast(msg, isError=false){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.toggle("error",isError); t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+function autoResize(ta){
+  if(!ta) return;
+  ta.style.height="auto"; ta.style.height=(ta.scrollHeight+2)+"px";
+}
+
+/* Ein Datum, wie es in einem Brief steht: "17. September 2026". */
+function langesDatum(iso){
+  if(!iso) return "";
+  try{
+    return new Date(iso+"T12:00:00")
+      .toLocaleDateString("de-DE",{day:"numeric",month:"long",year:"numeric"});
+  }catch{ return iso; }
+}
+
+/* Absätze eines Textfeldes werden zu Absätzen im Dokument:
+   eine Leerzeile trennt, ein einzelner Umbruch bleibt einer. */
+function absaetzeHTML(text){
+  return String(text||"").split(/\n{2,}/)
+    .map(t=>t.trim()).filter(Boolean)
+    .map(t=>`<p>${esc(t).replace(/\n/g,"<br>")}</p>`).join("");
+}
+
+/* ---- Auth ---- */
+const authBadge   = document.getElementById("authBadge");
+const authDot     = document.getElementById("authDot");
+const authState   = document.getElementById("authState");
+const authMail    = document.getElementById("authMail");
+const authAvatar  = document.getElementById("authAvatar");
+const authCompact = document.getElementById("authCompact");
+const authNameInline = document.getElementById("authNameInline");
+const authRolePill   = document.getElementById("authRolePill");
+const authToggle  = document.getElementById("authToggle");
+const authDetails = document.getElementById("authDetails");
+
+function closeAuthDetails(){ authDetails.classList.add("hidden"); }
+authToggle?.addEventListener("click", e=>{ e.stopPropagation(); authDetails.classList.toggle("hidden"); });
+document.addEventListener("click", e=>{ if(!authBadge.contains(e.target)) closeAuthDetails(); });
+
+function hashString(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function initialsFromEmail(email){ const e=(email||"").trim().toLowerCase(); if(!e) return "U"; const local=e.split("@")[0]||"u"; const parts=local.split(/[.\-_]+/).filter(Boolean); return ((parts[0]?.[0]||local[0]||"u").toUpperCase()+(parts[1]?.[0]||local[1]||"").toUpperCase()).trim()||"U"; }
+function setAvatar(email){ const e=(email||"").trim().toLowerCase(); if(!e){ authAvatar.classList.add("hidden"); return; } const h=hashString(e); const hue=h%360; const hue2=(hue+38)%360; authAvatar.textContent=initialsFromEmail(e); authAvatar.classList.remove("hidden"); authAvatar.style.background=`linear-gradient(135deg,hsla(${hue},85%,55%,.55),hsla(${hue2},85%,55%,.35))`; }
+function normRole(v){ return (v||"").trim().toLowerCase(); }
+function roleLabel(r){ if(r==="vorstand") return "Vorstand"; if(r==="ressortleiter") return "Ressortleiter"; if(r==="protokollfuehrer") return "Protokollführer"; return "Unbekannt"; }
+function setRolePill(role){ const r=normRole(role); authRolePill.textContent=roleLabel(r); authRolePill.classList.remove("vorstand","ressortleiter"); if(r==="vorstand") authRolePill.classList.add("vorstand"); else authRolePill.classList.add("ressortleiter"); }
+function setAuthUI(isAuthed, email=""){ if(isAuthed){ authDot.classList.remove("warn"); authDot.classList.add("ok"); authState.classList.add("hidden"); authCompact.classList.remove("hidden"); closeAuthDetails(); authMail.textContent=(email||"").trim(); setAvatar(email); } else { authDot.classList.remove("ok"); authDot.classList.add("warn"); authState.classList.remove("hidden"); authState.textContent="nicht eingeloggt"; authCompact.classList.add("hidden"); closeAuthDetails(); authMail.textContent=""; setAvatar(""); } }
+async function requireAuthOrRedirect(){ const { data }=await sb.auth.getSession(); if(!data.session){ window.location.replace(LOGIN_PAGE); throw new Error("No session"); } return data.session; }
+async function loadMyProfile(session){
+  const uid=session?.user?.id; const email=session?.user?.email||"";
+  const { data, error }=await sb.from("profiles").select("role,display_name").eq("id",uid).maybeSingle();
+  if(error||!data) throw new Error("kein_profil");
+  setAuthUI(true,email);
+  authNameInline.textContent=(data.display_name||"").trim()||email.split("@")[0];
+  setRolePill(data.role);
+  window.FSBSNav?.setRole(data.role);
+  return { ...data, email };
+}
+async function logout(){ await sb.auth.signOut(); window.location.replace(LOGIN_PAGE); }
+</script>
+
+<script>
+/* ================================================================
+   VEREINSDATEN
+   ================================================================ */
+const VEREIN = {
+  name:   "Fachschaft Business School e.V.",
+  kurz:   "Fachschaft Business School",
+  strasse:"Am Stadtpark 20",
+  ort:    "81243 München",
+  mail:   "fachschaft10@hm.edu",
+  sitz:   "München",
+};
+
+const ORG_TEXT = "Die Fachschaft Business School ist die offizielle Interessenvertretung aller Studierenden der Fakultät Betriebswirtschaft an der Hochschule München. Sie bildet die Schnittstelle zwischen der Hochschule und den Studierenden. Zu ihren Aufgaben zählt die Organisation des Campuslebens, das Errichten von Kommunikationsstrukturen und die Vermittlung zwischen Professoren und Studierenden. Des Weiteren organisiert sie Events, gestaltet die Hochschulpolitik und arbeitet mit Partnern aus der Wirtschaft sowie anderen studentischen Vereinen an Projekten für die Studierenden. Der Verein umfasst aktuell ca. 100 Mitglieder und vertritt über 2000 Studierende.";
+
+/* ================================================================
+   SATZUNG
+   ----------------------------------------------------------------
+   Wörtliche Auszüge aus der Satzung, beschlossen auf der
+   Mitgliederversammlung am 26.03.2025. Sie stehen hier, damit ein
+   Schreiben seine Grundlage mitzitieren kann, ohne dass jemand die
+   PDF aufschlagen und abtippen muss — wer eine Mitgliedschaft
+   beendet, schreibt den Paragrafen dazu.
+   ================================================================ */
+const SATZUNG_STAND = "Fassung vom 26. März 2025";
+
+const SATZUNG = {
+  "2-1": {
+    ref: "§ 2 Abs. 1",
+    titel: "Zweck des Vereins",
+    text: "Hauptzweck des Vereins ist a. die Sicherstellung einer angemessenen Studierendenvertretung an der HM Business School, b. die Fortbildung engagierter Studenten.",
+  },
+  "3-1": {
+    ref: "§ 3 Abs. 1",
+    titel: "Kein Anspruch auf Vereinsvermögen",
+    text: "Die Mitglieder erhalten keine Zuwendungen aus Mitteln des Vereins. Sie erhalten bei ihrem Ausscheiden oder bei der Auflösung oder Aufhebung des Vereins keine Leistungen aus dem Vereinsvermögen.",
+  },
+  "4-2-f": {
+    ref: "§ 4 Abs. 2 lit. f",
+    titel: "Fördernde Mitgliedschaft für Ehemalige",
+    text: "Alle Professor:innen, Lehrbeauftragten und Mitarbeiter:innen der Hochschule München sowie alle ehemaligen Studierenden der HM Business School können eine fördernde Mitgliedschaft beantragen.",
+  },
+  "4-3": {
+    ref: "§ 4 Abs. 3",
+    titel: "Immatrikulation als Voraussetzung",
+    text: "Ordentliche Mitglieder und Anwärter müssen während der Dauer ihrer Mitgliedschaft als ordentlicher Student an der HM Business School immatrikuliert sein. Dies gilt nicht für Mitglieder nach Abs. 2 lit. c und d.",
+  },
+  "5-1-a": {
+    ref: "§ 5 Abs. 1 lit. a",
+    titel: "Anwärterschaft nach der Aufnahme",
+    text: "Nach Genehmigung des Antrages zum Ordentlichen Mitglied hat das neue Mitglied vorerst den Status Anwärter:in. Dieser kann nach einem Semester durch die Mitgliederversammlung mit einfacher Mehrheit zum Status Ordentliches Mitglied geändert werden.",
+  },
+  "5-3-a": {
+    ref: "§ 5 Abs. 3 lit. a",
+    titel: "Ende durch Exmatrikulation",
+    text: "Die Mitgliedschaft endet mit der Exmatrikulation von der Hochschule München.",
+  },
+  "5-3-b": {
+    ref: "§ 5 Abs. 3 lit. b",
+    titel: "Ende durch Austritt",
+    text: "Die Mitgliedschaft endet durch Austritt, der gegenüber dem Vorstand in Textform zu erklären ist.",
+  },
+  "5-3-d": {
+    ref: "§ 5 Abs. 3 lit. d",
+    titel: "Ende durch Streichung",
+    text: "Ein Mitglied kann gestrichen werden, wenn es trotz zweimaliger Mahnung in Textform mit der Zahlung von Mitgliedsbeiträgen im Rückstand ist; über die Streichung entscheidet der Vorstand; über die Streichung darf erst entschieden werden, wenn nach Ablauf der Frist der zweiten Mahnung zwei Monate verstrichen sind und in beiden Mahnungen die Streichung angedroht worden ist; der Beschluss wird dem Mitglied in Textform mitgeteilt.",
+  },
+  "10": {
+    ref: "§ 10",
+    titel: "Vertretung des Vereins",
+    text: "Der Verein wird nach außen durch jeweils zwei Vorstandsmitglieder gemeinsam handelnd vertreten.",
+  },
+  "16-1": {
+    ref: "§ 16 Abs. 1",
+    titel: "Zugang von Mitteilungen",
+    text: "Mitteilungen des Vereins an seine Mitglieder gelten als zugegangen, wenn sie an die dem Verein zuletzt bekannt gegebene Anschrift (insbesondere auch E-Mail-Adresse) des Mitglieds abgesandt worden sind.",
+  },
+};
+
+/* Der Vorstand, der die Satzung beschlossen hat — als Vorschlag für
+   die Unterschriftenzeile, nicht als Festlegung. */
+const VORSTAND_VORSCHLAG = ["Franziska Mannheim", "Dominik Kocsordi", "Giuseppe Bonello"];
+
+/* ================================================================
+   AUFGABEN JE RESSORT
+   ================================================================ */
+const TASKS = {
+  "Externe Events": {
+    mitglied: [
+      "Planung, Organisation und Durchführung externer Fachschaftsveranstaltungen",
+      "Teilnehmerkommunikation und Einladungsmanagement",
+      "Durchführung und Nachbereitung von Events",
+      "Koordination mit externen Partnern und Dienstleistern",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Externe Events sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Planung, Konzeption und Koordination aller externen Fachschaftsveranstaltungen",
+      "Eigenständige Planung und Durchführung von Events mit externen Partnern und Locations",
+      "Aufbau und Pflege langfristiger Kontakte zu Unternehmen und Dienstleistern",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+      "Budgetverwaltung und Kostenkontrolle für den Bereich Externe Events",
+    ],
+  },
+  "Interne Events": {
+    mitglied: [
+      "Planung und Organisation interner Fachschaftsveranstaltungen",
+      "Koordination und Durchführung von Teamevents und Gemeinschaftsaktivitäten",
+      "Logistik und Materialorganisation für interne Veranstaltungen",
+      "Betreuung der Mitglieder bei internen Events",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Interne Events sowie eigenverantwortliche Führung und strategische Weiterentwicklung des gesamten Ressorts",
+      "Strategische Planung, Strukturierung und kontinuierliche Weiterentwicklung des Ressorts sowie Koordination aller Ressortaktivitäten",
+      "Eigenständige Konzeption, Planung und Durchführung des jährlichen Fachschaftswochenendes",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+      "Planung und Durchführung interner Fachschaftsevents zur Stärkung des Gemeinschaftsgefühls",
+    ],
+  },
+  "Merchandise": {
+    mitglied: [
+      "Mitarbeit bei der Konzeption und Gestaltung von Merchandise-Artikeln",
+      "Koordination mit Lieferanten, Druckereien und externen Dienstleistern",
+      "Qualitätskontrolle und Bestandsmanagement der Merchandise-Artikel",
+      "Verkauf und Vertrieb von Fachschaftsmerchandise",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Merchandise sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Entwicklung und Weiterentwicklung des Merchandise-Sortiments der Fachschaft",
+      "Verhandlung, Auswahl und Koordination von Lieferanten und Druckereien",
+      "Budgetverwaltung, Kalkulation und Preisgestaltung aller Merchandise-Produkte",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+    ],
+  },
+  "Kommunikation": {
+    mitglied: [
+      "Pflege und Verwaltung der Social-Media-Kanäle der Fachschaft",
+      "Erstellung und Gestaltung von Kommunikationsmaterialien und Content",
+      "Redaktionelle Betreuung von Newsletter und Fachschaftswebsite",
+      "Unterstützung bei der internen und externen Kommunikationskoordination",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Kommunikation sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Weiterentwicklung und Koordination aller Kommunikationskanäle der Fachschaft",
+      "Verantwortung für das einheitliche Erscheinungsbild der Fachschaft nach innen und außen",
+      "Planung und Umsetzung von Kommunikationskampagnen",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+    ],
+  },
+  "Sponsoring": {
+    mitglied: [
+      "Akquise und Pflege von Sponsoringpartnerschaften für die Fachschaft",
+      "Erstellung von Sponsoringmaterialien, Präsentationen und Konzepten",
+      "Kommunikation, Koordination und Betreuung von Sponsorenpartnern",
+      "Unterstützung bei der Vorbereitung und Durchführung von Sponsorengesprächen",
+    ],
+    leitung: [
+      "Übernahme der Ressortleitung Sponsoring sowie eigenverantwortliche Führung und strategische Weiterentwicklung des Ressorts",
+      "Strategische Entwicklung, Ausbau und Pflege des Sponsorenportfolios der Fachschaft",
+      "Eigenständige Verhandlung und Abschluss von Sponsoringvereinbarungen",
+      "Pflege langfristiger Partnerschaften mit Unternehmen und Organisationen",
+      "Aufnahme, Auswahl und strukturierte Einarbeitung neuer Ressortmitglieder",
+    ],
+  },
+};
+
+const RESSORTS  = Object.keys(TASKS);
+const FUNKTIONEN = ["Mitglied","Ressortleitung","Stellvertretende Ressortleitung","Vorstand"];
+const MITGLIEDSFORMEN = ["Ordentliches Mitglied","Anwärter:in","Fördermitglied","Ehrenmitglied"];
+
+/* ================================================================
+   SPRACHE
+   ----------------------------------------------------------------
+   Zwei Achsen: über wen wird geschrieben (Zeugnis, dritte Person)
+   und mit wem wird gesprochen (Brief, Anrede). Beide Formen stehen
+   hier an einer Stelle, damit kein Text sie einzeln zusammenstückelt.
+   ================================================================ */
+
+/* Dritte Person — für Zeugnisse und Bescheinigungen. Ohne Anrede
+   tritt der Vorname an die Stelle des Pronomens; das liest sich
+   ruhiger als jede Schrägstrichform. */
+function pron(anrede, vorname){
+  const w = anrede === "Frau";
+  const m = anrede === "Herr";
+  /* Ohne Anrede tritt der Name an die Stelle des Pronomens. Steht
+     auch der noch nicht fest, bleibt eine Lücke stehen — sie liest
+     sich ehrlicher als ein erfundenes Geschlecht. */
+  const n = (vorname||"").trim() || "…";
+  const gen = n==="…" ? "…" : (/[sxzß]$/i.test(n) ? n+"’" : n+"s");
+  if(w) return { er:"sie", Er:"Sie", ihn:"sie", ihm:"ihr", ihrIhm:"ihr",
+                 sein:"ihr", Sein:"Ihr", seine:"ihre", Seine:"Ihre",
+                 seinen:"ihren", seinem:"ihrem", seiner:"ihrer", seines:"ihres" };
+  if(m) return { er:"er", Er:"Er", ihn:"ihn", ihm:"ihm", ihrIhm:"ihm",
+                 sein:"sein", Sein:"Sein", seine:"seine", Seine:"Seine",
+                 seinen:"seinen", seinem:"seinem", seiner:"seiner", seines:"seines" };
+  return { er:n, Er:n, ihn:n, ihm:n, ihrIhm:n,
+           sein:gen, Sein:gen, seine:gen, Seine:gen,
+           seinen:gen, seinem:gen, seiner:gen, seines:gen };
+}
+
+/* Anrede im Brief — geduzt oder gesiezt. */
+function ansprache(duzen){
+  if(duzen) return { du:"du", Du:"Du", dich:"dich", dir:"dir",
+                     dein:"dein", Dein:"Dein", deine:"deine", Deine:"Deine",
+                     deinen:"deinen", deinem:"deinem", deiner:"deiner",
+                     hast:"hast", bist:"bist", warst:"warst", wurdest:"wurdest",
+                     kannst:"kannst", wirst:"wirst",
+                     gib:"gib", melde:"melde dich", schau:"schau" };
+  return { du:"Sie", Du:"Sie", dich:"Sie", dir:"Ihnen",
+           dein:"Ihr", Dein:"Ihr", deine:"Ihre", Deine:"Ihre",
+           deinen:"Ihren", deinem:"Ihrem", deiner:"Ihrer",
+           hast:"haben", bist:"sind", warst:"waren", wurdest:"wurden",
+           kannst:"können", wirst:"werden",
+           gib:"geben Sie", melde:"melden Sie sich", schau:"schauen Sie" };
+}
+
+/* Die erste Zeile eines Briefes. */
+function anredeZeile(ctx){
+  const { anrede, vorname, nachname, duzen } = ctx;
+  const voll = [vorname, nachname].filter(Boolean).join(" ") || "…";
+  if(duzen){
+    if(anrede==="Frau") return `Liebe ${vorname||voll},`;
+    if(anrede==="Herr") return `Lieber ${vorname||voll},`;
+    return `Hallo ${vorname||voll},`;
+  }
+  if(anrede==="Frau") return `Sehr geehrte Frau ${nachname||voll},`;
+  if(anrede==="Herr") return `Sehr geehrter Herr ${nachname||voll},`;
+  return `Guten Tag ${voll},`;
+}
+
+function istLeitung(funktion){
+  const r=(funktion||"").trim().toLowerCase();
+  return r.includes("leitung") || r==="ressortleiter" || r==="ressortleiterin" || r==="stv";
+}
+
+/* Aufgabenvorschlag für Ressort und Funktion. */
+function aufgabenFuer(ressort, funktion){
+  const bucket = TASKS[ressort];
+  if(!bucket) return ["Mitarbeit in der Fachschaft Business School e.V."];
+  return [...(istLeitung(funktion) ? bucket.leitung : bucket.mitglied)];
+}
+</script>
+
+<script>
+/* ================================================================
+   FELDER
+   ----------------------------------------------------------------
+   Jede Vorlage zählt nur auf, welche Felder sie braucht; wie ein
+   Feld aussieht, steht hier.
+   ================================================================ */
+const FELDER = {
+  anrede:    { label:"Ansprache",              typ:"select", optionen:["Frau","Herr","ohne Anrede"], werte:["Frau","Herr",""] },
+  ton:       { label:"Tonfall",                typ:"select", optionen:["Du","Sie"], werte:["du","sie"] },
+  vorname:   { label:"Vorname",                typ:"text",   platzhalter:"Vorname" },
+  nachname:  { label:"Nachname",               typ:"text",   platzhalter:"Nachname" },
+  ressort:   { label:"Ressort",                typ:"select", optionen:["— kein Ressort —", ...RESSORTS], werte:["", ...RESSORTS] },
+  funktion:  { label:"Funktion im Verein",     typ:"select", optionen:FUNKTIONEN, werte:FUNKTIONEN },
+  form:      { label:"Mitgliedsform",          typ:"select", optionen:MITGLIEDSFORMEN, werte:MITGLIEDSFORMEN },
+  seit:      { label:"Mitglied seit",          typ:"text",   platzhalter:"z. B. März 2023" },
+  bis:       { label:"Tätig bis",              typ:"text",   platzhalter:"z. B. Sommersemester 2025" },
+  endeAm:    { label:"Mitgliedschaft endet am",typ:"date" },
+  exmatAm:   { label:"Exmatrikuliert zum",     typ:"date" },
+  erklaertAm:{ label:"Austrittserklärung vom", typ:"date" },
+  datum:     { label:"Datum des Schreibens",   typ:"date" },
+  anschrift: { label:"Empfängeranschrift (optional)", typ:"textarea", platzhalter:"Straße und Hausnummer\nPLZ Ort", voll:true },
+};
+
+/* ================================================================
+   VORLAGEN
+   ----------------------------------------------------------------
+   `art` entscheidet über die Form des Blattes:
+     urkunde — mittige Überschrift, keine Anrede, kein Gruß
+     brief   — Anschrift, Betreff, Anrede, Grußformel
+   `bloecke` liefert den ersten Entwurf. Was danach im Feld steht,
+   gehört dem Menschen davor: Stammdaten schreiben die Texte nicht
+   mehr um, dafür gibt es an jedem Absatz das ↺.
+   ================================================================ */
+const VORLAGEN = {
+  zwischenzeugnis: {
+    label: "Zwischenzeugnis",
+    kurz: "Für Aktive — bestätigt die laufende Mitarbeit.",
+    icon: "📄",
+    gruppe: "Zeugnis",
+    art: "urkunde",
+    dateiname: "Zwischenzeugnis",
+    titel: () => "Ehrenamtliches Zwischenzeugnis",
+    felder: ["anrede","vorname","nachname","ressort","funktion","seit","datum"],
+    satzung: [],
+    unterschriften: 1,
+    bloecke: c => [
+      { art:"text", titel:"Einleitung",
+        text:`Hiermit bestätigen wir, dass ${[c.anrede,c.name].filter(Boolean).join(" ")} seit ${c.seit||"…"} Mitglied der ${VEREIN.name} ist.` },
+      { art:"text", titel:"Über den Verein", text: ORG_TEXT },
+      { art:"liste", titel:"Aufgaben im Ressort",
+        text: c.ressort
+          ? `${c.name} gehört dem Ressort „${c.ressort}“ an und nimmt dort die Funktion ${c.funktion==="Mitglied"?"eines Ressortmitglieds":"der "+c.funktion} wahr. Zu ${c.p.seinen} Aufgaben zählen:`
+          : `Zu ${c.p.seinen} Aufgaben in der Fachschaft zählen:`,
+        items: aufgabenFuer(c.ressort, c.funktion) },
+      { art:"text", titel:"Beurteilung",
+        text:`${c.p.Er} ist stets motiviert und zeigt zu unserer vollsten Zufriedenheit Engagement sowie Eigeninitiative. ${c.p.Seine} Zuverlässigkeit und Einsatzfreude sind beeindruckend. Besonders hervorzuheben ist ${c.p.seine} offene und motivierende Art, mit der ${c.p.er} ${c.p.seine} Aufgaben im Ressort angeht.\n\nInsgesamt zeichnet sich ${c.vorname||c.name} durch ausgeprägte Teamfähigkeit und organisatorisches Geschick aus. ${c.p.Sein} Beitrag ist beispielhaft für Studierende, die sich für bessere Bedingungen an ihrer Hochschule einsetzen.` },
+      { art:"text", titel:"Dank",
+        text:`Wir bedanken uns herzlich bei ${c.vorname||c.name} für ${c.p.seinen} Einsatz und ${c.p.sein} Streben nach Exzellenz in der studentischen Mitbestimmung an der HM Business School.` },
+    ],
+  },
+
+  abschlusszeugnis: {
+    label: "Abschlusszeugnis",
+    kurz: "Zum Ende der Mitarbeit — mit Beurteilung und Dank.",
+    icon: "🎓",
+    gruppe: "Zeugnis",
+    art: "urkunde",
+    dateiname: "Zeugnis",
+    titel: () => "Ehrenamtliches Zeugnis",
+    felder: ["anrede","vorname","nachname","ressort","funktion","seit","bis","datum"],
+    satzung: [],
+    unterschriften: 2,
+    zweiteFunktion: "Ressortleitung",
+    bloecke: c => {
+      const leitung = istLeitung(c.funktion);
+      const bl = [
+        { art:"text", titel:"Einleitung",
+          text:`${[c.anrede,c.name].filter(Boolean).join(" ")} war von ${c.seit||"…"} bis ${c.bis||"…"} ehrenamtlich in der ${VEREIN.name} an der Hochschule München tätig.` },
+        { art:"text", titel:"Über den Verein", text: ORG_TEXT },
+        { art:"liste", titel:"Aufgaben im Ressort",
+          text: c.ressort
+            ? `${c.vorname||c.name} hat die ${c.p.ihrIhm} übertragenen Aufgaben im Ressort „${c.ressort}“ mit hohem Engagement wahrgenommen. Dazu zählten:`
+            : `${c.vorname||c.name} hat die ${c.p.ihrIhm} übertragenen Aufgaben mit hohem Engagement wahrgenommen. Dazu zählten:`,
+          items: aufgabenFuer(c.ressort, c.funktion) },
+        { art:"text", titel:"Beurteilung",
+          text:`${c.vorname||c.name} hat die ${c.p.ihrIhm} übertragenen Aufgaben stets mit außerordentlichem Engagement, höchster Zuverlässigkeit und herausragender Qualität erfüllt. ${c.p.Seine} Mitarbeit war durchweg vorbildlich, und ${c.p.er} hat sich mit vollem Einsatz dafür eingesetzt, die Ziele und Projekte der Fachschaft voranzutreiben.\n\nIm Team hat sich ${c.vorname||c.name} stets hervorragend integriert und durch ausgeprägte Teamfähigkeit und Kommunikationsstärke maßgeblich zur erfolgreichen Zusammenarbeit beigetragen.` },
+      ];
+      if(leitung){
+        bl.push({ art:"text", titel:"Führungsverantwortung",
+          text:`Als ${c.anrede==="Frau"?"Ressortleiterin":"Ressortleiter"} übernahm ${c.vorname||c.name} die Leitung des Ressorts „${c.ressort||"…"}“ und führte dieses mit großem Verantwortungsbewusstsein und Führungsstärke. ${c.p.Er} hat nicht nur alle ${c.p.ihrIhm} zugewiesenen Aufgaben in ausgezeichneter Weise erfüllt, sondern auch aus eigener Initiative nach Möglichkeiten gesucht, die Arbeit der Fachschaft nachhaltig zu verbessern.` });
+      }
+      bl.push({ art:"text", titel:"Dank und Ausblick",
+        text:`Insgesamt war ${c.vorname||c.name} ein sehr wertvolles Mitglied der Fachschaft. Wir bedanken uns herzlich für ${c.p.seinen} Einsatz und wünschen ${c.p.ihrIhm} für den weiteren beruflichen und persönlichen Weg alles Gute.` });
+      return bl;
+    },
+  },
+
+  mitgliedsbescheinigung: {
+    label: "Mitgliedsbescheinigung",
+    kurz: "Bestätigt die laufende Mitgliedschaft — für Hochschule, Praktikum oder Bewerbung.",
+    icon: "🪪",
+    gruppe: "Bescheinigung",
+    art: "urkunde",
+    dateiname: "Mitgliedsbescheinigung",
+    titel: () => "Mitgliedsbescheinigung",
+    felder: ["anrede","vorname","nachname","form","ressort","funktion","seit","datum"],
+    satzung: [],
+    unterschriften: 1,
+    bloecke: c => [
+      { art:"text", titel:"Bescheinigung",
+        text:`Hiermit bescheinigen wir, dass ${[c.anrede,c.name].filter(Boolean).join(" ")} seit ${c.seit||"…"} Mitglied der ${VEREIN.name} ist. Die Mitgliedschaft besteht in der Form „${c.form||"Ordentliches Mitglied"}“.` },
+      { art:"text", titel:"Mitarbeit",
+        text: c.ressort
+          ? `${c.p.Er} wirkt im Ressort „${c.ressort}“ als ${c.funktion} mit und bringt sich dort regelmäßig in die Arbeit der Fachschaft ein.`
+          : `${c.p.Er} bringt sich regelmäßig in die Arbeit der Fachschaft ein.` },
+      { art:"text", titel:"Über den Verein", text: ORG_TEXT },
+      { art:"text", titel:"Zweck der Bescheinigung",
+        text:`Diese Bescheinigung wird auf Wunsch von ${c.name} ausgestellt und dient der Vorlage bei Dritten.` },
+    ],
+  },
+
+  austritt_exmatrikulation: {
+    label: "Ende durch Exmatrikulation",
+    kurz: "Die Mitgliedschaft endet mit der Exmatrikulation — § 5 Abs. 3 lit. a.",
+    icon: "🎓",
+    gruppe: "Ende der Mitgliedschaft",
+    art: "brief",
+    dateiname: "Ende_Mitgliedschaft_Exmatrikulation",
+    titel: c => `Ende deiner Mitgliedschaft in der ${VEREIN.kurz}`,
+    betreff: c => c.duzen
+      ? `Ende deiner Mitgliedschaft in der ${VEREIN.name}`
+      : `Ende Ihrer Mitgliedschaft in der ${VEREIN.name}`,
+    felder: ["anrede","ton","vorname","nachname","ressort","funktion","seit","exmatAm","endeAm","datum","anschrift"],
+    satzung: ["5-3-a","4-3"],
+    unterschriften: 2,
+    bloecke: c => [
+      { art:"text", titel:"Anrede", text: anredeZeile(c) },
+      { art:"text", titel:"Anlass",
+        text:`zum ${langesDatum(c.exmatAm)||"…"} ${c.a.wurdest} ${c.a.du} von der Hochschule München exmatrikuliert. Damit endet ${c.a.deine} Mitgliedschaft in der ${VEREIN.name} — das bestätigen wir ${c.a.dir} hiermit.` },
+      { art:"text", titel:"Grundlage in der Satzung",
+        text:`Nach § 5 Absatz 3 Buchstabe a der Satzung endet die Mitgliedschaft mit der Exmatrikulation von der Hochschule München. Ordentliche Mitglieder und Anwärter:innen müssen während der Dauer ihrer Mitgliedschaft an der HM Business School immatrikuliert sein (§ 4 Absatz 3). ${c.a.Deine} Mitgliedschaft endet daher zum ${langesDatum(c.endeAm)||langesDatum(c.exmatAm)||"…"}.` },
+      { art:"text", titel:"Dank",
+        text: c.ressort
+          ? `${c.a.Du} ${c.a.warst} seit ${c.seit||"…"} Teil der Fachschaft und ${c.a.hast} im Ressort „${c.ressort}“ als ${c.funktion} mitgewirkt. Für diesen Einsatz danken wir ${c.a.dir} herzlich — eine Studierendenvertretung lebt von Menschen, die ihre Zeit einbringen.`
+          : `${c.a.Du} ${c.a.warst} seit ${c.seit||"…"} Teil der Fachschaft. Für diesen Einsatz danken wir ${c.a.dir} herzlich — eine Studierendenvertretung lebt von Menschen, die ihre Zeit einbringen.` },
+      { art:"text", titel:"Zugänge und Material (optional)",
+        text:`Bitte ${c.a.gib} bis zum Ende der Mitgliedschaft Schlüssel, Zugangskarten und Vereinsmaterial im Fachschaftsbüro ab. Die Zugänge zu den internen Systemen der Fachschaft werden zum selben Zeitpunkt deaktiviert.` },
+      { art:"text", titel:"Fördermitgliedschaft (optional)",
+        text:`Als ehemalige:r Studierende:r der HM Business School ${c.a.kannst} ${c.a.du} nach § 4 Absatz 2 Buchstabe f eine fördernde Mitgliedschaft beantragen. Wir würden uns freuen, ${c.a.dich} weiter an Bord zu wissen.` },
+      { art:"text", titel:"Zeugnis (optional)",
+        text:`Über ${c.a.deine} Tätigkeit stellen wir ${c.a.dir} gern ein ehrenamtliches Zeugnis aus — dafür ${c.a.melde} einfach beim Vorstand.` },
+      { art:"text", titel:"Schluss",
+        text:`Für ${c.a.deinen} weiteren Weg wünschen wir ${c.a.dir} alles Gute.` },
+    ],
+  },
+
+  austritt_freiwillig: {
+    label: "Austritt auf eigenen Wunsch",
+    kurz: "Bestätigt die in Textform erklärte Austrittserklärung — § 5 Abs. 3 lit. b.",
+    icon: "✉️",
+    gruppe: "Ende der Mitgliedschaft",
+    art: "brief",
+    dateiname: "Austrittsbestaetigung",
+    titel: c => "Bestätigung des Austritts",
+    betreff: c => c.duzen
+      ? `Bestätigung deines Austritts aus der ${VEREIN.name}`
+      : `Bestätigung Ihres Austritts aus der ${VEREIN.name}`,
+    felder: ["anrede","ton","vorname","nachname","ressort","funktion","seit","erklaertAm","endeAm","datum","anschrift"],
+    satzung: ["5-3-b"],
+    unterschriften: 2,
+    bloecke: c => [
+      { art:"text", titel:"Anrede", text: anredeZeile(c) },
+      { art:"text", titel:"Eingang der Erklärung",
+        text:`${c.a.Deine} Austrittserklärung vom ${langesDatum(c.erklaertAm)||"…"} ist beim Vorstand eingegangen. Den Eingang bestätigen wir ${c.a.dir} hiermit.` },
+      { art:"text", titel:"Grundlage in der Satzung",
+        text:`Nach § 5 Absatz 3 Buchstabe b der Satzung endet die Mitgliedschaft durch Austritt, der gegenüber dem Vorstand in Textform zu erklären ist. ${c.a.Deine} Mitgliedschaft in der ${VEREIN.name} endet damit zum ${langesDatum(c.endeAm)||"…"}.` },
+      { art:"text", titel:"Dank",
+        text: c.ressort
+          ? `${c.a.Du} ${c.a.warst} seit ${c.seit||"…"} Teil der Fachschaft und ${c.a.hast} im Ressort „${c.ressort}“ als ${c.funktion} mitgewirkt. Für diesen Einsatz danken wir ${c.a.dir} herzlich.`
+          : `${c.a.Du} ${c.a.warst} seit ${c.seit||"…"} Teil der Fachschaft. Für diesen Einsatz danken wir ${c.a.dir} herzlich.` },
+      { art:"text", titel:"Zugänge und Material (optional)",
+        text:`Bitte ${c.a.gib} bis zum Austrittsdatum Schlüssel, Zugangskarten und Vereinsmaterial im Fachschaftsbüro ab. Die Zugänge zu den internen Systemen der Fachschaft werden zum Austrittsdatum deaktiviert.` },
+      { art:"text", titel:"Hinweis Vereinsvermögen (optional)",
+        text:`Mit dem Ausscheiden bestehen keine Ansprüche auf Leistungen aus dem Vereinsvermögen (§ 3 Absatz 1 der Satzung).` },
+      { art:"text", titel:"Zeugnis (optional)",
+        text:`Über ${c.a.deine} Tätigkeit stellen wir ${c.a.dir} gern ein ehrenamtliches Zeugnis aus — dafür ${c.a.melde} einfach beim Vorstand.` },
+      { art:"text", titel:"Schluss",
+        text:`Die Türen der Fachschaft stehen ${c.a.dir} weiterhin offen. Für ${c.a.deinen} weiteren Weg wünschen wir ${c.a.dir} alles Gute.` },
+    ],
+  },
+
+  frei: {
+    label: "Freies Schreiben",
+    kurz: "Leeres Blatt auf Vereinsbriefpapier — Betreff, Absätze, Unterschriften.",
+    icon: "✍️",
+    gruppe: "Sonstiges",
+    art: "brief",
+    dateiname: "Schreiben",
+    titel: c => "Schreiben",
+    betreff: c => "",
+    felder: ["anrede","ton","vorname","nachname","datum","anschrift"],
+    satzung: [],
+    unterschriften: 2,
+    bloecke: c => [
+      { art:"text", titel:"Anrede", text: anredeZeile(c) },
+      { art:"text", titel:"Absatz", text:"" },
+    ],
+  },
+};
+
+const VORLAGEN_GRUPPEN = ["Zeugnis","Ende der Mitgliedschaft","Bescheinigung","Sonstiges"];
+</script>
+
+<script>
+/* ================================================================
+   ZUSTAND
+   ================================================================ */
+let alleMitglieder = [];
+let gefilterte     = [];
+let gewaehlt       = null;          // Mitgliedsdatensatz oder null
+let vorlageKey     = "zwischenzeugnis";
+let daten          = {};            // Feldwerte
+let bloecke        = [];            // Absätze des Schreibens
+let satzungWahl    = [];            // Schlüssel aus SATZUNG
+let unterschriften = [];            // [{name, funktion}]
+let gruss          = "Mit freundlichen Grüßen";
+let ansicht        = "bearbeiten";  // "bearbeiten" | "vorschau"
+let meinName       = "";
+let blockId        = 0;
+
+function vorlage(){ return VORLAGEN[vorlageKey]; }
+function heute(){ return new Date().toISOString().slice(0,10); }
+function duztMan(){ return (daten.ton||"du") === "du"; }
+
+/* Alles, was die Vorlagen zum Schreiben brauchen. */
+function kontext(){
+  const anrede   = daten.anrede ?? "";
+  const vorname  = (daten.vorname||"").trim();
+  const nachname = (daten.nachname||"").trim();
+  return {
+    ...daten,
+    anrede, vorname, nachname,
+    name: [vorname,nachname].filter(Boolean).join(" ") || "…",
+    ressort:  daten.ressort||"",
+    funktion: daten.funktion||"Mitglied",
+    form:     daten.form||MITGLIEDSFORMEN[0],
+    duzen: duztMan(),
+    p: pron(anrede, vorname),
+    a: ansprache(duztMan()),
+  };
+}
+
+/* Die Vorlage füllt die Felder, die sie kennt — der Rest bleibt leer. */
+function grundwerte(){
+  const w = {
+    anrede:"", ton:"du", vorname:"", nachname:"", ressort:"", funktion:"Mitglied",
+    form: MITGLIEDSFORMEN[0], seit:"", bis:"", datum: heute(),
+    endeAm:"", exmatAm:"", erklaertAm:"", anschrift:"",
+  };
+  if(gewaehlt){
+    w.vorname  = gewaehlt.vorname||"";
+    w.nachname = gewaehlt.nachname||"";
+    w.ressort  = (gewaehlt.ressort||"").trim();
+    w.funktion = istLeitung(gewaehlt.rolle) ? "Ressortleitung" : "Mitglied";
+    w.anrede   = anredeRaten(gewaehlt.vorname);
+    w.form     = formAusStatus(gewaehlt.status);
+  }
+  return w;
+}
+
+/* Ein Vorschlag, mehr nicht: die Ansprache steht als Feld daneben
+   und lässt sich in einem Klick ändern. */
+function anredeRaten(vorname){
+  const fn=(vorname||"").trim();
+  if(!fn) return "";
+  const ausnahmen=/^(Klaus|Lukas|Elias|Tobias|Matthias|Niklas|Jonas|Thomas|Markus|Andreas|Marius|Luca|Noah|Joshua|Nikola)$/i;
+  if(ausnahmen.test(fn)) return "Herr";
+  return /[aeiy]$/i.test(fn) ? "Frau" : "Herr";
+}
+
+function formAusStatus(status){
+  const s=(status||"").trim().toLowerCase();
+  if(s.startsWith("anw")) return "Anwärter:in";
+  if(s.startsWith("förder")||s.startsWith("foerder")) return "Fördermitglied";
+  if(s.startsWith("ehren")) return "Ehrenmitglied";
+  return "Ordentliches Mitglied";
+}
+
+/* ================================================================
+   MITGLIEDER
+   ================================================================ */
+async function ladeMitglieder(){
+  const { data, error } = await sb.from("members")
+    .select("id,vorname,nachname,ressort,rolle,status")
+    .order("nachname");
+  if(error){
+    console.error("ladeMitglieder:", error);
+    showToast("Mitglieder konnten nicht geladen werden.", true);
+    return;
+  }
+  alleMitglieder = data || [];
+  gefilterte = alleMitglieder;
+  renderMitgliederliste();
+  /* Ressorts, die es nur in der Mitgliederliste gibt, stehen erst
+     jetzt zur Auswahl — das Feld wird darum noch einmal gebaut. */
+  renderFelder();
+}
+
+function filterMitglieder(q){
+  const t=(q||"").trim().toLowerCase();
+  gefilterte = t
+    ? alleMitglieder.filter(m =>
+        ((m.vorname||"")+" "+(m.nachname||"")).toLowerCase().includes(t) ||
+        (m.ressort||"").toLowerCase().includes(t))
+    : alleMitglieder;
+  renderMitgliederliste();
+}
+
+function renderMitgliederliste(){
+  const el=document.getElementById("mpList"); if(!el) return;
+  if(gefilterte.length===0){
+    el.innerHTML=`<div class="mpEmpty">Keine Mitglieder gefunden</div>`;
+    return;
+  }
+  el.innerHTML = gefilterte.map(m=>{
+    const name=[m.vorname,m.nachname].filter(Boolean).join(" ");
+    const aktiv = gewaehlt && String(gewaehlt.id)===String(m.id);
+    const raus  = (m.status||"").toLowerCase().startsWith("aus");
+    return `<div class="mpItem${aktiv?" active":""}" onclick="waehleMitglied('${esc(m.id)}')">
+      <div style="flex:1 1 auto;min-width:0;">
+        <div style="font-size:13px;">${esc(name)}</div>
+        <div class="mpRessort">${esc(m.ressort||"ohne Ressort")} · ${esc(m.status||"–")}${raus?" · ausgetreten":""}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function waehleMitglied(id){
+  gewaehlt = alleMitglieder.find(m=>String(m.id)===String(id)) || null;
+  vorlageAnwenden({ felderNeu:true });
+  showToast(`${[gewaehlt?.vorname,gewaehlt?.nachname].filter(Boolean).join(" ")} übernommen`);
+}
+
+function ohneMitglied(){
+  gewaehlt = null;
+  vorlageAnwenden({ felderNeu:true });
+}
+
+/* ================================================================
+   VORLAGE ANWENDEN
+   ----------------------------------------------------------------
+   Ein Wechsel der Art oder der Person setzt Felder und Texte neu.
+   Alles danach — jedes getippte Wort — bleibt stehen, bis jemand
+   ausdrücklich ↺ drückt.
+   ================================================================ */
+function vorlageAnwenden({ felderNeu=true } = {}){
+  const v = vorlage();
+  if(felderNeu){
+    const alt = daten;
+    daten = grundwerte();
+    /* Was die Person nicht betrifft, darf den Wechsel überleben. */
+    if(alt.datum) daten.datum = alt.datum;
+    if(alt.ton)   daten.ton   = alt.ton;
+    if(!gewaehlt && alt.vorname){ daten.vorname=alt.vorname; daten.nachname=alt.nachname; }
+  }
+  satzungWahl   = [...(v.satzung||[])];
+  gruss         = duztMan() ? "Viele Grüße" : "Mit freundlichen Grüßen";
+  unterschriften = standardUnterschriften(v.unterschriften||1, v.zweiteFunktion);
+  bloeckeNeu();
+  renderAlles();
+}
+
+function standardUnterschriften(anzahl, zweiteFunktion){
+  const liste = [{ name: meinName||"", funktion:"Vorstandsvorsitz" }];
+  if(anzahl>1) liste.push({ name:"", funktion: zweiteFunktion || "Vorstand" });
+  return liste;
+}
+
+function bloeckeNeu(){
+  bloecke = vorlage().bloecke(kontext()).map(b=>({ id:++blockId, items:[], ...b, eigen:false }));
+}
+
+/* Solange ein Absatz noch so dasteht, wie die Vorlage ihn geschrieben
+   hat, zieht er mit den Stammdaten mit: ein nachgetragenes Datum
+   steht sofort im Satz. Sobald jemand im Feld etwas ändert, gehört
+   der Absatz ihm — dann rührt ihn nur noch das ↺ an. */
+function bloeckeMitziehen(){
+  const frisch = vorlage().bloecke(kontext());
+  let geaendert = false;
+  bloecke.forEach(b=>{
+    if(b.eigen) return;
+    const neu = frisch.find(f=>f.titel===b.titel);
+    if(!neu) return;
+    if(b.text!==neu.text || (neu.items||[]).join("\u0000")!==(b.items||[]).join("\u0000")){
+      b.text = neu.text;
+      b.items = [...(neu.items||[])];
+      geaendert = true;
+    }
+  });
+  if(geaendert) renderBloecke();
+}
+
+/* Ein einzelner Absatz zurück auf die Vorlage — erkannt an seinem
+   Titel, damit auch nach Verschieben der Richtige getroffen wird. */
+function blockZurueck(id){
+  const i = bloecke.findIndex(b=>b.id===id); if(i<0) return;
+  const frisch = vorlage().bloecke(kontext()).find(b=>b.titel===bloecke[i].titel);
+  if(!frisch){ showToast("Für diesen Absatz gibt es keine Vorlage mehr.", true); return; }
+  bloecke[i] = { ...bloecke[i], text:frisch.text, items:[...(frisch.items||[])], eigen:false };
+  renderBloecke(); renderVorschau();
+  showToast("Absatz aus der Vorlage geholt");
+}
+</script>
+
+<script>
+/* ================================================================
+   OBERFLÄCHE
+   ================================================================ */
+function renderPage(){
+  const mc=document.getElementById("mainContent"); if(!mc) return;
+  mc.innerHTML=`
+  <div class="composerHead">
+    <div class="tabs" role="tablist">
+      <button class="tabBtn active" id="tabBearbeiten" onclick="setAnsicht('bearbeiten')" type="button">Bearbeiten</button>
+      <button class="tabBtn" id="tabVorschau" onclick="setAnsicht('vorschau')" type="button">Vorschau</button>
+    </div>
+    <div class="composerMeta" id="composerMeta"></div>
+  </div>
+
+  <div id="bearbeitenWrap" class="composerStack">
+
+    <div class="stepCard">
+      <div class="stepHead">
+        <span class="stepNum">1</span>
+        <div>
+          <div class="stepTitle">Art des Schreibens</div>
+          <div class="stepHint">Die Vorlage bestimmt Aufbau, Text und Satzungsbezug.</div>
+        </div>
+      </div>
+      <div id="artWrap"></div>
+    </div>
+
+    <div class="stepCard">
+      <div class="stepHead">
+        <span class="stepNum">2</span>
+        <div>
+          <div class="stepTitle">Empfänger &amp; Angaben</div>
+          <div class="stepHint">Aus der Mitgliederliste übernehmen oder von Hand eintragen.</div>
+        </div>
+        <div class="stepActions">
+          <button class="btn-pick btn-sm" onclick="toggleMitgliederwahl()" id="btnPick" type="button">👥 Mitglied wählen</button>
+          <button class="btn-secondary btn-sm" onclick="ohneMitglied()" type="button">Leeres Formular</button>
+        </div>
+      </div>
+      <div class="empfZeile" id="empfZeile"></div>
+      <div class="memberPicker" id="memberPicker" style="display:none;">
+        <input class="mpSearch" id="mpSearch" type="text" placeholder="Name oder Ressort suchen…" oninput="filterMitglieder(this.value)">
+        <div class="mpList" id="mpList"><div class="mpEmpty">Lade Mitglieder…</div></div>
+      </div>
+      <div class="fieldGrid" id="felderWrap" style="margin-top:14px;"></div>
+    </div>
+
+    <div class="stepCard">
+      <div class="stepHead">
+        <span class="stepNum">3</span>
+        <div>
+          <div class="stepTitle">Inhalt</div>
+          <div class="stepHint">Jeder Absatz lässt sich ändern, verschieben oder löschen. ↺ holt ihn aus der Vorlage zurück.</div>
+        </div>
+        <div class="stepActions">
+          <button class="btn-secondary btn-xs" onclick="alleBloeckeNeu()" type="button">↺ Alle Texte</button>
+          <button class="btn-secondary btn-xs" onclick="blockHinzu('text')" type="button">+ Absatz</button>
+          <button class="btn-secondary btn-xs" onclick="blockHinzu('liste')" type="button">+ Aufzählung</button>
+        </div>
+      </div>
+      <div class="blockList" id="blockList"></div>
+    </div>
+
+    <div class="stepCard">
+      <div class="stepHead">
+        <span class="stepNum">4</span>
+        <div>
+          <div class="stepTitle">Satzungsauszug</div>
+          <div class="stepHint">Angehängt wird, was angeklickt ist — wörtlich aus der ${esc(SATZUNG_STAND)}.</div>
+        </div>
+      </div>
+      <div id="satzungWrap"></div>
+    </div>
+
+    <div class="stepCard">
+      <div class="stepHead">
+        <span class="stepNum">5</span>
+        <div>
+          <div class="stepTitle">Gruß &amp; Unterschriften</div>
+          <div class="stepHint">Nach § 10 der Satzung vertreten zwei Vorstandsmitglieder den Verein gemeinsam.</div>
+        </div>
+        <div class="stepActions">
+          <button class="btn-secondary btn-xs" onclick="unterschriftHinzu()" type="button">+ Unterschrift</button>
+        </div>
+      </div>
+      <div id="signWrap"></div>
+    </div>
+
+  </div>
+
+  <div id="vorschauWrap" style="display:none;">
+    <div class="sheetWrap"><div class="briefSheet" id="briefSheet"></div></div>
+  </div>
+
+  <div class="exportBar" style="margin-top:14px;">
+    <div class="exportInfo">
+      <strong id="exportTitel">–</strong>
+      <span id="exportSub" style="display:block;margin-top:2px;"></span>
+    </div>
+    <div class="exportBtns">
+      <button class="btn-secondary" onclick="drucken()" type="button">🖨️ Drucken / PDF</button>
+      <button class="btn-export" onclick="exportWord()" type="button">📄 Als Word exportieren (.doc)</button>
+    </div>
+  </div>
+
+  <datalist id="vorstandNamen">
+    ${VORSTAND_VORSCHLAG.map(n=>`<option value="${esc(n)}"></option>`).join("")}
+  </datalist>`;
+}
+
+function setAnsicht(a){
+  ansicht=a;
+  document.getElementById("tabBearbeiten").classList.toggle("active", a==="bearbeiten");
+  document.getElementById("tabVorschau").classList.toggle("active", a==="vorschau");
+  document.getElementById("bearbeitenWrap").style.display = a==="bearbeiten" ? "" : "none";
+  document.getElementById("vorschauWrap").style.display   = a==="vorschau"   ? "" : "none";
+  if(a==="vorschau") renderVorschau();
+}
+
+function renderAlles(){
+  renderArten();
+  renderEmpfaenger();
+  renderFelder();
+  renderBloecke();
+  renderSatzung();
+  renderUnterschriften();
+  renderVorschau();
+  renderMitgliederliste();
+}
+
+/* ---- 1 Art des Schreibens ---- */
+function renderArten(){
+  const el=document.getElementById("artWrap"); if(!el) return;
+  el.innerHTML = VORLAGEN_GRUPPEN.map(gruppe=>{
+    const eintraege=Object.entries(VORLAGEN).filter(([,v])=>v.gruppe===gruppe);
+    if(eintraege.length===0) return "";
+    return `<div class="artGruppe">
+      <div class="artGruppeTitel">${esc(gruppe)}</div>
+      <div class="artGrid">
+        ${eintraege.map(([key,v])=>`
+          <button class="artCard${key===vorlageKey?" active":""}" onclick="setVorlage('${key}')" type="button">
+            <span class="artIcon" aria-hidden="true">${v.icon}</span>
+            <span>
+              <span class="artLabel">${esc(v.label)}</span>
+              <span class="artKurz">${esc(v.kurz)}</span>
+            </span>
+          </button>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function setVorlage(key){
+  if(!VORLAGEN[key] || key===vorlageKey) return;
+  vorlageKey=key;
+  vorlageAnwenden({ felderNeu:false });
+}
+
+/* ---- 2 Empfänger ---- */
+function toggleMitgliederwahl(){
+  const p=document.getElementById("memberPicker");
+  const auf = p.style.display==="none";
+  p.style.display = auf ? "" : "none";
+  if(auf) document.getElementById("mpSearch")?.focus();
+}
+
+function renderEmpfaenger(){
+  const el=document.getElementById("empfZeile"); if(!el) return;
+  const c=kontext();
+  if(gewaehlt){
+    el.innerHTML=`<span class="empfChip">
+      <span class="empfChipName">${esc([gewaehlt.vorname,gewaehlt.nachname].filter(Boolean).join(" "))}</span>
+      <span class="empfChipMeta">${esc(gewaehlt.ressort||"ohne Ressort")} · ${esc(gewaehlt.status||"–")}</span>
+      <button class="empfChipWeg" onclick="ohneMitglied()" type="button" title="Auswahl lösen">✕</button>
+    </span>`;
+  } else {
+    el.innerHTML=`<span class="empfLeer">${c.name==="…"?"Noch niemand ausgewählt — Angaben unten von Hand eintragen.":"Freie Eingabe: "+esc(c.name)}</span>`;
+  }
+}
+
+function ressortOptionen(){
+  const ausDaten = alleMitglieder.map(m=>(m.ressort||"").trim()).filter(Boolean);
+  return [...new Set([...RESSORTS, ...ausDaten])].sort((a,b)=>a.localeCompare(b,"de"));
+}
+
+function renderFelder(){
+  const el=document.getElementById("felderWrap"); if(!el) return;
+  el.innerHTML = vorlage().felder.map(feldHTML).join("");
+  el.querySelectorAll("textarea").forEach(ta=>{
+    autoResize(ta);
+    ta.addEventListener("input", ()=>autoResize(ta));
+  });
+}
+
+function feldHTML(key){
+  const f=FELDER[key]; if(!f) return "";
+  const wert = daten[key] ?? "";
+  const klasse = `field${f.voll?" full":""}`;
+  if(f.typ==="select"){
+    let optionen=f.optionen, werte=f.werte;
+    if(key==="ressort"){
+      const liste=ressortOptionen();
+      optionen=["— kein Ressort —", ...liste];
+      werte=["", ...liste];
+    }
+    const opts=optionen.map((o,i)=>{
+      const w=werte[i];
+      return `<option value="${esc(w)}"${String(w)===String(wert)?" selected":""}>${esc(o)}</option>`;
+    }).join("");
+    return `<div class="${klasse}"><label>${esc(f.label)}</label>
+      <select onchange="setFeld('${key}',this.value)">${opts}</select></div>`;
+  }
+  if(f.typ==="textarea"){
+    return `<div class="${klasse}"><label>${esc(f.label)}</label>
+      <textarea placeholder="${esc(f.platzhalter||"")}" oninput="setFeld('${key}',this.value)">${esc(wert)}</textarea></div>`;
+  }
+  return `<div class="${klasse}"><label>${esc(f.label)}</label>
+    <input type="${f.typ==="date"?"date":"text"}" value="${esc(wert)}"
+           placeholder="${esc(f.platzhalter||"")}" oninput="setFeld('${key}',this.value)"></div>`;
+}
+
+function setFeld(key, wert){
+  const vorher = daten[key];
+  daten[key]=wert;
+  if(key==="ton"){
+    /* Der Gruß folgt dem Tonfall, solange niemand ihn angefasst hat. */
+    if(gruss==="Viele Grüße" || gruss==="Mit freundlichen Grüßen"){
+      gruss = duztMan() ? "Viele Grüße" : "Mit freundlichen Grüßen";
+      renderUnterschriften();
+    }
+    if(vorher!==wert) showToast("Tonfall geändert — Texte mit ↺ neu holen");
+  }
+  if(key==="vorname"||key==="nachname") renderEmpfaenger();
+  bloeckeMitziehen();
+  renderVorschau();
+  renderExportInfo();
+}
+</script>
+
+<script>
+/* ---- 3 Inhalt ---- */
+function renderBloecke(){
+  const el=document.getElementById("blockList"); if(!el) return;
+  if(bloecke.length===0){
+    el.innerHTML=`<div class="empty emptyBlocks">
+      <div class="empty__icon">📝</div>
+      <div class="empty__title">Kein Inhalt</div>
+      <div>Füge einen Absatz hinzu oder hole die Vorlage zurück.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = bloecke.map((b,i)=>`
+    <div class="block">
+      <div class="blockHeader">
+        <div class="blockType">
+          <span class="blockTypeIcon" aria-hidden="true">${b.art==="liste"?"•":"¶"}</span>
+          <span>${esc(b.titel||"Absatz")}</span>
+        </div>
+        <div class="actions">
+          <button class="block-act" onclick="blockZurueck(${b.id})" type="button" title="Aus der Vorlage neu holen">↺</button>
+          <button class="block-act" onclick="blockSchieben(${b.id},-1)" type="button" title="Nach oben" ${i===0?"disabled":""}>↑</button>
+          <button class="block-act" onclick="blockSchieben(${b.id},1)" type="button" title="Nach unten" ${i===bloecke.length-1?"disabled":""}>↓</button>
+          <button class="block-act del" onclick="blockWeg(${b.id})" type="button" title="Entfernen">✕</button>
+        </div>
+      </div>
+      <div class="blockFields">
+        <textarea placeholder="${b.art==="liste"?"Einleitender Satz vor der Aufzählung…":"Text des Absatzes…"}"
+                  oninput="setBlockText(${b.id},this.value);autoResize(this)">${esc(b.text||"")}</textarea>
+        ${b.art==="liste" ? listeHTML(b) : ""}
+      </div>
+    </div>`).join("");
+  el.querySelectorAll("textarea").forEach(autoResize);
+}
+
+function listeHTML(b){
+  const zeilen=(b.items||[]).map((t,i)=>`
+    <div class="bulletRow">
+      <span class="bulletDot" aria-hidden="true">•</span>
+      <input type="text" value="${esc(t)}" placeholder="Aufgabe oder Punkt…"
+             oninput="setBlockItem(${b.id},${i},this.value)">
+      <button class="iconBtn" onclick="itemWeg(${b.id},${i})" type="button" title="Punkt entfernen">✕</button>
+    </div>`).join("");
+  return `<div class="bulletList">${zeilen}
+    <div><button class="btn-secondary btn-xs" onclick="itemHinzu(${b.id})" type="button">+ Punkt</button></div>
+  </div>`;
+}
+
+function findeBlock(id){ return bloecke.find(b=>b.id===id); }
+
+function setBlockText(id, wert){ const b=findeBlock(id); if(!b) return; b.text=wert; b.eigen=true; renderVorschau(); }
+function setBlockItem(id, i, wert){ const b=findeBlock(id); if(!b) return; b.items[i]=wert; b.eigen=true; renderVorschau(); }
+function itemHinzu(id){ const b=findeBlock(id); if(!b) return; b.items.push(""); b.eigen=true; renderBloecke(); renderVorschau();
+  const felder=document.querySelectorAll(".bulletRow input"); felder[felder.length-1]?.focus(); }
+function itemWeg(id,i){ const b=findeBlock(id); if(!b) return; b.items.splice(i,1); b.eigen=true; renderBloecke(); renderVorschau(); }
+
+function blockSchieben(id, richtung){
+  const i=bloecke.findIndex(b=>b.id===id); const j=i+richtung;
+  if(i<0||j<0||j>=bloecke.length) return;
+  [bloecke[i],bloecke[j]]=[bloecke[j],bloecke[i]];
+  renderBloecke(); renderVorschau();
+}
+
+function blockWeg(id){
+  bloecke=bloecke.filter(b=>b.id!==id);
+  renderBloecke(); renderVorschau();
+}
+
+function blockHinzu(art){
+  bloecke.push({ id:++blockId, art, titel: art==="liste"?"Aufzählung":"Absatz", text:"", items: art==="liste"?[""]:[], eigen:true });
+  renderBloecke(); renderVorschau();
+  const felder=document.querySelectorAll("#blockList textarea");
+  felder[felder.length-1]?.focus();
+}
+
+function alleBloeckeNeu(){
+  bloeckeNeu();
+  renderBloecke(); renderVorschau();
+  showToast("Texte aus der Vorlage geholt");
+}
+
+/* ---- 4 Satzungsauszug ---- */
+function renderSatzung(){
+  const el=document.getElementById("satzungWrap"); if(!el) return;
+  const chips=Object.entries(SATZUNG).map(([key,s])=>`
+    <button class="satzChip${satzungWahl.includes(key)?" active":""}" onclick="satzungToggle('${key}')" type="button">
+      <span class="satzChipRef">${esc(s.ref)}</span> ${esc(s.titel)}
+    </button>`).join("");
+  const zitate = satzungWahl.map(k=>SATZUNG[k]).filter(Boolean).map(s=>`
+    <p><b>${esc(s.ref)} — ${esc(s.titel)}</b><br>„${esc(s.text)}“</p>`).join("");
+  el.innerHTML=`<div class="satzChips">${chips}</div>
+    ${zitate ? `<div class="satzQuote">${zitate}</div>` : `<div class="satzLeer">Kein Auszug angehängt.</div>`}`;
+}
+
+function satzungToggle(key){
+  satzungWahl = satzungWahl.includes(key)
+    ? satzungWahl.filter(k=>k!==key)
+    : [...satzungWahl, key];
+  renderSatzung(); renderVorschau();
+}
+
+/* ---- 5 Gruß & Unterschriften ---- */
+function renderUnterschriften(){
+  const el=document.getElementById("signWrap"); if(!el) return;
+  const brief = vorlage().art==="brief";
+  const grussFeld = brief ? `
+    <div class="field" style="max-width:280px;margin-bottom:14px;">
+      <label>Grußformel</label>
+      <input type="text" value="${esc(gruss)}" oninput="setGruss(this.value)" placeholder="Mit freundlichen Grüßen">
+    </div>` : "";
+  el.innerHTML = grussFeld + `<div class="signGrid">${
+    unterschriften.map((u,i)=>`
+      <div class="signCard">
+        <div class="signCardHead">
+          <span>Unterschrift ${i+1}</span>
+          ${unterschriften.length>1?`<button class="iconBtn" onclick="unterschriftWeg(${i})" type="button" title="Entfernen">✕</button>`:""}
+        </div>
+        <div class="field">
+          <label>Name</label>
+          <input type="text" list="vorstandNamen" value="${esc(u.name)}" placeholder="Vor- und Nachname"
+                 oninput="setUnterschrift(${i},'name',this.value)">
+        </div>
+        <div class="field">
+          <label>Funktion</label>
+          <input type="text" value="${esc(u.funktion)}" placeholder="z. B. Vorstandsvorsitz"
+                 oninput="setUnterschrift(${i},'funktion',this.value)">
+        </div>
+      </div>`).join("")
+  }</div>`;
+}
+
+function setGruss(v){ gruss=v; renderVorschau(); }
+function setUnterschrift(i, feld, wert){ if(!unterschriften[i]) return; unterschriften[i][feld]=wert; renderVorschau(); }
+function unterschriftHinzu(){
+  if(unterschriften.length>=3){ showToast("Mehr als drei Unterschriften passen nicht auf die Zeile.", true); return; }
+  unterschriften.push({ name:"", funktion:"Vorstand" });
+  renderUnterschriften(); renderVorschau();
+}
+function unterschriftWeg(i){ unterschriften.splice(i,1); renderUnterschriften(); renderVorschau(); }
+</script>
+
+<script>
+/* ================================================================
+   DAS BLATT
+   ----------------------------------------------------------------
+   Vorschau, Druck und Word-Datei teilen sich einen Körper. Was in
+   der Vorschau steht, steht später auch im Dokument — sonst wäre
+   die Vorschau nur ein Bild davon.
+   ================================================================ */
+function dokumentKoerper(){
+  const v=vorlage(), c=kontext();
+  const urkunde = v.art==="urkunde";
+  const ortDatum = `${VEREIN.sitz}, den ${langesDatum(daten.datum)||langesDatum(heute())}`;
+  let h="";
+
+  h+=`<div class="briefKopf">
+        <div class="briefKopfName">${esc(VEREIN.name)}</div>
+        <div class="briefKopfZeile">${esc(VEREIN.strasse)} · ${esc(VEREIN.ort)} · ${esc(VEREIN.mail)}</div>
+      </div>`;
+
+  if(urkunde){
+    h+=`<div class="briefTitel">${esc(typeof v.titel==="function" ? v.titel(c) : v.titel)}</div>`;
+  } else {
+    const anschrift=(daten.anschrift||"").trim();
+    h+=`<div class="briefAbsender">${esc(VEREIN.name)} · ${esc(VEREIN.strasse)} · ${esc(VEREIN.ort)}</div>`;
+    h+=`<div class="briefAnschrift">${esc([c.anrede,c.name].filter(Boolean).join(" "))}${
+          anschrift ? "<br>"+esc(anschrift).replace(/\n/g,"<br>") : ""}</div>`;
+    h+=`<div class="briefDatum">${esc(ortDatum)}</div>`;
+    const betreff = typeof v.betreff==="function" ? v.betreff(c) : "";
+    if(betreff) h+=`<div class="briefBetreff">${esc(betreff)}</div>`;
+  }
+
+  for(const b of bloecke){
+    h+=absaetzeHTML(b.text);
+    if(b.art==="liste"){
+      const punkte=(b.items||[]).map(t=>String(t).trim()).filter(Boolean);
+      if(punkte.length) h+=`<ul class="briefListe">${punkte.map(t=>`<li>${esc(t)}</li>`).join("")}</ul>`;
+    }
+  }
+
+  const zitate = satzungWahl.map(k=>SATZUNG[k]).filter(Boolean);
+  if(zitate.length){
+    h+=`<div class="briefZitat">
+      <div class="briefZitatKopf">Auszug aus der Satzung der ${esc(VEREIN.name)} (${esc(SATZUNG_STAND)})</div>
+      ${zitate.map(s=>`<p><b>${esc(s.ref)} — ${esc(s.titel)}</b><br>„${esc(s.text)}“</p>`).join("")}
+    </div>`;
+  }
+
+  if(urkunde) h+=`<p class="briefOrt">${esc(ortDatum)}</p>`;
+  else if(gruss.trim()) h+=`<p class="briefGruss">${esc(gruss)}</p>`;
+
+  h+=unterschriftenHTML();
+
+  h+=`<div class="briefFuss">${esc(VEREIN.name)} · ${esc(VEREIN.strasse)} · ${esc(VEREIN.ort)} · ${esc(VEREIN.mail)}</div>`;
+  return h;
+}
+
+function unterschriftenHTML(){
+  const gueltig = unterschriften.filter(u=>(u.name||"").trim() || (u.funktion||"").trim());
+  if(gueltig.length===0) return "";
+  const breite = Math.floor(84/gueltig.length);
+  const zellen = gueltig.map(u=>
+    `<td class="briefSigZelle" width="${breite}%">${esc(u.name||"")}<br><span class="briefSigRolle">${esc(u.funktion||"")}</span></td>`
+  ).join(`<td class="briefSigLuecke"></td>`);
+  return `<table class="briefSig" width="100%"><tr>${zellen}</tr></table>`;
+}
+
+/* Die Gestalt des Blattes — einmal für Vorschau (style.css) und
+   einmal für Word und Druck, dort in Punkt statt Pixel. */
+const DOKUMENT_CSS = `
+  @page{ margin:2.5cm 2.5cm 2cm 2.5cm; }
+  body{ font-family:Arial,"Helvetica Neue",sans-serif; font-size:11pt; color:#1a1a1a; line-height:1.6; }
+  p{ margin:0 0 8pt; }
+  .briefKopf{ border-bottom:1.5pt solid #1a1a1a; padding-bottom:6pt; margin-bottom:22pt; }
+  .briefKopfName{ font-size:13pt; font-weight:bold; letter-spacing:0.02em; }
+  .briefKopfZeile{ font-size:8.5pt; color:#555; margin-top:2pt; }
+  .briefAbsender{ font-size:7.5pt; color:#666; border-bottom:0.5pt solid #bbb; padding-bottom:2pt; margin-bottom:8pt; }
+  .briefAnschrift{ font-size:11pt; line-height:1.45; margin-bottom:24pt; }
+  .briefDatum{ text-align:right; font-size:10pt; color:#444; margin-bottom:22pt; }
+  .briefBetreff{ font-size:11.5pt; font-weight:bold; margin-bottom:16pt; }
+  .briefTitel{ text-align:center; font-size:16pt; font-weight:bold; letter-spacing:0.06em; text-transform:uppercase; margin:6pt 0 22pt; }
+  .briefListe{ margin:4pt 0 10pt; padding-left:18pt; }
+  .briefListe li{ margin:3pt 0; }
+  .briefZitat{ border-left:2pt solid #888; background:#f5f5f5; padding:8pt 12pt; margin:14pt 0; font-size:9.5pt; color:#333; }
+  .briefZitatKopf{ font-size:8.5pt; text-transform:uppercase; letter-spacing:0.05em; color:#666; margin-bottom:6pt; }
+  .briefZitat p{ margin:0 0 6pt; }
+  .briefGruss{ margin-top:16pt; }
+  .briefOrt{ margin-top:18pt; }
+  .briefSig{ border-collapse:collapse; margin-top:46pt; }
+  .briefSigZelle{ border-top:0.75pt solid #555; padding-top:5pt; text-align:center; font-size:10pt; vertical-align:top; }
+  .briefSigRolle{ font-size:8.5pt; color:#555; }
+  .briefSigLuecke{ width:8%; }
+  .briefFuss{ margin-top:30pt; padding-top:6pt; border-top:0.5pt solid #ccc; text-align:center; font-size:8pt; color:#777; }
+`;
+
+function dokumentHTML(){
+  const titel = dateiTitel();
+  return `<html xmlns:o='urn:schemas-microsoft-com:office:office'
+    xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+  <head><meta charset='utf-8'><title>${esc(titel)}</title>
+  <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+  <style>${DOKUMENT_CSS}</style>
+  </head><body>${dokumentKoerper()}</body></html>`;
+}
+
+/* ---- Vorschau ---- */
+function renderVorschau(){
+  const el=document.getElementById("briefSheet");
+  if(el) el.innerHTML = dokumentKoerper();
+  renderExportInfo();
+}
+
+function renderExportInfo(){
+  const v=vorlage(), c=kontext();
+  const t=document.getElementById("exportTitel");
+  const s=document.getElementById("exportSub");
+  const m=document.getElementById("composerMeta");
+  if(t) t.textContent = v.label;
+  if(s) s.textContent = (c.name==="…" ? "ohne Empfänger" : "für "+c.name) + " · " + dateiName() + ".doc";
+  if(m) m.textContent = v.gruppe + " · " + (v.art==="urkunde" ? "Urkundenform" : "Briefform");
+}
+
+function dateiTitel(){
+  const v=vorlage(), c=kontext();
+  return v.art==="urkunde"
+    ? (typeof v.titel==="function" ? v.titel(c) : v.titel)
+    : (typeof v.betreff==="function" ? (v.betreff(c) || v.label) : v.label);
+}
+
+function dateiName(){
+  const c=kontext();
+  const teile=[
+    vorlage().dateiname,
+    (c.nachname||"").replace(/[^\wäöüÄÖÜß-]/g,""),
+    (c.vorname||"").replace(/[^\wäöüÄÖÜß-]/g,""),
+  ].filter(Boolean);
+  return teile.join("_") || "Schreiben";
+}
+
+/* ---- Word ---- */
+function exportWord(){
+  if(bloecke.length===0){ showToast("Das Schreiben hat noch keinen Inhalt.", true); return; }
+  const blob=new Blob(["﻿", dokumentHTML()], { type:"application/msword" });
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download=`${dateiName()}.doc`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("✅ Schreiben exportiert");
+}
+
+/* ---- Druck / PDF ---- */
+function drucken(){
+  if(bloecke.length===0){ showToast("Das Schreiben hat noch keinen Inhalt.", true); return; }
+  const w=window.open("", "_blank");
+  if(!w){ showToast("Der Browser hat das Druckfenster blockiert.", true); return; }
+  w.document.write(`<!doctype html><html lang="de"><head><meta charset="utf-8">
+    <title>${esc(dateiTitel())}</title>
+    <style>${DOKUMENT_CSS}
+      body{ max-width:17cm; margin:1.5cm auto; background:#fff; }
+      @media print{ body{ margin:0; max-width:none; } }
+    </style></head><body>${dokumentKoerper()}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>{ w.print(); }, 350);
+}
+
+/* ================================================================
+   START
+   ================================================================ */
+function keinZugriff(text){
+  document.getElementById("pageLoader").classList.add("hidden");
+  const mc=document.getElementById("mainContent");
+  mc.style.display="";
+  mc.innerHTML=`<div class="glass card" style="text-align:center;padding:48px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">⛔</div>
+      <div style="font-weight:600;font-size:16px;">Kein Zugriff</div>
+      <div style="margin-top:6px;color:var(--muted-foreground);">${esc(text)}</div>
+    </div>`;
+}
+
+(async()=>{
+  try{
+    const session = await requireAuthOrRedirect();
+    const profile = await loadMyProfile(session);
+
+    /* Schreiben gehen im Namen des Vereins hinaus — das bleibt beim Vorstand. */
+    if(normRole(profile.role)!=="vorstand"){
+      keinZugriff("Diese Seite ist nur für den Vorstand.");
+      return;
+    }
+
+    meinName = (profile.display_name||"").trim();
+
+    renderPage();
+    daten = grundwerte();
+    vorlageAnwenden({ felderNeu:false });
+    document.getElementById("pageLoader").classList.add("hidden");
+    document.getElementById("mainContent").style.display="";
+
+    await ladeMitglieder();
+  }catch(e){
+    if(e?.message==="kein_profil"){
+      setAuthUI(false);
+      keinZugriff("Deine E-Mail ist nicht freigeschaltet.");
+    }else{
+      console.error(e);
+    }
+  }
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(console.warn);
+  });
+}
+</script>
+<script src="/mobile-nav.js"></script>
+</body>
+</html>
