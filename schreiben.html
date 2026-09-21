@@ -429,6 +429,9 @@ const FELDER = {
    `bloecke` liefert den ersten Entwurf. Was danach im Feld steht,
    gehört dem Menschen davor: Stammdaten schreiben die Texte nicht
    mehr um, dafür gibt es an jedem Absatz das ↺.
+   Ein Absatz ohne Text steht nicht im Dokument. So kann eine Vorlage
+   eine Stelle offenhalten — der besondere Einsatz im Zeugnis —, ohne
+   sie jedem aufzudrängen: ausgefüllt steht sie da, leer nicht.
    ================================================================ */
 const VORLAGEN = {
   zwischenzeugnis: {
@@ -452,7 +455,11 @@ const VORLAGEN = {
           : `Zu ${c.p.seinen} Aufgaben in der Fachschaft zählen:`,
         items: aufgabenFuer(c.ressort, c.funktion) },
       { art:"text", titel:"Beurteilung",
-        text:`${c.p.Er} ist stets motiviert und zeigt zu unserer vollsten Zufriedenheit Engagement sowie Eigeninitiative. ${c.p.Seine} Zuverlässigkeit und Einsatzfreude sind beeindruckend. Besonders hervorzuheben ist ${c.p.seine} offene und motivierende Art, mit der ${c.p.er} ${c.p.seine} Aufgaben im Ressort angeht.\n\nInsgesamt zeichnet sich ${c.vorname||c.name} durch ausgeprägte Teamfähigkeit und organisatorisches Geschick aus. ${c.p.Sein} Beitrag ist beispielhaft für Studierende, die sich für bessere Bedingungen an ihrer Hochschule einsetzen.` },
+        text:`${c.p.Er} ist stets motiviert und zeigt zu unserer vollsten Zufriedenheit Engagement sowie Eigeninitiative. ${c.p.Seine} Zuverlässigkeit und Einsatzfreude sind beeindruckend. Besonders hervorzuheben ist ${c.p.seine} offene und motivierende Art, mit der ${c.p.er} ${c.p.seine} Aufgaben im Ressort angeht.` },
+      { art:"text", titel:"Besonderer Einsatz (optional)", text:"",
+        platzhalter:`Das eine Projekt, das ${c.vorname||c.name} trägt — was es ist, wann es läuft und was daraus wird. Bleibt das Feld leer, steht der Absatz nicht im Zeugnis.` },
+      { art:"text", titel:"Teamarbeit",
+        text:`Insgesamt zeichnet sich ${c.vorname||c.name} durch ausgeprägte Teamfähigkeit und organisatorisches Geschick aus. ${c.p.Sein} Beitrag ist beispielhaft für Studierende, die sich für bessere Bedingungen an ihrer Hochschule einsetzen.` },
       { art:"text", titel:"Dank",
         text:`Wir bedanken uns herzlich bei ${c.vorname||c.name} für ${c.p.seinen} Einsatz und ${c.p.sein} Streben nach Exzellenz in der studentischen Mitbestimmung an der HM Business School.` },
     ],
@@ -482,12 +489,16 @@ const VORLAGEN = {
             : `${c.vorname||c.name} hat die ${c.p.ihrIhm} übertragenen Aufgaben mit hohem Engagement wahrgenommen. Dazu zählten:`,
           items: aufgabenFuer(c.ressort, c.funktion) },
         { art:"text", titel:"Beurteilung",
-          text:`${c.vorname||c.name} hat die ${c.p.ihrIhm} übertragenen Aufgaben stets mit außerordentlichem Engagement, höchster Zuverlässigkeit und herausragender Qualität erfüllt. ${c.p.Seine} Mitarbeit war durchweg vorbildlich, und ${c.p.er} hat sich mit vollem Einsatz dafür eingesetzt, die Ziele und Projekte der Fachschaft voranzutreiben.\n\nIm Team hat sich ${c.vorname||c.name} stets hervorragend integriert und durch ausgeprägte Teamfähigkeit und Kommunikationsstärke maßgeblich zur erfolgreichen Zusammenarbeit beigetragen.` },
+          text:`${c.vorname||c.name} hat die ${c.p.ihrIhm} übertragenen Aufgaben stets mit außerordentlichem Engagement, höchster Zuverlässigkeit und herausragender Qualität erfüllt. ${c.p.Seine} Mitarbeit war durchweg vorbildlich, und ${c.p.er} hat sich mit vollem Einsatz dafür eingesetzt, die Ziele und Projekte der Fachschaft voranzutreiben.` },
       ];
       if(leitung){
         bl.push({ art:"text", titel:"Führungsverantwortung",
           text:`Als ${c.anrede==="Frau"?"Ressortleiterin":"Ressortleiter"} übernahm ${c.vorname||c.name} die Leitung des Ressorts „${c.ressort||"…"}“ und führte dieses mit großem Verantwortungsbewusstsein und Führungsstärke. ${c.p.Er} hat nicht nur alle ${c.p.ihrIhm} zugewiesenen Aufgaben in ausgezeichneter Weise erfüllt, sondern auch aus eigener Initiative nach Möglichkeiten gesucht, die Arbeit der Fachschaft nachhaltig zu verbessern.` });
       }
+      bl.push({ art:"text", titel:"Besonderer Einsatz (optional)", text:"",
+        platzhalter:`Das eine Projekt, das ${c.vorname||c.name} getragen hat — was es war, wann es lief und was daraus wurde. Bleibt das Feld leer, steht der Absatz nicht im Zeugnis.` });
+      bl.push({ art:"text", titel:"Teamarbeit",
+        text:`Im Team hat sich ${c.vorname||c.name} stets hervorragend integriert und durch ausgeprägte Teamfähigkeit und Kommunikationsstärke maßgeblich zur erfolgreichen Zusammenarbeit beigetragen.` });
       bl.push({ art:"text", titel:"Dank und Ausblick",
         text:`Insgesamt war ${c.vorname||c.name} ein sehr wertvolles Mitglied der Fachschaft. Wir bedanken uns herzlich für ${c.p.seinen} Einsatz und wünschen ${c.p.ihrIhm} für den weiteren beruflichen und persönlichen Weg alles Gute.` });
       return bl;
@@ -1078,7 +1089,7 @@ function renderBloecke(){
         </div>
       </div>
       <div class="blockFields">
-        <textarea placeholder="${b.art==="liste"?"Einleitender Satz vor der Aufzählung…":"Text des Absatzes…"}"
+        <textarea placeholder="${esc(b.platzhalter || (b.art==="liste"?"Einleitender Satz vor der Aufzählung…":"Text des Absatzes…"))}"
                   oninput="setBlockText(${b.id},this.value);autoResize(this)">${esc(b.text||"")}</textarea>
         ${b.art==="liste" ? listeHTML(b) : ""}
       </div>
