@@ -85,7 +85,10 @@ begin
             v_jetzt, p_anzahl using errcode = '23514';
     end if;
 
-    delete from public.anwaerter;
+    -- `where true` ist Absicht: Supabase lädt für jede Anfrage aus dem Portal
+    -- die Erweiterung pg_safeupdate, und die weist ein `delete` ohne `where`
+    -- ab („DELETE requires a WHERE clause“) – auch innerhalb einer Funktion.
+    delete from public.anwaerter where true;
     get diagnostics v_weg = row_count;
     return v_weg;
 end;
@@ -135,7 +138,7 @@ begin
     end if;
 
     begin
-        delete from public.bewerbungen;
+        delete from public.bewerbungen where true;  -- pg_safeupdate, siehe oben
         get diagnostics v_weg = row_count;
     exception
         when foreign_key_violation then
