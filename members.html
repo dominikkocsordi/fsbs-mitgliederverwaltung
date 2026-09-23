@@ -101,6 +101,8 @@
       <span class="countText" id="countInfo"></span>
 
       <button class="btn-secondary btnRefresh" onclick="load()">Aktualisieren</button>
+      <button class="btn-secondary btnCsv" type="button" onclick="exportCsv()"
+              title="Die angezeigte Liste als CSV-Datei">CSV</button>
       <button class="btn-primary btnCreate" id="createBtn" onclick="openCreate()">+ Mitglied</button>
     </div>
 
@@ -554,13 +556,16 @@ function refreshDropdowns(){
   if (prevS) fStatus.value  = prevS;
 }
 
-/* ========= Render ========= */
-function render(){
+/* ========= Render =========
+   Was die Liste gerade zeigt. `render()` zeichnet daraus Tabelle und
+   Karten, der CSV-Knopf schreibt dasselbe in eine Datei: Wer exportiert,
+   bekommt, was er vor sich sieht. */
+function sichtbareMitglieder(){
   const q  = searchEl.value.trim().toLowerCase();
   const fR = fRessort.value;
   const fS = fStatus.value;
 
-  const filtered = members.filter(m => {
+  return members.filter(m => {
     if (fR && getDept(m) !== fR)   return false;
     if (fS && getStatus(m) !== fS) return false;
     if (!q) return true;
@@ -570,6 +575,10 @@ function render(){
     ].map(x => String(x ?? "")).join(" ").toLowerCase();
     return hay.includes(q);
   });
+}
+
+function render(){
+  const filtered = sichtbareMitglieder();
 
   countInfo.textContent = `${filtered.length} von ${members.length} Mitgliedern`;
 
@@ -666,6 +675,36 @@ function render(){
       </div>
     `;
   }).join("");
+}
+
+/* ========= CSV =========
+   Semikolon und ein BOM davor: So öffnet Excel die Datei auf Anhieb
+   richtig, ohne Import-Dialog. Die Spalten nimmt die Datei aus den Zeilen
+   selbst — kommt in der Tabelle eine dazu, ist sie auch hier dabei. */
+function exportCsv(){
+  const rows = sichtbareMitglieder();
+  if (!rows.length) return alert("Da ist nichts zu exportieren.");
+
+  const spalten = [];
+  rows.forEach(r => Object.keys(r || {}).forEach(k => {
+    if (!spalten.includes(k)) spalten.push(k);
+  }));
+
+  const feld = (wert) => {
+    if (wert === null || wert === undefined) return "";
+    if (typeof wert === "object") return JSON.stringify(wert);
+    return String(wert);
+  };
+
+  const text = [spalten].concat(rows.map(r => spalten.map(s => feld(r[s]))))
+    .map(z => z.map(f => '"' + f.replaceAll('"', '""') + '"').join(";"))
+    .join("\r\n");
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + text], { type: "text/csv;charset=utf-8" }));
+  a.download = `mitglieder_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 /* ========= Modal logic (dialog-basiert — iOS-sicher) ========= */
