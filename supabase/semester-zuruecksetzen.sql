@@ -77,7 +77,10 @@ begin
         raise exception 'Der Satz zur Bestätigung stimmt nicht' using errcode = '23514';
     end if;
 
-    select count(*) into v_jetzt from public.anwaerter;
+    -- Zuweisung statt `select … into`: Der SQL-Editor von Supabase hält
+    -- `select … into` für ein neues Tabellen-Anlegen und flickt dann ein
+    -- `alter table … enable row level security` mitten in die Funktion.
+    v_jetzt := (select count(*) from public.anwaerter);
 
     if p_anzahl is distinct from v_jetzt then
         raise exception
@@ -129,7 +132,7 @@ begin
         raise exception 'Der Satz zur Bestätigung stimmt nicht' using errcode = '23514';
     end if;
 
-    select count(*) into v_jetzt from public.bewerbungen;
+    v_jetzt := (select count(*) from public.bewerbungen);  -- siehe oben
 
     if p_anzahl is distinct from v_jetzt then
         raise exception
