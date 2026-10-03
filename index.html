@@ -90,28 +90,6 @@
     <section id="dashOffen"></section>
   </main>
 
-  <!-- MV WIDGET -->
-  <div class="mvWidget hidden" id="mvWidget">
-    <div class="glass mvCompact">
-      <div class="mvLeft">
-        <div class="mvEyebrow">✅ MV WS 26/27</div>
-        <div class="mvTitle">Anwesenheit Mitgliederversammlung</div>
-
-        <div class="mvStats">
-          <div class="mvStat">📄 Gesamt: <strong id="mvTotal">–</strong></div>
-          <div class="mvStat">🟢/🔴 An/Ab: <strong id="mvSplit">–</strong></div>
-          <div class="mvStat">📊 Quote: <strong id="mvQuote">–</strong></div>
-        </div>
-      </div>
-
-      <div class="mvRight">
-        <button class="mvOpenBtn" type="button" onclick="location.href='/mv'">
-          Seite öffnen ↗
-        </button>
-      </div>
-    </div>
-  </div>
-
 </div>
 
 <script>
@@ -144,9 +122,6 @@ const CAND_TABLE     = "anwaerter";
 const BEW_TABLE      = "bewerbungen";
 
 const CAND_STATUS_COL = "bewerbung_status";
-
-/* Apps Script: Anwesenheit MV und die Belegliste der Finanzen */
-const MV_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJtYsEQbqqrp0gyfPp5caDitVndT1SwiLTSi1ybtf63_27UUv07wnlESYrP5-Cf2SEtA/exec";
 
 /* Eine Bewerbung, die noch im Verfahren steckt — dieselben Stände
    wie auf /bewerbungen, ohne `anwaerter` und `abgelehnt`. */
@@ -612,52 +587,6 @@ async function ladeFinanzen(){
 }
 
 /* ============================================================
-   Anwesenheit MV
-   ============================================================ */
-async function loadMvWidget(){
-  const widget  = document.getElementById("mvWidget");
-  const totalEl = document.getElementById("mvTotal");
-  const splitEl = document.getElementById("mvSplit");
-  const quoteEl = document.getElementById("mvQuote");
-
-  if (!totalEl || !splitEl || !quoteEl) return;
-
-  try{
-    const [mvRes, { count: memberCount }] = await Promise.all([
-      fetch(MV_APPS_SCRIPT_URL, { cache: "no-store" }),
-      sb.from(MEMBERS_TABLE).select("*", { count: "exact", head: true }).in("status", ["Vollmitglied", "Fördermitglied"])
-    ]);
-
-    if (!mvRes.ok) throw new Error(`HTTP ${mvRes.status}`);
-    const json = await mvRes.json();
-    if (!json.ok) throw new Error(json.error || "Apps Script Fehler");
-
-    const rows  = json.rows;
-    const total = rows.length;
-    const yes   = rows.filter(r => {
-      const s = String(r.status || "").toLowerCase();
-      return s.includes("ja") || s.includes("anwesend");
-    }).length;
-    const no    = Math.max(0, total - yes);
-
-    totalEl.textContent = String(total);
-    splitEl.textContent = `${yes} / ${no}`;
-
-    if (memberCount && memberCount > 0) {
-      quoteEl.textContent = `${Math.round((yes / memberCount) * 100)}%`;
-    } else {
-      quoteEl.textContent = `${yes} Zusagen`;
-    }
-
-    widget?.classList.remove("hidden");
-  } catch(err){
-    console.warn("MV-Widget konnte nicht geladen werden:", err.message);
-    /* Ohne Zahlen keine Kachel — eine Reihe Striche hilft niemandem. */
-    widget?.classList.add("hidden");
-  }
-}
-
-/* ============================================================
    Ablauf
    ============================================================ */
 async function loadDashboard(){
@@ -690,7 +619,6 @@ const _pageLoader = document.getElementById("pageLoader");
 (async () => {
   try{
     await loadDashboard();
-    await loadMvWidget();
   } catch(e){
     if (e?.message === "kein_profil"){
       setAuthUI(true, "");
