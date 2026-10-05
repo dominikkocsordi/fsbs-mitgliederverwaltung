@@ -611,11 +611,20 @@ const PORTAL_DOMAIN   = "portal.fsbs-hm.de";
 const STATUS_TAKT     = 60_000;
 const STATUS_LIMIT    = 8_000;
 
+/* Logos als schlichte Umrisse, damit sie in hell und dunkel passen */
+const DIENST_LOGO = {
+  supabase: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.3V10h7.6c1.4 0 2.2 1.6 1.3 2.7L13.6 22.3c-.5.7-1.6.3-1.6-.6V14H4.4c-1.4 0-2.2-1.6-1.3-2.7L10.4 1.7c.5-.7 1.6-.3 1.6.6Z"/></svg>`,
+  github:   `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5Z"/></svg>`,
+  domain:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.8 3.9 6 3.9 9.5s-1.3 6.7-3.9 9.5c-2.6-2.8-3.9-6-3.9-9.5S9.4 5.3 12 2.5Z"/></svg>`,
+};
+
 const DIENSTE = [
-  { key:"supabase", name:"Supabase", href:"https://status.supabase.com", pruefe: pruefeSupabase },
-  { key:"github",   name:"GitHub",   href:"https://www.githubstatus.com", pruefe: pruefeGithub },
-  { key:"domain",   name:"Domain",   href:`https://${PORTAL_DOMAIN}`,     pruefe: pruefeDomain },
+  { key:"supabase", name:"Supabase", rolle:"Datenbank & Login", href:"https://status.supabase.com", pruefe: pruefeSupabase },
+  { key:"github",   name:"GitHub",   rolle:"Hosting (Pages)",   href:"https://www.githubstatus.com", pruefe: pruefeGithub },
+  { key:"domain",   name:"Domain",   rolle:PORTAL_DOMAIN,       href:`https://${PORTAL_DOMAIN}`,     pruefe: pruefeDomain },
 ];
+
+const TON_LABEL = { ok:"Online", warn:"Gestört", bad:"Down", pending:"Prüfe…" };
 
 /* fetch mit Zeitlimit und Stoppuhr */
 async function messe(url, opts = {}){
@@ -646,13 +655,13 @@ async function pruefeSupabase(){
   ]);
 
   if (projekt.status !== "fulfilled" || !projekt.value.res.ok)
-    return { ton:"bad", text:"Projekt antwortet nicht" };
+    return { ton:"bad", text:"antwortet nicht" };
 
   const ind = extern.status === "fulfilled" ? extern.value?.status?.indicator : "none";
   if (ind && ind !== "none")
     return { ton: STATUSPAGE_TON[ind] || "warn", text: extern.value.status.description || "Störung gemeldet" };
 
-  return { ton:"ok", text:`${projekt.value.ms} ms` };
+  return { ton:"ok", text:`Antwort in ${projekt.value.ms} ms` };
 }
 
 async function pruefeGithub(){
@@ -667,7 +676,7 @@ async function pruefeGithub(){
 
   /* Pages läuft — anderswo bei GitHub kann trotzdem etwas sein. */
   const ind = d.status?.indicator;
-  if (ind && ind !== "none") return { ton:"warn", text:"Störung, Pages ok" };
+  if (ind && ind !== "none") return { ton:"warn", text:"Teilstörung" };
   return { ton:"ok", text:"Pages läuft" };
 }
 
@@ -687,7 +696,7 @@ async function pruefeDomain(){
   if (dns.status === "fulfilled" && !dnsOk)
     return { ton:"warn", text:"DNS löst nicht auf" };
 
-  return { ton:"ok", text:`${http.value.ms} ms` };
+  return { ton:"ok", text:`Antwort in ${http.value.ms} ms` };
 }
 
 function statusKarte(){
@@ -702,10 +711,13 @@ function statusKarte(){
       </div>
       <div class="sysList">
         ${DIENSTE.map(d => `
-          <a class="sysItem" id="sys-${d.key}" href="${d.href}" target="_blank" rel="noopener" data-ton="pending">
-            <span class="sysDot" aria-hidden="true"></span>
-            <span class="sysName">${esc(d.name)}</span>
-            <span class="sysText">…</span>
+          <a class="sysItem" id="sys-${d.key}" href="${d.href}" target="_blank" rel="noopener" data-ton="pending" data-dienst="${d.key}">
+            <span class="sysLogo" aria-hidden="true">${DIENST_LOGO[d.key]}</span>
+            <span class="sysBody">
+              <span class="sysName">${esc(d.name)}</span>
+              <span class="sysText">${esc(d.rolle)}</span>
+            </span>
+            <span class="sysChip"><span class="sysDot" aria-hidden="true"></span><span class="sysLabel">${TON_LABEL.pending}</span></span>
           </a>`).join("")}
       </div>
     </section>`;
@@ -727,8 +739,11 @@ async function pruefeAlle(){
   const setze = (key, { ton, text }) => {
     const el = document.getElementById(`sys-${key}`);
     if (!el) return;
+    const d = DIENSTE.find(x => x.key === key);
     el.dataset.ton = ton;
+    el.querySelector(".sysLabel").textContent = TON_LABEL[ton] || TON_LABEL.pending;
     el.querySelector(".sysText").textContent = text;
+    el.title = `${d.name} (${d.rolle}): ${text}`;
   };
 
   try{
