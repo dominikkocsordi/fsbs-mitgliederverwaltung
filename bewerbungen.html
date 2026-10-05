@@ -781,6 +781,7 @@ const normRole = (v) => (v || "").trim().toLowerCase();
 function roleLabel(r) {
   if (r === "vorstand") return "Vorstand";
   if (r === "ressortleiter") return "Ressortleiter";
+  if (r === "mitgliederbetreuer") return "Mitgliederbetreuer";
   if (r === "protokollfuehrer") return "Protokollführer";
   return "Unbekannt";
 }
@@ -870,6 +871,7 @@ const STAND_BEWERBER = "kennenlernen";
 let CAN_VIEW = false;
 let CAN_EDIT = false;
 let MY_RESSORT = "";
+let MY_ROLE = "";
 
 let zeilen = [];            // die Bewerbungen
 let felder = [];            // die Fragen, auch die ausgeschalteten
@@ -2024,8 +2026,9 @@ async function profilLaden(session) {
   setRolePill(rolle);
   window.FSBSNav?.setRole(rolle);
 
+  MY_ROLE = rolle;
   MY_RESSORT = safe(data.ressort).trim();
-  CAN_VIEW = rolle === "vorstand" || rolle === "ressortleiter";
+  CAN_VIEW = ["vorstand", "ressortleiter", "mitgliederbetreuer"].includes(rolle);
   CAN_EDIT = rolle === "vorstand";
   return data;
 }
@@ -2041,7 +2044,7 @@ async function profilLaden(session) {
       $("statusPill").textContent = "Kein Zugriff";
       $("mainContent").innerHTML = `<div class="glass card gate">
         <strong>Kein Zugriff</strong>
-        Die Bewerbungen sehen Vorstand und Ressortleitung.
+        Die Bewerbungen sehen Vorstand, Ressortleitung und Mitgliederbetreuung.
       </div>`;
       return;
     }
@@ -2052,8 +2055,8 @@ async function profilLaden(session) {
     formZeichnen();
 
     /* Das eigene Ressort steht vorn: Danach schaut eine Leitung
-       zuerst. Der Vorstand schaut auf alles. */
-    if (!CAN_EDIT && MY_RESSORT && ressorts.some((r) => r.name === MY_RESSORT)) {
+       zuerst. Vorstand und Mitgliederbetreuung schauen auf alles. */
+    if (MY_ROLE === "ressortleiter" && MY_RESSORT && ressorts.some((r) => r.name === MY_RESSORT)) {
       ressortFilter = MY_RESSORT;
       $("ressortFeld").value = MY_RESSORT;
     }

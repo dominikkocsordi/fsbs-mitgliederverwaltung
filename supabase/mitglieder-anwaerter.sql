@@ -15,10 +15,11 @@
 --
 --  Nach diesem Skript gilt für beide Tabellen:
 --
---    vorstand          liest und schreibt
---    ressortleiter     liest
---    protokollfuehrer  nichts – das Protokoll ist sein Platz
---    anon              nichts
+--    vorstand            liest und schreibt
+--    ressortleiter       liest
+--    mitgliederbetreuer  liest – alle Ressorts, nichts ändern
+--    protokollfuehrer    nichts – das Protokoll ist sein Platz
+--    anon                nichts
 --
 --  Die Seiten bleiben, wie sie sind: Sie zeigen der Ressortleitung die
 --  Listen und lassen die Knöpfe aus. Was zählt, steht ab jetzt hier.
@@ -56,7 +57,7 @@ as $$
         select 1
           from public.profiles
          where id = auth.uid()
-           and lower(btrim(role)) in ('vorstand', 'ressortleiter')
+           and lower(btrim(role)) in ('vorstand', 'ressortleiter', 'mitgliederbetreuer')
     );
 $$;
 

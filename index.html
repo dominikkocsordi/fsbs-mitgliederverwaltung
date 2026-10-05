@@ -100,9 +100,10 @@
    Wie stehen die Zahlen, die meine Rolle angehen — und was ist
    offen? Alles Weitere steht auf der Seite, zu der es gehört.
 
-     Vorstand        der ganze Verein
-     Ressortleiter   sein Ressort
-     Protokollführer kein Dashboard, wird weitergeleitet
+     Vorstand            der ganze Verein
+     Mitgliederbetreuer  der ganze Verein, ohne Finanzen
+     Ressortleiter       sein Ressort
+     Protokollführer     kein Dashboard, wird weitergeleitet
 
    Abgefragt wird nur, was die Rolle ohnehin lesen darf (siehe die
    Zugriffsregeln in supabase/*.sql). Jede Abfrage steht für sich:
@@ -170,6 +171,7 @@ function roleLabel(role){
   const r = normRole(role);
   if (r === "vorstand") return "Vorstand";
   if (r === "ressortleiter") return "Ressortleiter";
+  if (r === "mitgliederbetreuer") return "Mitgliederbetreuer";
   if (r === "protokollfuehrer") return "Protokollführer";
   return "Unbekannt";
 }
@@ -441,9 +443,12 @@ function begruessung(me){
 }
 
 /* ============================================================
-   Vorstand — der ganze Verein
+   Vorstand und Mitgliederbetreuung — der ganze Verein
+   ------------------------------------------------------------
+   Die Mitgliederbetreuung sieht dieselben Zahlen, nur die
+   Belegkachel nicht: Finanzen bleiben beim Vorstand.
    ============================================================ */
-function rendereVorstand(daten){
+function rendereVerein(daten, { finanzen }){
   const { mitglieder, anwaerter, bewerbungen, kontenOhneProfil } = daten;
 
   const aktive     = mitglieder.filter(m => mitgliedStand(m) === "aktiv").length;
@@ -465,9 +470,9 @@ function rendereVorstand(daten){
                sub:`${bewUngeprueft} ungeprüft` }),
     statTile({ label:"Anwärter", value:String(anwOffen), icon:"👶🏼", href:"/anwaerter",
                sub:"offen" }),
-    statTile({ label:"Belege offen", value:`<span class="isPending" id="finWert">…</span>`, icon:"🧾",
+    finanzen && statTile({ label:"Belege offen", value:`<span class="isPending" id="finWert">…</span>`, icon:"🧾",
                href:"/rechnungen", id:"finTile", sub:`<span id="finSub">wird geladen…</span>` }),
-  ].join("");
+  ].filter(Boolean).join("");
 
   const offen = [];
   if (bewUngeprueft) offen.push(todoItem({ anzahl:bewUngeprueft, ton:"warn", href:"/bewerbungen",
@@ -481,7 +486,7 @@ function rendereVorstand(daten){
   offenKarte(offen);
 
   /* Die Belegliste wird nachgeladen, statt das Dashboard aufzuhalten. */
-  ladeFinanzen();
+  if (finanzen) ladeFinanzen();
 }
 
 /* ============================================================
@@ -609,8 +614,9 @@ async function loadDashboard(){
   begruessung(me);
 
   const daten = await ladeAlles(istVorstand);
-  if (istVorstand) rendereVorstand(daten);
-  else             rendereRessortleiter(daten, me);
+  if (istVorstand)                                    rendereVerein(daten, { finanzen: true });
+  else if (normRole(me.role) === "mitgliederbetreuer") rendereVerein(daten, { finanzen: false });
+  else                                                rendereRessortleiter(daten, me);
 
   document.getElementById("dash").classList.remove("hidden");
 }

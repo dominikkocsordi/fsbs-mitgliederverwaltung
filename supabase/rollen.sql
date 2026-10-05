@@ -1,19 +1,21 @@
 -- =============================================================================
---  Rollen – drei, und keine vierte
+--  Rollen – vier, und keine fünfte
 -- =============================================================================
 --  Einmal komplett im Supabase SQL-Editor ausführen. Das Skript ist
 --  wiederholbar: ein zweiter Durchlauf ändert nichts mehr.
 --
---  Das Portal kennt genau drei Rollen:
+--  Das Portal kennt genau vier Rollen:
 --
---    vorstand          sieht und ändert alles – auch Finanzen und /nutzer
---    ressortleiter     Dashboard, Mitglieder, Anwärter, Bewerbungen
---    protokollfuehrer  ausschließlich das Protokoll
+--    vorstand            sieht und ändert alles – auch Finanzen und /nutzer
+--    ressortleiter       Dashboard, Mitglieder, Anwärter, Bewerbungen
+--    mitgliederbetreuer  dasselbe, ressortübergreifend, nur lesen
+--                        (AG „Mitgliederbetreuung“, siehe mitgliederbetreuer.sql)
+--    protokollfuehrer    ausschließlich das Protokoll
 --
---  Jede Seite vergleicht die Rolle Zeichen für Zeichen mit diesen drei
+--  Jede Seite vergleicht die Rolle Zeichen für Zeichen mit diesen vier
 --  Wörtern, die Datenbank tut es in `ist_vorstand()` genauso. Steht in
 --  `profiles.role` etwas anderes – „Admin“, „Vorsitz“, „Protokollführer“
---  mit ü, ein Tippfehler –, dann ist das für das Portal keine der drei
+--  mit ü, ein Tippfehler –, dann ist das für das Portal keine der vier
 --  Rollen: Die Person sieht „Kein Zugriff“, obwohl in der Liste etwas
 --  Vernünftiges steht. Genau das ist der Fall, wenn jemand Vorstand ist
 --  und die Finanzen trotzdem zu bleiben.
@@ -21,15 +23,16 @@
 --  Das Skript tut drei Dinge:
 --
 --    1. Es zeigt an, was heute in der Spalte steht (Meldungen im Editor).
---    2. Es gleicht jeden Wert auf eine der drei Rollen an.
+--    2. Es gleicht jeden Wert auf eine der vier Rollen an.
 --    3. Es sorgt dafür, dass künftig gar nichts anderes mehr hineinkommt –
 --       über den vorhandenen Trigger und eine Prüfregel an der Tabelle.
 --
 --  Angeglichen wird vorsichtig: Nur was mit „vorstand“ beginnt, bleibt
 --  Vorstand (Groß-/Kleinschreibung, Leerzeichen und „Vorstandschaft“
 --  eingeschlossen). Alles, was nach Protokoll aussieht, wird
---  Protokollführer. Jeder übrige Wert landet bei `ressortleiter` – der
---  Rolle mit den wenigsten Rechten. Niemand wird durch dieses Skript zum
+--  Protokollführer, alles mit „Betreu“ darin Mitgliederbetreuer. Jeder
+--  übrige Wert landet bei `ressortleiter` – einer Rolle, die nur liest.
+--  Niemand wird durch dieses Skript zum
 --  Vorstand gemacht; wer es sein soll, bekommt die Rolle danach auf
 --  `/nutzer` mit einem Klick. Welche Zeilen sich geändert haben, steht in
 --  den Meldungen.
@@ -56,7 +59,7 @@ end $$;
 
 
 -- 2 -------------------------------------------------------- Die eine Zuordnung
--- Eine Funktion, die aus irgendeinem geschriebenen Wert eine der drei
+-- Eine Funktion, die aus irgendeinem geschriebenen Wert eine der vier
 -- Rollen macht. Umlaute werden ausgeschrieben, alles außer Buchstaben
 -- fällt weg – „Protokoll-Führer “ und „protokollfuehrer“ sind damit
 -- dasselbe.
@@ -76,6 +79,7 @@ as $$
     select case
                when t like 'vorstand%'   then 'vorstand'
                when t like '%protokoll%' then 'protokollfuehrer'
+               when t like '%betreu%'    then 'mitgliederbetreuer'
                else                           'ressortleiter'
            end
       from blank;
@@ -116,7 +120,7 @@ end $$;
 -- 4 ------------------------------------------------------- Beim Schreiben auch
 -- Der Trigger aus `nutzer.sql` hat die Rolle bisher nur kleingeschrieben
 -- und beschnitten. Jetzt geht er durch dieselbe Zuordnung wie der
--- Bestand: Was gespeichert wird, ist danach eine der drei Rollen.
+-- Bestand: Was gespeichert wird, ist danach eine der vier Rollen.
 
 create or replace function public.profiles_normalisieren()
 returns trigger
@@ -142,15 +146,17 @@ create trigger profiles_normalisieren
 -- 5 ---------------------------------------------------------- Und als Riegel
 -- Der Trigger sorgt dafür, dass es nie dazu kommt; die Prüfregel sagt es
 -- aus, damit ein späterer Eingriff an ihm vorbei – ein Import, eine
--- Änderung direkt in der Tabelle – nicht still eine vierte Rolle anlegt.
+-- Änderung direkt in der Tabelle – nicht still eine fünfte Rolle anlegt.
+-- (Bis zur Mitgliederbetreuung hieß die Regel `profiles_role_drei`.)
 
 alter table public.profiles drop constraint if exists profiles_role_drei;
-alter table public.profiles add  constraint profiles_role_drei
-    check (role in ('vorstand', 'ressortleiter', 'protokollfuehrer'));
+alter table public.profiles drop constraint if exists profiles_role_gueltig;
+alter table public.profiles add  constraint profiles_role_gueltig
+    check (role in ('vorstand', 'ressortleiter', 'mitgliederbetreuer', 'protokollfuehrer'));
 
 
 -- 6 ------------------------------------------------------------- Zum Nachsehen
--- Das Ergebnis: wer welche Rolle hat. Mehr als drei Werte kann diese
+-- Das Ergebnis: wer welche Rolle hat. Mehr als vier Werte kann diese
 -- Liste ab hier nicht mehr enthalten.
 
 select p.role,

@@ -647,7 +647,8 @@ create trigger bewerbungen_pflegen
 -- Durchlauf ändert also nichts.
 --
 -- Die Liste der Bewerbungen sieht auch die Ressortleitung – sie muss die
--- Wünsche für ihr Ressort einschätzen können. Ändern darf nur der Vorstand.
+-- Wünsche für ihr Ressort einschätzen können – und die Mitgliederbetreuung,
+-- die neue Leute beim Einstieg begleitet. Ändern darf nur der Vorstand.
 
 create or replace function public.ist_vorstand()
 returns boolean
@@ -675,7 +676,7 @@ as $$
         select 1
           from public.profiles
          where id = auth.uid()
-           and lower(btrim(role)) in ('vorstand', 'ressortleiter')
+           and lower(btrim(role)) in ('vorstand', 'ressortleiter', 'mitgliederbetreuer')
     );
 $$;
 

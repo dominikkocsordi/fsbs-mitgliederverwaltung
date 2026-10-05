@@ -286,6 +286,7 @@
       const r = normRole(role);
       if (r === "vorstand") return "Vorstand";
       if (r === "ressortleiter") return "Ressortleiter";
+      if (r === "mitgliederbetreuer") return "Mitgliederbetreuer";
       if (r === "protokollfuehrer") return "Protokollführer";
       return "Unbekannt";
     }
@@ -592,7 +593,9 @@
          dem Vorstand, und was sie nicht darf, steht ihr auch nicht im Weg. */
       purgeBtn.hidden = !CAN_EDIT;
 
-      if (!CAN_EDIT && MY_RESSORT && RESSORTS_FIXED.includes(MY_RESSORT)){
+      /* Nur die Ressortleitung startet im eigenen Ressort; die
+         Mitgliederbetreuung schaut ressortübergreifend auf alle. */
+      if (MY_ROLE === "ressortleiter" && MY_RESSORT && RESSORTS_FIXED.includes(MY_RESSORT)){
         fRessort.value = MY_RESSORT;
         fRessort.disabled = false;
         fRessort.title = "Start-Filter ist dein Ressort (änderbar).";

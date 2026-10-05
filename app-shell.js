@@ -85,14 +85,19 @@
 
   /* `rollen` zählt auf, wer den Punkt sehen darf. Der Protokollführer
      kommt nur an das Protokoll — deshalb steht er nur dort.
+     Die Mitgliederbetreuung sieht dieselben vier Punkte wie die
+     Ressortleitung, aber weder Finanzen noch Protokoll, Schreiben
+     oder Nutzer.
      Die Zutritte stehen nicht mehr in der Leiste; die Seiten
      /zutritte und /zutritte-liste gibt es weiterhin unter ihrer
      Adresse. */
+  var LESEN = ['vorstand', 'ressortleiter', 'mitgliederbetreuer'];
+
   var NAV = [
-    { id: 'navDashboard',  href: '/',               label: 'Dashboard',   icon: ICONS.dashboard, rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navMembers',    href: '/members',        label: 'Mitglieder',  icon: ICONS.members,   rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navCandidates', href: '/anwaerter',      label: 'Anwärter',    icon: ICONS.child,     rollen: ['vorstand', 'ressortleiter'] },
-    { id: 'navApps',       href: '/bewerbungen',    label: 'Bewerbungen', icon: ICONS.userPlus,  rollen: ['vorstand', 'ressortleiter'] },
+    { id: 'navDashboard',  href: '/',               label: 'Dashboard',   icon: ICONS.dashboard, rollen: LESEN },
+    { id: 'navMembers',    href: '/members',        label: 'Mitglieder',  icon: ICONS.members,   rollen: LESEN },
+    { id: 'navCandidates', href: '/anwaerter',      label: 'Anwärter',    icon: ICONS.child,     rollen: LESEN },
+    { id: 'navApps',       href: '/bewerbungen',    label: 'Bewerbungen', icon: ICONS.userPlus,  rollen: LESEN },
     { id: 'navFinanzen',   href: '/rechnungen',     label: 'Finanzen',    icon: ICONS.finance,   rollen: ['vorstand'] },
     { id: 'navProtokoll',  href: '/protokoll',      label: 'Protokoll',   icon: ICONS.minutes,   rollen: ['vorstand', 'protokollfuehrer'] },
     { id: 'navSchreiben',  href: '/schreiben',      label: 'Schreiben',   icon: ICONS.compose,   rollen: ['vorstand'] },

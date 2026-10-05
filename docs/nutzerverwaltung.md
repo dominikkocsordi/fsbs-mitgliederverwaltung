@@ -32,8 +32,8 @@ Funktion fehlt.
 ## Einmal: das SQL laufen lassen
 
 Im Supabase-SQL-Editor **`supabase/nutzer.sql`** ausführen, danach
-**`supabase/rollen.sql`** und **`supabase/mitglieder-anwaerter.sql`**. Alle
-drei Skripte sind wiederholbar; ein zweiter Durchlauf ändert nichts und
+**`supabase/rollen.sql`**, **`supabase/mitglieder-anwaerter.sql`** und
+**`supabase/mitgliederbetreuer.sql`**. Alle Skripte sind wiederholbar; ein zweiter Durchlauf ändert nichts und
 löscht nichts.
 
 Es legt an:
@@ -108,6 +108,7 @@ hinterlegt, die bisher gefehlt hat.
 |---|---|---|
 | `vorstand` | alles — Dashboard, Mitglieder, Anwärter, Bewerbungen, Finanzen, Protokoll, Schreiben, Zutritte, Nutzer | alles |
 | `ressortleiter` | Dashboard (eigenes Ressort), Mitglieder, Anwärter, Bewerbungen | nichts — überall nur Leserechte |
+| `mitgliederbetreuer` | Dashboard (ganzer Verein, ohne Finanzen), Mitglieder, Anwärter, Bewerbungen — alle Ressorts | nichts — überall nur Leserechte |
 | `protokollfuehrer` | ausschließlich das Protokoll | das Protokoll |
 
 Die **Ressortleitung liest, und dabei bleibt es.** Auf `/members` und
@@ -120,14 +121,39 @@ schreiben will, kommt an den Zugriffsregeln nicht vorbei.
 Ändern geht auf `/nutzer` mit einem Klick auf die Zeile. Die neue Rolle
 gilt, sobald die Person die Seite neu lädt.
 
-Mehr als diese drei gibt es nicht. Jede Seite und die Datenbank
+### Mitgliederbetreuer
+
+Die Rolle gehört zur Arbeitsgruppe **„Mitgliederbetreuung“** (§ 7 der
+Satzung, Sonstige Gremien). Die AG begleitet neue Mitglieder beim
+Einstieg, ist erste Ansprechperson bei organisatorischen Fragen und hilft
+bei der Pflege der Mitgliederunterlagen und -übersichten — rein
+administrativ.
+
+Entsprechend **sieht** sie Mitglieder, Anwärter und Bewerbungen, und zwar
+ressortübergreifend: Anders als bei der Ressortleitung ist kein Ressort
+vorausgewählt, und das Dashboard zeigt die Zahlen des ganzen Vereins.
+
+Sie **entscheidet nichts**: keine Aufnahme, keine Übernahme von Anwärtern,
+kein Wechsel des Mitgliedsstatus (etwa zur Vollmitgliedschaft), kein
+Ausschluss oder Löschen. Die Knöpfe dazu fehlen ihr wie der
+Ressortleitung, und die Datenbank lässt nur den Vorstand schreiben.
+
+Sie **sieht nicht**: Finanzen, Protokoll, Schreiben (also auch keine
+Zeugnisse) und die Nutzerverwaltung. Diese Punkte fehlen in der Leiste,
+und unter ihrer Adresse steht „Kein Zugriff“.
+
+Einzurichten ist das einmal mit `supabase/mitgliederbetreuer.sql`, und
+die Funktion `nutzer-verwalten` muss neu veröffentlicht werden, damit sie
+Konten mit der neuen Rolle anlegt.
+
+Mehr als diese vier gibt es nicht. Jede Seite und die Datenbank
 vergleichen die Rolle Zeichen für Zeichen mit genau diesen Wörtern.
 
 ---
 
 ## „Kein Zugriff“, obwohl die Rolle stimmt
 
-Steht in der Spalte `role` etwas anderes als eines der drei Wörter —
+Steht in der Spalte `role` etwas anderes als eines der vier Wörter —
 `Admin`, `Vorsitz`, `Protokollführer` mit ü, ein Tippfehler, ein alter
 Import —, dann ist das für das Portal keine bekannte Rolle. Die Person
 sieht überall „Kein Zugriff“, obwohl auf `/nutzer` etwas Vernünftiges
@@ -145,9 +171,9 @@ select u.email, p.role
 ```
 
 Geradeziehen tut es **`supabase/rollen.sql`**: Das Skript gleicht jeden
-vorhandenen Wert auf eine der drei Rollen an, schreibt in die Meldungen,
+vorhandenen Wert auf eine der vier Rollen an, schreibt in die Meldungen,
 welche Zeile wohin gewandert ist, und verriegelt die Spalte — über den
-Trigger und eine Prüfregel an der Tabelle — gegen jede vierte Rolle.
+Trigger und eine Prüfregel an der Tabelle — gegen jede fünfte Rolle.
 
 Zum Vorstand macht das Skript niemanden: Nur was schon mit `vorstand`
 beginnt, bleibt Vorstand, alles Unbekannte landet bei `ressortleiter`.

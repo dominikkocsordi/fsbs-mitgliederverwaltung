@@ -24,7 +24,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
-const ERLAUBTE_ROLLEN = ["vorstand", "ressortleiter", "protokollfuehrer"];
+const ERLAUBTE_ROLLEN = ["vorstand", "ressortleiter", "mitgliederbetreuer", "protokollfuehrer"];
 
 const ERLAUBTE_HERKUNFT = [
   "https://portal.fsbs-hm.de",

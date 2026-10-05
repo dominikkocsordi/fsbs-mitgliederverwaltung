@@ -130,6 +130,7 @@
         <option value="">Alle Rollen</option>
         <option value="vorstand">Vorstand</option>
         <option value="ressortleiter">Ressortleiter</option>
+        <option value="mitgliederbetreuer">Mitgliederbetreuer</option>
         <option value="protokollfuehrer">Protokollführer</option>
       </select>
 
@@ -221,6 +222,7 @@
             <select id="uRole" onchange="rollenHinweis()">
               <option value="ressortleiter">Ressortleiter</option>
               <option value="vorstand">Vorstand</option>
+              <option value="mitgliederbetreuer">Mitgliederbetreuer</option>
               <option value="protokollfuehrer">Protokollführer</option>
             </select>
           </div>
@@ -264,6 +266,8 @@ const ROLLEN = [
     hinweis: "Sieht und ändert alles — auch diese Seite hier." },
   { wert: "ressortleiter",    label: "Ressortleiter",
     hinweis: "Sieht Mitglieder, Anwärter und Bewerbungen; das Dashboard zeigt das eigene Ressort." },
+  { wert: "mitgliederbetreuer", label: "Mitgliederbetreuer",
+    hinweis: "Sieht Mitglieder, Anwärter und Bewerbungen aller Ressorts — nur lesen. Keine Finanzen, kein Protokoll, keine Zeugnisse." },
   { wert: "protokollfuehrer", label: "Protokollführer",
     hinweis: "Kommt ausschließlich an das Protokoll, sonst an nichts." },
 ];
