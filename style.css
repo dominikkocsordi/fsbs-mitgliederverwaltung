@@ -3602,6 +3602,131 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   transition: color 0.2s ease;
 }
 
+/* --- Systemstatus (nur Vorstand) --- */
+.sysHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sysHead .panelTitle { margin-bottom: 0; }
+
+.sysMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sysSumme {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.sysSumme[data-ton="ok"]   { color: var(--success); }
+.sysSumme[data-ton="warn"] { color: var(--warning); }
+.sysSumme[data-ton="bad"]  { color: var(--danger); }
+
+.sysRefresh {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.sysRefresh:hover { color: var(--foreground); border-color: color-mix(in oklab, var(--primary) 30%, transparent); }
+.sysRefresh.is-spinning { animation: sysSpin 0.9s linear infinite; }
+
+@keyframes sysSpin { to { transform: rotate(360deg); } }
+
+.sysList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sysItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.sysItem:hover { border-color: color-mix(in oklab, var(--primary) 30%, transparent); }
+
+.sysDot {
+  --ton: var(--faint-foreground);
+  position: relative;
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ton);
+}
+
+/* Ein leiser Puls zeigt: hier wird live geprüft. */
+.sysDot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--ton);
+  opacity: 0;
+  animation: sysPulse 2.4s ease-out infinite;
+}
+
+@keyframes sysPulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  70%  { transform: scale(2.6); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.sysItem[data-ton="ok"]   .sysDot { --ton: var(--success); }
+.sysItem[data-ton="warn"] .sysDot { --ton: var(--warning); }
+.sysItem[data-ton="bad"]  .sysDot { --ton: var(--danger); }
+.sysItem[data-ton="pending"] .sysDot::after { animation: none; }
+
+.sysItem[data-ton="bad"] { border-color: color-mix(in oklab, var(--danger) 34%, transparent); background: var(--danger-surface); }
+
+.sysName {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sysText {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sysItem[data-ton="warn"] .sysText { color: var(--warning); }
+.sysItem[data-ton="bad"]  .sysText { color: var(--danger); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sysDot::after, .sysRefresh.is-spinning { animation: none; }
+}
+
 /* Kachel, deren Zahl noch nachgeladen wird */
 .isPending { color: var(--faint-foreground); }
 
@@ -3610,6 +3735,7 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
   .statTile { padding: 14px; }
   .statTile__value { font-size: 26px; }
   .panel { padding: 16px; }
+  .sysList { grid-template-columns: 1fr; gap: 8px; }
 }
 
 @media (max-width: 380px) {

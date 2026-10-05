@@ -3,7 +3,7 @@
    Offline-Support & PWA-Installierung
    ============================================================ */
 
-const CACHE = 'fsbs-v20';
+const CACHE = 'fsbs-v21';
 
 /* Statische App-Shell – bei Installation vorher cachen */
 const PRECACHE = [
@@ -74,7 +74,9 @@ self.addEventListener('fetch', evt => {
   /* Externe APIs immer live abrufen (Supabase, Google Apps Script, CDNs) */
   const skipHosts = [
     'supabase.co', 'googleapis.com', 'googleusercontent.com',
-    'google.com', 'unpkg.com', 'cdn.jsdelivr.net'
+    'google.com', 'unpkg.com', 'cdn.jsdelivr.net',
+    /* Systemstatus auf dem Dashboard */
+    'status.supabase.com', 'githubstatus.com', 'cloudflare-dns.com'
   ];
   if (skipHosts.some(h => url.hostname.includes(h))) return;
 

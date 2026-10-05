@@ -88,6 +88,7 @@
     <section class="dashHello" id="dashHello"></section>
     <section class="dashStats" id="dashStats"></section>
     <section id="dashOffen"></section>
+    <section id="dashStatus"></section>
   </main>
 
 </div>
@@ -592,6 +593,175 @@ async function ladeFinanzen(){
 }
 
 /* ============================================================
+   Systemstatus — nur Vorstand
+   ------------------------------------------------------------
+   Drei Punkte, an denen das Portal hängt: die Datenbank bei
+   Supabase, das Hosting auf GitHub Pages und die Domain. Geprüft
+   wird direkt aus dem Browser, jede Prüfung für sich und mit
+   Zeitlimit; alle sechzig Sekunden, solange der Tab sichtbar ist.
+
+     Supabase   unser Projekt antwortet  +  status.supabase.com
+     GitHub     Pages laut githubstatus.com
+     Domain     DNS (über Cloudflare)    +  die Seite selbst per HTTPS
+
+   Die Statusseiten erlauben den Abruf aus dem Browser; sw.js
+   reicht sie am Cache vorbei durch.
+   ============================================================ */
+const PORTAL_DOMAIN   = "portal.fsbs-hm.de";
+const STATUS_TAKT     = 60_000;
+const STATUS_LIMIT    = 8_000;
+
+const DIENSTE = [
+  { key:"supabase", name:"Supabase", href:"https://status.supabase.com", pruefe: pruefeSupabase },
+  { key:"github",   name:"GitHub",   href:"https://www.githubstatus.com", pruefe: pruefeGithub },
+  { key:"domain",   name:"Domain",   href:`https://${PORTAL_DOMAIN}`,     pruefe: pruefeDomain },
+];
+
+/* fetch mit Zeitlimit und Stoppuhr */
+async function messe(url, opts = {}){
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), STATUS_LIMIT);
+  const t0 = performance.now();
+  try{
+    const res = await fetch(url, { cache:"no-store", ...opts, signal: ctrl.signal });
+    return { res, ms: Math.round(performance.now() - t0) };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/* Atlassian-Statuspage (Supabase und GitHub nutzen beide eine) */
+async function statuspage(url){
+  const { res } = await messe(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+const STATUSPAGE_TON = { none:"ok", minor:"warn", maintenance:"warn", major:"bad", critical:"bad" };
+
+async function pruefeSupabase(){
+  const [projekt, extern] = await Promise.allSettled([
+    messe(`${SUPABASE_URL}/auth/v1/health`, { headers:{ apikey: SUPABASE_KEY } }),
+    statuspage("https://status.supabase.com/api/v2/status.json"),
+  ]);
+
+  if (projekt.status !== "fulfilled" || !projekt.value.res.ok)
+    return { ton:"bad", text:"Projekt antwortet nicht" };
+
+  const ind = extern.status === "fulfilled" ? extern.value?.status?.indicator : "none";
+  if (ind && ind !== "none")
+    return { ton: STATUSPAGE_TON[ind] || "warn", text: extern.value.status.description || "Störung gemeldet" };
+
+  return { ton:"ok", text:`${projekt.value.ms} ms` };
+}
+
+async function pruefeGithub(){
+  const d = await statuspage("https://www.githubstatus.com/api/v2/summary.json");
+  const pages = (d.components || []).find(c => c.name === "Pages");
+  const ps = pages?.status || "operational";
+
+  if (ps === "major_outage")   return { ton:"bad",  text:"Pages ausgefallen" };
+  if (ps === "partial_outage") return { ton:"bad",  text:"Pages teilweise gestört" };
+  if (ps === "degraded_performance") return { ton:"warn", text:"Pages langsam" };
+  if (ps === "under_maintenance")    return { ton:"warn", text:"Pages in Wartung" };
+
+  /* Pages läuft — anderswo bei GitHub kann trotzdem etwas sein. */
+  const ind = d.status?.indicator;
+  if (ind && ind !== "none") return { ton:"warn", text:"Störung, Pages ok" };
+  return { ton:"ok", text:"Pages läuft" };
+}
+
+async function pruefeDomain(){
+  const [dns, http] = await Promise.allSettled([
+    messe(`https://cloudflare-dns.com/dns-query?name=${PORTAL_DOMAIN}&type=A`,
+          { headers:{ accept:"application/dns-json" } })
+      .then(({ res }) => res.json()),
+    /* HEAD läuft am Service Worker vorbei — es zählt die echte Antwort. */
+    messe(`https://${PORTAL_DOMAIN}/CNAME`, { method:"HEAD" }),
+  ]);
+
+  if (http.status !== "fulfilled" || !http.value.res.ok)
+    return { ton:"bad", text:"nicht erreichbar" };
+
+  const dnsOk = dns.status === "fulfilled" && dns.value?.Status === 0 && (dns.value?.Answer || []).length > 0;
+  if (dns.status === "fulfilled" && !dnsOk)
+    return { ton:"warn", text:"DNS löst nicht auf" };
+
+  return { ton:"ok", text:`${http.value.ms} ms` };
+}
+
+function statusKarte(){
+  document.getElementById("dashStatus").innerHTML = `
+    <section class="card panel sysStatus">
+      <div class="sysHead">
+        <div class="panelTitle">Systemstatus</div>
+        <div class="sysMeta">
+          <span class="sysSumme" id="sysSumme">wird geprüft…</span>
+          <button class="sysRefresh" id="sysRefresh" type="button" aria-label="Erneut prüfen" title="Erneut prüfen">↻</button>
+        </div>
+      </div>
+      <div class="sysList">
+        ${DIENSTE.map(d => `
+          <a class="sysItem" id="sys-${d.key}" href="${d.href}" target="_blank" rel="noopener" data-ton="pending">
+            <span class="sysDot" aria-hidden="true"></span>
+            <span class="sysName">${esc(d.name)}</span>
+            <span class="sysText">…</span>
+          </a>`).join("")}
+      </div>
+    </section>`;
+
+  document.getElementById("sysRefresh").addEventListener("click", pruefeAlle);
+  pruefeAlle();
+  setInterval(() => { if (!document.hidden) pruefeAlle(); }, STATUS_TAKT);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) pruefeAlle(); });
+}
+
+let _pruefeLaeuft = false;
+async function pruefeAlle(){
+  if (_pruefeLaeuft) return;
+  _pruefeLaeuft = true;
+  const knopf = document.getElementById("sysRefresh");
+  const summe = document.getElementById("sysSumme");
+  knopf?.classList.add("is-spinning");
+
+  const setze = (key, { ton, text }) => {
+    const el = document.getElementById(`sys-${key}`);
+    if (!el) return;
+    el.dataset.ton = ton;
+    el.querySelector(".sysText").textContent = text;
+  };
+
+  try{
+    if (!navigator.onLine){
+      DIENSTE.forEach(d => setze(d.key, { ton:"pending", text:"–" }));
+      summe.textContent = "Du bist offline";
+      return;
+    }
+
+    const ergebnisse = await Promise.all(DIENSTE.map(async d => {
+      let r;
+      try { r = await d.pruefe(); }
+      catch(err){
+        console.warn(`Systemstatus: ${d.name} —`, err?.message || err);
+        r = { ton:"warn", text:"keine Antwort" };
+      }
+      setze(d.key, r);
+      return r.ton;
+    }));
+
+    const zeit = new Date().toLocaleTimeString("de-DE", { hour:"2-digit", minute:"2-digit" });
+    const lage = ergebnisse.includes("bad")  ? "Störung"
+               : ergebnisse.includes("warn") ? "Eingeschränkt"
+               : "Alles läuft";
+    summe.textContent = `${lage} · ${zeit}`;
+    summe.dataset.ton = ergebnisse.includes("bad") ? "bad" : ergebnisse.includes("warn") ? "warn" : "ok";
+  } finally {
+    knopf?.classList.remove("is-spinning");
+    _pruefeLaeuft = false;
+  }
+}
+
+/* ============================================================
    Ablauf
    ============================================================ */
 async function loadDashboard(){
@@ -617,6 +787,8 @@ async function loadDashboard(){
   if (istVorstand)                                    rendereVerein(daten, { finanzen: true });
   else if (normRole(me.role) === "mitgliederbetreuer") rendereVerein(daten, { finanzen: false });
   else                                                rendereRessortleiter(daten, me);
+
+  if (istVorstand) statusKarte();
 
   document.getElementById("dash").classList.remove("hidden");
 }
