@@ -3709,9 +3709,17 @@ dialog > .modalBox { max-height: calc(100dvh - 64px); }
 
 .sysLogo svg { width: 20px; height: 20px; }
 
+.sysLogoFs {
+  width: 30px;
+  height: 30px;
+  background: currentColor;
+  -webkit-mask: url("/logo-fs-mark.png") center / contain no-repeat;
+          mask: url("/logo-fs-mark.png") center / contain no-repeat;
+}
+
 .sysItem[data-dienst="supabase"] { --brand: #3ecf8e; }
 .sysItem[data-dienst="github"]   { --brand: var(--foreground); }
-.sysItem[data-dienst="domain"]   { --brand: oklch(0.6 0.15 255); }
+.sysItem[data-dienst="domain"]   { --brand: var(--foreground); }
 
 .sysBody {
   display: flex;
