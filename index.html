@@ -602,12 +602,12 @@ async function ladeFinanzen(){
 
      Supabase   unser Projekt antwortet  +  status.supabase.com
      GitHub     Pages laut githubstatus.com
-     Domain     DNS (über Cloudflare)    +  die Seite selbst per HTTPS
+     Domain     fsbs-hm.de: DNS (über Cloudflare) + Antwort per HTTPS
 
    Die Statusseiten erlauben den Abruf aus dem Browser; sw.js
    reicht sie am Cache vorbei durch.
    ============================================================ */
-const PORTAL_DOMAIN   = "portal.fsbs-hm.de";
+const HAUPT_DOMAIN    = "fsbs-hm.de";
 const STATUS_TAKT     = 60_000;
 const STATUS_LIMIT    = 8_000;
 
@@ -621,7 +621,7 @@ const DIENST_LOGO = {
 const DIENSTE = [
   { key:"supabase", name:"Supabase", rolle:"Datenbank & Login", href:"https://status.supabase.com", pruefe: pruefeSupabase },
   { key:"github",   name:"GitHub",   rolle:"Hosting (Pages)",   href:"https://www.githubstatus.com", pruefe: pruefeGithub },
-  { key:"domain",   name:"Domain",   rolle:PORTAL_DOMAIN,       href:`https://${PORTAL_DOMAIN}`,     pruefe: pruefeDomain },
+  { key:"domain",   name:"Domain",   rolle:HAUPT_DOMAIN,        href:`https://${HAUPT_DOMAIN}`,     pruefe: pruefeDomain },
 ];
 
 const TON_LABEL = { ok:"Online", warn:"Gestört", bad:"Down", pending:"Prüfe…" };
@@ -682,14 +682,17 @@ async function pruefeGithub(){
 
 async function pruefeDomain(){
   const [dns, http] = await Promise.allSettled([
-    messe(`https://cloudflare-dns.com/dns-query?name=${PORTAL_DOMAIN}&type=A`,
+    messe(`https://cloudflare-dns.com/dns-query?name=${HAUPT_DOMAIN}&type=A`,
           { headers:{ accept:"application/dns-json" } })
       .then(({ res }) => res.json()),
-    /* HEAD läuft am Service Worker vorbei — es zählt die echte Antwort. */
-    messe(`https://${PORTAL_DOMAIN}/CNAME`, { method:"HEAD" }),
+    /* Die Vereinsseite erlaubt keinen Abruf von fremden Seiten, darum
+       no-cors: Den Statuscode sehen wir so nicht, aber eine Antwort
+       kommt nur, wenn der Server erreichbar ist. Ein Netzwerkfehler
+       oder das Zeitlimit heisst: down. */
+    messe(`https://${HAUPT_DOMAIN}/`, { mode:"no-cors" }),
   ]);
 
-  if (http.status !== "fulfilled" || !http.value.res.ok)
+  if (http.status !== "fulfilled")
     return { ton:"bad", text:"nicht erreichbar" };
 
   const dnsOk = dns.status === "fulfilled" && dns.value?.Status === 0 && (dns.value?.Answer || []).length > 0;
