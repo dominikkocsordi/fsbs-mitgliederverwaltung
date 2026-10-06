@@ -108,7 +108,7 @@ hinterlegt, die bisher gefehlt hat.
 |---|---|---|
 | `vorstand` | alles — Dashboard, Mitglieder, Anwärter, Bewerbungen, Finanzen, Protokoll, Schreiben, Zutritte, Nutzer | alles |
 | `ressortleiter` | Dashboard (eigenes Ressort), Mitglieder, Anwärter, Bewerbungen | nichts — überall nur Leserechte |
-| `mitgliederbetreuer` | Dashboard (ganzer Verein, ohne Finanzen), Mitglieder, Anwärter, Bewerbungen — alle Ressorts | nichts — überall nur Leserechte |
+| `mitgliederbetreuer` | Dashboard (ganzer Verein, ohne Finanzen), Mitglieder, Anwärter, Bewerbungen — alle Ressorts | nur den Bearbeitungsstand einer Bewerbung, innerhalb der fünf Verfahrensschritte |
 | `protokollfuehrer` | ausschließlich das Protokoll | das Protokoll |
 
 Die **Ressortleitung liest, und dabei bleibt es.** Auf `/members` und
@@ -133,7 +133,13 @@ Entsprechend **sieht** sie Mitglieder, Anwärter und Bewerbungen, und zwar
 ressortübergreifend: Anders als bei der Ressortleitung ist kein Ressort
 vorausgewählt, und das Dashboard zeigt die Zahlen des ganzen Vereins.
 
-Sie **entscheidet nichts**: keine Aufnahme, keine Übernahme von Anwärtern,
+Auf `/bewerbungen` **setzt sie den Bearbeitungsstand** — aber nur
+zwischen den fünf Schritten des Verfahrens: Offen, Geprüft, Einladung
+versendet, Anwesend Kennenlernen, Prios gesendet. „Abgelehnt“ und
+„Anwärter“ kann sie weder setzen noch zurücknehmen; Ressortwünsche,
+Notiz und Löschen bleiben ebenfalls beim Vorstand.
+
+Darüber hinaus **entscheidet sie nichts**: keine Aufnahme, keine Übernahme von Anwärtern,
 kein Wechsel des Mitgliedsstatus (etwa zur Vollmitgliedschaft), kein
 Ausschluss oder Löschen. Die Knöpfe dazu fehlen ihr wie der
 Ressortleitung, und die Datenbank lässt nur den Vorstand schreiben.

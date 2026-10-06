@@ -13,11 +13,14 @@
 --
 --    sieht     Dashboard (ganzer Verein), Mitglieder, Anwärter, Bewerbungen
 --              – ressortübergreifend
---    ändert    nichts. Keine Aufnahme, keine Übernahme von Anwärtern, kein
---              Statuswechsel, kein Löschen; das bleibt beim Vorstand.
+--    ändert    nur den Bearbeitungsstand einer Bewerbung, und das nur
+--              zwischen den fünf Schritten des Verfahrens (offen, geprüft,
+--              Einladung, Kennenlernen, Prios gesendet). Keine Aufnahme,
+--              keine Ablehnung, keine Übernahme als Anwärter, kein
+--              Mitgliedsstatus, kein Löschen; das bleibt beim Vorstand.
 --    sieht nicht  Finanzen, Protokoll, Schreiben/Zeugnisse, Nutzer
 --
---  In der Datenbank heißt das nur dreierlei:
+--  In der Datenbank heißt das viererlei:
 --
 --    1. `profiles.role` darf `mitgliederbetreuer` enthalten.
 --    2. `ist_leitung()` – die Lese-Regel für Mitglieder, Anwärter,
@@ -25,6 +28,9 @@
 --    3. `ist_vorstand()` bleibt, wie es ist. Jede Schreib-Regel und alles
 --       zu Finanzen, Protokoll, Zeugnissen und Nutzern hängt daran, und
 --       dort kommt die Mitgliederbetreuung nicht vorbei.
+--    4. Eine eigene Regel für `bewerbungen` lässt sie den Stand setzen –
+--       nur von einem der fünf Schritte auf einen anderen, und nichts
+--       sonst an der Zeile.
 --
 --  `rollen.sql`, `mitglieder-anwaerter.sql` und `bewerbungen.sql` sind
 --  ebenso nachgezogen – ein späterer Durchlauf eines dieser Skripte nimmt
@@ -96,7 +102,70 @@ $$;
 grant execute on function public.ist_leitung() to anon, authenticated;
 
 
--- 4 ------------------------------------------------------- Zum Nachsehen
+-- 4 ------------------------------------------- Den Bewerbungsstand setzen
+-- Die fünf Schritte des Verfahrens – dieselben wie das Dropdown auf
+-- /bewerbungen. `anwaerter` und `abgelehnt` fehlen mit Absicht: Weder
+-- dorthin noch von dort zurück kommt die Mitgliederbetreuung.
+
+create or replace function public.ist_mitgliederbetreuer()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+    select exists (
+        select 1
+          from public.profiles
+         where id = auth.uid()
+           and lower(btrim(role)) = 'mitgliederbetreuer'
+    );
+$$;
+
+grant execute on function public.ist_mitgliederbetreuer() to authenticated;
+
+-- Eine zweite Update-Regel neben „bewerbungen bearbeiten“ (Vorstand).
+-- Beide gelten nebeneinander; `using` prüft den Stand vorher, `with check`
+-- den Stand nachher – so geht es weder in einen der beiden Endstände
+-- hinein noch aus ihm heraus.
+drop policy if exists "bewerbungen stand betreuen" on public.bewerbungen;
+create policy "bewerbungen stand betreuen" on public.bewerbungen
+    for update to authenticated
+    using (public.ist_mitgliederbetreuer()
+           and status in ('offen', 'geprueft', 'einladung', 'kennenlernen', 'prios_gesendet'))
+    with check (public.ist_mitgliederbetreuer()
+           and status in ('offen', 'geprueft', 'einladung', 'kennenlernen', 'prios_gesendet'));
+
+-- Die Spaltenrechte erlauben auch Notiz und Ressortwünsche. Die bleiben
+-- beim Vorstand: Ändert die Mitgliederbetreuung daran etwas, bricht das
+-- Speichern ab. Der Trigger greift nur für diese Rolle – das öffentliche
+-- Formular (Priobestätigung) und der Vorstand laufen an ihm vorbei.
+create or replace function public.bewerbungen_betreuung_pruefen()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+    if public.ist_mitgliederbetreuer() and not public.ist_vorstand() then
+        if new.notiz        is distinct from old.notiz
+        or new.ressort_1_id is distinct from old.ressort_1_id
+        or new.ressort_2_id is distinct from old.ressort_2_id then
+            raise exception 'Die Mitgliederbetreuung ändert nur den Bearbeitungsstand.'
+                using errcode = '42501';
+        end if;
+    end if;
+    return new;
+end;
+$$;
+
+drop trigger if exists bewerbungen_betreuung_pruefen on public.bewerbungen;
+create trigger bewerbungen_betreuung_pruefen
+    before update on public.bewerbungen
+    for each row execute function public.bewerbungen_betreuung_pruefen();
+
+
+-- 5 ------------------------------------------------------- Zum Nachsehen
 -- Wer welche Rolle hat:
 --
 --   select p.role, string_agg(u.email::text, ', ' order by u.email) as wer
@@ -106,8 +175,9 @@ grant execute on function public.ist_leitung() to anon, authenticated;
 --    order by p.role;
 --
 -- Und die Probe aufs Exempel – angemeldet als Mitgliederbetreuer im Portal:
--- Mitglieder, Anwärter und Bewerbungen aller Ressorts sind zu sehen, die
--- Knöpfe zum Anlegen, Ändern, Übernehmen und Löschen fehlen, Finanzen,
+-- Mitglieder, Anwärter und Bewerbungen aller Ressorts sind zu sehen; in
+-- einer Bewerbung lässt sich der Stand zwischen den fünf Schritten setzen.
+-- Die Knöpfe zum Anlegen, Ändern, Ablehnen, Übernehmen und Löschen fehlen, Finanzen,
 -- Protokoll, Schreiben und Nutzer stehen nicht in der Leiste und zeigen
 -- unter ihrer Adresse „Kein Zugriff“.
 -- =============================================================================

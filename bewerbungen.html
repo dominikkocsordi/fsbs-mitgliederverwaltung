@@ -248,6 +248,7 @@
     margin-top: 16px;
   }
   .prioRow[hidden] { display: none; }
+  .prioRow .field[hidden], #detailActions button[hidden] { display: none; }
   .prioRow > .full { grid-column: 1 / -1; }
   @media (max-width: 560px) { .prioRow { grid-template-columns: 1fr; } }
 
@@ -870,6 +871,10 @@ const STAND_BEWERBER = "kennenlernen";
 
 let CAN_VIEW = false;
 let CAN_EDIT = false;
+/* Den Bearbeitungsstand setzt außer dem Vorstand auch die
+   Mitgliederbetreuung – aber nur innerhalb der fünf Schritte des
+   Verfahrens. Ablehnen und Übernehmen bleiben beim Vorstand. */
+let CAN_STAND = false;
 let MY_RESSORT = "";
 let MY_ROLE = "";
 
@@ -1159,13 +1164,21 @@ function standWahlFuellen(z) {
       `<option value="${esc(z.status)}" selected disabled>${esc(z.status)}</option>`);
   }
 
+  /* Abgelehnt oder übernommen ist eine Entscheidung des Vorstands –
+     die Mitgliederbetreuung nimmt sie nicht über dieses Feld zurück. */
+  const gesperrt = !CAN_EDIT && (ausserhalb || !STAENDE[z.status]);
+  feld.disabled = gesperrt;
+
   const hinweis = $("standHinweis");
   hinweis.hidden = !ausserhalb;
   if (ausserhalb) {
-    hinweis.textContent = z.status === "anwaerter"
+    hinweis.textContent = gesperrt
+      ? `${STAENDE[z.status].label}. Ändern kann das nur der Vorstand.`
+      : z.status === "anwaerter"
       ? "Übernommen. Ein anderer Stand hier ändert nichts am Eintrag in der Anwärterliste."
       : "Abgelehnt. Ein anderer Stand hier nimmt die Absage zurück.";
   }
+  return gesperrt;
 }
 
 function detailOeffnen(id) {
@@ -1216,10 +1229,13 @@ function detailOeffnen(id) {
   /* Den Stand und die Ressortwünsche darf der Vorstand nachziehen — der
      eine im Lauf des Verfahrens, die anderen, wenn im Formular etwas
      verrutscht ist. */
-  $("prioRow").hidden = !CAN_EDIT;
-  if (CAN_EDIT) {
-    standWahlFuellen(z);
+  $("prioRow").hidden = !CAN_STAND;
+  const standGesperrt = CAN_STAND ? standWahlFuellen(z) : true;
 
+  /* Die Ressortwünsche zieht nur der Vorstand nach. */
+  $("prio1").closest(".field").hidden = !CAN_EDIT;
+  $("prio2").closest(".field").hidden = !CAN_EDIT;
+  if (CAN_EDIT) {
     const aktive = ressorts.filter((r) => r.active);
     $("prio1").innerHTML = aktive.map((r) =>
       `<option value="${r.id}"${r.id === z.ressort_1_id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
@@ -1227,7 +1243,11 @@ function detailOeffnen(id) {
       `<option value="${r.id}"${r.id === z.ressort_2_id ? " selected" : ""}>${esc(r.name)}</option>`).join("");
   }
 
-  $("detailActions").hidden = !CAN_EDIT;
+  $("detailActions").hidden = !CAN_STAND;
+  $("loeschen").hidden       = !CAN_EDIT;
+  $("uebernehmen").hidden    = !CAN_EDIT;
+  $("standAbgelehnt").hidden = !CAN_EDIT;
+  $("speichern").hidden      = !CAN_EDIT && standGesperrt;
   detailDlg.showModal();
 }
 
@@ -1335,12 +1355,17 @@ $("standAbgelehnt").addEventListener("click", async () => {
    setzte ein Klick auf Speichern `status_am` neu, obwohl am Stand
    nichts anders ist. */
 $("speichern").addEventListener("click", async () => {
-  if (!AKTIV || !CAN_EDIT) return;
+  if (!AKTIV || !CAN_STAND) return;
   const z = AKTIV;
 
   const stand = $("standWahl").value;
-  const eins  = $("prio1").value;
-  const zwei  = $("prio2").value || null;
+  const eins  = CAN_EDIT ? $("prio1").value : z.ressort_1_id;
+  const zwei  = CAN_EDIT ? ($("prio2").value || null) : (z.ressort_2_id || null);
+
+  if (!CAN_EDIT && stand && !STAENDE[stand]?.wahl) {
+    showToast("Diesen Stand setzt nur der Vorstand.", true);
+    return;
+  }
 
   if (zwei && zwei === eins) {
     showToast("Priorität 1 und 2 können nicht dasselbe Ressort sein.", true);
@@ -2030,6 +2055,7 @@ async function profilLaden(session) {
   MY_RESSORT = safe(data.ressort).trim();
   CAN_VIEW = ["vorstand", "ressortleiter", "mitgliederbetreuer"].includes(rolle);
   CAN_EDIT = rolle === "vorstand";
+  CAN_STAND = CAN_EDIT || rolle === "mitgliederbetreuer";
   return data;
 }
 
