@@ -64,6 +64,9 @@ grant execute on function public.rolle_normieren(text) to authenticated;
 -- Die alte Regel kannte drei Rollen und hieß danach. Sie geht, die neue
 -- kennt vier.
 
+-- `profiles_role_check` stammt nicht aus diesem Repo, sondern aus dem
+-- ursprünglichen Anlegen der Tabelle, und kennt nur die alten Rollen.
+alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles drop constraint if exists profiles_role_drei;
 alter table public.profiles drop constraint if exists profiles_role_gueltig;
 alter table public.profiles add  constraint profiles_role_gueltig

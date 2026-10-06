@@ -149,6 +149,9 @@ create trigger profiles_normalisieren
 -- Änderung direkt in der Tabelle – nicht still eine fünfte Rolle anlegt.
 -- (Bis zur Mitgliederbetreuung hieß die Regel `profiles_role_drei`.)
 
+-- `profiles_role_check` stammt nicht aus diesem Repo, sondern aus dem
+-- ursprünglichen Anlegen der Tabelle, und kennt nur die alten Rollen.
+alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles drop constraint if exists profiles_role_drei;
 alter table public.profiles drop constraint if exists profiles_role_gueltig;
 alter table public.profiles add  constraint profiles_role_gueltig
