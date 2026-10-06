@@ -49,6 +49,7 @@
   }
 
   .zeitMuted { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+  #formFrist { white-space: normal; }
 
   /* ---------- Kennzahlen als Filter ---------- */
   .statGrid { margin-bottom: 18px; }
@@ -1081,16 +1082,18 @@ function passt(z) {
    ================================================================ */
 function renderPage() {
   $("mainContent").innerHTML = `
-    ${CAN_EDIT ? `
+    <!-- Ob das Formular offen ist und bis wann, sehen alle; Frist,
+         Schalter und Editor bleiben beim Vorstand. -->
     <div class="glass card--tight formKarte">
       <span class="pill" id="formPill">–</span>
       <span class="zeitMuted" id="formFrist"></span>
+      ${CAN_EDIT ? `
       <div class="toolbar__spacer"></div>
       <input type="datetime-local" id="fristInput" aria-label="Frist">
       <button class="btn-secondary btn-sm" id="fristSetzen" type="button">Frist setzen</button>
       <button class="btn-sm" id="formToggle" type="button">–</button>
-      <button class="btn-secondary btn-sm" id="editorOeffnen" type="button">Formular bearbeiten</button>
-    </div>` : ``}
+      <button class="btn-secondary btn-sm" id="editorOeffnen" type="button">Formular bearbeiten</button>` : ``}
+    </div>
 
     <div class="statGrid" id="statGrid"></div>
 
@@ -1223,17 +1226,31 @@ function nachBerlin(iso) {
 const fristVorbei = () => !!formular.frist && Date.now() >= new Date(formular.frist).getTime();
 const formOffen = () => !formular.geschlossen && !fristVorbei();
 
+// "noch 3 Tage", "noch 5 Stunden", "noch 20 Minuten"
+function restzeit(iso) {
+  const min = Math.ceil((new Date(iso).getTime() - Date.now()) / 60000);
+  if (min >= 2 * 24 * 60) return `noch ${Math.floor(min / (24 * 60))} Tage`;
+  if (min >= 2 * 60)      return `noch ${Math.floor(min / 60)} Stunden`;
+  return min === 1 ? "noch 1 Minute" : `noch ${min} Minuten`;
+}
+
 function formZeichnen() {
-  if (!CAN_EDIT || !$("formPill")) return;
+  if (!$("formPill")) return;
   const offen = formOffen();
 
   const pille = $("formPill");
   pille.className = "pill " + (offen ? "pill--success" : "pill--danger");
   pille.textContent = offen ? "Formular geöffnet" : "Formular geschlossen";
 
-  $("formFrist").textContent = formular.frist
-    ? (fristVorbei() ? "Frist abgelaufen: " : "Frist: ") + zeitBerlin(formular.frist)
-    : "Keine Frist";
+  /* Von Hand geschlossen sticht die Frist: Dann steht dort nicht
+     "noch 3 Tage", obwohl niemand sich bewerben kann. */
+  $("formFrist").textContent =
+    formular.geschlossen ? "Vom Vorstand geschlossen"
+    : !formular.frist    ? "Keine Frist, bleibt offen bis zum Schließen"
+    : fristVorbei()      ? "Frist abgelaufen: " + zeitBerlin(formular.frist)
+    : `Offen bis ${zeitBerlin(formular.frist)} (${restzeit(formular.frist)})`;
+
+  if (!CAN_EDIT) return;
 
   const schalter = $("formToggle");
   schalter.className = "btn-sm " + (offen ? "btn-danger" : "btn-success");
@@ -2223,6 +2240,8 @@ async function profilLaden(session) {
     renderPage();
     ressortFilterFuellen();
     formZeichnen();
+    // Die Restzeit zählt herunter, und mit der Frist kippt die Pille auf geschlossen.
+    setInterval(formZeichnen, 60 * 1000);
 
     /* Das eigene Ressort steht vorn: Danach schaut eine Leitung
        zuerst. Vorstand und Mitgliederbetreuung schauen auf alles. */
