@@ -287,6 +287,61 @@
     color: color-mix(in oklab, var(--chart-1) 92%, var(--foreground));
   }
 
+  /* ---------- Erklärung der Stände ("i" neben der Überschrift) ---------- */
+  .infoKnopf {
+    display: inline-grid;
+    vertical-align: middle;
+    margin: -3px 0 0 10px;
+    width: 22px;
+    height: 22px;
+    min-height: 0;
+    padding: 0;
+    border-radius: 50%;
+    place-items: center;
+    font: italic 700 13px/1 Georgia, "Times New Roman", serif;
+    color: var(--chart-1);
+    background: color-mix(in oklab, var(--chart-1) 14%, transparent);
+    border: 1px solid color-mix(in oklab, var(--chart-1) 45%, transparent);
+    box-shadow: 0 0 8px color-mix(in oklab, var(--chart-1) 45%, transparent);
+    cursor: help;
+    animation: infoLeuchten 2.8s ease-in-out infinite;
+  }
+  .infoKnopf:hover, .infoKnopf:focus-visible, .infoKnopf[aria-expanded="true"] {
+    animation: none;
+    box-shadow: 0 0 12px color-mix(in oklab, var(--chart-1) 70%, transparent);
+  }
+  @keyframes infoLeuchten {
+    0%, 100% { box-shadow: 0 0 5px color-mix(in oklab, var(--chart-1) 30%, transparent); }
+    50%      { box-shadow: 0 0 11px color-mix(in oklab, var(--chart-1) 60%, transparent); }
+  }
+  @media (prefers-reduced-motion: reduce) { .infoKnopf { animation: none; } }
+
+  /* Die Box hängt nicht am Knopf: app-shell.js baut den Seitenkopf um
+     und nimmt dabei nur das <h1> mit. Sie steht deshalb lose im Body
+     und wird beim Öffnen unter den Knopf gesetzt. */
+  .infoBox {
+    position: fixed;
+    z-index: 200;
+    width: min(420px, calc(100vw - 32px));
+    overflow-y: auto;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: var(--card);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--foreground);
+  }
+  .infoBox[hidden] { display: none; }
+  .infoBox .infoTitel { font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+  .infoBox p { margin: 0 0 10px; color: var(--muted-foreground); }
+  .infoSchritte { margin: 0 0 12px; padding-left: 20px; }
+  .infoSchritte li { margin-bottom: 9px; }
+  .infoSchritte .pill, .infoNeben .pill { display: inline-flex; margin-right: 4px; vertical-align: baseline; }
+  .infoNeben { padding-top: 10px; border-top: 1px solid var(--border-color); }
+  .infoBox .infoFuss { margin: 0; font-size: 12px; }
+
   /* ---------- Formular-Editor ---------- */
   .editorSection + .editorSection {
     margin-top: 22px;
@@ -367,7 +422,9 @@
         <img src="/logo.png" alt="FSBS Logo" onerror="this.style.display='none';this.parentElement.textContent='FS';">
       </a>
       <div>
-        <h1>Bewerbungen</h1>
+        <h1>Bewerbungen<button class="infoKnopf" id="infoKnopf" type="button"
+                aria-label="Was die Stände bedeuten" aria-expanded="false"
+                aria-controls="infoBox">i</button></h1>
         <div class="subtitle">Eingegangen über portal.fsbs-hm.de/bewerbung</div>
       </div>
     </div>
@@ -411,6 +468,93 @@
   </div>
 
 </div>
+
+<!-- Erklärung der Stände, geöffnet über das "i" neben der Überschrift -->
+    <div class="infoBox" id="infoBox" role="tooltip" hidden>
+      <div class="infoTitel">So läuft eine Bewerbung ab</div>
+      <p>Jede Bewerbung geht diese Schritte der Reihe nach durch. Der Bewerber
+         sieht unter /bewerbung mit seinem Code, auf welchem Schritt er steht.</p>
+      <ol class="infoSchritte">
+        <li><span class="pill pill--neutral">Offen</span>
+            Die Bewerbung ist eingegangen. Angeschaut hat sie noch niemand.</li>
+        <li><span class="pill pill--info">Geprüft</span>
+            Wir haben die Bewerbung gelesen.</li>
+        <li><span class="pill pill--warning">Einladung versendet</span>
+            Der Bewerber hat von uns die Einladung zum Kennenlernevent bekommen.
+            Das Portal schickt dafür keine Mail. Erst die Mail schicken, dann den Stand setzen.</li>
+        <li><span class="pill pill--orange">Anwesend Kennenlernen</span>
+            Der Bewerber war beim Kennenlernevent. Jetzt ist er dran: Er muss
+            unter /bewerbung seine zwei Ressortwünsche bestätigen.</li>
+        <li><span class="pill pill--accent">Prios gesendet</span>
+            Der Bewerber hat seine Wünsche bestätigt. Diesen Stand setzt das
+            Portal von allein. Jetzt fehlt nur noch die Entscheidung vom Vorstand.</li>
+        <li><span class="pill pill--success">Anwärter</span>
+            Der Vorstand hat ihn mit „Als Anwärter übernehmen“ in ein Ressort
+            gesetzt. Er steht ab jetzt in der Anwärterliste.</li>
+      </ol>
+      <p class="infoNeben"><span class="pill pill--danger">Abgelehnt</span>
+         Geht bei jedem Schritt. Der Bewerber sieht nur, dass es nicht geklappt
+         hat, nicht wann. Eine Absage lässt sich zurücknehmen, indem man wieder
+         einen anderen Stand wählt.</p>
+      <p class="infoFuss">Die Mitgliederbetreuung kann die Schritte 1 bis 5 setzen.
+         Ablehnen und als Anwärter übernehmen kann nur der Vorstand.</p>
+    </div>
+
+<script>
+/* ---- Erklärung der Stände ----
+   Mit der Maus öffnet Drüberfahren die Box, auf dem Handy ein Tippen.
+   Eine kurze Verzögerung beim Schließen lässt die Maus vom Knopf in die
+   Box wandern, ohne dass sie zuklappt. Eigener Skriptblock, damit die
+   Erklärung auch dann geht, wenn das Laden der Daten scheitert. */
+(() => {
+  const knopf = document.getElementById("infoKnopf");
+  const box = document.getElementById("infoBox");
+  let festgehalten = false;   // per Klick geöffnet: bleibt offen bis zum nächsten Klick
+  let zuTimer = null;
+
+  const setzen = (auf) => {
+    clearTimeout(zuTimer);
+    if (auf) {
+      box.hidden = false;
+      const r = knopf.getBoundingClientRect();
+      const links = Math.min(Math.max(16, r.left - 12), window.innerWidth - box.offsetWidth - 16);
+      box.style.left = `${Math.max(16, links)}px`;
+      box.style.top = `${r.bottom + 10}px`;
+      // Auf dem Handy liegt unten die Navigationsleiste, die Box endet davor.
+      const unten = window.innerWidth < 720 ? 96 : 16;
+      box.style.maxHeight = `${Math.max(200, window.innerHeight - r.bottom - 10 - unten)}px`;
+    } else {
+      box.hidden = true;
+      festgehalten = false;
+    }
+    knopf.setAttribute("aria-expanded", String(auf));
+  };
+  const spaeterZu = () => {
+    if (festgehalten) return;
+    clearTimeout(zuTimer);
+    zuTimer = setTimeout(() => setzen(false), 150);
+  };
+
+  knopf.addEventListener("mouseenter", () => setzen(true));
+  knopf.addEventListener("mouseleave", spaeterZu);
+  box.addEventListener("mouseenter", () => clearTimeout(zuTimer));
+  box.addEventListener("mouseleave", spaeterZu);
+  knopf.addEventListener("focus", () => setzen(true));
+  knopf.addEventListener("blur", spaeterZu);
+  knopf.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (festgehalten) { setzen(false); return; }
+    setzen(true);
+    festgehalten = true;
+  });
+  document.addEventListener("click", (e) => {
+    if (!box.hidden && !box.contains(e.target)) setzen(false);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !box.hidden) setzen(false); });
+  window.addEventListener("resize", () => { if (!box.hidden) setzen(false); });
+  window.addEventListener("scroll", () => { if (!box.hidden) setzen(false); }, { passive: true });
+})();
+</script>
 
 <!-- ============================================================
      Detailansicht einer Bewerbung
