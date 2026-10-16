@@ -4585,7 +4585,6 @@ to   { opacity: 1; transform: translateY(0); }
    Knopfzeile von den übrigen Dialogen; eigen ist nur die Liste
    der hinterlegten Geräte.
    ============================================================ */
-.kontoDlg .dlgShell { max-width: 560px; }
 
 .kontoMsg {
   margin-top: 10px;
@@ -4696,24 +4695,197 @@ to   { opacity: 1; transform: translateY(0); }
   :root:not(.light):not(.dark)[data-akzent="rosa"] { --primary: oklch(0.76 0.14 355); --ring: oklch(0.76 0.14 355); }
 }
 
-.akzentWahl {
+
+/* ============================================================
+   Einstellungen (konto.js)
+   ------------------------------------------------------------
+   Links die Bereiche, rechts der Inhalt. Die Höhe bleibt beim
+   Umschalten gleich, damit der Dialog nicht springt.
+   ============================================================ */
+.kontoDlg .dlgShell { max-width: 780px; width: 100%; }
+@media (min-width: 641px) {
+  dialog.kontoDlg { width: min(812px, calc(100vw - 32px)); }
+}
+
+.setLayout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  border-top: 1px solid var(--border-color);
+}
+
+.setNav {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 10px;
+  border-right: 1px solid var(--border-color);
+  background: var(--surface-1, transparent);
+}
+
+.setNavBtn {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin-top: 12px;
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.setNavBtn svg { width: 17px; height: 17px; flex: none; }
+.setNavBtn:hover { background: var(--accent-surface); color: var(--foreground); }
+
+.setNavBtn[aria-selected="true"] {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.setInhalt {
+  min-height: min(440px, calc(100dvh - 180px));
+  max-height: calc(100dvh - 180px);
+  overflow-y: auto;
+  padding: 20px 24px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.setPanel[hidden] { display: none; }
+
+.setGruppe + .setGruppe {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-color);
+}
+
+.setGruppeKopf { margin-bottom: 12px; }
+
+.setGruppeTitel {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.setGruppeText {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+
+.setHinweis {
+  margin-top: 22px;
+  font-size: 12px;
+  color: var(--faint-foreground);
+}
+
+.setWert {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  word-break: break-all;
+}
+
+.setZeile {
+  display: flex;
+  gap: 10px;
+}
+
+.setZeile input { flex: 1 1 auto; min-width: 0; }
+.setZeile button { flex: 0 0 auto; }
+
+.kontoDlg .pkListe { margin-top: 0; }
+
+/* ---- Design: drei kleine Vorschauen ---- */
+.designWahl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.designBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2, var(--secondary));
+  color: var(--foreground);
+  cursor: pointer;
+  text-align: left;
+}
+
+.designBtn:hover { border-color: var(--border-strong); }
+
+.designVorschau {
+  position: relative;
+  display: block;
+  height: 58px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid oklch(0 0 0 / 10%);
+}
+
+.designVorschau--light  { background: oklch(0.968 0.001 260); }
+.designVorschau--dark   { background: oklch(0.19 0.006 260); }
+.designVorschau--system {
+  background: linear-gradient(135deg, oklch(0.968 0.001 260) 50%, oklch(0.19 0.006 260) 50%);
+}
+
+/* Eine Karte, zwei Zeilen und ein Knopf in der Akzentfarbe */
+.designVorschau span { position: absolute; border-radius: 4px; }
+.designVorschau span:nth-child(1) { left: 10px; top: 10px; width: 46%; height: 7px; background: oklch(0.6 0 0 / 45%); }
+.designVorschau span:nth-child(2) { left: 10px; top: 23px; width: 30%; height: 7px; background: oklch(0.6 0 0 / 30%); }
+.designVorschau span:nth-child(3) { left: 10px; bottom: 9px; width: 34%; height: 11px; background: var(--primary); border-radius: 6px; }
+
+.designName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 2px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.designName svg { width: 15px; height: 15px; flex: none; color: var(--muted-foreground); }
+
+.designBtn[aria-checked="true"],
+.akzentBtn[aria-checked="true"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+
+.designBtn[aria-checked="true"] .designName { font-weight: 600; }
+.designBtn[aria-checked="true"] .designName svg { color: var(--primary); }
+
+/* ---- Akzentfarbe ---- */
+.akzentWahl {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .akzentBtn {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 14px 0 8px;
+  gap: 7px;
+  padding: 10px 4px 9px;
   border: 1px solid var(--border-color);
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   background: var(--surface-2, var(--secondary));
   color: var(--foreground);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
 }
@@ -4721,20 +4893,39 @@ to   { opacity: 1; transform: translateY(0); }
 .akzentBtn:hover { border-color: var(--border-strong); }
 
 .akzentPunkt {
-  width: 20px;
-  height: 20px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--akzent-licht);
-  flex: none;
+  color: oklch(0.99 0 0);
 }
 
-:root.dark .akzentPunkt { background: var(--akzent-dunkel); }
+.akzentPunkt svg { width: 16px; height: 16px; opacity: 0; transition: opacity 0.15s; }
+.akzentBtn[aria-checked="true"] .akzentPunkt svg { opacity: 1; }
+.akzentBtn[aria-checked="true"] .akzentName { font-weight: 600; }
+
+:root.dark .akzentPunkt { background: var(--akzent-dunkel); color: oklch(0.16 0.01 260); }
 @media (prefers-color-scheme: dark) {
-  :root:not(.light):not(.dark) .akzentPunkt { background: var(--akzent-dunkel); }
+  :root:not(.light):not(.dark) .akzentPunkt { background: var(--akzent-dunkel); color: oklch(0.16 0.01 260); }
 }
 
-.akzentBtn[aria-checked="true"] {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 28%, transparent);
-  font-weight: 600;
+/* ---- Telefon: Bereiche als Reiter oben ---- */
+@media (max-width: 640px) {
+  .setLayout { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .setNav {
+    flex-direction: row;
+    gap: 4px;
+    padding: 8px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+  }
+  .setNavBtn { flex: 1 1 0; justify-content: center; height: 36px; padding: 0 8px; font-size: 13px; }
+  .setInhalt { min-height: 0; max-height: none; padding: 18px 18px 22px; }
+  .akzentWahl { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .designName { font-size: 12px; gap: 4px; }
+  .designName svg { display: none; }
+  .setZeile { flex-direction: column; }
 }

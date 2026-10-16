@@ -1,12 +1,14 @@
 /* ============================================================
    FSBS INTERN — Konto
    ------------------------------------------------------------
-   Hängt zwei Punkte in das Menü, das schon das Abmelden trägt:
+   Hängt den Punkt „Einstellungen“ in das Menü, das schon das
+   Abmelden trägt. Der Dialog dahinter hat drei Bereiche:
 
-     E-Mail ändern      die eigene Adresse umziehen
-     Passkeys           Face ID, Fingerabdruck, Windows Hello
+     Darstellung        hell, dunkel oder automatisch; Akzentfarbe
+     Konto              die eigene Adresse umziehen
+     Sicherheit         Passkeys — Face ID, Fingerabdruck, Windows Hello
 
-   Beides betrifft ausschliesslich das eigene, bereits bestehende
+   Konto und Sicherheit betreffen ausschliesslich das eigene, bereits bestehende
    Konto. Wer hineindarf, entscheidet sich weiterhin allein auf
    /nutzer — hier entsteht kein Konto und keine Rolle.
 
@@ -62,6 +64,9 @@
   var ICON_KEY  = '<circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/>' +
                   '<path d="M17.5 12v3"/><path d="M20 12v2"/>';
 
+  var ICON_ZAHNRAD = '<circle cx="12" cy="12" r="3"/>' +
+    '<path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>';
+
   var ICON_FARBE = '<circle cx="12" cy="12" r="8.5"/><circle cx="8.5" cy="10" r="1.2"/>' +
                    '<circle cx="12" cy="7.5" r="1.2"/><circle cx="15.5" cy="10" r="1.2"/>' +
                    '<path d="M12 20.5a2.5 2.5 0 0 1 0-5h1.5"/>';
@@ -93,92 +98,179 @@
 
   /* ============================================================
      Der Dialog
+     ------------------------------------------------------------
+     Links die Bereiche, rechts was dazugehört. Auf dem Telefon
+     rücken die Bereiche als Reiter über den Inhalt.
      ============================================================ */
   var dlg = null;
   var felder = {};
 
+  var BEREICHE = [
+    ['darstellung', 'Darstellung', ICON_FARBE],
+    ['konto',       'Konto',       ICON_MAIL],
+    ['sicherheit',  'Sicherheit',  ICON_KEY]
+  ];
+
+  /* Ältere Sprungziele aus dem Menü landen im passenden Bereich. */
+  var ZIEL = { mail: 'konto', passkey: 'sicherheit', akzent: 'darstellung' };
+
+  var DESIGNS = [
+    ['light',  'Hell',        '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>'],
+    ['dark',   'Dunkel',      '<path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z"/>'],
+    ['system', 'Automatisch', '<rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/>']
+  ];
+
+  function svg(paths) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"' +
+      ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+  }
+
   function dialogBauen() {
     if (dlg) return dlg;
+
+    var nav = BEREICHE.map(function (b) {
+      return '<button class="setNavBtn" type="button" role="tab" id="setTab-' + b[0] + '"' +
+        ' aria-controls="setPanel-' + b[0] + '" data-bereich="' + b[0] + '">' +
+        svg(b[2]) + '<span>' + b[1] + '</span></button>';
+    }).join('');
+
+    var designs = DESIGNS.map(function (d) {
+      return '<button class="designBtn" type="button" role="radio" data-design="' + d[0] + '">' +
+        '<span class="designVorschau designVorschau--' + d[0] + '" aria-hidden="true">' +
+          '<span></span><span></span><span></span></span>' +
+        '<span class="designName">' + svg(d[2]) + d[1] + '</span></button>';
+    }).join('');
 
     dlg = document.createElement('dialog');
     dlg.id = 'kontoDlg';
     dlg.className = 'kontoDlg';
+    dlg.setAttribute('aria-labelledby', 'kontoTitel');
     dlg.innerHTML =
       '<div class="dlgShell">' +
         '<div class="modalDragHandle"></div>' +
         '<div class="modalHeader">' +
           '<div class="modalKopf">' +
             '<div style="min-width:0;">' +
-              '<h2 class="modalTitle">Mein Konto</h2>' +
+              '<h2 class="modalTitle" id="kontoTitel">Einstellungen</h2>' +
               '<div class="modalSub" id="kontoSub">–</div>' +
             '</div>' +
           '</div>' +
           '<button class="btn-secondary closeX" type="button" id="kontoX" title="Schließen">✕</button>' +
         '</div>' +
 
-        '<div class="modalBody">' +
+        '<div class="setLayout">' +
+          '<nav class="setNav" role="tablist" aria-label="Bereiche">' + nav + '</nav>' +
 
-          '<div class="formSection">' +
-            '<div class="formSectionTitle">Darstellung</div>' +
-            '<div class="small muted">' +
-              'Die Akzentfarbe für Knöpfe, Links und Markierungen. Sie gilt auf ' +
-              'diesem Gerät für alle Seiten des Portals.' +
-            '</div>' +
-            '<div class="akzentWahl" id="kontoAkzent" role="radiogroup" aria-label="Akzentfarbe"></div>' +
-          '</div>' +
+          '<div class="setInhalt">' +
 
-          '<div class="formSection">' +
-            '<div class="formSectionTitle">E-Mail-Adresse</div>' +
-            '<div class="formGrid">' +
-              '<div class="formField full">' +
-                '<label class="formLabel" for="kontoMail">Neue Adresse</label>' +
-                '<input id="kontoMail" type="email" inputmode="email" autocomplete="email"' +
-                ' placeholder="name@domain.de">' +
-                '<div class="small muted" style="margin-top:6px;">' +
-                  'An die neue Adresse geht eine Bestätigung. Erst wenn der Link darin ' +
-                  'geklickt ist, gilt sie — bis dahin meldest du dich mit der alten an.' +
+            /* ---- Darstellung ---- */
+            '<section class="setPanel" role="tabpanel" id="setPanel-darstellung"' +
+            ' aria-labelledby="setTab-darstellung" data-bereich="darstellung">' +
+              '<div class="setGruppe">' +
+                '<div class="setGruppeKopf">' +
+                  '<h3 class="setGruppeTitel">Design</h3>' +
+                  '<p class="setGruppeText">„Automatisch“ folgt der Einstellung des Geräts.</p>' +
                 '</div>' +
+                '<div class="designWahl" id="kontoDesign" role="radiogroup" aria-label="Design">' +
+                  designs + '</div>' +
               '</div>' +
-              '<div class="formField full">' +
-                '<button class="btn-secondary" type="button" id="kontoMailBtn">Bestätigung senden</button>' +
+              '<div class="setGruppe">' +
+                '<div class="setGruppeKopf">' +
+                  '<h3 class="setGruppeTitel">Akzentfarbe</h3>' +
+                  '<p class="setGruppeText">Für Knöpfe, Links und Markierungen.</p>' +
+                '</div>' +
+                '<div class="akzentWahl" id="kontoAkzent" role="radiogroup" aria-label="Akzentfarbe"></div>' +
+              '</div>' +
+              '<p class="setHinweis">Design und Farbe gelten auf diesem Gerät für alle Seiten des Portals.</p>' +
+            '</section>' +
+
+            /* ---- Konto ---- */
+            '<section class="setPanel" role="tabpanel" id="setPanel-konto"' +
+            ' aria-labelledby="setTab-konto" data-bereich="konto" hidden>' +
+              '<div class="setGruppe">' +
+                '<div class="setGruppeKopf">' +
+                  '<h3 class="setGruppeTitel">Angemeldet als</h3>' +
+                '</div>' +
+                '<div class="setWert" id="kontoMailJetzt">–</div>' +
+              '</div>' +
+              '<div class="setGruppe">' +
+                '<div class="setGruppeKopf">' +
+                  '<h3 class="setGruppeTitel">E-Mail-Adresse ändern</h3>' +
+                  '<p class="setGruppeText">An die neue Adresse geht eine Bestätigung. Erst wenn der ' +
+                  'Link darin geklickt ist, gilt sie — bis dahin meldest du dich mit der alten an.</p>' +
+                '</div>' +
+                '<label class="formLabel" for="kontoMail">Neue Adresse</label>' +
+                '<div class="setZeile">' +
+                  '<input id="kontoMail" type="email" inputmode="email" autocomplete="email"' +
+                  ' placeholder="name@domain.de">' +
+                  '<button class="btn-secondary" type="button" id="kontoMailBtn">Bestätigung senden</button>' +
+                '</div>' +
                 '<div class="kontoMsg" id="kontoMailMsg"></div>' +
               '</div>' +
-            '</div>' +
+            '</section>' +
+
+            /* ---- Sicherheit ---- */
+            '<section class="setPanel" role="tabpanel" id="setPanel-sicherheit"' +
+            ' aria-labelledby="setTab-sicherheit" data-bereich="sicherheit" hidden>' +
+              '<div class="setGruppe">' +
+                '<div class="setGruppeKopf">' +
+                  '<h3 class="setGruppeTitel">Passkeys</h3>' +
+                  '<p class="setGruppeText">Mit einem Passkey meldest du dich mit Face ID, Fingerabdruck ' +
+                  'oder Windows Hello an — ohne auf den Code aus der Mail zu warten. Der Schlüssel ' +
+                  'bleibt auf dem Gerät. Der Weg über den Code bleibt daneben offen.</p>' +
+                '</div>' +
+                '<div class="pkListe" id="kontoPkListe"></div>' +
+                '<div class="pkAktionen">' +
+                  '<button class="btn-primary" type="button" id="kontoPkBtn">Passkey hinzufügen</button>' +
+                '</div>' +
+                '<div class="kontoMsg" id="kontoPkMsg"></div>' +
+              '</div>' +
+            '</section>' +
+
           '</div>' +
-
-          '<div class="formSection">' +
-            '<div class="formSectionTitle">Passkeys</div>' +
-            '<div class="small muted">' +
-              'Mit einem Passkey meldest du dich mit Face ID, Fingerabdruck oder ' +
-              'Windows Hello an — ohne auf den Code aus der Mail zu warten. Der ' +
-              'Schlüssel bleibt auf dem Gerät. Der Weg über den Code bleibt daneben offen.' +
-            '</div>' +
-            '<div class="pkListe" id="kontoPkListe"></div>' +
-            '<div class="pkAktionen">' +
-              '<button class="btn-primary" type="button" id="kontoPkBtn">Passkey hinzufügen</button>' +
-            '</div>' +
-            '<div class="kontoMsg" id="kontoPkMsg"></div>' +
-          '</div>' +
-
-        '</div>' +
-
-        '<div class="modalActions">' +
-          '<button class="btn-secondary" type="button" id="kontoFertig">Schließen</button>' +
         '</div>' +
       '</div>';
 
     document.body.appendChild(dlg);
 
-    felder.sub     = dlg.querySelector('#kontoSub');
-    felder.mail    = dlg.querySelector('#kontoMail');
-    felder.mailBtn = dlg.querySelector('#kontoMailBtn');
-    felder.mailMsg = dlg.querySelector('#kontoMailMsg');
-    felder.pkListe = dlg.querySelector('#kontoPkListe');
-    felder.pkBtn   = dlg.querySelector('#kontoPkBtn');
-    felder.pkMsg   = dlg.querySelector('#kontoPkMsg');
+    felder.sub      = dlg.querySelector('#kontoSub');
+    felder.mailJetzt = dlg.querySelector('#kontoMailJetzt');
+    felder.mail     = dlg.querySelector('#kontoMail');
+    felder.mailBtn  = dlg.querySelector('#kontoMailBtn');
+    felder.mailMsg  = dlg.querySelector('#kontoMailMsg');
+    felder.pkListe  = dlg.querySelector('#kontoPkListe');
+    felder.pkBtn    = dlg.querySelector('#kontoPkBtn');
+    felder.pkMsg    = dlg.querySelector('#kontoPkMsg');
+    felder.design   = dlg.querySelector('#kontoDesign');
 
     dlg.querySelector('#kontoX').addEventListener('click', schliessen);
-    dlg.querySelector('#kontoFertig').addEventListener('click', schliessen);
+    dlg.addEventListener('click', function (e) {
+      if (e.target === dlg) schliessen();
+    });
+
+    /* Bereiche umschalten; Pfeiltasten wie in einer Reiterleiste */
+    var navEl = dlg.querySelector('.setNav');
+    navEl.addEventListener('click', function (e) {
+      var b = e.target.closest('.setNavBtn');
+      if (b) bereichZeigen(b.dataset.bereich);
+    });
+    navEl.addEventListener('keydown', function (e) {
+      var schritt = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (!schritt) return;
+      e.preventDefault();
+      var knoepfe = Array.prototype.slice.call(navEl.children);
+      var i = knoepfe.indexOf(document.activeElement);
+      var ziel = knoepfe[(i + schritt + knoepfe.length) % knoepfe.length];
+      ziel.focus();
+      bereichZeigen(ziel.dataset.bereich);
+    });
+
+    radioGruppe(felder.design, function (b) {
+      if (window.FSBSTheme && window.FSBSTheme.setMode) window.FSBSTheme.setMode(b.dataset.design);
+      designMarkieren();
+    });
+    document.addEventListener('fsbs:themechange', designMarkieren);
+
     akzentKnoepfe(dlg.querySelector('#kontoAkzent'));
 
     felder.mailBtn.addEventListener('click', mailAendern);
@@ -190,55 +282,85 @@
     return dlg;
   }
 
+  function bereichZeigen(name) {
+    dialogBauen();
+    if (!BEREICHE.some(function (b) { return b[0] === name; })) name = 'darstellung';
+    Array.prototype.forEach.call(dlg.querySelectorAll('.setNavBtn'), function (b) {
+      var an = b.dataset.bereich === name;
+      b.setAttribute('aria-selected', an ? 'true' : 'false');
+      b.tabIndex = an ? 0 : -1;
+    });
+    Array.prototype.forEach.call(dlg.querySelectorAll('.setPanel'), function (p) {
+      p.hidden = p.dataset.bereich !== name;
+    });
+  }
+
+  /* Eine Reihe Knöpfe, von denen genau einer gilt — mit Pfeiltasten. */
+  function radioGruppe(wahl, beiWahl) {
+    wahl.addEventListener('click', function (e) {
+      var b = e.target.closest('[role="radio"]');
+      if (b && wahl.contains(b)) beiWahl(b);
+    });
+    wahl.addEventListener('keydown', function (e) {
+      var schritt = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (!schritt) return;
+      e.preventDefault();
+      var knoepfe = Array.prototype.slice.call(wahl.querySelectorAll('[role="radio"]'));
+      var i = knoepfe.indexOf(document.activeElement);
+      var ziel = knoepfe[(i + schritt + knoepfe.length) % knoepfe.length];
+      ziel.focus();
+      beiWahl(ziel);
+    });
+  }
+
+  function markieren(wahl, attr, jetzt) {
+    Array.prototype.forEach.call(wahl.querySelectorAll('[role="radio"]'), function (b) {
+      var an = b.getAttribute(attr) === jetzt;
+      b.setAttribute('aria-checked', an ? 'true' : 'false');
+      b.tabIndex = an ? 0 : -1;
+    });
+  }
+
+
   /* ============================================================
-     Akzentfarbe
+     Darstellung
      ============================================================ */
+  function designMarkieren() {
+    if (!felder.design) return;
+    var jetzt = window.FSBSTheme && window.FSBSTheme.mode ? window.FSBSTheme.mode() : 'system';
+    markieren(felder.design, 'data-design', jetzt);
+  }
+
   function akzentKnoepfe(wahl) {
     felder.akzent = wahl;
     AKZENTE.forEach(function (a) {
       var b = el('button', 'akzentBtn');
       b.type = 'button';
       b.setAttribute('role', 'radio');
+      b.setAttribute('aria-label', a[1]);
+      b.title = a[1];
       b.dataset.akzent = a[0];
-      b.innerHTML = '<span class="akzentPunkt" aria-hidden="true"></span><span></span>';
+      b.innerHTML = '<span class="akzentPunkt" aria-hidden="true">' +
+        svg('<path d="m5 12.5 4.5 4.5L19 7.5"/>') + '</span><span class="akzentName"></span>';
       b.firstChild.style.setProperty('--akzent-licht', a[2]);
       b.firstChild.style.setProperty('--akzent-dunkel', a[3]);
       b.lastChild.textContent = a[1];
-      b.addEventListener('click', function () {
-        if (window.FSBSTheme && window.FSBSTheme.setAkzent) window.FSBSTheme.setAkzent(a[0]);
-        akzentMarkieren();
-      });
       wahl.appendChild(b);
     });
 
-    /* Pfeiltasten wie in einer Radiogruppe */
-    wahl.addEventListener('keydown', function (e) {
-      var schritt = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
-      if (!schritt) return;
-      e.preventDefault();
-      var knoepfe = Array.prototype.slice.call(wahl.children);
-      var i = knoepfe.indexOf(document.activeElement);
-      var ziel = knoepfe[(i + schritt + knoepfe.length) % knoepfe.length];
-      ziel.focus();
-      ziel.click();
+    radioGruppe(wahl, function (b) {
+      if (window.FSBSTheme && window.FSBSTheme.setAkzent) window.FSBSTheme.setAkzent(b.dataset.akzent);
+      akzentMarkieren();
     });
 
     document.addEventListener('fsbs:akzentchange', akzentMarkieren);
     akzentMarkieren();
   }
 
-  function akzentAktuell() {
-    return window.FSBSTheme && window.FSBSTheme.akzent ? window.FSBSTheme.akzent() : 'blau';
-  }
-
   function akzentMarkieren() {
     if (!felder.akzent) return;
-    var jetzt = akzentAktuell();
-    Array.prototype.forEach.call(felder.akzent.children, function (b) {
-      var an = b.dataset.akzent === jetzt;
-      b.setAttribute('aria-checked', an ? 'true' : 'false');
-      b.tabIndex = an ? 0 : -1;
-    });
+    var jetzt = window.FSBSTheme && window.FSBSTheme.akzent ? window.FSBSTheme.akzent() : 'blau';
+    markieren(felder.akzent, 'data-akzent', jetzt);
   }
 
   function schliessen() {
@@ -248,32 +370,41 @@
   async function oeffnen(bereich) {
     dialogBauen();
 
-    var sb = client();
-    if (!sb) return;
-
     setMsg(felder.mailMsg, '');
     setMsg(felder.pkMsg, '');
     felder.mail.value = '';
 
+    var name = ZIEL[bereich] || bereich || 'darstellung';
+    bereichZeigen(name);
+    designMarkieren();
     akzentMarkieren();
-    dlg.showModal();
-    if (bereich === 'akzent') {
-      var an = felder.akzent.querySelector('[aria-checked="true"]');
-      if (an) an.focus();
+    if (!dlg.open) dlg.showModal();
+
+    /* Den Fokus auf etwas Sinnvolles, nicht auf das ✕ */
+    if (bereich === 'mail') felder.mail.focus();
+    else if (bereich === 'passkey') felder.pkBtn.focus();
+    else {
+      var tab = dlg.querySelector('.setNavBtn[aria-selected="true"]');
+      if (tab) tab.focus();
+    }
+
+    var sb = client();
+    if (!sb) {
+      felder.sub.textContent = 'Nicht angemeldet.';
+      return;
     }
 
     var res = await sb.auth.getUser();
     var user = res && res.data ? res.data.user : null;
     if (!user) {
       felder.sub.textContent = 'Nicht angemeldet.';
+      felder.mailJetzt.textContent = '–';
       return;
     }
     felder.sub.textContent = user.email || '';
+    felder.mailJetzt.textContent = user.email || '–';
 
     passkeysLaden();
-
-    if (bereich === 'mail') felder.mail.focus();
-    else if (bereich === 'passkey') felder.pkBtn.focus();
   }
 
 
@@ -442,9 +573,7 @@
     if (!panel || panel.querySelector('.kontoActions')) return;
 
     var box = el('div', 'userPanelActions kontoActions');
-    box.appendChild(menuepunkt('E-Mail ändern', ICON_MAIL, 'mail'));
-    box.appendChild(menuepunkt('Passkeys', ICON_KEY, 'passkey'));
-    box.appendChild(menuepunkt('Akzentfarbe', ICON_FARBE, 'akzent'));
+    box.appendChild(menuepunkt('Einstellungen', ICON_ZAHNRAD, 'darstellung'));
 
     var sep = panel.querySelector('.userPanelSep');
     if (sep) panel.insertBefore(box, sep);
@@ -457,7 +586,7 @@
 
     var logout = fuss.querySelector('.drawerLogout');
 
-    [['E-Mail ändern', 'mail'], ['Passkeys', 'passkey'], ['Akzentfarbe', 'akzent']].forEach(function (paar) {
+    [['Einstellungen', 'darstellung']].forEach(function (paar) {
       var b = el('button', 'drawerThemeBtn drawerKonto');
       b.type = 'button';
       b.textContent = paar[0];

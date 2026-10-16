@@ -66,6 +66,19 @@
     document.dispatchEvent(new CustomEvent('fsbs:themechange', { detail: { theme: theme } }));
   }
 
+  /* 'light', 'dark' oder 'system' — Letzteres, solange nichts gespeichert ist. */
+  function mode() {
+    var v = stored();
+    return v === 'light' || v === 'dark' ? v : 'system';
+  }
+
+  function setMode(m) {
+    if (m === 'light' || m === 'dark') return setTheme(m);
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+    apply(systemTheme());
+    document.dispatchEvent(new CustomEvent('fsbs:themechange', { detail: { theme: current() } }));
+  }
+
   function toggle() {
     setTheme(current() === 'dark' ? 'light' : 'dark');
   }
@@ -186,6 +199,7 @@
 
   window.FSBSTheme = {
     get: current, set: setTheme, toggle: toggle, erzwinge: erzwinge,
+    mode: mode, setMode: setMode,
     akzent: akzent, setAkzent: setAkzent
   };
 })();

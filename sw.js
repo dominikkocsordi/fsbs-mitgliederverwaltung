@@ -3,7 +3,7 @@
    Offline-Support & PWA-Installierung
    ============================================================ */
 
-const CACHE = 'fsbs-v24';
+const CACHE = 'fsbs-v25';
 
 /* Statische App-Shell – bei Installation vorher cachen */
 const PRECACHE = [
