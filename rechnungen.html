@@ -282,6 +282,22 @@
   }
   .belegWarn { color: var(--warning); font-weight: 500; }
 
+  /* Dringlichkeit: Wie lange ein offener Vorgang schon wartet. Gelb ab
+     DRINGLICH.BALD Tagen, rot ab DRINGLICH.DRINGEND. */
+  .alter {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .alter.bald     { color: var(--warning); background: var(--warning-surface); }
+  .alter.dringend { color: var(--danger);  background: var(--danger-surface); }
+  .zahlKarte.bald     { border-left: 3px solid var(--warning); }
+  .zahlKarte.dringend { border-left: 3px solid var(--danger); }
+  .zahlKopf .alter { margin-top: 6px; }
+
   .belegRechts { text-align: right; }
 
   .belegBetrag {
@@ -842,6 +858,7 @@
         <select id="fStatus" aria-label="Stand">
           <option value="">Stand: alle</option>
           <option value="zuzahlen">Noch auszuzahlen</option>
+          <option value="dringend">Dringend</option>
           <option value="offen">Offen</option>
           <option value="pruefung">In Prüfung</option>
           <option value="bezahlt">Bezahlt</option>
@@ -1419,6 +1436,8 @@
         /* nichts: der Stand-Filter ist dort ausgeblendet */
       } else if (st === "zuzahlen") {
         if (r.status !== "offen" && r.status !== "pruefung") return false;
+      } else if (st === "dringend") {
+        if (!dringlichkeit(r)) return false;
       } else if (st && r.status !== st) {
         return false;
       }
@@ -1468,6 +1487,37 @@
 
   const offenGruppe = (r) => r.status === "offen" || r.status === "pruefung";
 
+  /* ---- Dringlichkeit ----
+     Wer etwas ausgelegt hat, wartet ab dem Tag, an dem der Beleg
+     eingegangen ist. Je länger das her ist, desto eher ist er dran. */
+  const DRINGLICH = { BALD: 14, DRINGEND: 30 };   // Tage
+  const TAG = 24 * 60 * 60 * 1000;
+
+  function wartetTage(r) {
+    const seit = Date.parse(r.created_at);
+    return isFinite(seit) ? Math.max(0, Math.floor((Date.now() - seit) / TAG)) : 0;
+  }
+
+  /* "" | "bald" | "dringend" — nur für das, was noch auszuzahlen ist. */
+  function dringlichkeit(r) {
+    if (!offenGruppe(r)) return "";
+    const tage = wartetTage(r);
+    if (tage >= DRINGLICH.DRINGEND) return "dringend";
+    if (tage >= DRINGLICH.BALD) return "bald";
+    return "";
+  }
+
+  function alterMarke(r) {
+    const stufe = dringlichkeit(r);
+    if (!stufe) return "";
+    const tage = wartetTage(r);
+    return '<span class="alter ' + stufe + '" title="Eingegangen vor ' + tage + ' Tagen">' +
+           (stufe === "dringend" ? "Dringend · " : "") + "seit " + tage + " Tagen</span>";
+  }
+
+  // Älteste zuerst.
+  const nachAlter = (a, b) => Date.parse(a.created_at) - Date.parse(b.created_at);
+
   function zeichnen() {
     const zeilen = gefiltert();
     filterHervorheben();
@@ -1506,13 +1556,15 @@
     const zuZahlen = ALLE.filter(offenGruppe);
 
     const ohneIban = zuZahlen.filter((r) => !safe(r.iban).trim()).length;
+    const dringend = zuZahlen.filter((r) => dringlichkeit(r) === "dringend").length;
     const leute    = new Set(zuZahlen.map(empfaenger)).size;
 
     $("sumWert").textContent = euro(summe(zuZahlen));
     $("sumSub").textContent = zuZahlen.length === 0
       ? "Alles erledigt — es steht nichts offen."
       : anzahl(zuZahlen.length) + " an " + leute + (leute === 1 ? " Person" : " Personen") +
-        (ohneIban ? " · " + ohneIban + " ohne IBAN" : "");
+        (ohneIban ? " · " + ohneIban + " ohne IBAN" : "") +
+        (dringend ? " · " + dringend + " seit über " + DRINGLICH.DRINGEND + " Tagen" : "");
     $("sumBtn").hidden = zuZahlen.length === 0;
 
     const zahl4 = [
@@ -1535,6 +1587,10 @@
     '<path d="M6 12h.01M18 12h.01"/></svg>';
 
   function vorgaengeZeichnen(zeilen) {
+    /* Wer nach dem Auszuzahlenden schaut, sieht das Älteste oben. */
+    const st = $("fStatus").value;
+    if (st === "zuzahlen" || st === "dringend") zeilen = zeilen.slice().sort(nachAlter);
+
     const liste = $("belegListe");
     liste.innerHTML = "";
     $("leerVorgaenge").hidden = zeilen.length > 0;
@@ -1554,6 +1610,8 @@
       /* Eine Zeile Klartext statt einer Reihe Pillen. Den Stand trägt
          die Kachel links als Farbe und das Wort unter dem Betrag. */
       const teile = [];
+      const marke = alterMarke(r);
+      if (marke) teile.push(marke);
       if (!r.beleg_pfad) {
         teile.push('<span class="belegWarn">' +
           (r.drive_link ? "Beleg bei Drive" : "ohne Beleg") + "</span>");
@@ -1601,8 +1659,11 @@
       gruppen.get(schluessel).push(r);
     });
 
+    /* Wer am längsten wartet, steht oben; bei gleichem Alter die
+       größere Summe. */
+    const aeltester = (posten) => Math.min(...posten.map((p) => Date.parse(p.created_at) || Infinity));
     [...gruppen.entries()]
-      .sort((a, b) => summe(b[1]) - summe(a[1]))
+      .sort((a, b) => (aeltester(a[1]) - aeltester(b[1])) || (summe(b[1]) - summe(a[1])))
       .forEach(([schluessel, posten]) => liste.appendChild(zahlKarte(schluessel, posten)));
 
     ergebnis([
@@ -1613,8 +1674,12 @@
 
   function zahlKarte(schluessel, posten) {
     const iban = schluessel.indexOf("ohne:") === 0 ? "" : schluessel;
+    posten = posten.slice().sort(nachAlter);
     const karte = document.createElement("div");
     karte.className = "zahlKarte";
+    // Die Karte trägt die Stufe ihres ältesten Postens.
+    const stufe = dringlichkeit(posten[0]);
+    if (stufe) karte.classList.add(stufe);
 
     const zweck = "Erstattung FSBS " + posten.map((p) => p.code).join(", ");
     /* Läuft das Konto auf jemand anderen, gehört dessen Name in die
@@ -1631,6 +1696,7 @@
           (iban
             ? '<div class="zahlIban">' + esc(ibanSchoen(iban)) + "</div>"
             : '<div class="zahlIban fehlt">Keine IBAN hinterlegt — bitte nachfragen</div>') +
+          alterMarke(posten[0]) +
         "</div>" +
         '<div class="zahlSumme">' + esc(euro(summe(posten))) + "</div>" +
       "</div>" +
@@ -1843,6 +1909,10 @@
       ["Kontoinhaber", safe(zeile.kontoinhaber)],
       ["Bezahlt am", datum(zeile.bezahlt_am)],
       ["Eingegangen", datumZeit(zeile.created_at)],
+      ["Wartet seit", offenGruppe(zeile)
+        ? wartetTage(zeile) + (wartetTage(zeile) === 1 ? " Tag" : " Tagen") +
+          (dringlichkeit(zeile) === "dringend" ? " — dringend" : "")
+        : ""],
       ["Herkunft", HERKUNFT[zeile.quelle] || safe(zeile.quelle)]
     ];
 
