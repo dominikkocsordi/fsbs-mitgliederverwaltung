@@ -998,6 +998,10 @@
             <input id="eIban" type="text" maxlength="42" spellcheck="false"
                    style="font-family:var(--font-mono);text-transform:uppercase;">
           </div>
+          <div class="field full">
+            <label for="eKontoinhaber">Kontoinhaber <span style="font-weight:400;color:var(--faint-foreground);">falls abweichend</span></label>
+            <input id="eKontoinhaber" type="text" maxlength="120">
+          </div>
           <div class="field">
             <label for="eStatus">Stand</label>
             <select id="eStatus">
@@ -1411,7 +1415,7 @@
 
       if (text) {
         const heu = [r.vorname, r.nachname, r.projekt, r.projekt_roh, r.beschreibung,
-                     r.iban, r.code, r.notiz, r.email].map(safe).join(" ").toLowerCase();
+                     r.iban, r.kontoinhaber, r.code, r.notiz, r.email].map(safe).join(" ").toLowerCase();
         if (!heu.includes(text)) return false;
       }
       return true;
@@ -1595,11 +1599,17 @@
     karte.className = "zahlKarte";
 
     const zweck = "Erstattung FSBS " + posten.map((p) => p.code).join(", ");
+    /* Läuft das Konto auf jemand anderen, gehört dessen Name in die
+       Überweisung — sonst der des Einreichers. */
+    const inhaber = posten.map((p) => safe(p.kontoinhaber).trim()).find(Boolean) || "";
 
     karte.innerHTML =
       '<div class="zahlKopf">' +
         '<div style="min-width:0;">' +
           '<div class="zahlName">' + esc(name(posten[0])) + "</div>" +
+          (inhaber
+            ? '<div class="zahlIban" style="font-family:var(--font-sans);">Konto von ' + esc(inhaber) + "</div>"
+            : "") +
           (iban
             ? '<div class="zahlIban">' + esc(ibanSchoen(iban)) + "</div>"
             : '<div class="zahlIban fehlt">Keine IBAN hinterlegt — bitte nachfragen</div>') +
@@ -1625,6 +1635,7 @@
         b.title = schild + " kopieren";
         return b;
       };
+      aktionen.appendChild(kopierKnopf("Empfänger", inhaber || name(posten[0])));
       aktionen.appendChild(kopierKnopf("IBAN", iban));
       aktionen.appendChild(kopierKnopf("Verwendungszweck", zweck));
       aktionen.appendChild(kopierKnopf("Betrag", summe(posten).toFixed(2).replace(".", ",")));
@@ -1810,6 +1821,7 @@
       ["Zweck", safe(zeile.beschreibung)],
       ["Belegdatum", datum(zeile.beleg_datum)],
       ["IBAN", safe(zeile.iban) ? ibanSchoen(zeile.iban) : "", safe(zeile.iban)],
+      ["Kontoinhaber", safe(zeile.kontoinhaber)],
       ["Bezahlt am", datum(zeile.bezahlt_am)],
       ["Eingegangen", datumZeit(zeile.created_at)],
       ["Herkunft", HERKUNFT[zeile.quelle] || safe(zeile.quelle)]
@@ -2111,6 +2123,7 @@
     $("eDatum").value        = zeile ? safe(zeile.beleg_datum)
                                      : new Date().toISOString().slice(0, 10);
     $("eIban").value         = zeile ? ibanSchoen(zeile.iban) : "";
+    $("eKontoinhaber").value = zeile ? safe(zeile.kontoinhaber) : "";
     $("eStatus").value       = zeile ? zeile.status : "offen";
     $("eBezahltAm").value    = zeile ? safe(zeile.bezahlt_am) : "";
     $("eBeleg").value        = "";
@@ -2199,6 +2212,11 @@
         bezahlt_am:   $("eBezahltAm").value || null
       };
 
+      /* Erst wenn supabase/rechnungen.sql die Spalte angelegt hat — vorher
+         ließe die Datenbank das ganze Speichern scheitern. */
+      const inhaber = $("eKontoinhaber").value.trim();
+      if (ALLE.some((r) => "kontoinhaber" in r)) daten.kontoinhaber = inhaber || null;
+
       const datei = $("eBeleg").files && $("eBeleg").files[0];
       if (datei) {
         const hoch = await belegHochladen(datei);
@@ -2241,13 +2259,13 @@
   $("exportBtn").addEventListener("click", () => {
     const kopf = ["Nummer", "Eingegangen", "Vorname", "Nachname", "E-Mail", "Projekt",
                   "Zweck", "Betrag", "Belegdatum", "Stand", "Bezahlt am", "IBAN",
-                  "Notiz", "Beleg", "Herkunft"];
+                  "Kontoinhaber", "Notiz", "Beleg", "Herkunft"];
 
     const zeilen = gefiltert().map((r) => [
       r.code, datumZeit(r.created_at), r.vorname, r.nachname, r.email,
       r.projekt, r.beschreibung, zahl(r.betrag).toFixed(2).replace(".", ","),
       datum(r.beleg_datum), STAND[r.status].label, datum(r.bezahlt_am),
-      ibanSchoen(r.iban), r.notiz,
+      ibanSchoen(r.iban), r.kontoinhaber, r.notiz,
       r.beleg_pfad ? "im Ordner" : (r.drive_link || "fehlt"), r.quelle
     ]);
 

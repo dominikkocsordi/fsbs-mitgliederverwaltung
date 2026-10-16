@@ -202,6 +202,8 @@ create table if not exists public.rechnungen (
     betrag          numeric(10,2) not null,
     beleg_datum     date        not null,
     iban            text,
+    -- Nur, wenn das Konto nicht auf den Namen des Einreichers läuft.
+    kontoinhaber    text,
 
     status          text        not null default 'offen',
     status_am       timestamptz not null default now(),
@@ -256,6 +258,7 @@ alter table public.rechnungen add column if not exists beleg_typ         text;
 alter table public.rechnungen add column if not exists drive_link        text;
 alter table public.rechnungen add column if not exists einwilligung_text text;
 alter table public.rechnungen add column if not exists erfasst_von       uuid;
+alter table public.rechnungen add column if not exists kontoinhaber      text;
 
 create index if not exists rechnungen_status_idx      on public.rechnungen (status, created_at desc);
 create index if not exists rechnungen_projekt_idx     on public.rechnungen (projekt_id);
@@ -383,6 +386,7 @@ begin
     new.email        := nullif(lower(btrim(coalesce(new.email, ''))), '');
     new.beschreibung := btrim(new.beschreibung);
     new.notiz        := nullif(btrim(coalesce(new.notiz, '')), '');
+    new.kontoinhaber := nullif(left(btrim(coalesce(new.kontoinhaber, '')), 120), '');
 
     -- „DE12 3456“, „de123456“ und „DE12-3456“ sind dieselbe Verbindung.
     -- Was gar keine ist – im Google-Formular stand auch schon mal „-“ –,
@@ -466,6 +470,7 @@ begin
     new.email        := nullif(lower(btrim(coalesce(new.email, ''))), '');
     new.beschreibung := btrim(new.beschreibung);
     new.notiz        := nullif(btrim(coalesce(new.notiz, '')), '');
+    new.kontoinhaber := nullif(left(btrim(coalesce(new.kontoinhaber, '')), 120), '');
 
     new.iban := public.rechnung_iban_norm(new.iban);
     if new.iban is not null and new.iban !~ '^[A-Z]{2}[0-9]{2}[0-9A-Z]{10,30}$' then
@@ -668,7 +673,7 @@ grant update (titel, intro, geschlossen, hinweis_zu) on public.rechnung_formular
 revoke insert, update, delete on public.rechnungen from anon, authenticated;
 grant select, insert, delete on public.rechnungen to authenticated;
 grant update (status, notiz, bezahlt_am, projekt_id, projekt, betrag, beleg_datum,
-              beschreibung, iban, vorname, nachname, email,
+              beschreibung, iban, kontoinhaber, vorname, nachname, email,
               beleg_pfad, beleg_name, beleg_typ) on public.rechnungen to authenticated;
 
 
@@ -740,6 +745,10 @@ $anlegen$;
 -- Aufruf nicht, welche gemeint ist.
 drop function if exists public.rechnung_einreichen(
     text, text, text, text, uuid, numeric, date, text, text, text, text, uuid, text);
+-- Die Fassung ohne Kontoinhaber. Bliebe sie stehen, passten auf einen Aufruf
+-- ohne `p_kontoinhaber` zwei Funktionen, und PostgREST wüsste nicht, welche.
+drop function if exists public.rechnung_einreichen(
+    text, text, text, text, text, numeric, date, text, text, text, text, uuid, text);
 
 create or replace function public.rechnung_einreichen(
     p_vorname         text,
@@ -754,7 +763,8 @@ create or replace function public.rechnung_einreichen(
     p_beleg_name      text default null,
     p_beleg_typ       text default null,
     p_einwilligung_id uuid default null,
-    p_captcha_token   text default null
+    p_captcha_token   text default null,
+    p_kontoinhaber    text default null
 )
 returns text
 language plpgsql
@@ -788,10 +798,10 @@ begin
 
     insert into public.rechnungen
         (vorname, nachname, email, beschreibung, projekt, betrag, beleg_datum,
-         iban, beleg_pfad, beleg_name, beleg_typ, einwilligung_id, quelle)
+         iban, kontoinhaber, beleg_pfad, beleg_name, beleg_typ, einwilligung_id, quelle)
     values
         (p_vorname, p_nachname, p_email, p_beschreibung, p_projekt, p_betrag,
-         p_beleg_datum, p_iban, p_beleg_pfad, p_beleg_name, p_beleg_typ,
+         p_beleg_datum, p_iban, p_kontoinhaber, p_beleg_pfad, p_beleg_name, p_beleg_typ,
          p_einwilligung_id, 'formular')
     returning code into v_code;
 
@@ -800,7 +810,7 @@ end;
 $$;
 
 grant execute on function public.rechnung_einreichen(
-    text, text, text, text, text, numeric, date, text, text, text, text, uuid, text)
+    text, text, text, text, text, numeric, date, text, text, text, text, uuid, text, text)
     to anon, authenticated;
 
 

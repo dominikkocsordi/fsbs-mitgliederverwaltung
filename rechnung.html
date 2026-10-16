@@ -741,6 +741,11 @@
             </div>
             <div class="bErr" id="iban-error"></div>
           </div>
+          <div class="field full">
+            <label for="kontoinhaber">Kontoinhaber <span class="bOpt">Optional</span></label>
+            <input id="kontoinhaber" type="text" maxlength="120" autocomplete="name"
+                   placeholder="Falls das Konto nicht auf deinen Namen läuft">
+          </div>
         </div>
       </div>
 
@@ -1509,6 +1514,12 @@
        `p_captcha_token` an eine Datenbank, die es noch nicht kennt, fände
        dort gar keine Funktion mehr. */
     if (pruefung.verlangt) felder.p_captcha_token = pruefung.token;
+
+    /* Dasselbe gilt für den Kontoinhaber: Er geht nur mit, wenn jemand
+       einen eingetragen hat — sonst bleibt die Seite auch an einer
+       Datenbank lauffähig, die das Feld noch nicht kennt. */
+    const inhaber = $("kontoinhaber").value.trim();
+    if (inhaber) felder.p_kontoinhaber = inhaber;
 
     const { data: nummer, error } = await sb.rpc("rechnung_einreichen", felder);
 
