@@ -62,6 +62,21 @@
   var ICON_KEY  = '<circle cx="8" cy="12" r="3.5"/><path d="M11.5 12H21"/>' +
                   '<path d="M17.5 12v3"/><path d="M20 12v2"/>';
 
+  var ICON_FARBE = '<circle cx="12" cy="12" r="8.5"/><circle cx="8.5" cy="10" r="1.2"/>' +
+                   '<circle cx="12" cy="7.5" r="1.2"/><circle cx="15.5" cy="10" r="1.2"/>' +
+                   '<path d="M12 20.5a2.5 2.5 0 0 1 0-5h1.5"/>';
+
+  /* Die sechs Akzentfarben: Schlüssel, Name, hell, dunkel. Die Werte
+     gleichen denen in style.css unter [data-akzent]. */
+  var AKZENTE = [
+    ['blau', 'Blau', 'oklch(0.55 0.19 258)', 'oklch(0.75 0.15 255)'],
+    ['violett', 'Violett', 'oklch(0.53 0.21 295)', 'oklch(0.75 0.15 295)'],
+    ['gruen', 'Grün', 'oklch(0.52 0.14 155)', 'oklch(0.76 0.15 155)'],
+    ['tuerkis', 'Türkis', 'oklch(0.53 0.10 205)', 'oklch(0.77 0.11 205)'],
+    ['orange', 'Orange', 'oklch(0.57 0.17 45)', 'oklch(0.77 0.15 55)'],
+    ['rosa', 'Rosa', 'oklch(0.56 0.20 355)', 'oklch(0.76 0.14 355)']
+  ];
+
   function datum(iso) {
     if (!iso) return '';
     var d = new Date(iso);
@@ -102,6 +117,15 @@
         '</div>' +
 
         '<div class="modalBody">' +
+
+          '<div class="formSection">' +
+            '<div class="formSectionTitle">Darstellung</div>' +
+            '<div class="small muted">' +
+              'Die Akzentfarbe für Knöpfe, Links und Markierungen. Sie gilt auf ' +
+              'diesem Gerät für alle Seiten des Portals.' +
+            '</div>' +
+            '<div class="akzentWahl" id="kontoAkzent" role="radiogroup" aria-label="Akzentfarbe"></div>' +
+          '</div>' +
 
           '<div class="formSection">' +
             '<div class="formSectionTitle">E-Mail-Adresse</div>' +
@@ -155,6 +179,8 @@
 
     dlg.querySelector('#kontoX').addEventListener('click', schliessen);
     dlg.querySelector('#kontoFertig').addEventListener('click', schliessen);
+    akzentKnoepfe(dlg.querySelector('#kontoAkzent'));
+
     felder.mailBtn.addEventListener('click', mailAendern);
     felder.pkBtn.addEventListener('click', passkeyAnlegen);
     felder.mail.addEventListener('keydown', function (e) {
@@ -162,6 +188,57 @@
     });
 
     return dlg;
+  }
+
+  /* ============================================================
+     Akzentfarbe
+     ============================================================ */
+  function akzentKnoepfe(wahl) {
+    felder.akzent = wahl;
+    AKZENTE.forEach(function (a) {
+      var b = el('button', 'akzentBtn');
+      b.type = 'button';
+      b.setAttribute('role', 'radio');
+      b.dataset.akzent = a[0];
+      b.innerHTML = '<span class="akzentPunkt" aria-hidden="true"></span><span></span>';
+      b.firstChild.style.setProperty('--akzent-licht', a[2]);
+      b.firstChild.style.setProperty('--akzent-dunkel', a[3]);
+      b.lastChild.textContent = a[1];
+      b.addEventListener('click', function () {
+        if (window.FSBSTheme && window.FSBSTheme.setAkzent) window.FSBSTheme.setAkzent(a[0]);
+        akzentMarkieren();
+      });
+      wahl.appendChild(b);
+    });
+
+    /* Pfeiltasten wie in einer Radiogruppe */
+    wahl.addEventListener('keydown', function (e) {
+      var schritt = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+      if (!schritt) return;
+      e.preventDefault();
+      var knoepfe = Array.prototype.slice.call(wahl.children);
+      var i = knoepfe.indexOf(document.activeElement);
+      var ziel = knoepfe[(i + schritt + knoepfe.length) % knoepfe.length];
+      ziel.focus();
+      ziel.click();
+    });
+
+    document.addEventListener('fsbs:akzentchange', akzentMarkieren);
+    akzentMarkieren();
+  }
+
+  function akzentAktuell() {
+    return window.FSBSTheme && window.FSBSTheme.akzent ? window.FSBSTheme.akzent() : 'blau';
+  }
+
+  function akzentMarkieren() {
+    if (!felder.akzent) return;
+    var jetzt = akzentAktuell();
+    Array.prototype.forEach.call(felder.akzent.children, function (b) {
+      var an = b.dataset.akzent === jetzt;
+      b.setAttribute('aria-checked', an ? 'true' : 'false');
+      b.tabIndex = an ? 0 : -1;
+    });
   }
 
   function schliessen() {
@@ -178,7 +255,12 @@
     setMsg(felder.pkMsg, '');
     felder.mail.value = '';
 
+    akzentMarkieren();
     dlg.showModal();
+    if (bereich === 'akzent') {
+      var an = felder.akzent.querySelector('[aria-checked="true"]');
+      if (an) an.focus();
+    }
 
     var res = await sb.auth.getUser();
     var user = res && res.data ? res.data.user : null;
@@ -362,6 +444,7 @@
     var box = el('div', 'userPanelActions kontoActions');
     box.appendChild(menuepunkt('E-Mail ändern', ICON_MAIL, 'mail'));
     box.appendChild(menuepunkt('Passkeys', ICON_KEY, 'passkey'));
+    box.appendChild(menuepunkt('Akzentfarbe', ICON_FARBE, 'akzent'));
 
     var sep = panel.querySelector('.userPanelSep');
     if (sep) panel.insertBefore(box, sep);
@@ -374,7 +457,7 @@
 
     var logout = fuss.querySelector('.drawerLogout');
 
-    [['E-Mail ändern', 'mail'], ['Passkeys', 'passkey']].forEach(function (paar) {
+    [['E-Mail ändern', 'mail'], ['Passkeys', 'passkey'], ['Akzentfarbe', 'akzent']].forEach(function (paar) {
       var b = el('button', 'drawerThemeBtn drawerKonto');
       b.type = 'button';
       b.textContent = paar[0];

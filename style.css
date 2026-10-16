@@ -4660,3 +4660,81 @@ to   { opacity: 1; transform: translateY(0); }
   .pkZeile { align-items: flex-start; flex-direction: column; }
   .pkWeg { align-self: stretch; }
 }
+
+
+/* ============================================================
+   Akzentfarbe
+   ------------------------------------------------------------
+   Gewählt unter „Mein Konto → Darstellung“, gesetzt von theme.js
+   als data-akzent am <html>. Blau ist der Standard und braucht
+   keine eigene Regel. Alles, was die Akzentfarbe trägt, hängt an
+   --primary und --ring.
+   ============================================================ */
+:root[data-akzent="violett"] { --primary: oklch(0.53 0.21 295); --ring: oklch(0.53 0.21 295); }
+:root.dark[data-akzent="violett"] { --primary: oklch(0.75 0.15 295); --ring: oklch(0.75 0.15 295); }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark)[data-akzent="violett"] { --primary: oklch(0.75 0.15 295); --ring: oklch(0.75 0.15 295); }
+}
+:root[data-akzent="gruen"] { --primary: oklch(0.52 0.14 155); --ring: oklch(0.52 0.14 155); }
+:root.dark[data-akzent="gruen"] { --primary: oklch(0.76 0.15 155); --ring: oklch(0.76 0.15 155); }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark)[data-akzent="gruen"] { --primary: oklch(0.76 0.15 155); --ring: oklch(0.76 0.15 155); }
+}
+:root[data-akzent="tuerkis"] { --primary: oklch(0.53 0.10 205); --ring: oklch(0.53 0.10 205); }
+:root.dark[data-akzent="tuerkis"] { --primary: oklch(0.77 0.11 205); --ring: oklch(0.77 0.11 205); }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark)[data-akzent="tuerkis"] { --primary: oklch(0.77 0.11 205); --ring: oklch(0.77 0.11 205); }
+}
+:root[data-akzent="orange"] { --primary: oklch(0.57 0.17 45); --ring: oklch(0.57 0.17 45); }
+:root.dark[data-akzent="orange"] { --primary: oklch(0.77 0.15 55); --ring: oklch(0.77 0.15 55); }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark)[data-akzent="orange"] { --primary: oklch(0.77 0.15 55); --ring: oklch(0.77 0.15 55); }
+}
+:root[data-akzent="rosa"] { --primary: oklch(0.56 0.20 355); --ring: oklch(0.56 0.20 355); }
+:root.dark[data-akzent="rosa"] { --primary: oklch(0.76 0.14 355); --ring: oklch(0.76 0.14 355); }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark)[data-akzent="rosa"] { --primary: oklch(0.76 0.14 355); --ring: oklch(0.76 0.14 355); }
+}
+
+.akzentWahl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.akzentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background: var(--surface-2, var(--secondary));
+  color: var(--foreground);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.akzentBtn:hover { border-color: var(--border-strong); }
+
+.akzentPunkt {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--akzent-licht);
+  flex: none;
+}
+
+:root.dark .akzentPunkt { background: var(--akzent-dunkel); }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not(.dark) .akzentPunkt { background: var(--akzent-dunkel); }
+}
+
+.akzentBtn[aria-checked="true"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 28%, transparent);
+  font-weight: 600;
+}

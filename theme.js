@@ -70,6 +70,43 @@
     setTheme(current() === 'dark' ? 'light' : 'dark');
   }
 
+  /* --- Akzentfarbe ---
+     Gewählt unter „Mein Konto → Darstellung“; die Farben selbst stehen
+     in style.css unter [data-akzent]. Blau ist der Standard. */
+  var AKZENT_KEY = 'fsbs-akzent';
+  var AKZENTE = ['blau', 'violett', 'gruen', 'tuerkis', 'orange', 'rosa'];
+
+  function akzentGespeichert() {
+    try {
+      var v = window.localStorage.getItem(AKZENT_KEY);
+      return AKZENTE.indexOf(v) >= 0 ? v : 'blau';
+    } catch (e) { return 'blau'; }
+  }
+
+  function akzentAnwenden(name) {
+    if (name && name !== 'blau') root.setAttribute('data-akzent', name);
+    else root.removeAttribute('data-akzent');
+  }
+
+  function akzent() {
+    return root.getAttribute('data-akzent') || 'blau';
+  }
+
+  function setAkzent(name) {
+    if (AKZENTE.indexOf(name) < 0) name = 'blau';
+    akzentAnwenden(name);
+    try { window.localStorage.setItem(AKZENT_KEY, name); } catch (e) { /* ignore */ }
+    document.dispatchEvent(new CustomEvent('fsbs:akzentchange', { detail: { akzent: name } }));
+  }
+
+  /* Eingebettet bestimmt die Seite ringsum das Aussehen. */
+  if (!eingebettet) akzentAnwenden(akzentGespeichert());
+
+  /* Wechsel in einem anderen Tab gleich mitnehmen. */
+  window.addEventListener('storage', function (e) {
+    if (e.key === AKZENT_KEY && !eingebettet) akzentAnwenden(akzentGespeichert());
+  });
+
   /* --- Sofort anwenden (vor dem ersten Paint) --- */
   apply(festgelegt ? wunsch : (wunsch === 'auto' ? systemTheme() : (stored() || systemTheme())));
 
@@ -147,5 +184,8 @@
     document.dispatchEvent(new CustomEvent('fsbs:themechange', { detail: { theme: current() } }));
   }
 
-  window.FSBSTheme = { get: current, set: setTheme, toggle: toggle, erzwinge: erzwinge };
+  window.FSBSTheme = {
+    get: current, set: setTheme, toggle: toggle, erzwinge: erzwinge,
+    akzent: akzent, setAkzent: setAkzent
+  };
 })();
