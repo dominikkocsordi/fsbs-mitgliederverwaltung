@@ -942,6 +942,7 @@
     <div class="dlgActions">
       <button class="btn-ghost btn-sm loeschBtn" id="dlgLoeschen" type="button">Löschen</button>
       <div class="spacer"></div>
+      <button class="btn-secondary" id="dlgBelegLaden" type="button" hidden>Beleg herunterladen</button>
       <button class="btn-secondary" id="dlgBearbeiten" type="button">Bearbeiten</button>
       <button class="btn-primary" id="dlgSpeichern" type="button">Notiz speichern</button>
     </div>
@@ -1775,6 +1776,7 @@
       : "";
 
     angabenZeichnen(zeile);
+    $("dlgBelegLaden").hidden = !zeile.beleg_pfad;
     $("detailDialog").showModal();
     belegZeigen(zeile);          // holt den Link nach; der Dialog steht schon
   }
@@ -1946,11 +1948,53 @@
     const fuss = document.createElement("div");
     fuss.className = "belegFuss";
     fuss.appendChild(verweis("In neuem Tab öffnen", url));
-    fuss.appendChild(verweis("Herunterladen", url,
-      (zeile.code || "beleg") + "-" + (zeile.beleg_name || "beleg")));
+    const laden = document.createElement("button");
+    laden.type = "button";
+    laden.className = "btn-secondary btn-sm";
+    laden.textContent = "Herunterladen";
+    laden.addEventListener("click", () => belegHerunterladen(zeile, laden));
+    fuss.appendChild(laden);
     if (zeile.drive_link) fuss.appendChild(verweis("Original bei Drive", zeile.drive_link));
     return fuss;
   }
+
+  /* Der signierte Link zeigt auf die Supabase-Domain; dort übergeht der
+     Browser das download-Attribut und öffnet die Datei nur. Darum holen
+     wir sie als Blob und speichern sie von hier aus. */
+  function belegDateiname(zeile) {
+    let datei = safe(zeile.beleg_name).trim() ||
+                safe(zeile.beleg_pfad).split("/").pop() || "beleg";
+    if (datei.indexOf(".") < 0) {
+      const endung = safe(zeile.beleg_pfad).split("/").pop().split(".");
+      if (endung.length > 1) datei += "." + endung.pop();
+    }
+    return (zeile.code ? zeile.code + "-" : "") + datei.replace(/[\\/:*?"<>|]+/g, "_");
+  }
+
+  async function belegHerunterladen(zeile, knopf) {
+    if (!zeile || !zeile.beleg_pfad) return;
+    const text = knopf ? knopf.textContent : "";
+    if (knopf) { knopf.disabled = true; knopf.textContent = "Wird geladen…"; }
+    try {
+      const { data, error } = await sb.storage.from(BUCKET).download(zeile.beleg_pfad);
+      if (error || !data) throw error || new Error("Keine Datei erhalten");
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = belegDateiname(zeile);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      toast("Beleg ließ sich nicht herunterladen: " + ((err && err.message) || err), true);
+    } finally {
+      if (knopf) { knopf.disabled = false; knopf.textContent = text; }
+    }
+  }
+
+  $("dlgBelegLaden").addEventListener("click", () =>
+    belegHerunterladen(AKTIV, $("dlgBelegLaden")));
 
   function detailSchliessen() { $("detailDialog").close(); }
 
